@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Driven by the A+ / A- toolbar buttons; every exam surface reads from it. */
+  --exam-zoom: 1;
+}
+
+body {
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  color: #111827;
+}
+
+/* The exam body scales as a unit, like the screen-zoom control on the real portal. */
+.exam-scale {
+  font-size: calc(1rem * var(--exam-zoom));
+}
+
+@layer components {
+  .palette-btn {
+    @apply relative flex h-9 w-9 items-center justify-center text-sm font-semibold
+           text-white transition-transform hover:scale-105;
+  }
+
+  .exam-btn {
+    @apply rounded border px-3 py-1.5 text-sm font-semibold transition-colors
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+}

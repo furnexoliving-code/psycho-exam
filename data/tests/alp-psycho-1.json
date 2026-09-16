@@ -1,0 +1,5600 @@
+{
+  "id": "alp-psycho-1",
+  "name": {
+    "en": "ALP Psycho Full Test - 1",
+    "hi": "एएलपी साइको पूर्ण परीक्षण - 1"
+  },
+  "displayName": "ALP Psycho Full Test - 1 (Free)",
+  "candidate": {
+    "name": "Candidate",
+    "rollNo": "ALP2026001"
+  },
+  "generalInstructions": [
+    {
+      "en": "The total duration of the exam is the sum of the time limits of the individual tests. Each test carries its own timer.",
+      "hi": "परीक्षा की कुल अवधि अलग-अलग परीक्षणों की समय सीमाओं का योग है। प्रत्येक परीक्षण का अपना टाइमर होता है।"
+    },
+    {
+      "en": "The clock will be set at the server. The countdown timer in the top bar of your screen will display the remaining time available for you to complete the test. When the timer reaches zero the test will end by itself.",
+      "hi": "घड़ी सर्वर पर सेट होगी। आपकी स्क्रीन के ऊपरी बार में उल्टी गिनती का टाइमर शेष उपलब्ध समय दिखाएगा। टाइमर शून्य पर पहुँचने पर परीक्षण स्वयं समाप्त हो जाएगा।"
+    },
+    {
+      "en": "The Question Palette on the right side of the screen shows the status of each question using the symbols in the legend above.",
+      "hi": "स्क्रीन के दाईं ओर प्रश्न पैलेट ऊपर दिए गए संकेतों द्वारा प्रत्येक प्रश्न की स्थिति दर्शाता है।"
+    },
+    {
+      "en": "Marking a question for review simply indicates that you would like to look at it again. A question that is answered and marked for review WILL be evaluated.",
+      "hi": "किसी प्रश्न को पुनरावलोकन हेतु चिह्नित करना केवल यह दर्शाता है कि आप उसे दोबारा देखना चाहते हैं। उत्तरित तथा पुनरावलोकन हेतु चिह्नित प्रश्न का मूल्यांकन किया जाएगा।"
+    },
+    {
+      "en": "You may change the exam language at any time using the Language selector in the top bar. Both languages are shown side by side on wide screens.",
+      "hi": "आप ऊपरी बार में भाषा चयनकर्ता से किसी भी समय परीक्षा की भाषा बदल सकते हैं। चौड़ी स्क्रीन पर दोनों भाषाएँ साथ-साथ दिखाई जाती हैं।"
+    },
+    {
+      "en": "Once you move to the next test you cannot return to the previous one, so finish each test before moving on.",
+      "hi": "अगले परीक्षण पर जाने के बाद आप पिछले परीक्षण पर वापस नहीं आ सकते, इसलिए आगे बढ़ने से पहले प्रत्येक परीक्षण पूरा करें।"
+    },
+    {
+      "en": "Use Screen Zoom (A+ / A-) to change the text size if the screen is hard to read.",
+      "hi": "यदि स्क्रीन पढ़ने में कठिनाई हो तो टेक्स्ट का आकार बदलने हेतु स्क्रीन ज़ूम (A+ / A-) का उपयोग करें।"
+    }
+  ],
+  "sections": [
+    {
+      "id": "memory",
+      "kind": "memory",
+      "name": {
+        "en": "Track Memory Test",
+        "hi": "ट्रैक स्मृति परीक्षण"
+      },
+      "timeLimitMin": 8,
+      "scored": true,
+      "instructions": [
+        {
+          "en": "This is a test of memory. The test is in two parts. In each part there is a Study page and a Test page.",
+          "hi": "यह स्मृति की परीक्षा है। यह टेस्ट दो भागों में होता है। प्रत्येक भाग में एक अध्ययन पृष्ठ और एक परीक्षण पृष्ठ होता है।"
+        },
+        {
+          "en": "On the study page you will see a railway map with names of some railway stations. Your task is to memorise the location of stations.",
+          "hi": "अध्ययन पृष्ठ पर आपको कुछ रेलवे स्टेशनों के नाम सहित एक रेलवे मानचित्र दिखाई देगा। आपका कार्य स्टेशनों की स्थिति याद करना है।"
+        },
+        {
+          "en": "After the allotted time you will be taken to the test page. On this page you will find the same railway map having English alphabets (A, B, C, D, E) in place of stations.",
+          "hi": "निर्धारित समय के बाद आपको परीक्षण पृष्ठ पर ले जाया जाएगा। इस पृष्ठ पर आपको वही रेलवे मानचित्र मिलेगा जिसमें स्टेशनों के स्थान पर अंग्रेजी अक्षर (A, B, C, D, E) होंगे।"
+        },
+        {
+          "en": "You are required to recall the location of each station in the map. The alphabet that stands for the position of the station in the map will be your answer.",
+          "hi": "आपको मानचित्र में प्रत्येक स्टेशन की स्थिति याद करनी है। मानचित्र में स्टेशन की स्थिति को दर्शाने वाला अक्षर ही आपका उत्तर होगा।"
+        }
+      ],
+      "example": {
+        "text": [
+          {
+            "en": "Now look at the example of study page given below:-",
+            "hi": "उदाहरण के लिए नीचे दिए गए अध्ययन पृष्ठ को देखें:-"
+          },
+          {
+            "en": "If the question asks for PER and PER stands at position C on the test page, then option C is the right answer.",
+            "hi": "यदि प्रश्न PER के बारे में है और परीक्षण पृष्ठ पर PER की स्थिति C है, तो विकल्प C सही उत्तर है।"
+          }
+        ],
+        "stimulus": {
+          "type": "track-map",
+          "map": {
+            "tracks": [
+              {
+                "points": [
+                  [
+                    6,
+                    78
+                  ],
+                  [
+                    34,
+                    50
+                  ],
+                  [
+                    62,
+                    30
+                  ],
+                  [
+                    92,
+                    18
+                  ]
+                ],
+                "kind": "double"
+              },
+              {
+                "points": [
+                  [
+                    6,
+                    30
+                  ],
+                  [
+                    32,
+                    44
+                  ],
+                  [
+                    58,
+                    58
+                  ],
+                  [
+                    92,
+                    74
+                  ]
+                ],
+                "kind": "single"
+              },
+              {
+                "points": [
+                  [
+                    50,
+                    6
+                  ],
+                  [
+                    48,
+                    40
+                  ],
+                  [
+                    46,
+                    72
+                  ],
+                  [
+                    44,
+                    95
+                  ]
+                ],
+                "kind": "single"
+              }
+            ],
+            "stations": [
+              {
+                "x": 34,
+                "y": 50,
+                "code": "SOK",
+                "letter": "B",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 62,
+                "y": 30,
+                "code": "PER",
+                "letter": "C",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 58,
+                "y": 58,
+                "code": "DET",
+                "letter": "A",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 46,
+                "y": 72,
+                "code": "NGR",
+                "letter": "E",
+                "lx": 2.4,
+                "ly": -1.6
+              }
+            ]
+          }
+        }
+      },
+      "studyPhase": {
+        "durationSec": 180,
+        "stimulus": {
+          "type": "track-map",
+          "map": {
+            "tracks": [
+              {
+                "points": [
+                  [
+                    4,
+                    74
+                  ],
+                  [
+                    26,
+                    60
+                  ],
+                  [
+                    52,
+                    52
+                  ],
+                  [
+                    78,
+                    56
+                  ],
+                  [
+                    96,
+                    66
+                  ]
+                ],
+                "kind": "double"
+              },
+              {
+                "points": [
+                  [
+                    8,
+                    92
+                  ],
+                  [
+                    30,
+                    84
+                  ],
+                  [
+                    58,
+                    80
+                  ],
+                  [
+                    84,
+                    84
+                  ],
+                  [
+                    97,
+                    90
+                  ]
+                ],
+                "kind": "single"
+              },
+              {
+                "points": [
+                  [
+                    12,
+                    96
+                  ],
+                  [
+                    22,
+                    66
+                  ],
+                  [
+                    30,
+                    38
+                  ],
+                  [
+                    36,
+                    14
+                  ]
+                ],
+                "kind": "single"
+              },
+              {
+                "points": [
+                  [
+                    34,
+                    95
+                  ],
+                  [
+                    44,
+                    68
+                  ],
+                  [
+                    54,
+                    42
+                  ],
+                  [
+                    62,
+                    18
+                  ]
+                ],
+                "kind": "double"
+              },
+              {
+                "points": [
+                  [
+                    58,
+                    96
+                  ],
+                  [
+                    68,
+                    70
+                  ],
+                  [
+                    78,
+                    44
+                  ],
+                  [
+                    86,
+                    20
+                  ]
+                ],
+                "kind": "single"
+              },
+              {
+                "points": [
+                  [
+                    2,
+                    40
+                  ],
+                  [
+                    24,
+                    30
+                  ],
+                  [
+                    50,
+                    26
+                  ],
+                  [
+                    74,
+                    30
+                  ],
+                  [
+                    94,
+                    42
+                  ]
+                ],
+                "kind": "double"
+              }
+            ],
+            "stations": [
+              {
+                "x": 12.45,
+                "y": 68.62,
+                "code": "MPL",
+                "letter": "A",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 34.59,
+                "y": 57.36,
+                "code": "SLS",
+                "letter": "C",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 58.75,
+                "y": 53.04,
+                "code": "OZM",
+                "letter": "B",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 82.86,
+                "y": 58.7,
+                "code": "MGL",
+                "letter": "E",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 21.01,
+                "y": 87.27,
+                "code": "CTR",
+                "letter": "D",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 43.38,
+                "y": 82.09,
+                "code": "SRL",
+                "letter": "A",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 66.22,
+                "y": 81.26,
+                "code": "BPQ",
+                "letter": "E",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 88.62,
+                "y": 86.13,
+                "code": "JHS",
+                "letter": "C",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 17.41,
+                "y": 79.78,
+                "code": "KGP",
+                "letter": "B",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 26.23,
+                "y": 51.2,
+                "code": "NDL",
+                "letter": "D",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 32.89,
+                "y": 26.44,
+                "code": "TVC",
+                "letter": "A",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 39.12,
+                "y": 81.17,
+                "code": "ADI",
+                "letter": "E",
+                "lx": -2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 47.78,
+                "y": 58.16,
+                "code": "BSB",
+                "letter": "B",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 56.3,
+                "y": 35.1,
+                "code": "GKP",
+                "letter": "C",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 64.4,
+                "y": 79.37,
+                "code": "LKO",
+                "letter": "D",
+                "lx": -2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 73.12,
+                "y": 56.68,
+                "code": "CNB",
+                "letter": "A",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 81.39,
+                "y": 33.83,
+                "code": "PNBE",
+                "letter": "E",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 12.72,
+                "y": 35.13,
+                "code": "HWH",
+                "letter": "C",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 33.09,
+                "y": 28.6,
+                "code": "SDAH",
+                "letter": "B",
+                "lx": -2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 54.42,
+                "y": 26.74,
+                "code": "DHN",
+                "letter": "D",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 75.49,
+                "y": 30.89,
+                "code": "RNC",
+                "letter": "A",
+                "lx": -2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 87.27,
+                "y": 37.96,
+                "code": "BBS",
+                "letter": "E",
+                "lx": 2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 94.25,
+                "y": 65.03,
+                "code": "VSKP",
+                "letter": "B",
+                "lx": -2.4,
+                "ly": -1.6
+              },
+              {
+                "x": 9.74,
+                "y": 91.37,
+                "code": "MAS",
+                "letter": "D",
+                "lx": 2.4,
+                "ly": -1.6
+              }
+            ]
+          }
+        }
+      },
+      "blocks": [
+        {
+          "id": "mem-set-1",
+          "title": {
+            "en": "Set-1 (Q1 - Q12)",
+            "hi": "सेट-1 (प्र1 - प्र12)"
+          },
+          "stimulus": {
+            "type": "track-map",
+            "map": {
+              "tracks": [
+                {
+                  "points": [
+                    [
+                      4,
+                      74
+                    ],
+                    [
+                      26,
+                      60
+                    ],
+                    [
+                      52,
+                      52
+                    ],
+                    [
+                      78,
+                      56
+                    ],
+                    [
+                      96,
+                      66
+                    ]
+                  ],
+                  "kind": "double"
+                },
+                {
+                  "points": [
+                    [
+                      8,
+                      92
+                    ],
+                    [
+                      30,
+                      84
+                    ],
+                    [
+                      58,
+                      80
+                    ],
+                    [
+                      84,
+                      84
+                    ],
+                    [
+                      97,
+                      90
+                    ]
+                  ],
+                  "kind": "single"
+                },
+                {
+                  "points": [
+                    [
+                      12,
+                      96
+                    ],
+                    [
+                      22,
+                      66
+                    ],
+                    [
+                      30,
+                      38
+                    ],
+                    [
+                      36,
+                      14
+                    ]
+                  ],
+                  "kind": "single"
+                },
+                {
+                  "points": [
+                    [
+                      34,
+                      95
+                    ],
+                    [
+                      44,
+                      68
+                    ],
+                    [
+                      54,
+                      42
+                    ],
+                    [
+                      62,
+                      18
+                    ]
+                  ],
+                  "kind": "double"
+                },
+                {
+                  "points": [
+                    [
+                      58,
+                      96
+                    ],
+                    [
+                      68,
+                      70
+                    ],
+                    [
+                      78,
+                      44
+                    ],
+                    [
+                      86,
+                      20
+                    ]
+                  ],
+                  "kind": "single"
+                },
+                {
+                  "points": [
+                    [
+                      2,
+                      40
+                    ],
+                    [
+                      24,
+                      30
+                    ],
+                    [
+                      50,
+                      26
+                    ],
+                    [
+                      74,
+                      30
+                    ],
+                    [
+                      94,
+                      42
+                    ]
+                  ],
+                  "kind": "double"
+                }
+              ],
+              "stations": [
+                {
+                  "x": 12.45,
+                  "y": 68.62,
+                  "code": "MPL",
+                  "letter": "A",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 34.59,
+                  "y": 57.36,
+                  "code": "SLS",
+                  "letter": "C",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 58.75,
+                  "y": 53.04,
+                  "code": "OZM",
+                  "letter": "B",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 82.86,
+                  "y": 58.7,
+                  "code": "MGL",
+                  "letter": "E",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 21.01,
+                  "y": 87.27,
+                  "code": "CTR",
+                  "letter": "D",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 43.38,
+                  "y": 82.09,
+                  "code": "SRL",
+                  "letter": "A",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 66.22,
+                  "y": 81.26,
+                  "code": "BPQ",
+                  "letter": "E",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 88.62,
+                  "y": 86.13,
+                  "code": "JHS",
+                  "letter": "C",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 17.41,
+                  "y": 79.78,
+                  "code": "KGP",
+                  "letter": "B",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 26.23,
+                  "y": 51.2,
+                  "code": "NDL",
+                  "letter": "D",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 32.89,
+                  "y": 26.44,
+                  "code": "TVC",
+                  "letter": "A",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 39.12,
+                  "y": 81.17,
+                  "code": "ADI",
+                  "letter": "E",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 47.78,
+                  "y": 58.16,
+                  "code": "BSB",
+                  "letter": "B",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 56.3,
+                  "y": 35.1,
+                  "code": "GKP",
+                  "letter": "C",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 64.4,
+                  "y": 79.37,
+                  "code": "LKO",
+                  "letter": "D",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 73.12,
+                  "y": 56.68,
+                  "code": "CNB",
+                  "letter": "A",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 81.39,
+                  "y": 33.83,
+                  "code": "PNBE",
+                  "letter": "E",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 12.72,
+                  "y": 35.13,
+                  "code": "HWH",
+                  "letter": "C",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 33.09,
+                  "y": 28.6,
+                  "code": "SDAH",
+                  "letter": "B",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 54.42,
+                  "y": 26.74,
+                  "code": "DHN",
+                  "letter": "D",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 75.49,
+                  "y": 30.89,
+                  "code": "RNC",
+                  "letter": "A",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 87.27,
+                  "y": 37.96,
+                  "code": "BBS",
+                  "letter": "E",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 94.25,
+                  "y": 65.03,
+                  "code": "VSKP",
+                  "letter": "B",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 9.74,
+                  "y": 91.37,
+                  "code": "MAS",
+                  "letter": "D",
+                  "lx": 2.4,
+                  "ly": -1.6
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "mem-set-2",
+          "title": {
+            "en": "Set-2 (Q13 - Q24)",
+            "hi": "सेट-2 (प्र13 - प्र24)"
+          },
+          "stimulus": {
+            "type": "track-map",
+            "map": {
+              "tracks": [
+                {
+                  "points": [
+                    [
+                      4,
+                      74
+                    ],
+                    [
+                      26,
+                      60
+                    ],
+                    [
+                      52,
+                      52
+                    ],
+                    [
+                      78,
+                      56
+                    ],
+                    [
+                      96,
+                      66
+                    ]
+                  ],
+                  "kind": "double"
+                },
+                {
+                  "points": [
+                    [
+                      8,
+                      92
+                    ],
+                    [
+                      30,
+                      84
+                    ],
+                    [
+                      58,
+                      80
+                    ],
+                    [
+                      84,
+                      84
+                    ],
+                    [
+                      97,
+                      90
+                    ]
+                  ],
+                  "kind": "single"
+                },
+                {
+                  "points": [
+                    [
+                      12,
+                      96
+                    ],
+                    [
+                      22,
+                      66
+                    ],
+                    [
+                      30,
+                      38
+                    ],
+                    [
+                      36,
+                      14
+                    ]
+                  ],
+                  "kind": "single"
+                },
+                {
+                  "points": [
+                    [
+                      34,
+                      95
+                    ],
+                    [
+                      44,
+                      68
+                    ],
+                    [
+                      54,
+                      42
+                    ],
+                    [
+                      62,
+                      18
+                    ]
+                  ],
+                  "kind": "double"
+                },
+                {
+                  "points": [
+                    [
+                      58,
+                      96
+                    ],
+                    [
+                      68,
+                      70
+                    ],
+                    [
+                      78,
+                      44
+                    ],
+                    [
+                      86,
+                      20
+                    ]
+                  ],
+                  "kind": "single"
+                },
+                {
+                  "points": [
+                    [
+                      2,
+                      40
+                    ],
+                    [
+                      24,
+                      30
+                    ],
+                    [
+                      50,
+                      26
+                    ],
+                    [
+                      74,
+                      30
+                    ],
+                    [
+                      94,
+                      42
+                    ]
+                  ],
+                  "kind": "double"
+                }
+              ],
+              "stations": [
+                {
+                  "x": 12.45,
+                  "y": 68.62,
+                  "code": "MPL",
+                  "letter": "A",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 34.59,
+                  "y": 57.36,
+                  "code": "SLS",
+                  "letter": "C",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 58.75,
+                  "y": 53.04,
+                  "code": "OZM",
+                  "letter": "B",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 82.86,
+                  "y": 58.7,
+                  "code": "MGL",
+                  "letter": "E",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 21.01,
+                  "y": 87.27,
+                  "code": "CTR",
+                  "letter": "D",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 43.38,
+                  "y": 82.09,
+                  "code": "SRL",
+                  "letter": "A",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 66.22,
+                  "y": 81.26,
+                  "code": "BPQ",
+                  "letter": "E",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 88.62,
+                  "y": 86.13,
+                  "code": "JHS",
+                  "letter": "C",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 17.41,
+                  "y": 79.78,
+                  "code": "KGP",
+                  "letter": "B",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 26.23,
+                  "y": 51.2,
+                  "code": "NDL",
+                  "letter": "D",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 32.89,
+                  "y": 26.44,
+                  "code": "TVC",
+                  "letter": "A",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 39.12,
+                  "y": 81.17,
+                  "code": "ADI",
+                  "letter": "E",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 47.78,
+                  "y": 58.16,
+                  "code": "BSB",
+                  "letter": "B",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 56.3,
+                  "y": 35.1,
+                  "code": "GKP",
+                  "letter": "C",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 64.4,
+                  "y": 79.37,
+                  "code": "LKO",
+                  "letter": "D",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 73.12,
+                  "y": 56.68,
+                  "code": "CNB",
+                  "letter": "A",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 81.39,
+                  "y": 33.83,
+                  "code": "PNBE",
+                  "letter": "E",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 12.72,
+                  "y": 35.13,
+                  "code": "HWH",
+                  "letter": "C",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 33.09,
+                  "y": 28.6,
+                  "code": "SDAH",
+                  "letter": "B",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 54.42,
+                  "y": 26.74,
+                  "code": "DHN",
+                  "letter": "D",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 75.49,
+                  "y": 30.89,
+                  "code": "RNC",
+                  "letter": "A",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 87.27,
+                  "y": 37.96,
+                  "code": "BBS",
+                  "letter": "E",
+                  "lx": 2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 94.25,
+                  "y": 65.03,
+                  "code": "VSKP",
+                  "letter": "B",
+                  "lx": -2.4,
+                  "ly": -1.6
+                },
+                {
+                  "x": 9.74,
+                  "y": 91.37,
+                  "code": "MAS",
+                  "letter": "D",
+                  "lx": 2.4,
+                  "ly": -1.6
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "questions": [
+        {
+          "id": "mem-q1",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "MPL",
+            "hi": "MPL"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "mem-q2",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "SLS",
+            "hi": "SLS"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "mem-q3",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "OZM",
+            "hi": "OZM"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "mem-q4",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "MGL",
+            "hi": "MGL"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "mem-q5",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "CTR",
+            "hi": "CTR"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "mem-q6",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "SRL",
+            "hi": "SRL"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "mem-q7",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "BPQ",
+            "hi": "BPQ"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "mem-q8",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "JHS",
+            "hi": "JHS"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "mem-q9",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "KGP",
+            "hi": "KGP"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "mem-q10",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "NDL",
+            "hi": "NDL"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "mem-q11",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "TVC",
+            "hi": "TVC"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "mem-q12",
+          "blockId": "mem-set-1",
+          "prompt": {
+            "en": "ADI",
+            "hi": "ADI"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "mem-q13",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "BSB",
+            "hi": "BSB"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "mem-q14",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "GKP",
+            "hi": "GKP"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "mem-q15",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "LKO",
+            "hi": "LKO"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "mem-q16",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "CNB",
+            "hi": "CNB"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "mem-q17",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "PNBE",
+            "hi": "PNBE"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "mem-q18",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "HWH",
+            "hi": "HWH"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "mem-q19",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "SDAH",
+            "hi": "SDAH"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "mem-q20",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "DHN",
+            "hi": "DHN"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "mem-q21",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "RNC",
+            "hi": "RNC"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "mem-q22",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "BBS",
+            "hi": "BBS"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "mem-q23",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "VSKP",
+            "hi": "VSKP"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "mem-q24",
+          "blockId": "mem-set-2",
+          "prompt": {
+            "en": "MAS",
+            "hi": "MAS"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        }
+      ]
+    },
+    {
+      "id": "intelligence",
+      "kind": "intelligence",
+      "name": {
+        "en": "Intelligence Test",
+        "hi": "बुद्धि परीक्षण"
+      },
+      "timeLimitMin": 15,
+      "scored": true,
+      "instructions": [
+        {
+          "en": "This test measures general reasoning ability through number series, analogies, coding and simple logic.",
+          "hi": "यह परीक्षण संख्या श्रृंखला, सादृश्य, कूट-लेखन और सरल तर्क के माध्यम से सामान्य तर्क क्षमता मापता है।"
+        },
+        {
+          "en": "Each question has four options, of which exactly one is correct. There is no negative marking.",
+          "hi": "प्रत्येक प्रश्न के चार विकल्प हैं, जिनमें से ठीक एक सही है। कोई ऋणात्मक अंकन नहीं है।"
+        }
+      ],
+      "blocks": [
+        {
+          "id": "int-main",
+          "title": {
+            "en": "Reasoning (Q1 - Q20)",
+            "hi": "तर्कशक्ति (प्र1 - प्र20)"
+          }
+        }
+      ],
+      "questions": [
+        {
+          "id": "int-q1",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Find the next number: 3, 6, 11, 18, 27, ?",
+            "hi": "अगली संख्या ज्ञात करें: 3, 6, 11, 18, 27, ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "34",
+                "hi": "34"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "36",
+                "hi": "36"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "38",
+                "hi": "38"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "40",
+                "hi": "40"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "int-q2",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Find the next number: 2, 6, 12, 20, 30, ?",
+            "hi": "अगली संख्या ज्ञात करें: 2, 6, 12, 20, 30, ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "40",
+                "hi": "40"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "42",
+                "hi": "42"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "44",
+                "hi": "44"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "46",
+                "hi": "46"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q3",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "If TRAIN is coded as URBJO, how is METRO coded?",
+            "hi": "यदि TRAIN का कोड URBJO है, तो METRO का कोड क्या होगा?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "NFUSP",
+                "hi": "NFUSP"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "NFTSP",
+                "hi": "NFTSP"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "NEUSP",
+                "hi": "NEUSP"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "MFUSP",
+                "hi": "MFUSP"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "int-q4",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Odd one out: Engine, Coach, Wagon, Platform",
+            "hi": "विषम चुनें: इंजन, कोच, वैगन, प्लेटफ़ॉर्म"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Engine",
+                "hi": "Engine"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Coach",
+                "hi": "Coach"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Wagon",
+                "hi": "Wagon"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Platform",
+                "hi": "Platform"
+              }
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "int-q5",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Signal : Train :: Traffic light : ?",
+            "hi": "सिग्नल : ट्रेन :: ट्रैफ़िक लाइट : ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Road",
+                "hi": "Road"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Vehicle",
+                "hi": "Vehicle"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Driver",
+                "hi": "Driver"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Junction",
+                "hi": "Junction"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q6",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Find the missing term: AZ, BY, CX, ?",
+            "hi": "लुप्त पद ज्ञात करें: AZ, BY, CX, ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "DV",
+                "hi": "DV"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "DW",
+                "hi": "DW"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "EW",
+                "hi": "EW"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "DX",
+                "hi": "DX"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q7",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "A is the brother of B. B is the sister of C. How is A related to C?",
+            "hi": "A, B का भाई है। B, C की बहन है। A का C से क्या संबंध है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Brother",
+                "hi": "Brother"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Sister",
+                "hi": "Sister"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Father",
+                "hi": "Father"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Cannot be determined",
+                "hi": "Cannot be determined"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "int-q8",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "If 5 workers lay 100 m of track in 4 days, how many days for 10 workers to lay 200 m?",
+            "hi": "यदि 5 श्रमिक 4 दिनों में 100 मीटर ट्रैक बिछाते हैं, तो 10 श्रमिक 200 मीटर कितने दिनों में बिछाएँगे?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "4",
+                "hi": "4"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "6",
+                "hi": "6"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "8",
+                "hi": "8"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q9",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Find the odd number: 16, 25, 36, 48, 64",
+            "hi": "विषम संख्या ज्ञात करें: 16, 25, 36, 48, 64"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "25",
+                "hi": "25"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "36",
+                "hi": "36"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "48",
+                "hi": "48"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "64",
+                "hi": "64"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "int-q10",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Complete the series: Z, X, V, T, ?",
+            "hi": "श्रृंखला पूरी करें: Z, X, V, T, ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "S",
+                "hi": "S"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "R",
+                "hi": "R"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Q",
+                "hi": "Q"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "P",
+                "hi": "P"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q11",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "A train travels 60 km in 45 minutes. Its speed in km/h is:",
+            "hi": "एक ट्रेन 45 मिनट में 60 किमी चलती है। इसकी गति किमी/घंटा में है:"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "70",
+                "hi": "70"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "75",
+                "hi": "75"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "80",
+                "hi": "80"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "85",
+                "hi": "85"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "int-q12",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Pointing to a man, Ravi said, 'He is my father's only son.' Who is the man?",
+            "hi": "एक व्यक्ति की ओर इशारा करते हुए रवि ने कहा, 'वह मेरे पिता का इकलौता पुत्र है।' वह व्यक्ति कौन है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Ravi's brother",
+                "hi": "Ravi's brother"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Ravi himself",
+                "hi": "Ravi himself"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Ravi's father",
+                "hi": "Ravi's father"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Ravi's uncle",
+                "hi": "Ravi's uncle"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q13",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Which comes next: 1, 4, 9, 16, 25, ?",
+            "hi": "आगे क्या आएगा: 1, 4, 9, 16, 25, ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "30",
+                "hi": "30"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "36",
+                "hi": "36"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "42",
+                "hi": "42"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "49",
+                "hi": "49"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q14",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "If SOUTH is opposite NORTH, then LEFT of EAST facing north is:",
+            "hi": "यदि दक्षिण, उत्तर के विपरीत है, तो उत्तर की ओर मुख करके पूर्व के बाएँ है:"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "North",
+                "hi": "North"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "South",
+                "hi": "South"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "West",
+                "hi": "West"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "East",
+                "hi": "East"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "int-q15",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Odd one out: Kilometre, Metre, Kilogram, Centimetre",
+            "hi": "विषम चुनें: किलोमीटर, मीटर, किलोग्राम, सेंटीमीटर"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Kilometre",
+                "hi": "Kilometre"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Metre",
+                "hi": "Metre"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Kilogram",
+                "hi": "Kilogram"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Centimetre",
+                "hi": "Centimetre"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "int-q16",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Find the next: 100, 81, 64, 49, ?",
+            "hi": "अगला ज्ञात करें: 100, 81, 64, 49, ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "32",
+                "hi": "32"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "36",
+                "hi": "36"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "38",
+                "hi": "38"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "40",
+                "hi": "40"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q17",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Book : Author :: Timetable : ?",
+            "hi": "पुस्तक : लेखक :: समय-सारणी : ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Passenger",
+                "hi": "Passenger"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Railway",
+                "hi": "Railway"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Station",
+                "hi": "Station"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Clock",
+                "hi": "Clock"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q18",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "A clock shows 3:15. The angle between its hands is:",
+            "hi": "एक घड़ी 3:15 दिखाती है। इसकी सुइयों के बीच का कोण है:"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "0°",
+                "hi": "0°"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "7.5°",
+                "hi": "7.5°"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "15°",
+                "hi": "15°"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "30°",
+                "hi": "30°"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "int-q19",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "Which number replaces the question mark: 7, 14, 28, 56, ?",
+            "hi": "प्रश्नवाचक चिह्न के स्थान पर कौन सी संख्या आएगी: 7, 14, 28, 56, ?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "84",
+                "hi": "84"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "98",
+                "hi": "98"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "112",
+                "hi": "112"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "126",
+                "hi": "126"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "int-q20",
+          "blockId": "int-main",
+          "prompt": {
+            "en": "If all signals are lights and some lights are red, then:",
+            "hi": "यदि सभी सिग्नल लाइट हैं और कुछ लाइट लाल हैं, तो:"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "All signals are red",
+                "hi": "All signals are red"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Some signals may be red",
+                "hi": "Some signals may be red"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "No signal is red",
+                "hi": "No signal is red"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "All lights are signals",
+                "hi": "All lights are signals"
+              }
+            }
+          ],
+          "correct": "B"
+        }
+      ]
+    },
+    {
+      "id": "selective-attention",
+      "kind": "selective-attention",
+      "name": {
+        "en": "Selective Attention Test",
+        "hi": "चयनात्मक ध्यान परीक्षण"
+      },
+      "timeLimitMin": 6,
+      "scored": true,
+      "instructions": [
+        {
+          "en": "This test measures how well you can focus on one target while ignoring everything around it.",
+          "hi": "यह परीक्षण मापता है कि आप आसपास की अन्य चीज़ों को अनदेखा करते हुए एक लक्ष्य पर कितना ध्यान केंद्रित कर सकते हैं।"
+        },
+        {
+          "en": "A grid of symbols is shown. For each question, count how many times the given symbol appears in the stated row and mark that number.",
+          "hi": "प्रतीकों का एक ग्रिड दिखाया गया है। प्रत्येक प्रश्न के लिए गिनें कि दिया गया प्रतीक बताई गई पंक्ति में कितनी बार आता है और वह संख्या चिह्नित करें।"
+        },
+        {
+          "en": "Work quickly but accurately. Rows are numbered from the top, starting at 1.",
+          "hi": "तेज़ी से किंतु सावधानी से कार्य करें। पंक्तियाँ ऊपर से 1 से गिनी जाती हैं।"
+        }
+      ],
+      "blocks": [
+        {
+          "id": "sel-grid",
+          "title": {
+            "en": "Symbol Grid (Q1 - Q24)",
+            "hi": "प्रतीक ग्रिड (प्र1 - प्र24)"
+          },
+          "stimulus": {
+            "type": "symbol-grid",
+            "rows": [
+              [
+                "◆",
+                "▼",
+                "●",
+                "▲",
+                "✚",
+                "■",
+                "◗",
+                "■",
+                "■",
+                "●",
+                "▼",
+                "★"
+              ],
+              [
+                "◗",
+                "▼",
+                "▼",
+                "▼",
+                "●",
+                "◗",
+                "◆",
+                "●",
+                "◗",
+                "★",
+                "◗",
+                "■"
+              ],
+              [
+                "◆",
+                "▲",
+                "◆",
+                "✚",
+                "◆",
+                "✚",
+                "◗",
+                "★",
+                "▼",
+                "◆",
+                "◗",
+                "★"
+              ],
+              [
+                "▲",
+                "▲",
+                "◆",
+                "■",
+                "★",
+                "◗",
+                "●",
+                "◆",
+                "▲",
+                "▲",
+                "✚",
+                "■"
+              ],
+              [
+                "▲",
+                "●",
+                "◗",
+                "●",
+                "◆",
+                "◆",
+                "✚",
+                "▼",
+                "▼",
+                "✚",
+                "◗",
+                "▼"
+              ],
+              [
+                "■",
+                "◗",
+                "▼",
+                "●",
+                "◗",
+                "◗",
+                "▼",
+                "●",
+                "★",
+                "▲",
+                "●",
+                "◆"
+              ],
+              [
+                "▲",
+                "◗",
+                "■",
+                "★",
+                "■",
+                "✚",
+                "●",
+                "▲",
+                "▲",
+                "▼",
+                "●",
+                "★"
+              ],
+              [
+                "◗",
+                "◆",
+                "★",
+                "▼",
+                "◗",
+                "◗",
+                "▲",
+                "▼",
+                "★",
+                "◗",
+                "◆",
+                "▲"
+              ],
+              [
+                "●",
+                "◆",
+                "✚",
+                "◗",
+                "●",
+                "■",
+                "■",
+                "◗",
+                "◆",
+                "●",
+                "■",
+                "▲"
+              ],
+              [
+                "▲",
+                "●",
+                "▲",
+                "●",
+                "▼",
+                "◆",
+                "✚",
+                "▲",
+                "★",
+                "✚",
+                "●",
+                "★"
+              ]
+            ]
+          }
+        }
+      ],
+      "questions": [
+        {
+          "id": "sel-q1",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 1: how many times does ◆ appear?",
+            "hi": "पंक्ति 1: ◆ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q2",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 2: how many times does ▲ appear?",
+            "hi": "पंक्ति 2: ▲ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q3",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 3: how many times does ● appear?",
+            "hi": "पंक्ति 3: ● कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "sel-q4",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 4: how many times does ■ appear?",
+            "hi": "पंक्ति 4: ■ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q5",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 5: how many times does ★ appear?",
+            "hi": "पंक्ति 5: ★ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "sel-q6",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 6: how many times does ✚ appear?",
+            "hi": "पंक्ति 6: ✚ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "sel-q7",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 7: how many times does ▼ appear?",
+            "hi": "पंक्ति 7: ▼ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "sel-q8",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 8: how many times does ◗ appear?",
+            "hi": "पंक्ति 8: ◗ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "4",
+                "hi": "4"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "5",
+                "hi": "5"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q9",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 9: how many times does ◆ appear?",
+            "hi": "पंक्ति 9: ◆ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q10",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 10: how many times does ▲ appear?",
+            "hi": "पंक्ति 10: ▲ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "4",
+                "hi": "4"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "sel-q11",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 1: how many times does ● appear?",
+            "hi": "पंक्ति 1: ● कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "sel-q12",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 2: how many times does ■ appear?",
+            "hi": "पंक्ति 2: ■ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "sel-q13",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 3: how many times does ★ appear?",
+            "hi": "पंक्ति 3: ★ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "sel-q14",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 4: how many times does ✚ appear?",
+            "hi": "पंक्ति 4: ✚ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q15",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 5: how many times does ▼ appear?",
+            "hi": "पंक्ति 5: ▼ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "4",
+                "hi": "4"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q16",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 6: how many times does ◗ appear?",
+            "hi": "पंक्ति 6: ◗ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "4",
+                "hi": "4"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "sel-q17",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 7: how many times does ◆ appear?",
+            "hi": "पंक्ति 7: ◆ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q18",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 8: how many times does ▲ appear?",
+            "hi": "पंक्ति 8: ▲ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "sel-q19",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 9: how many times does ● appear?",
+            "hi": "पंक्ति 9: ● कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "4",
+                "hi": "4"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "sel-q20",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 10: how many times does ■ appear?",
+            "hi": "पंक्ति 10: ■ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "sel-q21",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 1: how many times does ★ appear?",
+            "hi": "पंक्ति 1: ★ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q22",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 2: how many times does ✚ appear?",
+            "hi": "पंक्ति 2: ✚ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "sel-q23",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 3: how many times does ▼ appear?",
+            "hi": "पंक्ति 3: ▼ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "sel-q24",
+          "blockId": "sel-grid",
+          "prompt": {
+            "en": "Row 4: how many times does ◗ appear?",
+            "hi": "पंक्ति 4: ◗ कितनी बार आया है?"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "1",
+                "hi": "1"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "2",
+                "hi": "2"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "3",
+                "hi": "3"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "0",
+                "hi": "0"
+              }
+            }
+          ],
+          "correct": "A"
+        }
+      ]
+    },
+    {
+      "id": "spatial-scanning",
+      "kind": "spatial-scanning",
+      "name": {
+        "en": "Spatial Scanning Test",
+        "hi": "स्थानिक अवलोकन परीक्षण"
+      },
+      "timeLimitMin": 8,
+      "scored": true,
+      "instructions": [
+        {
+          "en": "This test measures how quickly you can scan a set of figures and spot the one that does not belong.",
+          "hi": "यह परीक्षण मापता है कि आप आकृतियों के समूह को कितनी तेज़ी से देखकर उस आकृति को पहचान सकते हैं जो शेष से भिन्न है।"
+        },
+        {
+          "en": "Five figures are shown side by side, labelled A to E from the left. Four of them are the same shape; one is different.",
+          "hi": "पाँच आकृतियाँ साथ-साथ दिखाई गई हैं, बाएँ से A से E तक। इनमें से चार एक ही आकार की हैं; एक भिन्न है।"
+        },
+        {
+          "en": "Mark the letter of the figure that is different. Figures may be rotated, which does not make them different.",
+          "hi": "उस आकृति का अक्षर चिह्नित करें जो भिन्न है। आकृतियाँ घुमाई जा सकती हैं, इससे वे भिन्न नहीं हो जातीं।"
+        }
+      ],
+      "blocks": [
+        {
+          "id": "spa-block-1",
+          "title": {
+            "en": "Question 1",
+            "hi": "प्रश्न 1"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L86.1,38.3 L72.3,80.7 L27.7,80.7 L13.9,38.3 Z",
+              "M58.3,12.9 L87.8,46.4 L65.1,84.9 L21.5,75.1 L17.3,30.7 Z",
+              "M66.2,15.6 L87.7,54.8 L57.1,87.3 L16.7,68.3 L22.3,24.0 Z",
+              "M73.3,20.0 L87.6,55.2 L64.3,85.2 L26.7,80.0 L12.4,44.8 L35.7,14.8 Z",
+              "M79.3,25.8 L82.1,70.4 L40.5,86.8 L12.1,52.4 L36.0,14.7 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-2",
+          "title": {
+            "en": "Question 2",
+            "hi": "प्रश्न 2"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L82.9,31.0 L82.9,69.0 L50.0,88.0 L17.1,69.0 L17.1,31.0 Z",
+              "M58.3,12.9 L82.1,29.6 L87.1,58.3 L70.4,82.1 L41.7,87.1 L17.9,70.4 L12.9,41.7 L29.6,17.9 Z",
+              "M66.2,15.6 L87.9,46.8 L71.7,81.2 L33.8,84.4 L12.1,53.2 L28.3,18.8 Z",
+              "M73.3,20.0 L87.6,55.2 L64.3,85.2 L26.7,80.0 L12.4,44.8 L35.7,14.8 Z",
+              "M79.3,25.8 L85.6,63.3 L56.3,87.5 L20.7,74.2 L14.4,36.7 L43.7,12.5 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-3",
+          "title": {
+            "en": "Question 3",
+            "hi": "प्रश्न 3"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L79.7,26.3 L87.0,58.5 L66.5,84.2 L33.5,84.2 L13.0,58.5 L20.3,26.3 Z",
+              "M58.3,12.9 L82.1,29.6 L87.1,58.3 L70.4,82.1 L41.7,87.1 L17.9,70.4 L12.9,41.7 L29.6,17.9 Z",
+              "M66.2,15.6 L87.0,41.2 L79.9,73.4 L50.3,88.0 L20.5,74.0 L12.9,41.9 L33.2,15.9 Z",
+              "M73.3,20.0 L88.0,49.5 L74.1,79.4 L42.0,87.2 L16.0,66.9 L15.5,34.0 L41.1,13.1 Z",
+              "M79.3,25.8 L87.2,57.8 L67.1,83.9 L34.1,84.5 L13.1,59.1 L19.9,26.8 L49.3,12.0 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-4",
+          "title": {
+            "en": "Question 4",
+            "hi": "प्रश्न 4"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L76.9,23.1 L88.0,50.0 L76.9,76.9 L50.0,88.0 L23.1,76.9 L12.0,50.0 L23.1,23.1 Z",
+              "M58.3,12.9 L82.1,29.6 L87.1,58.3 L70.4,82.1 L41.7,87.1 L17.9,70.4 L12.9,41.7 L29.6,17.9 Z",
+              "M66.2,15.6 L83.3,31.7 L87.7,54.8 L77.7,76.0 L57.1,87.3 L33.8,84.4 L16.7,68.3 L12.3,45.2 L22.3,24.0 L42.9,12.7 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L87.8,53.6 L74.2,79.3 L46.4,87.8 L20.7,74.2 L12.2,46.4 L25.8,20.7 L53.6,12.2 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-5",
+          "title": {
+            "en": "Question 5",
+            "hi": "प्रश्न 5"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L86.1,38.3 L72.3,80.7 L27.7,80.7 L13.9,38.3 Z",
+              "M58.3,12.9 L87.8,46.4 L65.1,84.9 L21.5,75.1 L17.3,30.7 Z",
+              "M66.2,15.6 L87.9,46.8 L71.7,81.2 L33.8,84.4 L12.1,53.2 L28.3,18.8 Z",
+              "M73.3,20.0 L85.8,62.9 L48.8,88.0 L13.5,60.6 L28.6,18.6 Z",
+              "M79.3,25.8 L82.1,70.4 L40.5,86.8 L12.1,52.4 L36.0,14.7 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-6",
+          "title": {
+            "en": "Question 6",
+            "hi": "प्रश्न 6"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L82.9,31.0 L82.9,69.0 L50.0,88.0 L17.1,69.0 L17.1,31.0 Z",
+              "M58.3,12.9 L86.3,38.6 L78.0,75.7 L41.7,87.1 L13.7,61.4 L22.0,24.3 Z",
+              "M66.2,15.6 L87.9,46.8 L71.7,81.2 L33.8,84.4 L12.1,53.2 L28.3,18.8 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L85.6,63.3 L56.3,87.5 L20.7,74.2 L14.4,36.7 L43.7,12.5 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-7",
+          "title": {
+            "en": "Question 7",
+            "hi": "प्रश्न 7"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L79.7,26.3 L87.0,58.5 L66.5,84.2 L33.5,84.2 L13.0,58.5 L20.3,26.3 Z",
+              "M58.3,12.9 L84.2,33.4 L84.3,66.3 L58.6,87.0 L26.4,79.8 L12.0,50.2 L26.2,20.4 Z",
+              "M66.2,15.6 L87.0,41.2 L79.9,73.4 L50.3,88.0 L20.5,74.0 L12.9,41.9 L33.2,15.9 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L87.2,57.8 L67.1,83.9 L34.1,84.5 L13.1,59.1 L19.9,26.8 L49.3,12.0 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-8",
+          "title": {
+            "en": "Question 8",
+            "hi": "प्रश्न 8"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L76.9,23.1 L88.0,50.0 L76.9,76.9 L50.0,88.0 L23.1,76.9 L12.0,50.0 L23.1,23.1 Z",
+              "M58.3,12.9 L82.1,29.6 L87.1,58.3 L70.4,82.1 L41.7,87.1 L17.9,70.4 L12.9,41.7 L29.6,17.9 Z",
+              "M66.2,15.6 L83.3,31.7 L87.7,54.8 L77.7,76.0 L57.1,87.3 L33.8,84.4 L16.7,68.3 L12.3,45.2 L22.3,24.0 L42.9,12.7 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L87.8,53.6 L74.2,79.3 L46.4,87.8 L20.7,74.2 L12.2,46.4 L25.8,20.7 L53.6,12.2 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-9",
+          "title": {
+            "en": "Question 9",
+            "hi": "प्रश्न 9"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L82.9,31.0 L82.9,69.0 L50.0,88.0 L17.1,69.0 L17.1,31.0 Z",
+              "M58.3,12.9 L87.8,46.4 L65.1,84.9 L21.5,75.1 L17.3,30.7 Z",
+              "M66.2,15.6 L87.7,54.8 L57.1,87.3 L16.7,68.3 L22.3,24.0 Z",
+              "M73.3,20.0 L85.8,62.9 L48.8,88.0 L13.5,60.6 L28.6,18.6 Z",
+              "M79.3,25.8 L82.1,70.4 L40.5,86.8 L12.1,52.4 L36.0,14.7 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-10",
+          "title": {
+            "en": "Question 10",
+            "hi": "प्रश्न 10"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L82.9,31.0 L82.9,69.0 L50.0,88.0 L17.1,69.0 L17.1,31.0 Z",
+              "M58.3,12.9 L86.3,38.6 L78.0,75.7 L41.7,87.1 L13.7,61.4 L22.0,24.3 Z",
+              "M66.2,15.6 L87.9,46.8 L71.7,81.2 L33.8,84.4 L12.1,53.2 L28.3,18.8 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L85.6,63.3 L56.3,87.5 L20.7,74.2 L14.4,36.7 L43.7,12.5 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-11",
+          "title": {
+            "en": "Question 11",
+            "hi": "प्रश्न 11"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L76.9,23.1 L88.0,50.0 L76.9,76.9 L50.0,88.0 L23.1,76.9 L12.0,50.0 L23.1,23.1 Z",
+              "M58.3,12.9 L84.2,33.4 L84.3,66.3 L58.6,87.0 L26.4,79.8 L12.0,50.2 L26.2,20.4 Z",
+              "M66.2,15.6 L87.0,41.2 L79.9,73.4 L50.3,88.0 L20.5,74.0 L12.9,41.9 L33.2,15.9 Z",
+              "M73.3,20.0 L88.0,49.5 L74.1,79.4 L42.0,87.2 L16.0,66.9 L15.5,34.0 L41.1,13.1 Z",
+              "M79.3,25.8 L87.2,57.8 L67.1,83.9 L34.1,84.5 L13.1,59.1 L19.9,26.8 L49.3,12.0 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-12",
+          "title": {
+            "en": "Question 12",
+            "hi": "प्रश्न 12"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L72.3,19.3 L86.1,38.3 L86.1,61.7 L72.3,80.7 L50.0,88.0 L27.7,80.7 L13.9,61.7 L13.9,38.3 L27.7,19.3 Z",
+              "M58.3,12.9 L82.1,29.6 L87.1,58.3 L70.4,82.1 L41.7,87.1 L17.9,70.4 L12.9,41.7 L29.6,17.9 Z",
+              "M66.2,15.6 L85.8,37.1 L84.4,66.2 L62.9,85.8 L33.8,84.4 L14.2,62.9 L15.6,33.8 L37.1,14.2 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L87.8,53.6 L74.2,79.3 L46.4,87.8 L20.7,74.2 L12.2,46.4 L25.8,20.7 L53.6,12.2 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-13",
+          "title": {
+            "en": "Question 13",
+            "hi": "प्रश्न 13"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L82.9,31.0 L82.9,69.0 L50.0,88.0 L17.1,69.0 L17.1,31.0 Z",
+              "M58.3,12.9 L87.8,46.4 L65.1,84.9 L21.5,75.1 L17.3,30.7 Z",
+              "M66.2,15.6 L87.7,54.8 L57.1,87.3 L16.7,68.3 L22.3,24.0 Z",
+              "M73.3,20.0 L85.8,62.9 L48.8,88.0 L13.5,60.6 L28.6,18.6 Z",
+              "M79.3,25.8 L82.1,70.4 L40.5,86.8 L12.1,52.4 L36.0,14.7 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-14",
+          "title": {
+            "en": "Question 14",
+            "hi": "प्रश्न 14"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L82.9,31.0 L82.9,69.0 L50.0,88.0 L17.1,69.0 L17.1,31.0 Z",
+              "M58.3,12.9 L86.3,38.6 L78.0,75.7 L41.7,87.1 L13.7,61.4 L22.0,24.3 Z",
+              "M66.2,15.6 L87.9,46.8 L71.7,81.2 L33.8,84.4 L12.1,53.2 L28.3,18.8 Z",
+              "M73.3,20.0 L87.6,55.2 L64.3,85.2 L26.7,80.0 L12.4,44.8 L35.7,14.8 Z",
+              "M79.3,25.8 L87.8,53.6 L74.2,79.3 L46.4,87.8 L20.7,74.2 L12.2,46.4 L25.8,20.7 L53.6,12.2 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-15",
+          "title": {
+            "en": "Question 15",
+            "hi": "प्रश्न 15"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L79.7,26.3 L87.0,58.5 L66.5,84.2 L33.5,84.2 L13.0,58.5 L20.3,26.3 Z",
+              "M58.3,12.9 L84.2,33.4 L84.3,66.3 L58.6,87.0 L26.4,79.8 L12.0,50.2 L26.2,20.4 Z",
+              "M66.2,15.6 L87.0,41.2 L79.9,73.4 L50.3,88.0 L20.5,74.0 L12.9,41.9 L33.2,15.9 Z",
+              "M73.3,20.0 L88.0,49.5 L74.1,79.4 L42.0,87.2 L16.0,66.9 L15.5,34.0 L41.1,13.1 Z",
+              "M79.3,25.8 L87.8,53.6 L74.2,79.3 L46.4,87.8 L20.7,74.2 L12.2,46.4 L25.8,20.7 L53.6,12.2 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-16",
+          "title": {
+            "en": "Question 16",
+            "hi": "प्रश्न 16"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L76.9,23.1 L88.0,50.0 L76.9,76.9 L50.0,88.0 L23.1,76.9 L12.0,50.0 L23.1,23.1 Z",
+              "M58.3,12.9 L82.1,29.6 L87.1,58.3 L70.4,82.1 L41.7,87.1 L17.9,70.4 L12.9,41.7 L29.6,17.9 Z",
+              "M66.2,15.6 L85.8,37.1 L84.4,66.2 L62.9,85.8 L33.8,84.4 L14.2,62.9 L15.6,33.8 L37.1,14.2 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L87.9,47.6 L82.1,70.4 L64.0,85.3 L40.5,86.8 L20.7,74.2 L12.1,52.4 L17.9,29.6 L36.0,14.7 L59.5,13.2 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-17",
+          "title": {
+            "en": "Question 17",
+            "hi": "प्रश्न 17"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L86.1,38.3 L72.3,80.7 L27.7,80.7 L13.9,38.3 Z",
+              "M58.3,12.9 L87.8,46.4 L65.1,84.9 L21.5,75.1 L17.3,30.7 Z",
+              "M66.2,15.6 L87.7,54.8 L57.1,87.3 L16.7,68.3 L22.3,24.0 Z",
+              "M73.3,20.0 L85.8,62.9 L48.8,88.0 L13.5,60.6 L28.6,18.6 Z",
+              "M79.3,25.8 L85.6,63.3 L56.3,87.5 L20.7,74.2 L14.4,36.7 L43.7,12.5 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-18",
+          "title": {
+            "en": "Question 18",
+            "hi": "प्रश्न 18"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L82.9,31.0 L82.9,69.0 L50.0,88.0 L17.1,69.0 L17.1,31.0 Z",
+              "M58.3,12.9 L86.3,38.6 L78.0,75.7 L41.7,87.1 L13.7,61.4 L22.0,24.3 Z",
+              "M66.2,15.6 L85.8,37.1 L84.4,66.2 L62.9,85.8 L33.8,84.4 L14.2,62.9 L15.6,33.8 L37.1,14.2 Z",
+              "M73.3,20.0 L87.6,55.2 L64.3,85.2 L26.7,80.0 L12.4,44.8 L35.7,14.8 Z",
+              "M79.3,25.8 L85.6,63.3 L56.3,87.5 L20.7,74.2 L14.4,36.7 L43.7,12.5 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-19",
+          "title": {
+            "en": "Question 19",
+            "hi": "प्रश्न 19"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L79.7,26.3 L87.0,58.5 L66.5,84.2 L33.5,84.2 L13.0,58.5 L20.3,26.3 Z",
+              "M58.3,12.9 L84.2,33.4 L84.3,66.3 L58.6,87.0 L26.4,79.8 L12.0,50.2 L26.2,20.4 Z",
+              "M66.2,15.6 L87.0,41.2 L79.9,73.4 L50.3,88.0 L20.5,74.0 L12.9,41.9 L33.2,15.9 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L87.2,57.8 L67.1,83.9 L34.1,84.5 L13.1,59.1 L19.9,26.8 L49.3,12.0 Z"
+            ]
+          }
+        },
+        {
+          "id": "spa-block-20",
+          "title": {
+            "en": "Question 20",
+            "hi": "प्रश्न 20"
+          },
+          "stimulus": {
+            "type": "figure-row",
+            "figures": [
+              "M50.0,12.0 L76.9,23.1 L88.0,50.0 L76.9,76.9 L50.0,88.0 L23.1,76.9 L12.0,50.0 L23.1,23.1 Z",
+              "M58.3,12.9 L82.1,29.6 L87.1,58.3 L70.4,82.1 L41.7,87.1 L17.9,70.4 L12.9,41.7 L29.6,17.9 Z",
+              "M66.2,15.6 L85.8,37.1 L84.4,66.2 L62.9,85.8 L33.8,84.4 L14.2,62.9 L15.6,33.8 L37.1,14.2 Z",
+              "M73.3,20.0 L87.7,45.2 L80.0,73.3 L54.8,87.7 L26.7,80.0 L12.3,54.8 L20.0,26.7 L45.2,12.3 Z",
+              "M79.3,25.8 L87.9,47.6 L82.1,70.4 L64.0,85.3 L40.5,86.8 L20.7,74.2 L12.1,52.4 L17.9,29.6 L36.0,14.7 L59.5,13.2 Z"
+            ]
+          }
+        }
+      ],
+      "questions": [
+        {
+          "id": "spa-q1",
+          "blockId": "spa-block-1",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "spa-q2",
+          "blockId": "spa-block-2",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "spa-q3",
+          "blockId": "spa-block-3",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "B"
+        },
+        {
+          "id": "spa-q4",
+          "blockId": "spa-block-4",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "spa-q5",
+          "blockId": "spa-block-5",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "spa-q6",
+          "blockId": "spa-block-6",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "spa-q7",
+          "blockId": "spa-block-7",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "spa-q8",
+          "blockId": "spa-block-8",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "spa-q9",
+          "blockId": "spa-block-9",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "spa-q10",
+          "blockId": "spa-block-10",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "spa-q11",
+          "blockId": "spa-block-11",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "spa-q12",
+          "blockId": "spa-block-12",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "spa-q13",
+          "blockId": "spa-block-13",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "A"
+        },
+        {
+          "id": "spa-q14",
+          "blockId": "spa-block-14",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "spa-q15",
+          "blockId": "spa-block-15",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "spa-q16",
+          "blockId": "spa-block-16",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "spa-q17",
+          "blockId": "spa-block-17",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        },
+        {
+          "id": "spa-q18",
+          "blockId": "spa-block-18",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "C"
+        },
+        {
+          "id": "spa-q19",
+          "blockId": "spa-block-19",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "D"
+        },
+        {
+          "id": "spa-q20",
+          "blockId": "spa-block-20",
+          "prompt": {
+            "en": "Which figure is different from the other four?",
+            "hi": "कौन सी आकृति अन्य चार से भिन्न है?"
+          },
+          "choices": [
+            {
+              "key": "A"
+            },
+            {
+              "key": "B"
+            },
+            {
+              "key": "C"
+            },
+            {
+              "key": "D"
+            },
+            {
+              "key": "E"
+            }
+          ],
+          "correct": "E"
+        }
+      ]
+    },
+    {
+      "id": "personality",
+      "kind": "personality",
+      "name": {
+        "en": "Personality Test",
+        "hi": "व्यक्तित्व परीक्षण"
+      },
+      "timeLimitMin": 20,
+      "scored": false,
+      "instructions": [
+        {
+          "en": "This is not a test of ability and there are no right or wrong answers.",
+          "hi": "यह क्षमता का परीक्षण नहीं है और इसमें कोई सही या गलत उत्तर नहीं होता।"
+        },
+        {
+          "en": "Read each statement and mark how far it describes you. Answer honestly and do not spend long on any single statement.",
+          "hi": "प्रत्येक कथन पढ़ें और चिह्नित करें कि वह आपका कितना वर्णन करता है। ईमानदारी से उत्तर दें और किसी एक कथन पर अधिक समय न लगाएँ।"
+        },
+        {
+          "en": "Every statement must be answered. Unanswered statements are not evaluated.",
+          "hi": "प्रत्येक कथन का उत्तर देना आवश्यक है। बिना उत्तर वाले कथनों का मूल्यांकन नहीं होता।"
+        }
+      ],
+      "blocks": [
+        {
+          "id": "per-main",
+          "title": {
+            "en": "Statements (Q1 - Q20)",
+            "hi": "कथन (प्र1 - प्र20)"
+          }
+        }
+      ],
+      "questions": [
+        {
+          "id": "per-q1",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I check my work again before reporting it as finished.",
+            "hi": "मैं कार्य पूर्ण बताने से पहले उसे दोबारा जाँचता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q2",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I stay calm when something goes wrong unexpectedly.",
+            "hi": "जब कुछ अप्रत्याशित रूप से गलत होता है तो मैं शांत रहता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q3",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I prefer to follow a fixed procedure rather than improvise.",
+            "hi": "मैं सुधार करने के बजाय एक निश्चित प्रक्रिया का पालन करना पसंद करता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q4",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I find it easy to stay alert during long, repetitive duties.",
+            "hi": "लंबी और दोहराव वाली ड्यूटी के दौरान सतर्क रहना मुझे आसान लगता है।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q5",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I speak up when I notice a safety problem, even to seniors.",
+            "hi": "सुरक्षा संबंधी समस्या दिखने पर मैं वरिष्ठों से भी कह देता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q6",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I get irritated when others work more slowly than me.",
+            "hi": "जब दूसरे मुझसे धीमा काम करते हैं तो मुझे चिढ़ होती है।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q7",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I plan my day in advance rather than deal with things as they come.",
+            "hi": "मैं चीज़ों को आने पर निपटाने के बजाय अपना दिन पहले से नियोजित करता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q8",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I can work through the night shift without losing concentration.",
+            "hi": "मैं रात की पाली में एकाग्रता खोए बिना कार्य कर सकता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q9",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I admit my mistakes even when nobody would find out.",
+            "hi": "मैं अपनी गलतियाँ स्वीकार करता हूँ, भले ही किसी को पता न चले।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q10",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "Sudden changes in my schedule upset me.",
+            "hi": "मेरी समय-सारणी में अचानक बदलाव मुझे परेशान करता है।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q11",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I keep my tools and workspace in order.",
+            "hi": "मैं अपने उपकरण और कार्यस्थल व्यवस्थित रखता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q12",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I would rather work in a team than alone.",
+            "hi": "मैं अकेले के बजाय टीम में काम करना पसंद करूँगा।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q13",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "Under pressure I make decisions quickly and stick to them.",
+            "hi": "दबाव में मैं शीघ्र निर्णय लेता हूँ और उन पर टिका रहता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q14",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I worry about things that have not happened yet.",
+            "hi": "मैं उन बातों की चिंता करता हूँ जो अभी हुई ही नहीं।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q15",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I follow rules even when they slow me down.",
+            "hi": "मैं नियमों का पालन करता हूँ, भले ही वे मुझे धीमा करें।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q16",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I lose my temper rarely.",
+            "hi": "मुझे शायद ही कभी गुस्सा आता है।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q17",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I take responsibility when a team I lead makes an error.",
+            "hi": "मेरे नेतृत्व वाली टीम से गलती होने पर मैं ज़िम्मेदारी लेता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q18",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "Monotonous work makes me lose interest quickly.",
+            "hi": "एकरस कार्य में मेरी रुचि शीघ्र समाप्त हो जाती है।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q19",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I double-check signals and instructions before acting.",
+            "hi": "कार्य करने से पहले मैं संकेतों और निर्देशों की दोबारा जाँच करता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        },
+        {
+          "id": "per-q20",
+          "blockId": "per-main",
+          "prompt": {
+            "en": "I remain confident when being observed by supervisors.",
+            "hi": "पर्यवेक्षकों द्वारा देखे जाने पर मैं आत्मविश्वास बनाए रखता हूँ।"
+          },
+          "choices": [
+            {
+              "key": "A",
+              "label": {
+                "en": "Strongly Agree",
+                "hi": "पूर्णतः सहमत"
+              }
+            },
+            {
+              "key": "B",
+              "label": {
+                "en": "Agree",
+                "hi": "सहमत"
+              }
+            },
+            {
+              "key": "C",
+              "label": {
+                "en": "Neutral",
+                "hi": "तटस्थ"
+              }
+            },
+            {
+              "key": "D",
+              "label": {
+                "en": "Disagree",
+                "hi": "असहमत"
+              }
+            },
+            {
+              "key": "E",
+              "label": {
+                "en": "Strongly Disagree",
+                "hi": "पूर्णतः असहमत"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
