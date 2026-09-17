@@ -50,6 +50,49 @@ npm run typecheck                # tsc --noEmit
 
 The root path redirects to the instructions page of the default test.
 
+## Testing
+
+### Automated smoke test
+
+Drives a real browser through the whole paper and checks 21 behaviours —
+timers, the study-page flip, palette states, reload persistence, pause,
+zoom, the skip dialog, and scoring.
+
+```bash
+npm install -D playwright
+npx playwright install chromium
+
+npm run build && npm run start   # terminal 1
+npm run test:e2e                 # terminal 2
+```
+
+It exits non-zero on failure, so it drops straight into CI.
+
+| Variable | Use |
+|---|---|
+| `BASE_URL` | Test a different host/port (default `http://localhost:3000`) |
+| `CHROMIUM_PATH` | Reuse a Chrome/Chromium already on the machine |
+
+### Static checks
+
+```bash
+npm run build      # must end with "Compiled successfully"
+npm run typecheck  # must print nothing
+```
+
+### Manual pass
+
+1. Open `/` — it redirects to the instructions page.
+2. **Start Test → Begin Section** — the toolbar clock starts counting down.
+3. On the study page, click *"I have memorised it"* — the map relabels from
+   station codes to A–E.
+4. Tick an answer — that number in the palette turns green, the rest of the
+   block turns red.
+5. Refresh mid-exam — answers and timers are still there.
+6. Click another section tab — the skip confirmation appears.
+7. Finish on the Personality Test and submit — the result excludes it from
+   the score.
+
 ## Adding or editing a test
 
 Papers live in `data/tests/*.json` and are registered in `lib/tests.ts`. The
