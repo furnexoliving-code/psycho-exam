@@ -11,6 +11,14 @@ const config: Config = {
           teal: "#0fb9c4",
           tealDark: "#0a97a1",
         },
+        wt: {
+          teal: "#1cb8cc",
+          tealDark: "#149dad",
+          banner: "#1668b3",
+          bar: "#e9f7fa",
+          pill: "#22b9cf",
+          submit: "#2a1f7a",
+        },
         palette: {
           notVisited: "#d9d9d9",
           notAnswered: "#e8453c",
