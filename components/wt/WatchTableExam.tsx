@@ -13,6 +13,7 @@ import { QuestionList } from "./QuestionList";
 import { KeyStrip, KeyboardHelpPanel } from "./KeyboardHelp";
 import { Instructions } from "./Instructions";
 import { ScrollRail } from "./ScrollRail";
+import { QuestionPaperView } from "./QuestionPaperView";
 import { ConfirmBox } from "./ConfirmBox";
 
 /**
@@ -25,10 +26,12 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   const questionColumn = useRef<HTMLElement | null>(null);
   const [tab, setTab] = useState<"instructions" | "test">("instructions");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [paperOpen, setPaperOpen] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
 
   const onTest = tab === "test";
-  const active = onTest && !state.submitted && !state.paused && !helpOpen && !confirmSubmit;
+  const active =
+    onTest && !state.submitted && !state.paused && !helpOpen && !confirmSubmit && !paperOpen;
 
   // The wheel is off during the test; the scrollbar and the keyboard still move
   // the column, and the mouse stays fully usable everywhere else.
@@ -74,7 +77,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
     <div className="flex h-screen flex-col overflow-hidden bg-white">
       <PortalBanner
         onInstructions={() => setTab("instructions")}
-        onQuestionPaper={() => setTab("test")}
+        onQuestionPaper={() => setPaperOpen(true)}
       />
       <PortalToolbar
         title={paper.displayName}
@@ -99,7 +102,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
 
       {onTest ? (
         <>
-          <div className="flex min-h-0 flex-1 divide-x divide-gray-300">
+          <div className="flex min-h-0 flex-1">
             {/* Left portion — the fixed diagram. Never scrolls with questions. */}
             <section
               className="flex w-1/2 shrink-0 flex-col items-center overflow-y-auto px-4 py-4"
@@ -126,7 +129,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
                 still be dragged; only the mouse wheel is off. */}
             {/* The rails are inset by their own 9px so they never sit over
                 the question text. */}
-            <div className="relative min-w-0 flex-1">
+            <div className="relative min-w-0 flex-1 border-l border-[#dcdcdc]">
             <section
               ref={questionColumn}
               className="wt-scroll-host h-full pb-[9px] pr-[9px]"
@@ -168,7 +171,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
         <Instructions paper={paper} onBegin={() => setTab("test")} />
       )}
 
-      <div className="flex items-center gap-4 border-t border-gray-300 bg-white px-4 py-3">
+      <div className="flex items-center gap-4 border-t border-[#d3d3d3] bg-wt-bar px-4 py-3">
         <span className="text-[13px] text-gray-600">
           Answered <strong className="text-gray-900">{answered}</strong> of{" "}
           {paper.questions.length}
@@ -190,6 +193,13 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
       </div>
 
       <KeyboardHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
+
+      <QuestionPaperView
+        paper={paper}
+        answers={state.answers}
+        open={paperOpen}
+        onClose={() => setPaperOpen(false)}
+      />
 
       <ConfirmBox
         open={state.paused && !state.submitted}

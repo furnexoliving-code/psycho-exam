@@ -60,7 +60,7 @@ export function Instructions({
             ))}
 
             <div className="mt-3 flex justify-center">
-              <WatchTableDiagram table={paper.example.table} />
+              <WatchTableDiagram table={paper.example.table} boxedValues />
             </div>
           </div>
         ))}

@@ -49,10 +49,16 @@ export function WatchTableDiagram({
   table,
   watermark = "Kautilya Classes",
   className = "",
+  boxedValues = false,
 }: {
   table: WatchTable;
   watermark?: string;
   className?: string;
+  /**
+   * The reference draws a square around each number on the instruction
+   * page's example, but NOT on the live question diagram at easy level.
+   */
+  boxedValues?: boolean;
 }) {
   const byDirection = new Map(table.cells.map((c) => [c.direction, c]));
   const [markLeft, markRight] = splitWatermark(watermark);
@@ -66,10 +72,10 @@ export function WatchTableDiagram({
     >
       <title>{describe(table)}</title>
 
-      <text x={14} y={72} fontSize={13} fill="#9fd8e6" fontWeight={600}>
+      <text x={14} y={72} fontSize={13} fill="#d7edfa" fontWeight={600}>
         {markLeft}
       </text>
-      <text x={386} y={72} fontSize={13} fill="#9fd8e6" fontWeight={600} textAnchor="end">
+      <text x={386} y={72} fontSize={13} fill="#d7edfa" fontWeight={600} textAnchor="end">
         {markRight}
       </text>
 
@@ -91,21 +97,79 @@ export function WatchTableDiagram({
         return (
           <g key={direction}>
             <circle cx={dot.x} cy={dot.y} r={8} fill="#111827" />
-            <text
-              x={dot.x + label.dx}
-              y={dot.y + label.dy}
-              fontSize={24}
-              fontWeight={600}
-              fill="#111827"
-              textAnchor={label.anchor}
-            >
-              {cell.letter}
-              {cell.value}
-            </text>
+            {boxedValues ? (
+              <BoxedLabel
+                x={dot.x + label.dx}
+                y={dot.y + label.dy}
+                anchor={label.anchor}
+                letter={cell.letter}
+                value={cell.value}
+              />
+            ) : (
+              <text
+                x={dot.x + label.dx}
+                y={dot.y + label.dy}
+                fontSize={24}
+                fontWeight={600}
+                fill="#111827"
+                textAnchor={label.anchor}
+              >
+                {cell.letter}
+                {cell.value}
+              </text>
+            )}
           </g>
         );
       })}
     </svg>
+  );
+}
+
+/** Letter beside a number drawn inside a square, as the printed example does. */
+function BoxedLabel({
+  x,
+  y,
+  anchor,
+  letter,
+  value,
+}: {
+  x: number;
+  y: number;
+  anchor: "start" | "middle" | "end";
+  letter: string;
+  value: number;
+}) {
+  const BOX = 17;
+  // Lay the pair out from a common left edge so the square never overlaps
+  // the letter, whichever way the label is anchored.
+  const width = 15 + BOX;
+  const left = anchor === "end" ? x - width : anchor === "middle" ? x - width / 2 : x;
+
+  return (
+    <g>
+      <text x={left} y={y} fontSize={22} fontWeight={600} fill="#111827">
+        {letter}
+      </text>
+      <rect
+        x={left + 15}
+        y={y - BOX + 3}
+        width={BOX}
+        height={BOX}
+        fill="none"
+        stroke="#111827"
+        strokeWidth={1.6}
+      />
+      <text
+        x={left + 15 + BOX / 2}
+        y={y - 1}
+        fontSize={15}
+        fontWeight={600}
+        fill="#111827"
+        textAnchor="middle"
+      >
+        {value}
+      </text>
+    </g>
   );
 }
 
@@ -170,10 +234,10 @@ function CardinalWord({
         <text x={x} y={y - dir * 0} fontSize={17} fontWeight={700} fill="#111827">
           {letter}
         </text>
-        <text x={x} y={y + dir * 19} fontSize={15} fontWeight={600} fill="#1565c0">
+        <text x={x} y={y + dir * 19} fontSize={15} fontWeight={600} fill="#1f7bc4">
           {en}
         </text>
-        <text x={x} y={y + dir * 36} fontSize={13} fontWeight={600} fill="#d32f2f">
+        <text x={x} y={y + dir * 36} fontSize={13} fontWeight={600} fill="#da0000">
           {hi}
         </text>
       </g>
@@ -192,7 +256,7 @@ function CardinalWord({
         y={y}
         fontSize={15}
         fontWeight={600}
-        fill="#1565c0"
+        fill="#1f7bc4"
         textAnchor="middle"
         transform={`rotate(${dir * -90} ${x + dir * 18} ${y})`}
       >
@@ -203,7 +267,7 @@ function CardinalWord({
         y={y}
         fontSize={13}
         fontWeight={600}
-        fill="#d32f2f"
+        fill="#da0000"
         textAnchor="middle"
         transform={`rotate(${dir * -90} ${x + dir * 36} ${y})`}
       >

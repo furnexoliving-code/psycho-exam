@@ -17,7 +17,7 @@ const config: Config = {
           banner: "#1668b3",
           bar: "#e9f7fa",
           pill: "#22b9cf",
-          submit: "#2a1f7a",
+          submit: "#34226e",
         },
         palette: {
           notVisited: "#d9d9d9",
