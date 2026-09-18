@@ -79,7 +79,13 @@ export interface WatchPaper {
   title: string;
   /** e.g. "Watch Table Test - 1 (Easy Level)". */
   displayName: string;
+  /** The test's own clock, in minutes. */
   timeLimitMin: number;
+  /**
+   * The instruction screen runs its own separate clock. When it expires the
+   * test opens by itself, exactly as it does in the hall.
+   */
+  instructionTimeLimitMin: number;
   instructions: Bilingual[];
   example: {
     table: WatchTable;

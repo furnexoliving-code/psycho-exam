@@ -12,36 +12,37 @@ const InfoDot = ({ active = false }: { active?: boolean }) => (
   </span>
 );
 
-/** The pale cyan strip carrying the instruction tab and the test tab. */
+/**
+ * The pale cyan strip carrying the instruction tab and the test tab.
+ *
+ * The tabs show where the candidate is; they do not navigate. Moving from the
+ * instructions to the test is done with Skip Instruction, and there is no way
+ * back — a tab click that could restart the reading clock, or drop a candidate
+ * out of a running test, is not something to leave lying around.
+ */
 export function TestTabs({
   tabs,
   activeId,
-  onSelect,
 }: {
   tabs: { id: string; label: string }[];
   activeId: string;
-  onSelect: (id: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-2 bg-wt-bar px-3 py-2">
+    <div className="flex items-center gap-2 bg-wt-bar px-3 py-2" role="status">
       {tabs.map((tab) => {
         const active = tab.id === activeId;
         return (
-          <button
+          <span
             key={tab.id}
-            type="button"
-            onClick={() => onSelect(tab.id)}
             className={`flex items-center gap-2 whitespace-nowrap rounded px-3 py-1.5
                         text-[13px] font-semibold ${
-              active
-                ? "bg-wt-pill text-white"
-                : "text-wt-tealDark hover:bg-white/60"
+              active ? "bg-wt-pill text-white" : "text-wt-tealDark opacity-70"
             }`}
-            aria-current={active ? "page" : undefined}
+            aria-current={active ? "step" : undefined}
           >
             {tab.label}
             <InfoDot active={active} />
-          </button>
+          </span>
         );
       })}
     </div>

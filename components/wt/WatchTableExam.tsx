@@ -10,7 +10,7 @@ import { PortalToolbar } from "./PortalToolbar";
 import { TestTabs } from "./TestTabs";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 import { QuestionList } from "./QuestionList";
-import { KeyStrip, KeyboardHelpPanel } from "./KeyboardHelp";
+import { KeyboardHelpPanel } from "./KeyboardHelp";
 import { Instructions } from "./Instructions";
 import { ScrollRail } from "./ScrollRail";
 import { QuestionPaperView } from "./QuestionPaperView";
@@ -24,14 +24,22 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   const router = useRouter();
   const { state, dispatch, answered, clearSaved } = useAttempt(paper);
   const questionColumn = useRef<HTMLElement | null>(null);
-  const [tab, setTab] = useState<"instructions" | "test">("instructions");
   const [helpOpen, setHelpOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [confirmSkip, setConfirmSkip] = useState(false);
 
-  const onTest = tab === "test";
+  // Which screen is up, and therefore which clock is running, lives in the
+  // attempt so both survive a reload.
+  const onTest = state.phase === "test";
   const active =
-    onTest && !state.submitted && !state.paused && !helpOpen && !confirmSubmit && !paperOpen;
+    onTest &&
+    !state.submitted &&
+    !state.paused &&
+    !helpOpen &&
+    !confirmSubmit &&
+    !confirmSkip &&
+    !paperOpen;
 
   // The wheel is off during the test; the scrollbar and the keyboard still move
   // the column, and the mouse stays fully usable everywhere else.
@@ -75,13 +83,11 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white">
-      <PortalBanner
-        onInstructions={() => setTab("instructions")}
-        onQuestionPaper={() => setPaperOpen(true)}
-      />
+      <PortalBanner onQuestionPaper={() => setPaperOpen(true)} />
       <PortalToolbar
         title={paper.displayName}
-        secondsLeft={state.remainingSec}
+        label={onTest ? "Time Left" : "Instruction Time Left"}
+        secondsLeft={onTest ? state.remainingSec : state.instructionRemainingSec}
         paused={state.paused}
         onTogglePause={() => dispatch({ type: "pause", paused: !state.paused })}
         onToggleFullscreen={() => {
@@ -92,8 +98,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
         name="Candidate"
       />
       <TestTabs
-        activeId={tab}
-        onSelect={(id) => setTab(id as "instructions" | "test")}
+        activeId={state.phase}
         tabs={[
           { id: "instructions", label: `${paper.title} Instructions` },
           { id: "test", label: paper.title },
@@ -165,31 +170,51 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
             </div>
           </div>
 
-          <KeyStrip />
         </>
       ) : (
-        <Instructions paper={paper} onBegin={() => setTab("test")} />
+        <Instructions paper={paper} />
       )}
 
       <div className="flex items-center gap-4 border-t border-[#d3d3d3] bg-wt-bar px-4 py-3">
         <span className="text-[13px] text-gray-600">
-          Answered <strong className="text-gray-900">{answered}</strong> of{" "}
-          {paper.questions.length}
-          {onTest && (
-            <span className="ml-3 text-gray-500">
-              Question {state.currentIndex + 1}
-            </span>
+          {onTest ? (
+            <>
+              Answered <strong className="text-gray-900">{answered}</strong> of{" "}
+              {paper.questions.length}
+              <span className="ml-3 text-gray-500">
+                Question {state.currentIndex + 1}
+              </span>
+            </>
+          ) : (
+            <>
+              The test opens by itself when the instruction time runs out.
+              <span className="ml-2 text-gray-500" lang="hi">
+                निर्देश का समय समाप्त होते ही परीक्षण स्वतः प्रारंभ हो जाएगा।
+              </span>
+            </>
           )}
         </span>
 
-        <button
-          type="button"
-          data-allow-mouse="true"
-          onClick={() => setConfirmSubmit(true)}
-          className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90"
-        >
-          Submit Test
-        </button>
+        {onTest ? (
+          <button
+            type="button"
+            data-allow-mouse="true"
+            onClick={() => setConfirmSubmit(true)}
+            className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90"
+          >
+            Submit Test
+          </button>
+        ) : (
+          // The only route from the instructions to the test.
+          <button
+            type="button"
+            data-allow-mouse="true"
+            onClick={() => setConfirmSkip(true)}
+            className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90"
+          >
+            Skip Instruction
+          </button>
+        )}
       </div>
 
       <KeyboardHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
@@ -209,6 +234,19 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
         cancelLabel="Stay paused"
         onConfirm={() => dispatch({ type: "pause", paused: false })}
         onCancel={() => undefined}
+      />
+
+      <ConfirmBox
+        open={confirmSkip}
+        title="Start the test now?"
+        body="The instruction screen closes and the test's own 10 minute clock starts. You cannot come back to the instructions."
+        confirmLabel="Start test"
+        cancelLabel="Keep reading"
+        onConfirm={() => {
+          setConfirmSkip(false);
+          dispatch({ type: "begin-test" });
+        }}
+        onCancel={() => setConfirmSkip(false)}
       />
 
       <ConfirmBox

@@ -15,6 +15,7 @@ export function clock(totalSec: number): string {
  */
 export function PortalToolbar({
   title,
+  label = "Time Left",
   secondsLeft,
   paused,
   onTogglePause,
@@ -23,6 +24,8 @@ export function PortalToolbar({
   name,
 }: {
   title: string;
+  /** Which clock is showing — the instruction screen has its own. */
+  label?: string;
   secondsLeft: number;
   paused: boolean;
   onTogglePause: () => void;
@@ -45,7 +48,7 @@ export function PortalToolbar({
         }`}
         role="timer"
       >
-        Time Left <span className="font-mono tabular-nums">{clock(secondsLeft)}</span>
+        {label} <span className="font-mono tabular-nums">{clock(secondsLeft)}</span>
       </div>
 
       <ToolbarButton onClick={onTogglePause}>

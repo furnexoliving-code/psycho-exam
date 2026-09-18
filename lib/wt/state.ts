@@ -8,9 +8,18 @@ const STORAGE_PREFIX = "wt-attempt:";
 export interface AttemptState {
   paperId: string;
   startedAt: number;
+  /**
+   * Which screen the attempt is on. It lives here rather than in component
+   * state because each screen runs its own clock, and both must survive a
+   * reload.
+   */
+  phase: "instructions" | "test";
   /** questionId -> chosen number, or null when cleared. */
   answers: Record<string, number | null>;
   currentIndex: number;
+  /** The instruction screen's own countdown. */
+  instructionRemainingSec: number;
+  /** The test's countdown. It does not start until the test opens. */
   remainingSec: number;
   paused: boolean;
   submitted: boolean;
@@ -23,6 +32,7 @@ type Action =
   | { type: "answer"; questionId: string; value: number }
   | { type: "clear"; questionId: string }
   | { type: "goto"; index: number }
+  | { type: "begin-test" }
   | { type: "pause"; paused: boolean }
   | { type: "submit" }
   | { type: "scroll-lock"; on: boolean }
@@ -35,8 +45,10 @@ function initial(paper: WatchPaper, now: number): AttemptState {
   return {
     paperId: paper.id,
     startedAt: now,
+    phase: "instructions",
     answers,
     currentIndex: 0,
+    instructionRemainingSec: paper.instructionTimeLimitMin * 60,
     remainingSec: paper.timeLimitMin * 60,
     paused: false,
     submitted: false,
@@ -52,6 +64,18 @@ function makeReducer(questionCount: number) {
 
       case "tick": {
         if (state.paused || state.submitted) return state;
+
+        // The two screens keep separate clocks. Only the one on screen runs.
+        if (state.phase === "instructions") {
+          const left = state.instructionRemainingSec - 1;
+          return {
+            ...state,
+            instructionRemainingSec: Math.max(0, left),
+            // Reading time over: the test opens by itself, as in the hall.
+            phase: left <= 0 ? "test" : "instructions",
+          };
+        }
+
         const left = state.remainingSec - 1;
         return {
           ...state,
@@ -61,8 +85,12 @@ function makeReducer(questionCount: number) {
         };
       }
 
+      case "begin-test":
+        // One-way: there is no route back to the instruction screen.
+        return state.phase === "test" ? state : { ...state, phase: "test" };
+
       case "answer":
-        if (state.submitted) return state;
+        if (state.submitted || state.phase !== "test") return state;
         return {
           ...state,
           answers: { ...state.answers, [action.questionId]: action.value },

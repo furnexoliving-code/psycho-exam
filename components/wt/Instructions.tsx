@@ -1,20 +1,13 @@
 "use client";
 
 import type { WatchPaper } from "@/lib/wt/types";
-import { KEY_HELP } from "@/lib/wt/useKeyboardOnly";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 
 /**
  * The instruction tab, shown before the test in the portal's two-column
  * English | Hindi layout.
  */
-export function Instructions({
-  paper,
-  onBegin,
-}: {
-  paper: WatchPaper;
-  onBegin: () => void;
-}) {
+export function Instructions({ paper }: { paper: WatchPaper }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="grid grid-cols-1 divide-x divide-gray-200 xl:grid-cols-2">
@@ -66,40 +59,6 @@ export function Instructions({
         ))}
       </div>
 
-      <div className="border-t border-gray-200 bg-[#f7fafc] px-6 py-5">
-        <h3 className="text-[14px] font-bold text-gray-900">
-          Keys you will use <span className="font-normal text-gray-600" lang="hi">— कुंजियाँ</span>
-        </h3>
-        <div className="mt-2 grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
-          {KEY_HELP.map((row) => (
-            <div key={row.keys} className="flex items-baseline gap-3 text-[13px]">
-              <kbd className="shrink-0 rounded border border-gray-400 bg-white px-2 py-0.5 font-semibold text-gray-800">
-                {row.keys}
-              </kbd>
-              <span className="text-gray-800">
-                {row.action}
-                <span className="ml-2 text-gray-500" lang="hi">
-                  {row.actionHi}
-                </span>
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-5 flex items-center gap-4">
-          <button
-            type="button"
-            data-allow-mouse="true"
-            onClick={onBegin}
-            className="rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90"
-          >
-            Skip Instruction
-          </button>
-          <p className="text-[12px] text-gray-600">
-            The clock is already running — it covers the whole test.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

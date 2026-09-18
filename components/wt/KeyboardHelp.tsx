@@ -2,28 +2,10 @@
 
 import { KEY_HELP } from "@/lib/wt/useKeyboardOnly";
 
-/** The always-visible key strip, plus the fuller panel behind H or ?. */
-export function KeyStrip() {
-  return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-gray-200 bg-[#f7fafc] px-4 py-2 text-[11px] text-gray-600">
-      <span className="font-semibold text-gray-700">Scrolling is off ·</span>
-      {KEY_HELP.slice(0, 4).map((row) => (
-        <span key={row.keys} className="flex items-center gap-1.5">
-          <kbd className="rounded border border-gray-400 bg-white px-1.5 py-0.5 font-semibold text-gray-700">
-            {row.keys}
-          </kbd>
-          {row.action}
-        </span>
-      ))}
-      <span className="ml-auto flex items-center gap-1.5">
-        <kbd className="rounded border border-gray-400 bg-white px-1.5 py-0.5 font-semibold text-gray-700">
-          H
-        </kbd>
-        all keys
-      </span>
-    </div>
-  );
-}
+/**
+ * The keys are no longer printed on the exam screen — the reference portal
+ * shows no such strip. They remain here, behind H, for anyone who looks.
+ */
 
 export function KeyboardHelpPanel({
   open,

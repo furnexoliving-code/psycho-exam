@@ -3,6 +3,7 @@
   "title": "Watch Table Test",
   "displayName": "Watch Table Test - 1 (Easy Level)",
   "timeLimitMin": 10,
+  "instructionTimeLimitMin": 5,
   "seed": 20260918,
   "instructions": [
     {
@@ -14,8 +15,8 @@
       "hi": "दाएं हाथ से जाने का अर्थ है गोले में दक्षिणावर्त (घड़ी की दिशा में) चलना; बाएं हाथ से का अर्थ है वामावर्त। पथ में प्रारंभिक तथा अंतिम दोनों स्थान सम्मिलित होते हैं।"
     },
     {
-      "en": "This test is answered with the keyboard. Press 1 to 5 to choose an option, and the arrow keys to move between questions. The mouse is switched off during the test.",
-      "hi": "यह परीक्षण कीबोर्ड से हल किया जाता है। विकल्प चुनने के लिए 1 से 5 दबाएँ, और प्रश्नों के बीच जाने के लिए तीर कुंजियाँ दबाएँ। परीक्षण के दौरान माउस बंद रहता है।"
+      "en": "You have 5 minutes to read these instructions. When that time is over the test begins by itself, and its own 10 minute clock starts. Press Skip Instruction to begin sooner.",
+      "hi": "इन निर्देशों को पढ़ने के लिए आपके पास 5 मिनट हैं। यह समय समाप्त होते ही परीक्षण स्वतः प्रारंभ हो जाएगा और उसका अपना 10 मिनट का समय शुरू होगा। जल्दी शुरू करने के लिए Skip Instruction दबाएँ।"
     }
   ],
   "example": {
