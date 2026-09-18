@@ -136,14 +136,23 @@ export function generateQuestions({
   // by answering the same number every time.
   const answersByKind = new Map<QuestionKind, number[]>();
 
-  // Spread the questions across the diagrams and across the question kinds, so
-  // a paper does not turn into twenty variations of one idea.
+  // Questions run in contiguous blocks per diagram — the first half on
+  // diagram 1, the second on diagram 2 — not alternating. Alternating made the
+  // left-hand diagram flip on every single question, and made the question
+  // paper look as though Q2, Q4, Q6 were missing from each diagram's list.
+  const perTable = Math.ceil(count / tables.length);
+
+  // Within a diagram, spread the question kinds so a paper does not turn into
+  // twenty variations of one idea.
   const pools = tables.map((table) => shuffle(enumerateQuestions(table), random));
   const cursors = new Array(tables.length).fill(0);
   const kindCounts = new Map<QuestionKind, number>();
 
   while (questions.length < count) {
-    const tableIndex = questions.length % tables.length;
+    const tableIndex = Math.min(
+      Math.floor(questions.length / perTable),
+      tables.length - 1,
+    );
     const pool = pools[tableIndex];
 
     let picked: Candidate | null = null;

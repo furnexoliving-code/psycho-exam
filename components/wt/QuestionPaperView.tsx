@@ -1,6 +1,8 @@
 "use client";
 
+import { useRef } from "react";
 import type { WatchPaper } from "@/lib/wt/types";
+import { ScrollRail } from "./ScrollRail";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 
 /**
@@ -21,6 +23,7 @@ export function QuestionPaperView({
   open: boolean;
   onClose: () => void;
 }) {
+  const body = useRef<HTMLDivElement | null>(null);
   if (!open) return null;
 
   return (
@@ -45,7 +48,8 @@ export function QuestionPaperView({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div className="relative min-h-0 flex-1">
+          <div ref={body} className="wt-scroll-host h-full px-6 py-5 pr-[15px]">
           {paper.tables.map((table, ti) => (
             <section key={table.label} className="mb-8">
               <h3 className="mb-2 text-[13px] font-bold text-[#494949]">{table.label}</h3>
@@ -102,6 +106,8 @@ export function QuestionPaperView({
               </div>
             </section>
           ))}
+          </div>
+          <ScrollRail target={body} axis="vertical" />
         </div>
 
         <div className="border-t border-gray-300 px-5 py-2 text-[12px] text-gray-500">

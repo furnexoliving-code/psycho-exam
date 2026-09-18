@@ -1,6 +1,8 @@
 "use client";
 
+import { useRef } from "react";
 import type { WatchPaper } from "@/lib/wt/types";
+import { ScrollRail } from "./ScrollRail";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 
 /**
@@ -86,6 +88,7 @@ export function InstructionsDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const body = useRef<HTMLDivElement | null>(null);
   if (!open) return null;
 
   return (
@@ -110,8 +113,11 @@ export function InstructionsDialog({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <InstructionsBody paper={paper} />
+        <div className="relative min-h-0 flex-1">
+          <div ref={body} className="wt-scroll-host h-full pr-[9px]">
+            <InstructionsBody paper={paper} />
+          </div>
+          <ScrollRail target={body} axis="vertical" />
         </div>
       </div>
     </div>

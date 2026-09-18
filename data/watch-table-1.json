@@ -117,51 +117,6 @@
           "value": 5
         }
       ]
-    },
-    {
-      "label": "No. 2",
-      "cells": [
-        {
-          "direction": "N",
-          "letter": "Y",
-          "value": 1
-        },
-        {
-          "direction": "NE",
-          "letter": "S",
-          "value": 5
-        },
-        {
-          "direction": "E",
-          "letter": "E",
-          "value": 4
-        },
-        {
-          "direction": "SE",
-          "letter": "K",
-          "value": 4
-        },
-        {
-          "direction": "S",
-          "letter": "F",
-          "value": 2
-        },
-        {
-          "direction": "SW",
-          "letter": "Z",
-          "value": 3
-        },
-        {
-          "direction": "W",
-          "letter": "C",
-          "value": 3
-        },
-        {
-          "direction": "NW",
-          "letter": "T",
-          "value": 5
-        }
-      ]
     }
   ],
   "questions": [
@@ -173,9 +128,9 @@
         "hi": "पश्चिम से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?"
       },
       "options": [
-        1,
-        2,
         3,
+        2,
+        1,
         4,
         5
       ],
@@ -187,37 +142,17 @@
     },
     {
       "id": "wt-q2",
-      "tableIndex": 1,
-      "prompt": {
-        "en": "Starting from North-West travel right-handedly up to East. Among the letters you pass through, which number is opposite the alphabetically last one?",
-        "hi": "उत्तर-पश्चिम से शुरू करके दाएं हाथ से पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
-      },
-      "options": [
-        4,
-        5,
-        1,
-        3,
-        2
-      ],
-      "answer": 2,
-      "working": {
-        "en": "Path: T5 → Y1 → S5 → E4. Alphabetically last letter is Y at N; opposite is S holding F2.",
-        "hi": "पथ: T5 → Y1 → S5 → E4. वर्णानुक्रम में अंतिम अक्षर Y है (N); उसके सामने S पर F2 है।"
-      }
-    },
-    {
-      "id": "wt-q3",
       "tableIndex": 0,
       "prompt": {
         "en": "Starting from East travel right-handedly up to North. Among the letters you pass through, what is the number of the alphabetically last one?",
         "hi": "पूर्व से शुरू करके दाएं हाथ से उत्तर तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर की संख्या क्या है?"
       },
       "options": [
+        1,
+        4,
         2,
         5,
-        4,
-        3,
-        1
+        3
       ],
       "answer": 5,
       "working": {
@@ -226,11 +161,31 @@
       }
     },
     {
-      "id": "wt-q4",
-      "tableIndex": 1,
+      "id": "wt-q3",
+      "tableIndex": 0,
       "prompt": {
-        "en": "Starting from South travel right-handedly up to East. What is the number of the middle letter of the path?",
-        "hi": "दक्षिण से शुरू करके दाएं हाथ से पूर्व तक जाएँ। पथ के मध्य अक्षर की संख्या क्या है?"
+        "en": "Starting from West travel right-handedly up to South. Among the letters you pass through, which number is opposite the alphabetically last one?",
+        "hi": "पश्चिम से शुरू करके दाएं हाथ से दक्षिण तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
+      },
+      "options": [
+        3,
+        2,
+        1,
+        4,
+        5
+      ],
+      "answer": 4,
+      "working": {
+        "en": "Path: H3 → X5 → B3 → I1 → T5 → U4 → A2. Alphabetically last letter is X at NW; opposite is SE holding U4.",
+        "hi": "पथ: H3 → X5 → B3 → I1 → T5 → U4 → A2. वर्णानुक्रम में अंतिम अक्षर X है (NW); उसके सामने SE पर U4 है।"
+      }
+    },
+    {
+      "id": "wt-q4",
+      "tableIndex": 0,
+      "prompt": {
+        "en": "Starting from South travel left-handedly up to North-West. Among the letters you pass through, which number is opposite the alphabetically first one?",
+        "hi": "दक्षिण से शुरू करके बाएं हाथ से उत्तर-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
       },
       "options": [
         2,
@@ -238,26 +193,6 @@
         3,
         5,
         1
-      ],
-      "answer": 5,
-      "working": {
-        "en": "Path: F2 → Z3 → C3 → T5 → Y1 → S5 → E4. It has 7 letters, so the middle one is T, whose number is 5.",
-        "hi": "पथ: F2 → Z3 → C3 → T5 → Y1 → S5 → E4. इसमें 7 अक्षर हैं, अतः मध्य अक्षर T है, जिसकी संख्या 5 है।"
-      }
-    },
-    {
-      "id": "wt-q5",
-      "tableIndex": 0,
-      "prompt": {
-        "en": "Starting from South travel left-handedly up to North-West. Among the letters you pass through, which number is opposite the alphabetically first one?",
-        "hi": "दक्षिण से शुरू करके बाएं हाथ से उत्तर-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
-      },
-      "options": [
-        1,
-        3,
-        2,
-        4,
-        5
       ],
       "answer": 3,
       "working": {
@@ -266,38 +201,38 @@
       }
     },
     {
-      "id": "wt-q6",
-      "tableIndex": 1,
+      "id": "wt-q5",
+      "tableIndex": 0,
       "prompt": {
-        "en": "Starting from North-West travel right-handedly up to North-East. Among the numbers you pass through, which one appears the fewest times?",
-        "hi": "उत्तर-पश्चिम से शुरू करके दाएं हाथ से उत्तर-पूर्व तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?"
+        "en": "Starting from East travel left-handedly up to West. Among the numbers you pass through, which one appears the fewest times?",
+        "hi": "पूर्व से शुरू करके बाएं हाथ से पश्चिम तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?"
       },
       "options": [
-        1,
         2,
-        5,
         3,
+        1,
+        5,
         4
       ],
       "answer": 1,
       "working": {
-        "en": "Path: T5 → Y1 → S5. 1 appears 1 time, fewest of any number in the path.",
-        "hi": "पथ: T5 → Y1 → S5. संख्या 1 इस पथ में 1 बार आती है, जो सबसे कम है।"
+        "en": "Path: T5 → I1 → B3 → X5 → H3. 1 appears 1 time, fewest of any number in the path.",
+        "hi": "पथ: T5 → I1 → B3 → X5 → H3. संख्या 1 इस पथ में 1 बार आती है, जो सबसे कम है।"
       }
     },
     {
-      "id": "wt-q7",
+      "id": "wt-q6",
       "tableIndex": 0,
       "prompt": {
         "en": "Starting from East travel left-handedly up to North-West. Among the numbers you pass through, which one appears the most times?",
         "hi": "पूर्व से शुरू करके बाएं हाथ से उत्तर-पश्चिम तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?"
       },
       "options": [
-        4,
-        5,
-        3,
         1,
-        2
+        3,
+        5,
+        2,
+        4
       ],
       "answer": 5,
       "working": {
@@ -306,38 +241,18 @@
       }
     },
     {
-      "id": "wt-q8",
-      "tableIndex": 1,
-      "prompt": {
-        "en": "Starting from North-East travel right-handedly up to West. Among the letters you pass through, which number is opposite the alphabetically first one?",
-        "hi": "उत्तर-पूर्व से शुरू करके दाएं हाथ से पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
-      },
-      "options": [
-        5,
-        1,
-        2,
-        3,
-        4
-      ],
-      "answer": 4,
-      "working": {
-        "en": "Path: S5 → E4 → K4 → F2 → Z3 → C3. Alphabetically first letter is C at W; opposite is E holding E4.",
-        "hi": "पथ: S5 → E4 → K4 → F2 → Z3 → C3. वर्णानुक्रम में पहला अक्षर C है (W); उसके सामने E पर E4 है।"
-      }
-    },
-    {
-      "id": "wt-q9",
+      "id": "wt-q7",
       "tableIndex": 0,
       "prompt": {
         "en": "Starting from South travel left-handedly up to East. What is the number of the middle letter of the path?",
         "hi": "दक्षिण से शुरू करके बाएं हाथ से पूर्व तक जाएँ। पथ के मध्य अक्षर की संख्या क्या है?"
       },
       "options": [
-        4,
+        3,
         1,
-        5,
+        4,
         2,
-        3
+        5
       ],
       "answer": 4,
       "working": {
@@ -346,27 +261,7 @@
       }
     },
     {
-      "id": "wt-q10",
-      "tableIndex": 1,
-      "prompt": {
-        "en": "Starting from North travel left-handedly up to North-West. Among the letters you pass through, what is the number of the alphabetically first one?",
-        "hi": "उत्तर से शुरू करके बाएं हाथ से उत्तर-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?"
-      },
-      "options": [
-        1,
-        5,
-        3,
-        4,
-        2
-      ],
-      "answer": 5,
-      "working": {
-        "en": "Path: Y1 → T5. Alphabetically first letter is T, whose number is 5.",
-        "hi": "पथ: Y1 → T5. वर्णानुक्रम में पहला अक्षर T है, जिसकी संख्या 5 है।"
-      }
-    },
-    {
-      "id": "wt-q11",
+      "id": "wt-q8",
       "tableIndex": 0,
       "prompt": {
         "en": "Starting from North-East travel right-handedly up to South-West. Among the letters you pass through, what is the number of the alphabetically last one?",
@@ -374,10 +269,10 @@
       },
       "options": [
         1,
-        3,
         2,
+        5,
         4,
-        5
+        3
       ],
       "answer": 4,
       "working": {
@@ -386,11 +281,91 @@
       }
     },
     {
-      "id": "wt-q12",
-      "tableIndex": 1,
+      "id": "wt-q9",
+      "tableIndex": 0,
       "prompt": {
-        "en": "Starting from East travel right-handedly up to South-East. Among the letters you pass through, which number is opposite the alphabetically last one?",
-        "hi": "पूर्व से शुरू करके दाएं हाथ से दक्षिण-पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
+        "en": "Starting from South-East travel left-handedly up to North-East. Among the letters you pass through, which number is opposite the alphabetically first one?",
+        "hi": "दक्षिण-पूर्व से शुरू करके बाएं हाथ से उत्तर-पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
+      },
+      "options": [
+        5,
+        2,
+        3,
+        1,
+        4
+      ],
+      "answer": 4,
+      "working": {
+        "en": "Path: U4 → T5 → I1. Alphabetically first letter is I at NE; opposite is SW holding P4.",
+        "hi": "पथ: U4 → T5 → I1. वर्णानुक्रम में पहला अक्षर I है (NE); उसके सामने SW पर P4 है।"
+      }
+    },
+    {
+      "id": "wt-q10",
+      "tableIndex": 0,
+      "prompt": {
+        "en": "Starting from West travel right-handedly up to North-West. Among the letters you pass through, what is the number of the alphabetically first one?",
+        "hi": "पश्चिम से शुरू करके दाएं हाथ से उत्तर-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?"
+      },
+      "options": [
+        2,
+        4,
+        5,
+        1,
+        3
+      ],
+      "answer": 3,
+      "working": {
+        "en": "Path: H3 → X5. Alphabetically first letter is H, whose number is 3.",
+        "hi": "पथ: H3 → X5. वर्णानुक्रम में पहला अक्षर H है, जिसकी संख्या 3 है।"
+      }
+    },
+    {
+      "id": "wt-q11",
+      "tableIndex": 0,
+      "prompt": {
+        "en": "Starting from South travel right-handedly up to North-East. Among the numbers you pass through, which one appears the most times?",
+        "hi": "दक्षिण से शुरू करके दाएं हाथ से उत्तर-पूर्व तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?"
+      },
+      "options": [
+        1,
+        5,
+        2,
+        4,
+        3
+      ],
+      "answer": 3,
+      "working": {
+        "en": "Path: A2 → P4 → H3 → X5 → B3 → I1. 3 appears 2 times, most of any number in the path.",
+        "hi": "पथ: A2 → P4 → H3 → X5 → B3 → I1. संख्या 3 इस पथ में 2 बार आती है, जो सबसे अधिक है।"
+      }
+    },
+    {
+      "id": "wt-q12",
+      "tableIndex": 0,
+      "prompt": {
+        "en": "Starting from South-East travel right-handedly up to South-West. Among the numbers you pass through, which one appears the fewest times?",
+        "hi": "दक्षिण-पूर्व से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?"
+      },
+      "options": [
+        3,
+        4,
+        2,
+        5,
+        1
+      ],
+      "answer": 2,
+      "working": {
+        "en": "Path: U4 → A2 → P4. 2 appears 1 time, fewest of any number in the path.",
+        "hi": "पथ: U4 → A2 → P4. संख्या 2 इस पथ में 1 बार आती है, जो सबसे कम है।"
+      }
+    },
+    {
+      "id": "wt-q13",
+      "tableIndex": 0,
+      "prompt": {
+        "en": "Starting from South-West travel right-handedly up to North-East. What is the number of the middle letter of the path?",
+        "hi": "दक्षिण-पश्चिम से शुरू करके दाएं हाथ से उत्तर-पूर्व तक जाएँ। पथ के मध्य अक्षर की संख्या क्या है?"
       },
       "options": [
         4,
@@ -401,168 +376,148 @@
       ],
       "answer": 5,
       "working": {
-        "en": "Path: E4 → K4. Alphabetically last letter is K at SE; opposite is NW holding T5.",
-        "hi": "पथ: E4 → K4. वर्णानुक्रम में अंतिम अक्षर K है (SE); उसके सामने NW पर T5 है।"
-      }
-    },
-    {
-      "id": "wt-q13",
-      "tableIndex": 0,
-      "prompt": {
-        "en": "Starting from South travel right-handedly up to North-East. Among the numbers you pass through, which one appears the most times?",
-        "hi": "दक्षिण से शुरू करके दाएं हाथ से उत्तर-पूर्व तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?"
-      },
-      "options": [
-        2,
-        4,
-        5,
-        3,
-        1
-      ],
-      "answer": 3,
-      "working": {
-        "en": "Path: A2 → P4 → H3 → X5 → B3 → I1. 3 appears 2 times, most of any number in the path.",
-        "hi": "पथ: A2 → P4 → H3 → X5 → B3 → I1. संख्या 3 इस पथ में 2 बार आती है, जो सबसे अधिक है।"
+        "en": "Path: P4 → H3 → X5 → B3 → I1. It has 5 letters, so the middle one is X, whose number is 5.",
+        "hi": "पथ: P4 → H3 → X5 → B3 → I1. इसमें 5 अक्षर हैं, अतः मध्य अक्षर X है, जिसकी संख्या 5 है।"
       }
     },
     {
       "id": "wt-q14",
-      "tableIndex": 1,
+      "tableIndex": 0,
       "prompt": {
-        "en": "Starting from South travel left-handedly up to East. Among the numbers you pass through, which one appears the fewest times?",
-        "hi": "दक्षिण से शुरू करके बाएं हाथ से पूर्व तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?"
+        "en": "Starting from North-East travel right-handedly up to South-East. Among the letters you pass through, which number is opposite the alphabetically last one?",
+        "hi": "उत्तर-पूर्व से शुरू करके दाएं हाथ से दक्षिण-पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
       },
       "options": [
-        3,
-        4,
         5,
+        2,
         1,
-        2
+        3,
+        4
       ],
-      "answer": 2,
+      "answer": 5,
       "working": {
-        "en": "Path: F2 → K4 → E4. 2 appears 1 time, fewest of any number in the path.",
-        "hi": "पथ: F2 → K4 → E4. संख्या 2 इस पथ में 1 बार आती है, जो सबसे कम है।"
+        "en": "Path: I1 → T5 → U4. Alphabetically last letter is U at SE; opposite is NW holding X5.",
+        "hi": "पथ: I1 → T5 → U4. वर्णानुक्रम में अंतिम अक्षर U है (SE); उसके सामने NW पर X5 है।"
       }
     },
     {
       "id": "wt-q15",
       "tableIndex": 0,
       "prompt": {
-        "en": "Starting from East travel left-handedly up to South-West. Among the letters you pass through, what is the number of the alphabetically first one?",
-        "hi": "पूर्व से शुरू करके बाएं हाथ से दक्षिण-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?"
+        "en": "Starting from South-East travel left-handedly up to North. Among the letters you pass through, which number is opposite the alphabetically first one?",
+        "hi": "दक्षिण-पूर्व से शुरू करके बाएं हाथ से उत्तर तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
       },
       "options": [
-        2,
-        3,
         1,
+        3,
+        2,
         5,
         4
       ],
-      "answer": 3,
+      "answer": 2,
       "working": {
-        "en": "Path: T5 → I1 → B3 → X5 → H3 → P4. Alphabetically first letter is B, whose number is 3.",
-        "hi": "पथ: T5 → I1 → B3 → X5 → H3 → P4. वर्णानुक्रम में पहला अक्षर B है, जिसकी संख्या 3 है।"
+        "en": "Path: U4 → T5 → I1 → B3. Alphabetically first letter is B at N; opposite is S holding A2.",
+        "hi": "पथ: U4 → T5 → I1 → B3. वर्णानुक्रम में पहला अक्षर B है (N); उसके सामने S पर A2 है।"
       }
     },
     {
       "id": "wt-q16",
-      "tableIndex": 1,
+      "tableIndex": 0,
       "prompt": {
-        "en": "Starting from North-East travel right-handedly up to North. Among the letters you pass through, what is the number of the alphabetically last one?",
-        "hi": "उत्तर-पूर्व से शुरू करके दाएं हाथ से उत्तर तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर की संख्या क्या है?"
+        "en": "Starting from West travel left-handedly up to South-East. Among the numbers you pass through, which one appears the most times?",
+        "hi": "पश्चिम से शुरू करके बाएं हाथ से दक्षिण-पूर्व तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?"
       },
       "options": [
-        5,
-        4,
-        1,
         3,
-        2
+        4,
+        2,
+        1,
+        5
       ],
-      "answer": 3,
+      "answer": 4,
       "working": {
-        "en": "Path: S5 → E4 → K4 → F2 → Z3 → C3 → T5 → Y1. Alphabetically last letter is Z, whose number is 3.",
-        "hi": "पथ: S5 → E4 → K4 → F2 → Z3 → C3 → T5 → Y1. वर्णानुक्रम में अंतिम अक्षर Z है, जिसकी संख्या 3 है।"
+        "en": "Path: H3 → P4 → A2 → U4. 4 appears 2 times, most of any number in the path.",
+        "hi": "पथ: H3 → P4 → A2 → U4. संख्या 4 इस पथ में 2 बार आती है, जो सबसे अधिक है।"
       }
     },
     {
       "id": "wt-q17",
       "tableIndex": 0,
       "prompt": {
-        "en": "Starting from South-East travel left-handedly up to West. Among the letters you pass through, which number is opposite the alphabetically last one?",
-        "hi": "दक्षिण-पूर्व से शुरू करके बाएं हाथ से पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
+        "en": "Starting from North travel left-handedly up to South. What is the number of the middle letter of the path?",
+        "hi": "उत्तर से शुरू करके बाएं हाथ से दक्षिण तक जाएँ। पथ के मध्य अक्षर की संख्या क्या है?"
       },
       "options": [
-        3,
+        4,
+        2,
         1,
         5,
-        4,
-        2
+        3
       ],
-      "answer": 4,
+      "answer": 3,
       "working": {
-        "en": "Path: U4 → T5 → I1 → B3 → X5 → H3. Alphabetically last letter is X at NW; opposite is SE holding U4.",
-        "hi": "पथ: U4 → T5 → I1 → B3 → X5 → H3. वर्णानुक्रम में अंतिम अक्षर X है (NW); उसके सामने SE पर U4 है।"
+        "en": "Path: B3 → X5 → H3 → P4 → A2. It has 5 letters, so the middle one is H, whose number is 3.",
+        "hi": "पथ: B3 → X5 → H3 → P4 → A2. इसमें 5 अक्षर हैं, अतः मध्य अक्षर H है, जिसकी संख्या 3 है।"
       }
     },
     {
       "id": "wt-q18",
-      "tableIndex": 1,
+      "tableIndex": 0,
       "prompt": {
-        "en": "Starting from North-East travel right-handedly up to South-East. Among the numbers you pass through, which one appears the most times?",
-        "hi": "उत्तर-पूर्व से शुरू करके दाएं हाथ से दक्षिण-पूर्व तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?"
+        "en": "Starting from North travel right-handedly up to East. Among the letters you pass through, which number is opposite the alphabetically last one?",
+        "hi": "उत्तर से शुरू करके दाएं हाथ से पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
       },
       "options": [
+        2,
         1,
         4,
-        2,
-        5,
-        3
+        3,
+        5
       ],
-      "answer": 4,
+      "answer": 3,
       "working": {
-        "en": "Path: S5 → E4 → K4. 4 appears 2 times, most of any number in the path.",
-        "hi": "पथ: S5 → E4 → K4. संख्या 4 इस पथ में 2 बार आती है, जो सबसे अधिक है।"
+        "en": "Path: B3 → I1 → T5. Alphabetically last letter is T at E; opposite is W holding H3.",
+        "hi": "पथ: B3 → I1 → T5. वर्णानुक्रम में अंतिम अक्षर T है (E); उसके सामने W पर H3 है।"
       }
     },
     {
       "id": "wt-q19",
       "tableIndex": 0,
       "prompt": {
-        "en": "Starting from North travel left-handedly up to West. Among the letters you pass through, which number is opposite the alphabetically first one?",
-        "hi": "उत्तर से शुरू करके बाएं हाथ से पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
+        "en": "Starting from South-East travel left-handedly up to East. Among the letters you pass through, what is the number of the alphabetically first one?",
+        "hi": "दक्षिण-पूर्व से शुरू करके बाएं हाथ से पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?"
       },
       "options": [
-        4,
-        3,
         5,
+        4,
+        1,
         2,
-        1
+        3
       ],
-      "answer": 2,
+      "answer": 5,
       "working": {
-        "en": "Path: B3 → X5 → H3. Alphabetically first letter is B at N; opposite is S holding A2.",
-        "hi": "पथ: B3 → X5 → H3. वर्णानुक्रम में पहला अक्षर B है (N); उसके सामने S पर A2 है।"
+        "en": "Path: U4 → T5. Alphabetically first letter is T, whose number is 5.",
+        "hi": "पथ: U4 → T5. वर्णानुक्रम में पहला अक्षर T है, जिसकी संख्या 5 है।"
       }
     },
     {
       "id": "wt-q20",
-      "tableIndex": 1,
+      "tableIndex": 0,
       "prompt": {
-        "en": "Starting from West travel left-handedly up to East. What is the number of the middle letter of the path?",
-        "hi": "पश्चिम से शुरू करके बाएं हाथ से पूर्व तक जाएँ। पथ के मध्य अक्षर की संख्या क्या है?"
+        "en": "Starting from West travel right-handedly up to North. Among the numbers you pass through, which one appears the fewest times?",
+        "hi": "पश्चिम से शुरू करके दाएं हाथ से उत्तर तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?"
       },
       "options": [
-        4,
-        3,
-        5,
         1,
-        2
+        2,
+        5,
+        3,
+        4
       ],
-      "answer": 2,
+      "answer": 5,
       "working": {
-        "en": "Path: C3 → Z3 → F2 → K4 → E4. It has 5 letters, so the middle one is F, whose number is 2.",
-        "hi": "पथ: C3 → Z3 → F2 → K4 → E4. इसमें 5 अक्षर हैं, अतः मध्य अक्षर F है, जिसकी संख्या 2 है।"
+        "en": "Path: H3 → X5 → B3. 5 appears 1 time, fewest of any number in the path.",
+        "hi": "पथ: H3 → X5 → B3. संख्या 5 इस पथ में 1 बार आती है, जो सबसे कम है।"
       }
     }
   ]

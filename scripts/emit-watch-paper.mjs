@@ -28,7 +28,9 @@ const require = createRequire(import.meta.url);
 const { generateQuestions } = require(join(out, "generate.js"));
 
 const SEED = 20260918;
-const { tables, questions } = generateQuestions({ seed: SEED, count: 20, tableCount: 2 });
+// One diagram for the whole paper: the left panel must not change under the
+// candidate as they move down the questions.
+const { tables, questions } = generateQuestions({ seed: SEED, count: 20, tableCount: 1 });
 
 const bi = (en, hi) => ({ en, hi });
 
