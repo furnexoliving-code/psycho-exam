@@ -8,9 +8,16 @@
 export function PortalBanner({
   onInstructions,
   onQuestionPaper,
+  disabled = false,
 }: {
   onInstructions?: () => void;
   onQuestionPaper?: () => void;
+  /**
+   * Both buttons are off during the instruction screen: the instructions are
+   * already on view there, and the question paper is not the candidate's to
+   * read before the test has opened.
+   */
+  disabled?: boolean;
 }) {
   return (
     <div className="flex h-[58px] items-stretch bg-wt-teal">
@@ -44,8 +51,12 @@ export function PortalBanner({
       </div>
 
       <div className="flex shrink-0 items-center gap-2 px-3">
-        <BannerButton onClick={onInstructions}>Instructions</BannerButton>
-        <BannerButton onClick={onQuestionPaper}>Question Paper</BannerButton>
+        <BannerButton onClick={onInstructions} disabled={disabled}>
+          Instructions
+        </BannerButton>
+        <BannerButton onClick={onQuestionPaper} disabled={disabled}>
+          Question Paper
+        </BannerButton>
       </div>
     </div>
   );
@@ -54,16 +65,23 @@ export function PortalBanner({
 function BannerButton({
   children,
   onClick,
+  disabled = false,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="rounded border border-white/70 bg-white px-3 py-1.5 text-[12px]
-                 font-semibold text-gray-800 hover:bg-gray-50"
+      disabled={disabled}
+      aria-disabled={disabled}
+      className={`rounded border px-3 py-1.5 text-[12px] font-semibold ${
+        disabled
+          ? "cursor-not-allowed border-white/30 bg-white/40 text-gray-500"
+          : "border-white/70 bg-white text-gray-800 hover:bg-gray-50"
+      }`}
     >
       {children}
     </button>

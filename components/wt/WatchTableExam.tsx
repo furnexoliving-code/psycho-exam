@@ -97,6 +97,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white">
       <PortalBanner
+        disabled={!onTest}
         onInstructions={() => setInstructionsOpen(true)}
         onQuestionPaper={() => setPaperOpen(true)}
       />
