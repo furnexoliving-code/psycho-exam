@@ -28,7 +28,9 @@ export function TestTabs({
   activeId: string;
 }) {
   return (
-    <div className="flex items-center gap-2 bg-wt-bar px-3 py-2" role="status">
+    // Not a live region: the strip is static chrome, and role="status" would
+    // have a screen reader announce it on every change.
+    <div className="flex items-center gap-2 bg-wt-bar px-3 py-2">
       {tabs.map((tab) => {
         const active = tab.id === activeId;
         return (

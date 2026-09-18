@@ -47,10 +47,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
 
   // The wheel is off during the test; the scrollbar and the keyboard still move
   // the column, and the mouse stays fully usable everywhere else.
-  const scrollNudge = useScrollLock(
-    state.scrollLocked && onTest && !state.submitted,
-    questionColumn,
-  );
+  useScrollLock(state.scrollLocked && onTest && !state.submitted);
 
   const current = paper.questions[state.currentIndex];
   const table = paper.tables[current?.tableIndex ?? 0];
@@ -159,16 +156,6 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
               className="wt-scroll-host h-full pb-[9px] pr-[9px]"
               aria-label="Questions"
             >
-              {scrollNudge && (
-                <div
-                  className="pointer-events-none sticky top-0 z-10 flex justify-center py-2"
-                  role="status"
-                >
-                  <span className="rounded-full bg-gray-900/85 px-4 py-1.5 text-[12px] font-semibold text-white shadow">
-                    Scrolling is off — press ↓ or ↑ to move between questions
-                  </span>
-                </div>
-              )}
               <QuestionList
                 questions={paper.questions}
                 answers={state.answers}

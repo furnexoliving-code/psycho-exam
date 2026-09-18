@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 
 /**
  * Turns off the mouse wheel inside the exam.
@@ -15,35 +15,21 @@ import { useEffect, useRef, useState } from "react";
  * the wheel has to be cancelled event by event. That needs `passive: false`;
  * without it the browser ignores preventDefault on wheel.
  *
- * Returns true briefly after a blocked gesture, so the screen can say which
- * keys to use instead of silently doing nothing.
+ * A blocked gesture is silent — no banner, no message. The scrollbars show
+ * there is more to see, and dragging one still works.
  */
-export function useScrollLock(
-  enabled: boolean,
-  container?: React.RefObject<HTMLElement | null>,
-) {
-  const [blockedAt, setBlockedAt] = useState(0);
-  const timer = useRef<number | null>(null);
-
+export function useScrollLock(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
-
-    const nudge = () => {
-      setBlockedAt((n) => n + 1);
-      if (timer.current) window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => setBlockedAt(0), 2200);
-    };
 
     const onWheel = (event: WheelEvent) => {
       // Leave pinch-zoom alone; it is a browser accessibility affordance.
       if (event.ctrlKey) return;
       event.preventDefault();
-      nudge();
     };
 
     const onTouchMove = (event: TouchEvent) => {
       event.preventDefault();
-      nudge();
     };
 
     const onKeyScroll = (event: KeyboardEvent) => {
@@ -52,13 +38,8 @@ export function useScrollLock(
       // Space and PageUp/PageDown scroll the container by default.
       if ([" ", "PageUp", "PageDown"].includes(event.key)) {
         event.preventDefault();
-        nudge();
       }
     };
-
-    // Dragging the scrollbar is left alone deliberately — it is a visible,
-    // deliberate action, unlike a flick of the wheel.
-    void container;
 
     // passive:false is required, or preventDefault on wheel is ignored.
     // removeEventListener takes no `passive`, so the options differ per call.
@@ -68,14 +49,11 @@ export function useScrollLock(
     window.addEventListener("keydown", onKeyScroll);
 
     return () => {
-      if (timer.current) window.clearTimeout(timer.current);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("keydown", onKeyScroll);
     };
   }, [enabled]);
-
-  return blockedAt > 0;
 }
 
 export interface ExamKeyHandlers {
