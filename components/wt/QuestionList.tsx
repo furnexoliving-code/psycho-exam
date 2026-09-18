@@ -33,7 +33,6 @@ export function QuestionList({
   questions,
   answers,
   currentIndex,
-  showKeyHints,
   locked,
   container,
   onSelect,
@@ -42,8 +41,6 @@ export function QuestionList({
   questions: WatchQuestion[];
   answers: Record<string, number | null>;
   currentIndex: number;
-  /** Show the 1-5 key badges beside the current question's options. */
-  showKeyHints: boolean;
   locked: boolean;
   /** The scrolling panel, so navigation can move one axis only. */
   container: React.RefObject<HTMLElement | null>;
@@ -143,15 +140,6 @@ export function QuestionList({
                     >
                       {option}
                     </label>
-                    {current && showKeyHints && (
-                      <kbd
-                        className="rounded border border-gray-400 bg-white px-1 text-[10px]
-                                   font-semibold text-gray-500"
-                        aria-hidden="true"
-                      >
-                        {oi + 1}
-                      </kbd>
-                    )}
                   </span>
                 );
               })}

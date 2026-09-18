@@ -11,7 +11,7 @@ import { TestTabs } from "./TestTabs";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 import { QuestionList } from "./QuestionList";
 import { KeyboardHelpPanel } from "./KeyboardHelp";
-import { Instructions } from "./Instructions";
+import { Instructions, InstructionsDialog } from "./Instructions";
 import { ScrollRail } from "./ScrollRail";
 import { QuestionPaperView } from "./QuestionPaperView";
 import { ConfirmBox } from "./ConfirmBox";
@@ -26,6 +26,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   const questionColumn = useRef<HTMLElement | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
 
@@ -39,7 +40,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
     !helpOpen &&
     !confirmSubmit &&
     !confirmSkip &&
-    !paperOpen;
+    !paperOpen &&
+    !instructionsOpen;
 
   // The wheel is off during the test; the scrollbar and the keyboard still move
   // the column, and the mouse stays fully usable everywhere else.
@@ -83,7 +85,10 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white">
-      <PortalBanner onQuestionPaper={() => setPaperOpen(true)} />
+      <PortalBanner
+        onInstructions={() => setInstructionsOpen(true)}
+        onQuestionPaper={() => setPaperOpen(true)}
+      />
       <PortalToolbar
         title={paper.displayName}
         label={onTest ? "Time Left" : "Instruction Time Left"}
@@ -154,7 +159,6 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
                 questions={paper.questions}
                 answers={state.answers}
                 currentIndex={state.currentIndex}
-                showKeyHints
                 locked={state.submitted}
                 container={questionColumn}
                 onSelect={(qi, oi) => {
@@ -219,6 +223,12 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
       </div>
 
       <KeyboardHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
+
+      <InstructionsDialog
+        paper={paper}
+        open={instructionsOpen}
+        onClose={() => setInstructionsOpen(false)}
+      />
 
       <QuestionPaperView
         paper={paper}

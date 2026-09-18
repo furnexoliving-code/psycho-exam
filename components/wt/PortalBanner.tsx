@@ -6,8 +6,10 @@
  * Everything is drawn inline — no third-party artwork ships with the repo.
  */
 export function PortalBanner({
+  onInstructions,
   onQuestionPaper,
 }: {
+  onInstructions?: () => void;
   onQuestionPaper?: () => void;
 }) {
   return (
@@ -42,7 +44,7 @@ export function PortalBanner({
       </div>
 
       <div className="flex shrink-0 items-center gap-2 px-3">
-        <BannerButton onClick={onQuestionPaper}>Instructions</BannerButton>
+        <BannerButton onClick={onInstructions}>Instructions</BannerButton>
         <BannerButton onClick={onQuestionPaper}>Question Paper</BannerButton>
       </div>
     </div>
