@@ -124,10 +124,12 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
             {/* Right portion — the questions. The scrollbar stays visible so a
                 candidate can see how much of the paper is left, and it can
                 still be dragged; only the mouse wheel is off. */}
+            {/* The rails are inset by their own 9px so they never sit over
+                the question text. */}
             <div className="relative min-w-0 flex-1">
             <section
               ref={questionColumn}
-              className="wt-scroll-host h-full pr-[9px]"
+              className="wt-scroll-host h-full pb-[9px] pr-[9px]"
               aria-label="Questions"
             >
               {scrollNudge && (
@@ -155,7 +157,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
                 onFocusQuestion={(index) => dispatch({ type: "goto", index })}
               />
             </section>
-            <ScrollRail target={questionColumn} />
+            <ScrollRail target={questionColumn} axis="vertical" />
+            <ScrollRail target={questionColumn} axis="horizontal" />
             </div>
           </div>
 

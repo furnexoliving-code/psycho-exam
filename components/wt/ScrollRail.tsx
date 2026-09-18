@@ -3,26 +3,28 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * A scrollbar drawn by the app rather than the browser.
+ * A scrollbar drawn by the app rather than the browser, for either axis.
  *
  * The reference portal shows a thin grey strip down the right of the question
- * column, and it matters here: with the wheel disabled, that strip is the only
- * thing telling a candidate how much of the paper is left. Native scrollbars
- * could not be relied on — an overlay scrollbar collapses to a hairline and
- * `scrollbar-width: thin` makes Chromium ignore any width you set — so the rail
- * is rendered directly. Colours are sampled from the reference screenshots.
+ * column and another along its bottom edge, and they matter here: with the
+ * wheel disabled, those strips are the only thing telling a candidate how much
+ * of the paper is left. Native scrollbars could not be relied on — an overlay
+ * scrollbar collapses to a hairline and `scrollbar-width: thin` makes Chromium
+ * ignore any width set on ::-webkit-scrollbar — so the rails are rendered
+ * directly. Colours are sampled from the reference screenshots.
  *
- * It is draggable, because dragging is a deliberate act; only the wheel is off.
+ * Both rails drag, because dragging is a deliberate act; only the wheel is off.
  */
 export function ScrollRail({
   target,
-  className = "",
+  axis = "vertical",
 }: {
   target: React.RefObject<HTMLElement | null>;
-  className?: string;
+  axis?: "vertical" | "horizontal";
 }) {
-  const [metrics, setMetrics] = useState({ top: 0, height: 0, visible: false });
-  const dragging = useRef<{ startY: number; startScroll: number } | null>(null);
+  const vertical = axis === "vertical";
+  const [metrics, setMetrics] = useState({ offset: 0, size: 0, scrollable: false });
+  const dragging = useRef<{ start: number; startScroll: number } | null>(null);
   const railRef = useRef<HTMLDivElement | null>(null);
 
   const measure = useCallback(() => {
@@ -30,23 +32,26 @@ export function ScrollRail({
     const rail = railRef.current;
     if (!el || !rail) return;
 
-    const scrollable = el.scrollHeight - el.clientHeight;
+    const content = vertical ? el.scrollHeight : el.scrollWidth;
+    const viewport = vertical ? el.clientHeight : el.clientWidth;
+    const railSize = vertical ? rail.clientHeight : rail.clientWidth;
+    const scrollPos = vertical ? el.scrollTop : el.scrollLeft;
+    const scrollable = content - viewport;
+
+    // With nothing to scroll the rail still shows, with a full-length thumb —
+    // the strip is part of the portal's chrome, not just an indicator.
     if (scrollable <= 1) {
-      setMetrics({ top: 0, height: 0, visible: false });
+      setMetrics({ offset: 0, size: railSize, scrollable: false });
       return;
     }
 
-    const railHeight = rail.clientHeight;
     // A thumb shorter than this is impossible to grab.
     const MIN_THUMB = 28;
-    const height = Math.max(
-      MIN_THUMB,
-      (el.clientHeight / el.scrollHeight) * railHeight,
-    );
-    const top = (el.scrollTop / scrollable) * (railHeight - height);
+    const size = Math.max(MIN_THUMB, (viewport / content) * railSize);
+    const offset = (scrollPos / scrollable) * (railSize - size);
 
-    setMetrics({ top, height, visible: true });
-  }, [target]);
+    setMetrics({ offset, size, scrollable: true });
+  }, [target, vertical]);
 
   useEffect(() => {
     const el = target.current;
@@ -57,6 +62,9 @@ export function ScrollRail({
 
     const observer = new ResizeObserver(measure);
     observer.observe(el);
+    // The thumb length depends on content height, which changes as answers
+    // wrap onto new lines, so watch the content too.
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
 
     return () => {
       el.removeEventListener("scroll", measure);
@@ -64,26 +72,35 @@ export function ScrollRail({
     };
   }, [measure, target]);
 
-  const onPointerDown = (event: React.PointerEvent) => {
+  const coord = (event: React.PointerEvent) => (vertical ? event.clientY : event.clientX);
+
+  const onThumbPointerDown = (event: React.PointerEvent) => {
     const el = target.current;
-    if (!el) return;
+    if (!el || !metrics.scrollable) return;
     event.preventDefault();
+    event.stopPropagation();
     (event.target as HTMLElement).setPointerCapture(event.pointerId);
-    dragging.current = { startY: event.clientY, startScroll: el.scrollTop };
+    dragging.current = {
+      start: coord(event),
+      startScroll: vertical ? el.scrollTop : el.scrollLeft,
+    };
   };
 
-  const onPointerMove = (event: React.PointerEvent) => {
+  const onThumbPointerMove = (event: React.PointerEvent) => {
     const el = target.current;
     const rail = railRef.current;
     const drag = dragging.current;
     if (!el || !rail || !drag) return;
 
-    const scrollable = el.scrollHeight - el.clientHeight;
-    const travel = rail.clientHeight - metrics.height;
+    const content = vertical ? el.scrollHeight : el.scrollWidth;
+    const viewport = vertical ? el.clientHeight : el.clientWidth;
+    const railSize = vertical ? rail.clientHeight : rail.clientWidth;
+    const travel = railSize - metrics.size;
     if (travel <= 0) return;
 
-    const delta = event.clientY - drag.startY;
-    el.scrollTop = drag.startScroll + (delta / travel) * scrollable;
+    const moved = ((coord(event) - drag.start) / travel) * (content - viewport);
+    if (vertical) el.scrollTop = drag.startScroll + moved;
+    else el.scrollLeft = drag.startScroll + moved;
   };
 
   const endDrag = (event: React.PointerEvent) => {
@@ -95,30 +112,44 @@ export function ScrollRail({
   const onTrackPointerDown = (event: React.PointerEvent) => {
     const el = target.current;
     const rail = railRef.current;
-    if (!el || !rail || dragging.current) return;
+    if (!el || !rail || dragging.current || !metrics.scrollable) return;
 
-    const y = event.clientY - rail.getBoundingClientRect().top;
-    const direction = y < metrics.top ? -1 : 1;
-    el.scrollBy({ top: direction * el.clientHeight * 0.9, behavior: "smooth" });
+    const box = rail.getBoundingClientRect();
+    const at = coord(event) - (vertical ? box.top : box.left);
+    const direction = at < metrics.offset ? -1 : 1;
+    const page = (vertical ? el.clientHeight : el.clientWidth) * 0.9;
+
+    el.scrollBy(
+      vertical
+        ? { top: direction * page, behavior: "smooth" }
+        : { left: direction * page, behavior: "smooth" },
+    );
   };
 
   return (
     <div
       ref={railRef}
       onPointerDown={onTrackPointerDown}
-      className={`absolute right-0 top-0 h-full w-[9px] bg-[#eeeeee] ${className}`}
+      data-scroll-rail={axis}
+      className={`absolute bg-[#eeeeee] ${
+        vertical ? "right-0 top-0 h-full w-[9px]" : "bottom-0 left-0 h-[9px] w-full"
+      }`}
       aria-hidden="true"
     >
-      {metrics.visible && (
-        <div
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
-          className="absolute left-0 w-full cursor-grab bg-[#878787] active:cursor-grabbing hover:bg-[#6f6f6f]"
-          style={{ top: `${metrics.top}px`, height: `${metrics.height}px` }}
-        />
-      )}
+      <div
+        onPointerDown={onThumbPointerDown}
+        onPointerMove={onThumbPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        className={`absolute bg-[#878787] ${
+          metrics.scrollable ? "cursor-grab active:cursor-grabbing hover:bg-[#6f6f6f]" : ""
+        } ${vertical ? "left-0 w-full" : "top-0 h-full"}`}
+        style={
+          vertical
+            ? { top: `${metrics.offset}px`, height: `${metrics.size}px` }
+            : { left: `${metrics.offset}px`, width: `${metrics.size}px` }
+        }
+      />
     </div>
   );
 }

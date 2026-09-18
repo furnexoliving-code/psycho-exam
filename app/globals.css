@@ -24,7 +24,7 @@ body {
  * browsers. <ScrollRail> draws the visible strip instead.
  */
 .wt-scroll-host {
-  overflow-y: scroll;
+  overflow: scroll;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
