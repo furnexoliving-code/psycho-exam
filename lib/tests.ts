@@ -1,11 +1,13 @@
 import type { Test } from "./types";
+import followingDirections1 from "@/data/tests/following-directions-1.json";
 import alpPsycho1 from "@/data/tests/alp-psycho-1.json";
 
 /**
- * Tests are bundled as JSON so the portal runs without a backend. Adding a
- * paper means dropping a file in data/tests/ and registering it here.
+ * Bundled sample papers, used when the site runs without a database. Papers
+ * created through the admin panel come from Supabase instead — see lib/db.ts.
  */
 const TESTS: Record<string, Test> = {
+  "following-directions-1": followingDirections1 as Test,
   "alp-psycho-1": alpPsycho1 as Test,
 };
 
@@ -17,4 +19,4 @@ export function listTests(): Test[] {
   return Object.values(TESTS);
 }
 
-export const DEFAULT_TEST_ID = "alp-psycho-1";
+export const DEFAULT_TEST_ID = "following-directions-1";

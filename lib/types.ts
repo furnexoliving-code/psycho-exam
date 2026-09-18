@@ -23,13 +23,11 @@ export type SectionKind =
   | "personality"
   | "memory";
 
-/** Per-question status, mirroring the legend on the General Instructions page. */
-export type QuestionStatus =
-  | "not-visited"
-  | "not-answered"
-  | "answered"
-  | "marked"
-  | "answered-marked";
+/**
+ * Per-question status. The RRB CBAT palette carries only these three states —
+ * there is no "mark for review" in this exam.
+ */
+export type QuestionStatus = "not-visited" | "not-answered" | "answered";
 
 export interface Choice {
   /** Stable key stored as the answer, e.g. "A". */
@@ -66,7 +64,9 @@ export type Stimulus =
   | { type: "image"; src: string; alt: Bilingual }
   | { type: "track-map"; map: TrackMap }
   | { type: "figure-row"; figures: string[] }
-  | { type: "symbol-grid"; rows: string[][] };
+  | { type: "symbol-grid"; rows: string[][] }
+  /** A single row of boxed items with positions numbered beneath. */
+  | { type: "sequence"; items: string[]; showPositions?: boolean };
 
 /**
  * A railway track map drawn as inline SVG. Real RRB papers use scanned
@@ -170,6 +170,5 @@ export interface ExamState {
 /** Derive the palette colour for a question from its answer state. */
 export function statusOf(a: AnswerState | undefined): QuestionStatus {
   if (!a || !a.visited) return "not-visited";
-  if (a.markedForReview) return a.choice ? "answered-marked" : "marked";
   return a.choice ? "answered" : "not-answered";
 }

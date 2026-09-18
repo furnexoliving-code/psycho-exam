@@ -1,75 +1,61 @@
 import type { QuestionStatus } from "@/lib/types";
 
+/**
+ * Palette swatch styles, matching the exam screen: a green up-arrow tab for
+ * answered, a red down-arrow tab for not answered, a plain grey box for
+ * questions not opened yet.
+ */
 export const STATUS_STYLE: Record<
   QuestionStatus,
-  { bg: string; shape: string; label: string }
+  { bg: string; fg: string; shape: string; label: string; labelHi: string }
 > = {
-  "not-visited": {
-    bg: "#d9d9d9",
-    shape: "rounded",
-    label: "You have not visited the question yet.",
+  answered: {
+    bg: "#4d9e3f",
+    fg: "#ffffff",
+    shape: "[clip-path:polygon(0_22%,50%_0,100%_22%,100%_100%,0_100%)]",
+    label: "Answered",
+    labelHi: "हल किये गए प्रश्न",
   },
   "not-answered": {
-    bg: "#e8453c",
-    // The real portal draws this one with a notched bottom edge.
-    shape: "rounded-t-md [clip-path:polygon(0_0,100%_0,100%_78%,50%_100%,0_78%)]",
-    label: "You have not answered the question.",
+    bg: "#d9463a",
+    fg: "#ffffff",
+    shape: "[clip-path:polygon(0_0,100%_0,100%_78%,50%_100%,0_78%)]",
+    label: "Not Answered",
+    labelHi: "हल नहीं किये गए प्रश्न",
   },
-  answered: {
-    bg: "#4caf50",
-    shape: "rounded-b-md [clip-path:polygon(0_22%,50%_0,100%_22%,100%_100%,0_100%)]",
-    label: "You have answered the question.",
-  },
-  marked: {
-    bg: "#8e44ad",
-    shape: "rounded-full",
-    label:
-      "You have NOT answered the question, but have marked the question for review.",
-  },
-  "answered-marked": {
-    bg: "#8e44ad",
-    shape: "rounded-full",
-    label:
-      'The question(s) "Answered and Marked for Review" will be considered for evaluation.',
+  "not-visited": {
+    bg: "#c9c9c9",
+    fg: "#333333",
+    shape: "rounded-[2px]",
+    label: "Not Visited",
+    labelHi: "अभी तक अनदेखे प्रश्न",
   },
 };
 
-/** The five-swatch key shown on the instructions page and beside the palette. */
-export function PaletteLegend({ compact = false }: { compact?: boolean }) {
-  const order: QuestionStatus[] = [
-    "not-visited",
-    "not-answered",
-    "answered",
-    "marked",
-    "answered-marked",
-  ];
+/** Legend order on screen: answered, not answered, not visited. */
+export const LEGEND_ORDER: QuestionStatus[] = ["answered", "not-answered", "not-visited"];
 
+export function PaletteLegend({
+  counts,
+  compact = false,
+}: {
+  /** Live counts shown inside each swatch, as the real palette does. */
+  counts?: Record<QuestionStatus, number>;
+  compact?: boolean;
+}) {
   return (
-    <ul className={compact ? "space-y-1.5" : "space-y-3"}>
-      {order.map((status) => {
+    <ul className={`flex flex-wrap ${compact ? "gap-x-4 gap-y-1.5" : "gap-x-6 gap-y-2"}`}>
+      {LEGEND_ORDER.map((status) => {
         const style = STATUS_STYLE[status];
         return (
-          <li key={status} className="flex items-start gap-3">
-            <span className="relative shrink-0">
-              <span
-                className={`flex h-7 w-7 items-center justify-center text-[11px] font-bold text-white ${style.shape}`}
-                style={{
-                  background: style.bg,
-                  color: status === "not-visited" ? "#374151" : "#fff",
-                }}
-              >
-                {status === "answered-marked" ? "1" : status === "marked" ? "1" : "1"}
-              </span>
-              {status === "answered-marked" && (
-                // The green tick that distinguishes it from a plain review mark.
-                <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500 text-[8px] font-bold text-white">
-                  ✓
-                </span>
-              )}
-            </span>
+          <li key={status} className="flex items-center gap-2">
             <span
-              className={`${compact ? "text-[11px]" : "text-[13px]"} leading-snug text-gray-700`}
+              className={`flex h-7 w-7 items-center justify-center text-[12px] font-bold ${style.shape}`}
+              style={{ background: style.bg, color: style.fg }}
             >
+              {counts ? counts[status] : ""}
+            </span>
+            <span className={`${compact ? "text-[11px]" : "text-[12px]"} text-gray-800`}>
               {style.label}
             </span>
           </li>

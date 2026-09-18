@@ -119,6 +119,37 @@ function SymbolGrid({ rows }: { rows: string[][] }) {
   );
 }
 
+/**
+ * A row of items with their positions numbered underneath — the layout the
+ * Following Directions test uses, where every question is phrased relative to
+ * a position in this row.
+ */
+function Sequence({
+  items,
+  showPositions = true,
+}: {
+  items: string[];
+  showPositions?: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((item, i) => (
+        <div key={i} className="flex flex-col items-center gap-1">
+          <div
+            className="flex h-[52px] w-[52px] items-center justify-center border-2
+                       border-gray-800 bg-white text-[22px] font-bold text-gray-900"
+          >
+            {item}
+          </div>
+          {showPositions && (
+            <span className="text-[11px] text-gray-500">{i + 1}</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Stimulus({
   stimulus,
   lang,
@@ -136,6 +167,8 @@ export function Stimulus({
       return <FigureRow figures={stimulus.figures} />;
     case "symbol-grid":
       return <SymbolGrid rows={stimulus.rows} />;
+    case "sequence":
+      return <Sequence items={stimulus.items} showPositions={stimulus.showPositions} />;
     case "image":
       // eslint-disable-next-line @next/next/no-img-element
       return (

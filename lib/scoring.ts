@@ -77,15 +77,9 @@ export function scoreExam(test: Test, state: ExamState): ExamResult {
   };
 }
 
-/** Counts for the summary table shown in the submit confirmation dialog. */
+/** Counts for the summary shown before submitting and in the rest screen. */
 export function summarise(section: Section, state: ExamState) {
-  const counts = {
-    answered: 0,
-    notAnswered: 0,
-    notVisited: 0,
-    marked: 0,
-    answeredMarked: 0,
-  };
+  const counts = { answered: 0, notAnswered: 0, notVisited: 0 };
 
   for (const q of section.questions) {
     switch (statusOf(state.answers[q.id])) {
@@ -94,12 +88,6 @@ export function summarise(section: Section, state: ExamState) {
         break;
       case "not-answered":
         counts.notAnswered += 1;
-        break;
-      case "marked":
-        counts.marked += 1;
-        break;
-      case "answered-marked":
-        counts.answeredMarked += 1;
         break;
       default:
         counts.notVisited += 1;
