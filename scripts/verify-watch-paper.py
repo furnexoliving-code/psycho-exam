@@ -28,13 +28,13 @@ STEM = re.compile(
 )
 
 TAILS = {
-    "Which number has the highest frequency in the path?": "highest-frequency",
-    "Which number has the lowest frequency in the path?": "lowest-frequency",
-    "Which number is opposite of the alphabetically last letter in the path?": "opposite-of-alpha-last",
-    "Which number is opposite of the alphabetically first letter in the path?": "opposite-of-alpha-first",
-    "What is the number of the middle letter in the path?": "middle-letter",
-    "What is the number of the alphabetically last letter in the path?": "alpha-last-value",
-    "What is the number of the alphabetically first letter in the path?": "alpha-first-value",
+    "Among the numbers you pass through, which one appears the most times?": "highest-frequency",
+    "Among the numbers you pass through, which one appears the fewest times?": "lowest-frequency",
+    "Among the letters you pass through, which number is opposite the alphabetically last one?": "opposite-of-alpha-last",
+    "Among the letters you pass through, which number is opposite the alphabetically first one?": "opposite-of-alpha-first",
+    "What is the number of the middle letter of the path?": "middle-letter",
+    "Among the letters you pass through, what is the number of the alphabetically last one?": "alpha-last-value",
+    "Among the letters you pass through, what is the number of the alphabetically first one?": "alpha-first-value",
 }
 
 
@@ -137,19 +137,63 @@ def main():
             continue
 
         opts = q["options"]
-        if sorted(opts) != [1, 2, 3, 4, 5]:
-            failures.append((q["id"], f"options {opts} are not the five numbers 1-5"))
+        table_values = sorted({c["value"] for c in table["cells"]})
+        if sorted(opts) != table_values:
+            failures.append((q["id"], f"options {sorted(opts)} are not the diagram's values {table_values}"))
         if q["answer"] not in opts:
             failures.append((q["id"], "correct answer is missing from the options"))
+
+        # A frequency stem must not let an option that never appears in the
+        # path read as the least frequent one.
+        if kind == "lowest-frequency":
+            present = {c["value"] for c in path}
+            absent = sorted(set(opts) - present)
+            if absent and "you pass through" not in q["prompt"]["en"]:
+                failures.append((
+                    q["id"],
+                    f"lowest-frequency is ambiguous: {absent} never appear in the path "
+                    "but are offered as options",
+                ))
 
     # A paper of twenty identical question shapes is technically correct and
     # useless, so treat a lopsided mix as a failure too.
     if questions and max(kinds.values()) > len(questions) / 2:
         failures.append(("paper", f"question kinds are lopsided: {dict(kinds)}"))
 
+    # Answer entropy. Several question types collapse onto one or two answers
+    # for most arcs on a given diagram; a paper where one type keeps giving the
+    # same number is guessable without reading the diagram at all.
+    by_kind = {}
+    for q in questions:
+        m = STEM.match(q["prompt"]["en"])
+        if not m:
+            continue
+        k = TAILS.get(m.group(4).strip())
+        by_kind.setdefault(k, []).append(q["answer"])
+
+    for k, got in by_kind.items():
+        if len(got) < 3:
+            continue
+        modal, times = Counter(got).most_common(1)[0]
+        if times / len(got) > 0.5:
+            failures.append((
+                k,
+                f"answer {modal} repeats {times}/{len(got)} times — guessable without the diagram",
+            ))
+
+    overall = Counter(q["answer"] for q in questions)
+    if questions:
+        modal, times = overall.most_common(1)[0]
+        if times / len(questions) > 0.35:
+            failures.append((
+                "paper",
+                f"answer {modal} is correct for {times}/{len(questions)} questions overall",
+            ))
+
     print(f"diagrams      : {len(tables)}")
     print(f"questions     : {len(questions)}")
     print(f"question kinds: {dict(kinds)}")
+    print(f"answers       : {dict(sorted(Counter(q['answer'] for q in questions).items()))}")
     print()
 
     if failures:

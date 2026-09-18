@@ -3,21 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Locks free scrolling inside the exam.
+ * Turns off the mouse wheel inside the exam.
  *
- * The mouse itself stays fully usable — the cursor shows and clicking an option
- * answers it. Only scrolling is taken away, so a candidate moves through the
- * paper deliberately with the keyboard instead of spinning the wheel.
+ * Everything else about the mouse keeps working: the cursor shows, clicking an
+ * option answers it, and the question column keeps a real scrollbar that can
+ * still be dragged — the bar is how a candidate sees how much paper is left.
+ * Only the wheel and trackpad gesture are taken away, so moving through the
+ * questions is a deliberate act.
  *
- * The container is held at `overflow: hidden`, which stops the wheel, the
- * trackpad, a dragged scrollbar and touch panning in one move, while leaving
- * programmatic scrolling (scrollIntoView, scrollTop) working — that is how
- * question navigation still moves the view.
+ * Because the column is a real scroll container rather than `overflow: hidden`,
+ * the wheel has to be cancelled event by event. That needs `passive: false`;
+ * without it the browser ignores preventDefault on wheel.
  *
- * The wheel listener on top of that exists only to notice the attempt, so the
- * screen can say what to press instead of silently doing nothing.
+ * Returns true briefly after a blocked gesture, so the screen can say which
+ * keys to use instead of silently doing nothing.
  */
-export function useScrollLock(enabled: boolean) {
+export function useScrollLock(
+  enabled: boolean,
+  container?: React.RefObject<HTMLElement | null>,
+) {
   const [blockedAt, setBlockedAt] = useState(0);
   const timer = useRef<number | null>(null);
 
@@ -45,12 +49,16 @@ export function useScrollLock(enabled: boolean) {
     const onKeyScroll = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
-      // Space and PageUp/PageDown scroll the document by default.
+      // Space and PageUp/PageDown scroll the container by default.
       if ([" ", "PageUp", "PageDown"].includes(event.key)) {
         event.preventDefault();
         nudge();
       }
     };
+
+    // Dragging the scrollbar is left alone deliberately — it is a visible,
+    // deliberate action, unlike a flick of the wheel.
+    void container;
 
     // passive:false is required, or preventDefault on wheel is ignored.
     // removeEventListener takes no `passive`, so the options differ per call.

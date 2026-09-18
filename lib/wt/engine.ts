@@ -108,6 +108,9 @@ export function solve(
       for (const cell of path) counts.set(cell.value, (counts.get(cell.value) ?? 0) + 1);
 
       const entries = [...counts.entries()];
+      // With one distinct value there is nothing to compare, and the stem
+      // would read as a trick question.
+      if (entries.length < 2) return null;
       const wanted =
         kind === "highest-frequency"
           ? Math.max(...entries.map(([, n]) => n))
@@ -188,33 +191,36 @@ export function phrase(
   const leadHi = `${f.hi} से शुरू करके ${h.hi} ${t.hi} तक जाएँ।`;
 
   const tail: Record<QuestionKind, { en: string; hi: string }> = {
+    // Each stem names the scope it pivots on. "in the path" alone let a
+    // candidate read the pivot as the whole circle, and let a number that
+    // never appears count as the least frequent one.
     "highest-frequency": {
-      en: "Which number has the highest frequency in the path?",
-      hi: "पथ में किस संख्या की आवृत्ति सबसे अधिक है?",
+      en: "Among the numbers you pass through, which one appears the most times?",
+      hi: "जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?",
     },
     "lowest-frequency": {
-      en: "Which number has the lowest frequency in the path?",
-      hi: "पथ में किस संख्या की आवृत्ति सबसे कम है?",
+      en: "Among the numbers you pass through, which one appears the fewest times?",
+      hi: "जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?",
     },
     "opposite-of-alpha-last": {
-      en: "Which number is opposite of the alphabetically last letter in the path?",
-      hi: "पथ में वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या होगी?",
+      en: "Among the letters you pass through, which number is opposite the alphabetically last one?",
+      hi: "जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?",
     },
     "opposite-of-alpha-first": {
-      en: "Which number is opposite of the alphabetically first letter in the path?",
-      hi: "पथ में वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या होगी?",
+      en: "Among the letters you pass through, which number is opposite the alphabetically first one?",
+      hi: "जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?",
     },
     "middle-letter": {
-      en: "What is the number of the middle letter in the path?",
-      hi: "पथ में मध्य अक्षर की संख्या क्या है?",
+      en: "What is the number of the middle letter of the path?",
+      hi: "पथ के मध्य अक्षर की संख्या क्या है?",
     },
     "alpha-last-value": {
-      en: "What is the number of the alphabetically last letter in the path?",
-      hi: "पथ में वर्णानुक्रम के अंतिम अक्षर की संख्या क्या है?",
+      en: "Among the letters you pass through, what is the number of the alphabetically last one?",
+      hi: "जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर की संख्या क्या है?",
     },
     "alpha-first-value": {
-      en: "What is the number of the alphabetically first letter in the path?",
-      hi: "पथ में वर्णानुक्रम के पहले अक्षर की संख्या क्या है?",
+      en: "Among the letters you pass through, what is the number of the alphabetically first one?",
+      hi: "जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?",
     },
   };
 

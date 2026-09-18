@@ -18,6 +18,22 @@ body {
   font-size: calc(1rem * var(--exam-zoom));
 }
 
+/*
+ * The question column scrolls, but its native scrollbar is hidden: overlay
+ * scrollbars collapse to a hairline and cannot be styled reliably across
+ * browsers. <ScrollRail> draws the visible strip instead.
+ */
+.wt-scroll-host {
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.wt-scroll-host::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 @layer components {
   .palette-btn {
     @apply relative flex h-9 w-9 items-center justify-center text-sm font-semibold

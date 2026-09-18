@@ -37,12 +37,20 @@ function shuffle<T>(items: T[], random: () => number): T[] {
 }
 
 /**
- * Every question offers the same five numbers, so the diagram must carry all of
- * 1-5. With eight positions that means three numbers appear twice — the same
- * shape the printed papers use, and what makes "highest frequency" meaningful.
+ * The eight positions carry five distinct numbers, three of them twice — the
+ * shape the printed papers use, and what gives "appears the most times" any
+ * meaning.
+ *
+ * The option chips are the table's own distinct values, NOT a hardcoded 1-5.
+ * The reference portal's worked example puts a 6 on the circle, so a paper
+ * built from an admin's uploaded diagram can use any numbers at all; deriving
+ * the options guarantees the answer is always among them.
  */
 const VALUE_MULTISET = [1, 2, 3, 3, 4, 4, 5, 5];
-export const OPTION_VALUES = [1, 2, 3, 4, 5];
+
+export function optionValues(table: WatchTable): number[] {
+  return [...new Set(table.cells.map((c) => c.value))].sort((a, b) => a - b);
+}
 
 const LETTER_POOL = "ABCDEFGHIJKLMNPQRSTUVWXYZ".split("");
 
@@ -122,6 +130,11 @@ export function generateQuestions({
   const random = rng(seed + 12345);
   const questions: WatchQuestion[] = [];
   const used = new Set<string>();
+  // Answers already emitted per kind. On a given table a type like
+  // "opposite the alphabetically last letter" collapses onto one or two
+  // answers for most arcs, so a paper picked purely at random can be guessed
+  // by answering the same number every time.
+  const answersByKind = new Map<QuestionKind, number[]>();
 
   // Spread the questions across the diagrams and across the question kinds, so
   // a paper does not turn into twenty variations of one idea.
@@ -139,12 +152,17 @@ export function generateQuestions({
       ...KINDS.map((k) => kindCounts.get(k) ?? 0),
     );
 
-    for (let pass = 0; pass < 2 && !picked; pass += 1) {
+    // Pass 0: least-used kind AND an answer that kind has not given before.
+    // Pass 1: least-used kind, any answer. Pass 2: anything unused.
+    for (let pass = 0; pass < 3 && !picked; pass += 1) {
       for (let i = cursors[tableIndex]; i < pool.length; i += 1) {
         const candidate = pool[i];
         const key = `${tableIndex}:${candidate.kind}:${candidate.from}:${candidate.to}:${candidate.hand}`;
         if (used.has(key)) continue;
-        if (pass === 0 && (kindCounts.get(candidate.kind) ?? 0) > minUses) continue;
+        if (pass < 2 && (kindCounts.get(candidate.kind) ?? 0) > minUses) continue;
+        if (pass === 0 && (answersByKind.get(candidate.kind) ?? []).includes(candidate.answer)) {
+          continue;
+        }
         picked = candidate;
         used.add(key);
         cursors[tableIndex] = i + 1;
@@ -156,12 +174,16 @@ export function generateQuestions({
     if (!picked) break; // The tables cannot pose any more distinct questions.
 
     kindCounts.set(picked.kind, (kindCounts.get(picked.kind) ?? 0) + 1);
+    answersByKind.set(picked.kind, [
+      ...(answersByKind.get(picked.kind) ?? []),
+      picked.answer,
+    ]);
 
     questions.push({
       id: `wt-q${questions.length + 1}`,
       tableIndex,
       prompt: phrase(picked.kind, picked.from, picked.to, picked.hand),
-      options: shuffle(OPTION_VALUES, random),
+      options: shuffle(optionValues(tables[tableIndex]), random),
       answer: picked.answer,
       working: { en: picked.workingEn, hi: picked.workingHi },
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
@@ -12,6 +12,7 @@ import { WatchTableDiagram } from "./WatchTableDiagram";
 import { QuestionList } from "./QuestionList";
 import { KeyStrip, KeyboardHelpPanel } from "./KeyboardHelp";
 import { Instructions } from "./Instructions";
+import { ScrollRail } from "./ScrollRail";
 import { ConfirmBox } from "./ConfirmBox";
 
 /**
@@ -21,6 +22,7 @@ import { ConfirmBox } from "./ConfirmBox";
 export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   const router = useRouter();
   const { state, dispatch, answered, clearSaved } = useAttempt(paper);
+  const questionColumn = useRef<HTMLElement | null>(null);
   const [tab, setTab] = useState<"instructions" | "test">("instructions");
   const [helpOpen, setHelpOpen] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
@@ -28,8 +30,12 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   const onTest = tab === "test";
   const active = onTest && !state.submitted && !state.paused && !helpOpen && !confirmSubmit;
 
-  // Scrolling is locked during the test; the mouse itself stays fully usable.
-  const scrollNudge = useScrollLock(state.scrollLocked && onTest && !state.submitted);
+  // The wheel is off during the test; the scrollbar and the keyboard still move
+  // the column, and the mouse stays fully usable everywhere else.
+  const scrollNudge = useScrollLock(
+    state.scrollLocked && onTest && !state.submitted,
+    questionColumn,
+  );
 
   const current = paper.questions[state.currentIndex];
   const table = paper.tables[current?.tableIndex ?? 0];
@@ -115,13 +121,13 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
               )}
             </section>
 
-            {/* Right portion — the questions. overflow-hidden while locked kills
-                the wheel, a dragged scrollbar and touch panning at once, while
-                leaving scrollIntoView free to move the view. */}
+            {/* Right portion — the questions. The scrollbar stays visible so a
+                candidate can see how much of the paper is left, and it can
+                still be dragged; only the mouse wheel is off. */}
+            <div className="relative min-w-0 flex-1">
             <section
-              className={`relative min-w-0 flex-1 ${
-                state.scrollLocked && !state.submitted ? "overflow-hidden" : "overflow-y-auto"
-              }`}
+              ref={questionColumn}
+              className="wt-scroll-host h-full pr-[9px]"
               aria-label="Questions"
             >
               {scrollNudge && (
@@ -149,6 +155,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
                 onFocusQuestion={(index) => dispatch({ type: "goto", index })}
               />
             </section>
+            <ScrollRail target={questionColumn} />
+            </div>
           </div>
 
           <KeyStrip />
