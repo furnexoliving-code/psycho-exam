@@ -27,6 +27,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
+  // Bumped only by keyboard navigation, so a click never triggers a scroll.
+  const [scrollToken, setScrollToken] = useState(0);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
 
@@ -66,10 +68,22 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
         if (value === undefined) return;
         dispatch({ type: "answer", questionId: current.id, value });
       },
-      onNext: () => dispatch({ type: "goto", index: state.currentIndex + 1 }),
-      onPrevious: () => dispatch({ type: "goto", index: state.currentIndex - 1 }),
-      onFirst: () => dispatch({ type: "goto", index: 0 }),
-      onLast: () => dispatch({ type: "goto", index: paper.questions.length - 1 }),
+      onNext: () => {
+        dispatch({ type: "goto", index: state.currentIndex + 1 });
+        setScrollToken((t) => t + 1);
+      },
+      onPrevious: () => {
+        dispatch({ type: "goto", index: state.currentIndex - 1 });
+        setScrollToken((t) => t + 1);
+      },
+      onFirst: () => {
+        dispatch({ type: "goto", index: 0 });
+        setScrollToken((t) => t + 1);
+      },
+      onLast: () => {
+        dispatch({ type: "goto", index: paper.questions.length - 1 });
+        setScrollToken((t) => t + 1);
+      },
       onClear: () => {
         if (current) dispatch({ type: "clear", questionId: current.id });
       },
@@ -161,13 +175,15 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
                 currentIndex={state.currentIndex}
                 locked={state.submitted}
                 container={questionColumn}
+                scrollToken={scrollToken}
                 onSelect={(qi, oi) => {
                   const q = paper.questions[qi];
                   const value = q.options[oi];
+                  // Sets the current question too, so the keys carry on from
+                  // wherever the pointer left off — but without a scroll.
                   dispatch({ type: "goto", index: qi });
                   dispatch({ type: "answer", questionId: q.id, value });
                 }}
-                onFocusQuestion={(index) => dispatch({ type: "goto", index })}
               />
             </section>
             <ScrollRail target={questionColumn} axis="vertical" />

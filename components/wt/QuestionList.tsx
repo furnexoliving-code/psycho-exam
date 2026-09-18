@@ -35,8 +35,8 @@ export function QuestionList({
   currentIndex,
   locked,
   container,
+  scrollToken,
   onSelect,
-  onFocusQuestion,
 }: {
   questions: WatchQuestion[];
   answers: Record<string, number | null>;
@@ -44,10 +44,19 @@ export function QuestionList({
   locked: boolean;
   /** The scrolling panel, so navigation can move one axis only. */
   container: React.RefObject<HTMLElement | null>;
+  /**
+   * Bumped by the parent ONLY when the keyboard moves between questions.
+   * Scrolling is deliberately not tied to currentIndex: clicking an option
+   * also sets the current question, and a scroll fired mid-click pulled the
+   * radio out from under the pointer so the click never landed — which is why
+   * selecting an option used to take two clicks.
+   */
+  scrollToken: number;
   onSelect: (questionIndex: number, optionIndex: number) => void;
-  onFocusQuestion: (index: number) => void;
 }) {
   const refs = useRef<(HTMLLIElement | null)[]>([]);
+  const indexRef = useRef(currentIndex);
+  indexRef.current = currentIndex;
 
   // Keep the active question in view as the keyboard moves through the paper.
   //
@@ -56,7 +65,9 @@ export function QuestionList({
   // candidate had scrolled to horizontally. Setting scrollTop by hand moves
   // the vertical axis and leaves scrollLeft exactly where it was.
   useEffect(() => {
-    const el = refs.current[currentIndex];
+    if (scrollToken === 0) return;
+
+    const el = refs.current[indexRef.current];
     const panel = container.current;
     if (!el || !panel) return;
 
@@ -65,7 +76,7 @@ export function QuestionList({
     const delta = item.top - view.top - (view.height - item.height) / 2;
 
     panel.scrollTo({ top: panel.scrollTop + delta, behavior: "smooth" });
-  }, [currentIndex, container]);
+  }, [scrollToken, container]);
 
   return (
     <ol
@@ -82,9 +93,7 @@ export function QuestionList({
             ref={(el) => {
               refs.current[qi] = el;
             }}
-            className={`relative border-b border-[#ececec] py-5 pl-5 pr-6 transition-colors ${
-              current ? "bg-[#eef8fb]" : "bg-white"
-            }`}
+            className="relative border-b border-[#ececec] bg-white py-5 pl-5 pr-6"
             aria-current={current ? "step" : undefined}
           >
             {current && (
@@ -129,7 +138,6 @@ export function QuestionList({
                       checked={selected}
                       disabled={locked}
                       onChange={() => onSelect(qi, oi)}
-                      onFocus={() => onFocusQuestion(qi)}
                       className="h-[13px] w-[13px] shrink-0 cursor-pointer"
                     />
                     <label
