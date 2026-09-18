@@ -123,6 +123,7 @@
     {
       "id": "wt-q1",
       "tableIndex": 0,
+      "topic": "Alphabetically first letter",
       "prompt": {
         "en": "Starting from West travel right-handedly up to South-West. Among the letters you pass through, what is the number of the alphabetically first one?",
         "hi": "पश्चिम से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?"
@@ -143,6 +144,7 @@
     {
       "id": "wt-q2",
       "tableIndex": 0,
+      "topic": "Alphabetically last letter",
       "prompt": {
         "en": "Starting from East travel right-handedly up to North. Among the letters you pass through, what is the number of the alphabetically last one?",
         "hi": "पूर्व से शुरू करके दाएं हाथ से उत्तर तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर की संख्या क्या है?"
@@ -163,6 +165,7 @@
     {
       "id": "wt-q3",
       "tableIndex": 0,
+      "topic": "Opposite of last letter",
       "prompt": {
         "en": "Starting from West travel right-handedly up to South. Among the letters you pass through, which number is opposite the alphabetically last one?",
         "hi": "पश्चिम से शुरू करके दाएं हाथ से दक्षिण तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
@@ -183,6 +186,7 @@
     {
       "id": "wt-q4",
       "tableIndex": 0,
+      "topic": "Opposite of first letter",
       "prompt": {
         "en": "Starting from South travel left-handedly up to North-West. Among the letters you pass through, which number is opposite the alphabetically first one?",
         "hi": "दक्षिण से शुरू करके बाएं हाथ से उत्तर-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
@@ -203,6 +207,7 @@
     {
       "id": "wt-q5",
       "tableIndex": 0,
+      "topic": "Least frequent number",
       "prompt": {
         "en": "Starting from East travel left-handedly up to West. Among the numbers you pass through, which one appears the fewest times?",
         "hi": "पूर्व से शुरू करके बाएं हाथ से पश्चिम तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?"
@@ -223,6 +228,7 @@
     {
       "id": "wt-q6",
       "tableIndex": 0,
+      "topic": "Most frequent number",
       "prompt": {
         "en": "Starting from East travel left-handedly up to North-West. Among the numbers you pass through, which one appears the most times?",
         "hi": "पूर्व से शुरू करके बाएं हाथ से उत्तर-पश्चिम तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?"
@@ -243,6 +249,7 @@
     {
       "id": "wt-q7",
       "tableIndex": 0,
+      "topic": "Middle letter",
       "prompt": {
         "en": "Starting from South travel left-handedly up to East. What is the number of the middle letter of the path?",
         "hi": "दक्षिण से शुरू करके बाएं हाथ से पूर्व तक जाएँ। पथ के मध्य अक्षर की संख्या क्या है?"
@@ -263,6 +270,7 @@
     {
       "id": "wt-q8",
       "tableIndex": 0,
+      "topic": "Alphabetically last letter",
       "prompt": {
         "en": "Starting from North-East travel right-handedly up to South-West. Among the letters you pass through, what is the number of the alphabetically last one?",
         "hi": "उत्तर-पूर्व से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर की संख्या क्या है?"
@@ -283,6 +291,7 @@
     {
       "id": "wt-q9",
       "tableIndex": 0,
+      "topic": "Opposite of first letter",
       "prompt": {
         "en": "Starting from South-East travel left-handedly up to North-East. Among the letters you pass through, which number is opposite the alphabetically first one?",
         "hi": "दक्षिण-पूर्व से शुरू करके बाएं हाथ से उत्तर-पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
@@ -303,6 +312,7 @@
     {
       "id": "wt-q10",
       "tableIndex": 0,
+      "topic": "Alphabetically first letter",
       "prompt": {
         "en": "Starting from West travel right-handedly up to North-West. Among the letters you pass through, what is the number of the alphabetically first one?",
         "hi": "पश्चिम से शुरू करके दाएं हाथ से उत्तर-पश्चिम तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?"
@@ -323,6 +333,7 @@
     {
       "id": "wt-q11",
       "tableIndex": 0,
+      "topic": "Most frequent number",
       "prompt": {
         "en": "Starting from South travel right-handedly up to North-East. Among the numbers you pass through, which one appears the most times?",
         "hi": "दक्षिण से शुरू करके दाएं हाथ से उत्तर-पूर्व तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?"
@@ -343,6 +354,7 @@
     {
       "id": "wt-q12",
       "tableIndex": 0,
+      "topic": "Least frequent number",
       "prompt": {
         "en": "Starting from South-East travel right-handedly up to South-West. Among the numbers you pass through, which one appears the fewest times?",
         "hi": "दक्षिण-पूर्व से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?"
@@ -363,6 +375,7 @@
     {
       "id": "wt-q13",
       "tableIndex": 0,
+      "topic": "Middle letter",
       "prompt": {
         "en": "Starting from South-West travel right-handedly up to North-East. What is the number of the middle letter of the path?",
         "hi": "दक्षिण-पश्चिम से शुरू करके दाएं हाथ से उत्तर-पूर्व तक जाएँ। पथ के मध्य अक्षर की संख्या क्या है?"
@@ -383,6 +396,7 @@
     {
       "id": "wt-q14",
       "tableIndex": 0,
+      "topic": "Opposite of last letter",
       "prompt": {
         "en": "Starting from North-East travel right-handedly up to South-East. Among the letters you pass through, which number is opposite the alphabetically last one?",
         "hi": "उत्तर-पूर्व से शुरू करके दाएं हाथ से दक्षिण-पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
@@ -403,6 +417,7 @@
     {
       "id": "wt-q15",
       "tableIndex": 0,
+      "topic": "Opposite of first letter",
       "prompt": {
         "en": "Starting from South-East travel left-handedly up to North. Among the letters you pass through, which number is opposite the alphabetically first one?",
         "hi": "दक्षिण-पूर्व से शुरू करके बाएं हाथ से उत्तर तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर के सामने कौन सी संख्या है?"
@@ -423,6 +438,7 @@
     {
       "id": "wt-q16",
       "tableIndex": 0,
+      "topic": "Most frequent number",
       "prompt": {
         "en": "Starting from West travel left-handedly up to South-East. Among the numbers you pass through, which one appears the most times?",
         "hi": "पश्चिम से शुरू करके बाएं हाथ से दक्षिण-पूर्व तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे अधिक बार आती है?"
@@ -443,6 +459,7 @@
     {
       "id": "wt-q17",
       "tableIndex": 0,
+      "topic": "Middle letter",
       "prompt": {
         "en": "Starting from North travel left-handedly up to South. What is the number of the middle letter of the path?",
         "hi": "उत्तर से शुरू करके बाएं हाथ से दक्षिण तक जाएँ। पथ के मध्य अक्षर की संख्या क्या है?"
@@ -463,6 +480,7 @@
     {
       "id": "wt-q18",
       "tableIndex": 0,
+      "topic": "Opposite of last letter",
       "prompt": {
         "en": "Starting from North travel right-handedly up to East. Among the letters you pass through, which number is opposite the alphabetically last one?",
         "hi": "उत्तर से शुरू करके दाएं हाथ से पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के अंतिम अक्षर के सामने कौन सी संख्या है?"
@@ -483,6 +501,7 @@
     {
       "id": "wt-q19",
       "tableIndex": 0,
+      "topic": "Alphabetically first letter",
       "prompt": {
         "en": "Starting from South-East travel left-handedly up to East. Among the letters you pass through, what is the number of the alphabetically first one?",
         "hi": "दक्षिण-पूर्व से शुरू करके बाएं हाथ से पूर्व तक जाएँ। जिन अक्षरों से आप गुज़रे, उनमें वर्णानुक्रम के पहले अक्षर की संख्या क्या है?"
@@ -503,6 +522,7 @@
     {
       "id": "wt-q20",
       "tableIndex": 0,
+      "topic": "Least frequent number",
       "prompt": {
         "en": "Starting from West travel right-handedly up to North. Among the numbers you pass through, which one appears the fewest times?",
         "hi": "पश्चिम से शुरू करके दाएं हाथ से उत्तर तक जाएँ। जिन संख्याओं से आप गुज़रे, उनमें कौन सी संख्या सबसे कम बार आती है?"

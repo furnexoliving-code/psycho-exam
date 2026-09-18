@@ -149,3 +149,21 @@ alter table public.watch_papers
   add column if not exists reference_mean   numeric,
   add column if not exists reference_sd     numeric,
   add column if not exists stats_min_attempts integer not null default 5;
+
+-- ---------------------------------------------------------------------------
+-- Result-screen extras: cut off, expert comment, topics, timing
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers
+  /* Marks needed to qualify. Null hides the badge entirely. */
+  add column if not exists cut_off_marks   integer,
+  /* RRB's own bar is a T-score of 42; either or both may be set. */
+  add column if not exists cut_off_tscore  numeric,
+  add column if not exists expert_comment  text;
+
+alter table public.watch_questions
+  /* Free-form label used for the topic breakdown, e.g. "Opposite". */
+  add column if not exists topic text not null default '';
+
+alter table public.watch_attempts
+  add column if not exists duration_sec integer,
+  add column if not exists t_score      numeric;

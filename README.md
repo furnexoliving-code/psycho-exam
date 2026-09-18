@@ -52,6 +52,26 @@ T-score reports that it is not available rather than showing a fictional 50.
 A standard deviation of zero would divide by zero; that case returns 50, since
 everyone scoring the same means everyone is exactly average.
 
+### What else the result shows
+
+- **Rank and percentile** against everyone who has sat the paper. Equal marks
+  share a rank, and the percentile counts candidates scoring strictly less.
+- **Cut off** by marks, by T-score, or both — a candidate must clear each bar
+  that is set. RRB's own bar is a T-score of 42.
+- **Expert's comment**, set per paper.
+- **Where the marks went** — a per-topic tally, weakest first. Questions carry
+  an optional topic as their fifth upload field; the generated sample labels
+  itself.
+- **Time** — taken against allowed, what was left, and the average per
+  attempted question.
+- **Your attempts** — earlier attempts at the same paper with the change in
+  marks. Kept in the browser as well as the database, so it works for a
+  candidate who never signed in.
+
+Admins get every attempt for a paper at
+`/admin/watch-table/<slug>/results`, with rank, T-score and cut-off per row,
+and a CSV download that opens correctly in Excel including Hindi names.
+
 ### Where the answer key lives
 
 The key never reaches a candidate's browser. The exam page is served with the

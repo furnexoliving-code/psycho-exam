@@ -18,5 +18,11 @@ export default async function ResultPage({
     getBundledPaper(paperId);
 
   if (!paper) notFound();
-  return <ResultView paperId={paperId} displayName={paper.displayName} />;
+  return (
+    <ResultView
+      paperId={paperId}
+      displayName={paper.displayName}
+      allowedSec={paper.timeLimitMin * 60}
+    />
+  );
 }

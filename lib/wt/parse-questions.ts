@@ -1,11 +1,13 @@
 /**
  * The format questions are written in, one per line:
  *
- *   English question | Hindi question | 1,5,4,3,2 | 4
+ *   English question | Hindi question | 1,5,4,3,2 | 4 | Opposite
  *
  * Fields are separated by "|". The third field is the options in the order
- * they should appear; the fourth is the correct one. Hindi may be left empty.
- * Lines starting with # are ignored, so a downloaded file can carry a header.
+ * they should appear; the fourth is the correct one. The fifth is an optional
+ * topic, used to break the result down by what the question tests. Hindi may
+ * be left empty. Lines starting with # are ignored, so a downloaded file can
+ * carry a header.
  *
  * Kept out of the server-actions file because Next.js requires every export
  * from a "use server" module to be an async function.
@@ -16,6 +18,7 @@ export interface ParsedQuestion {
   prompt_hi: string;
   options: number[];
   answer: number;
+  topic: string;
 }
 
 export function parseQuestionLines(text: string): ParsedQuestion[] {
@@ -32,7 +35,7 @@ export function parseQuestionLines(text: string): ParsedQuestion[] {
       );
     }
 
-    const [promptEn, promptHi, optionsRaw, answerRaw] = parts;
+    const [promptEn, promptHi, optionsRaw, answerRaw, topicRaw] = parts;
     if (!promptEn) throw new Error(`Line ${i + 1}: the English question is empty`);
 
     const options = optionsRaw
@@ -60,7 +63,13 @@ export function parseQuestionLines(text: string): ParsedQuestion[] {
       );
     }
 
-    out.push({ prompt_en: promptEn, prompt_hi: promptHi, options, answer });
+    out.push({
+      prompt_en: promptEn,
+      prompt_hi: promptHi,
+      options,
+      answer,
+      topic: (topicRaw ?? "").trim().slice(0, 60),
+    });
   });
 
   if (out.length === 0) throw new Error("No questions found");

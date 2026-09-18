@@ -34,6 +34,20 @@ const { tables, questions } = generateQuestions({ seed: SEED, count: 20, tableCo
 
 const bi = (en, hi) => ({ en, hi });
 
+/*
+ * Each generated question is labelled with what it tests, so the result's
+ * topic breakdown works on the bundled sample as well as on uploaded papers.
+ */
+const TOPIC_OF = {
+  "highest-frequency": "Most frequent number",
+  "lowest-frequency": "Least frequent number",
+  "opposite-of-alpha-last": "Opposite of last letter",
+  "opposite-of-alpha-first": "Opposite of first letter",
+  "middle-letter": "Middle letter",
+  "alpha-last-value": "Alphabetically last letter",
+  "alpha-first-value": "Alphabetically first letter",
+};
+
 const paper = {
   id: "watch-table-1",
   title: "Watch Table Test",
@@ -65,7 +79,8 @@ const paper = {
     ],
   },
   tables,
-  questions,
+  // The generator leaves the kind in `topic`; swap it for the readable label.
+  questions: questions.map((q) => ({ ...q, topic: TOPIC_OF[q.topic] ?? "" })),
 };
 
 mkdirSync(join(root, "data"), { recursive: true });

@@ -72,6 +72,8 @@ export interface WatchQuestion {
   answer: number;
   /** How the answer was reached, shown in the review screen. */
   working: Bilingual;
+  /** What the question tests, used for the topic breakdown on the result. */
+  topic?: string;
 }
 
 /**

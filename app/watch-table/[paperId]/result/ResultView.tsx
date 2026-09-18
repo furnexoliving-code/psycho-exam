@@ -3,7 +3,22 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PortalBanner } from "@/components/wt/PortalBanner";
-import type { MarkedQuestion } from "@/app/api/watch-table/score/route";
+import type {
+  CutOff,
+  MarkedQuestion,
+  Standing,
+  TopicRow,
+} from "@/app/api/watch-table/score/route";
+import {
+  AttemptHistory,
+  CutOffBadge,
+  ExpertComment,
+  StandingCard,
+  Stat,
+  TimeAnalysis,
+  TopicBreakdown,
+  type PastAttempt,
+} from "@/components/wt/ResultPanels";
 import type { AttemptState } from "@/lib/wt/state";
 import { formatTScore, type TScore } from "@/lib/wt/tscore";
 
@@ -36,16 +51,27 @@ function groupOf(q: MarkedQuestion): Exclude<Filter, "all"> {
  * scoring route and renders what comes back, so opening this page before
  * submitting reveals nothing.
  */
+const HISTORY_KEY = (paperId: string) => `wt-history:${paperId}`;
+
 export function ResultView({
   paperId,
   displayName,
+  allowedSec,
 }: {
   paperId: string;
   displayName: string;
+  /** The paper's own time limit, for the time panel. */
+  allowedSec: number;
 }) {
   const [marked, setMarked] = useState<MarkedQuestion[] | null>(null);
   const [score, setScore] = useState<Score | null>(null);
   const [tScore, setTScore] = useState<TScore | null>(null);
+  const [topics, setTopics] = useState<TopicRow[]>([]);
+  const [standing, setStanding] = useState<Standing | null>(null);
+  const [cutOff, setCutOff] = useState<CutOff | null>(null);
+  const [comment, setComment] = useState<string | null>(null);
+  const [history, setHistory] = useState<PastAttempt[]>([]);
+  const [takenSec, setTakenSec] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [state, setState] = useState<"loading" | "missing" | "ready" | "error">("loading");
 
@@ -72,11 +98,19 @@ export function ResultView({
       // submitting. Reloading the result must not enter it a second time.
       const record = attempt.submitted === true && attempt.recorded !== true;
 
+      // What was actually spent on the questions: the paper's limit less
+      // whatever was still on the clock.
+      const spent =
+        typeof attempt.remainingSec === "number"
+          ? Math.max(0, allowedSec - attempt.remainingSec)
+          : null;
+      setTakenSec(spent);
+
       try {
         const response = await fetch("/api/watch-table/score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paperId, answers, record }),
+          body: JSON.stringify({ paperId, answers, record, durationSec: spent }),
         });
         if (!response.ok) throw new Error(String(response.status));
 
@@ -84,11 +118,38 @@ export function ResultView({
           questions: MarkedQuestion[];
           score: Score;
           tScore: TScore | null;
+          topics: TopicRow[];
+          standing: Standing | null;
+          cutOff: CutOff | null;
+          expertComment: string | null;
         };
         if (cancelled) return;
 
+        // Attempt history is kept in the browser as well as the database, so
+        // it works for a candidate who never signed in.
+        let past: PastAttempt[] = [];
+        try {
+          past = JSON.parse(
+            window.localStorage.getItem(HISTORY_KEY(paperId)) ?? "[]",
+          ) as PastAttempt[];
+        } catch {
+          past = [];
+        }
+
         if (record) {
+          past = [
+            ...past,
+            {
+              at: Date.now(),
+              marks: data.score.correct,
+              total: data.score.total,
+              attempted: data.score.attempted,
+              durationSec: spent,
+            },
+          ].slice(-10);
+
           try {
+            window.localStorage.setItem(HISTORY_KEY(paperId), JSON.stringify(past));
             window.localStorage.setItem(
               storageKey,
               JSON.stringify({ ...attempt, recorded: true }),
@@ -99,9 +160,14 @@ export function ResultView({
           }
         }
 
+        setHistory(past);
         setMarked(data.questions);
         setScore(data.score);
         setTScore(data.tScore);
+        setTopics(data.topics ?? []);
+        setStanding(data.standing);
+        setCutOff(data.cutOff);
+        setComment(data.expertComment);
         setState("ready");
       } catch {
         if (!cancelled) setState("error");
@@ -111,7 +177,7 @@ export function ResultView({
     return () => {
       cancelled = true;
     };
-  }, [paperId]);
+  }, [paperId, allowedSec]);
 
   if (state === "missing" || state === "error") {
     return (
@@ -163,14 +229,24 @@ export function ResultView({
         <h1 className="text-2xl font-bold text-gray-900">Result</h1>
         <p className="mt-1 text-[13px] text-gray-600">{displayName}</p>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-4">
+        <div className="mt-5 grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <Stat label="Score" value={`${score.correct} / ${score.total}`} />
           <Stat label="Attempted" value={`${score.attempted} / ${score.total}`} />
           <Stat label="Incorrect" value={String(score.wrong)} />
           <Stat label="Accuracy" value={`${score.accuracy.toFixed(1)}%`} />
+          <StandingCard standing={standing} />
         </div>
 
+        <CutOffBadge cutOff={cutOff} />
         <TScoreCard tScore={tScore} marks={score.correct} />
+        <ExpertComment comment={comment} />
+        <TopicBreakdown topics={topics} />
+        <TimeAnalysis
+          takenSec={takenSec}
+          allowedSec={allowedSec}
+          attempted={score.attempted}
+        />
+        <AttemptHistory attempts={history} />
 
         <h2 className="mt-8 text-[16px] font-bold text-gray-900">Review</h2>
 
@@ -340,15 +416,6 @@ function Shell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-12 text-center">
         {children}
       </main>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded border border-gray-300 bg-white px-4 py-3">
-      <div className="text-[11px] uppercase tracking-wide text-gray-500">{label}</div>
-      <div className="text-xl font-bold text-gray-900">{value}</div>
     </div>
   );
 }

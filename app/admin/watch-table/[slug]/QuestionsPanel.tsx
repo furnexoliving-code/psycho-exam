@@ -9,8 +9,8 @@ import {
   saveQuestion,
 } from "../actions";
 
-const FORMAT_HELP = `# English question | Hindi question | options | answer
-Starting from West travel right-handedly up to South-West. Which number appears most? | पश्चिम से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। कौन सी संख्या सबसे अधिक बार आती है? | 1,2,3,4,5 | 3`;
+const FORMAT_HELP = `# English question | Hindi question | options | answer | topic
+Starting from West travel right-handedly up to South-West. Which number appears most? | पश्चिम से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। कौन सी संख्या सबसे अधिक बार आती है? | 1,2,3,4,5 | 3 | Most frequent number`;
 
 /**
  * The questions half of the panel.
@@ -34,10 +34,12 @@ export function QuestionsPanel({
   /** Exports what is saved, in exactly the format the box accepts back. */
   const download = () => {
     const lines = [
-      "# English question | Hindi question | options | answer",
+      "# English question | Hindi question | options | answer | topic",
       "# One question per line. Lines starting with # are ignored.",
       ...questions.map((q) =>
-        [q.prompt.en, q.prompt.hi, q.options.join(","), q.answer].join(" | "),
+        [q.prompt.en, q.prompt.hi, q.options.join(","), q.answer, q.topic ?? ""].join(
+          " | ",
+        ),
       ),
     ].join("\n");
 
@@ -84,6 +86,11 @@ export function QuestionsPanel({
               <li>Leave the Hindi field empty if you do not need it — keep the two bars.</li>
               <li>The options are shown in the order you write them.</li>
               <li>The answer must be one of the options, or the upload is refused.</li>
+              <li>
+                The fifth field, the topic, is optional but worth filling in — the
+                result breaks the marks down by it, so a candidate can see what to
+                revise.
+              </li>
               <li>Nothing is saved until every line passes, so one typo cannot leave half a paper.</li>
             </ul>
 
@@ -224,6 +231,14 @@ export function QuestionsPanel({
                             className="ml-2 w-[70px] rounded border border-gray-400 px-2 py-1 text-[13px] font-normal"
                           />
                         </label>
+                        <label className="text-[11px] font-semibold text-gray-700">
+                          Topic
+                          <input
+                            name="topic"
+                            defaultValue={q.topic ?? ""}
+                            className="ml-2 w-[190px] rounded border border-gray-400 px-2 py-1 text-[13px] font-normal"
+                          />
+                        </label>
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -258,6 +273,11 @@ export function QuestionsPanel({
                           <span className="ml-2 font-semibold text-green-700">
                             Answer: {q.answer}
                           </span>
+                          {q.topic && (
+                            <span className="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-[10px] text-gray-700">
+                              {q.topic}
+                            </span>
+                          )}
                         </p>
                       </div>
                       <div className="flex shrink-0 gap-2">

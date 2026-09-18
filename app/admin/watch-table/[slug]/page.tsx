@@ -21,7 +21,7 @@ export default async function EditWatchPaper({
   const { data: row } = await supabase
     .from("watch_papers")
     .select(
-      "is_published, image_url, reference_mean, reference_sd, stats_min_attempts",
+      "is_published, image_url, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
     )
     .eq("slug", slug)
     .single();
@@ -44,6 +44,12 @@ export default async function EditWatchPaper({
           className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
         >
           Preview the exam ↗
+        </Link>
+        <Link
+          href={`/admin/watch-table/${slug}/results`}
+          className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
+        >
+          Results{typeof attemptCount === "number" ? ` (${attemptCount})` : ""}
         </Link>
       </div>
 
@@ -95,6 +101,54 @@ export default async function EditWatchPaper({
               </label>
             ))}
           </div>
+
+          <h3 className="mt-6 text-[13px] font-bold text-gray-900">Cut off</h3>
+          <p className="mt-0.5 text-[11px] text-gray-600">
+            Leave both blank for no qualifying bar. When both are set, a
+            candidate must clear each of them. RRB&apos;s own bar is a T-score of 42.
+          </p>
+          <div className="mt-2 grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+                Cut off by marks
+              </span>
+              <input
+                name="cut_off_marks"
+                type="number"
+                defaultValue={row?.cut_off_marks ?? ""}
+                placeholder="e.g. 14"
+                className="w-full rounded border border-gray-400 px-3 py-2 text-[14px]"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+                Cut off by T-score
+              </span>
+              <input
+                name="cut_off_tscore"
+                type="number"
+                step="0.1"
+                defaultValue={row?.cut_off_tscore ?? ""}
+                placeholder="e.g. 42"
+                className="w-full rounded border border-gray-400 px-3 py-2 text-[14px]"
+              />
+            </label>
+          </div>
+
+          <label className="mt-4 block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+              Expert&apos;s comment
+            </span>
+            <input
+              name="expert_comment"
+              defaultValue={row?.expert_comment ?? ""}
+              placeholder="The level of the exam is easy-moderate"
+              className="w-full rounded border border-gray-400 px-3 py-2 text-[14px]"
+            />
+            <span className="mt-1 block text-[11px] text-gray-500">
+              Shown on every candidate&apos;s result for this paper. Leave blank to hide it.
+            </span>
+          </label>
 
           <h3 className="mt-6 text-[13px] font-bold text-gray-900">
             T-Score

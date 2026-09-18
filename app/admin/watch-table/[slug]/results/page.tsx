@@ -1,0 +1,133 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { meanAndSd, tScore } from "@/lib/wt/tscore";
+import { ResultsTable, type ResultRow } from "./ResultsTable";
+
+export default async function PaperResultsPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const { data: paper } = await supabase
+    .from("watch_papers")
+    .select("id, display_name, cut_off_marks, cut_off_tscore, reference_mean, reference_sd, stats_min_attempts")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!paper) notFound();
+
+  const { data: attempts } = await supabase
+    .from("watch_attempts")
+    .select("id, user_id, marks, total, attempted, duration_sec, submitted_at")
+    .eq("paper_id", paper.id)
+    .order("submitted_at", { ascending: false });
+
+  const rows = attempts ?? [];
+  const marks = rows.map((a) => a.marks as number);
+
+  // The same figures the candidate's own result was measured against, so the
+  // two never disagree.
+  const { mean, sd } = meanAndSd(marks);
+  const enough = marks.length >= (paper.stats_min_attempts ?? 5);
+  const cohort =
+    enough
+      ? { count: marks.length, mean, sd, source: "cohort" as const }
+      : paper.reference_mean !== null && paper.reference_sd !== null
+        ? {
+            count: marks.length,
+            mean: Number(paper.reference_mean),
+            sd: Number(paper.reference_sd),
+            source: "reference" as const,
+          }
+        : null;
+
+  // Names come from profiles; an attempt taken without signing in has none.
+  const userIds = [...new Set(rows.map((a) => a.user_id).filter(Boolean))] as string[];
+  const { data: profiles } = userIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name, roll_no")
+        .in("id", userIds)
+    : { data: [] };
+
+  const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+  const sortedMarks = [...marks].sort((a, b) => b - a);
+  const result: ResultRow[] = rows.map((a) => {
+    const t = tScore(a.marks as number, cohort);
+    const profile = a.user_id ? byId.get(a.user_id) : undefined;
+
+    return {
+      id: a.id,
+      name: profile?.full_name || "Not signed in",
+      rollNo: profile?.roll_no || "—",
+      marks: a.marks,
+      total: a.total,
+      attempted: a.attempted,
+      durationSec: a.duration_sec,
+      tScore: t ? Number(t.value.toFixed(1)) : null,
+      rank: sortedMarks.filter((m) => m > a.marks).length + 1,
+      qualified: qualifies(a.marks, t?.value ?? null, paper),
+      submittedAt: a.submitted_at,
+    };
+  });
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-bold text-gray-900">Results</h1>
+        <span className="text-[13px] text-gray-600">{paper.display_name}</span>
+        <Link
+          href={`/admin/watch-table/${slug}`}
+          className="ml-auto rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
+        >
+          ← Back to the paper
+        </Link>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-4">
+        <Stat label="Attempts" value={String(rows.length)} />
+        <Stat label="Mean" value={marks.length ? mean.toFixed(2) : "—"} />
+        <Stat label="Standard deviation" value={marks.length ? sd.toFixed(2) : "—"} />
+        <Stat
+          label="T-score source"
+          value={cohort ? (cohort.source === "cohort" ? "Live cohort" : "Reference") : "None"}
+        />
+      </div>
+
+      {!enough && cohort?.source === "reference" && (
+        <p className="mt-3 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
+          Fewer than {paper.stats_min_attempts ?? 5} attempts so far, so T-scores use
+          the reference figures rather than this cohort.
+        </p>
+      )}
+
+      <ResultsTable rows={result} slug={slug} />
+    </>
+  );
+}
+
+function qualifies(
+  marks: number,
+  t: number | null,
+  paper: { cut_off_marks: number | null; cut_off_tscore: number | null },
+): boolean | null {
+  const byMarks = paper.cut_off_marks === null ? null : marks >= paper.cut_off_marks;
+  const byT =
+    paper.cut_off_tscore === null || t === null ? null : t >= Number(paper.cut_off_tscore);
+
+  const checks = [byMarks, byT].filter((v): v is boolean => v !== null);
+  return checks.length === 0 ? null : checks.every(Boolean);
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded border border-gray-300 bg-white px-4 py-3">
+      <div className="text-[11px] uppercase tracking-wide text-gray-500">{label}</div>
+      <div className="text-xl font-bold text-gray-900">{value}</div>
+    </div>
+  );
+}

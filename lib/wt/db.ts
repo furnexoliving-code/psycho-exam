@@ -32,6 +32,7 @@ interface QuestionRow {
   answer?: number;
   working_en?: string;
   working_hi?: string;
+  topic?: string;
 }
 
 function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
@@ -46,6 +47,7 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
     // Absent for candidates; the submit route scores server-side instead.
     answer: q.answer ?? -1,
     working: { en: q.working_en ?? "", hi: q.working_hi ?? "" },
+    topic: q.topic ?? "",
   }));
 
   return {
@@ -79,7 +81,7 @@ export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | 
 
   const { data: questions } = await supabase
     .from("watch_questions_public")
-    .select("id, position, prompt_en, prompt_hi, options")
+    .select("id, position, prompt_en, prompt_hi, options, topic")
     .eq("paper_id", (row as PaperRow).id)
     .order("position");
 
@@ -99,7 +101,9 @@ export async function loadPaperForAdmin(slug: string): Promise<WatchPaper | null
 
   const { data: questions } = await supabase
     .from("watch_questions")
-    .select("id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi")
+    .select(
+      "id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic",
+    )
     .eq("paper_id", (row as PaperRow).id)
     .order("position");
 

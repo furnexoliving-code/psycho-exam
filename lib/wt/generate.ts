@@ -191,6 +191,7 @@ export function generateQuestions({
     questions.push({
       id: `wt-q${questions.length + 1}`,
       tableIndex,
+      topic: picked.kind,
       prompt: phrase(picked.kind, picked.from, picked.to, picked.hand),
       options: shuffle(optionValues(tables[tableIndex]), random),
       answer: picked.answer,

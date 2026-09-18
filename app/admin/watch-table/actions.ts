@@ -16,6 +16,17 @@ import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
  * endpoint, so a hidden button is never the security boundary.
  */
 
+/** Human names for the question kinds, used as the default topic labels. */
+const TOPIC_OF: Record<QuestionKind, string> = {
+  "highest-frequency": "Most frequent number",
+  "lowest-frequency": "Least frequent number",
+  "opposite-of-alpha-last": "Opposite of last letter",
+  "opposite-of-alpha-first": "Opposite of first letter",
+  "middle-letter": "Middle letter",
+  "alpha-last-value": "Alphabetically last letter",
+  "alpha-first-value": "Alphabetically first letter",
+};
+
 function numberOrNull(value: FormDataEntryValue | null): number | null {
   const text = String(value ?? "").trim();
   if (!text) return null;
@@ -154,6 +165,9 @@ export async function saveSettings(formData: FormData) {
       // Blank means "no reference" — the T-score then waits for a real cohort.
       reference_mean: numberOrNull(formData.get("reference_mean")),
       reference_sd: nonNegativeOrNull(formData.get("reference_sd")),
+      cut_off_marks: numberOrNull(formData.get("cut_off_marks")),
+      cut_off_tscore: numberOrNull(formData.get("cut_off_tscore")),
+      expert_comment: String(formData.get("expert_comment") ?? "").trim() || null,
       stats_min_attempts: Math.max(1, Number(formData.get("stats_min_attempts") ?? 5)),
       features: {
         showInstructionsButton: formData.get("showInstructionsButton") === "on",
@@ -287,6 +301,7 @@ export async function regenerateQuestions(formData: FormData) {
       // in the same slot every time.
       options: options.map((_, j) => options[(j + i) % options.length]),
       answer: c.answer,
+      topic: TOPIC_OF[c.kind],
       working_en: c.workingEn,
       working_hi: c.workingHi,
     })),
@@ -337,6 +352,7 @@ export async function importQuestions(formData: FormData) {
       prompt_hi: q.prompt_hi,
       options: q.options,
       answer: q.answer,
+      topic: q.topic,
       // Uploaded questions carry no derivation; the review screen just omits it.
       working_en: "",
       working_hi: "",
@@ -366,6 +382,7 @@ export async function saveQuestion(formData: FormData) {
   const supabase = await createClient();
 
   const slug = String(formData.get("slug"));
+  const topic = String(formData.get("topic") ?? "").trim().slice(0, 60);
   const options = String(formData.get("options") ?? "")
     .split(/[,\s]+/)
     .map((v) => Number(v))
@@ -385,6 +402,7 @@ export async function saveQuestion(formData: FormData) {
       prompt_hi: String(formData.get("prompt_hi") ?? "").trim(),
       options,
       answer,
+      topic,
     })
     .eq("id", String(formData.get("id")));
 
