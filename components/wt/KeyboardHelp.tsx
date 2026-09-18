@@ -6,7 +6,7 @@ import { KEY_HELP } from "@/lib/wt/useKeyboardOnly";
 export function KeyStrip() {
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-gray-200 bg-[#f7fafc] px-4 py-2 text-[11px] text-gray-600">
-      <span className="font-semibold text-gray-700">Keyboard:</span>
+      <span className="font-semibold text-gray-700">Scrolling is off ·</span>
       {KEY_HELP.slice(0, 4).map((row) => (
         <span key={row.keys} className="flex items-center gap-1.5">
           <kbd className="rounded border border-gray-400 bg-white px-1.5 py-0.5 font-semibold text-gray-700">
@@ -28,13 +28,9 @@ export function KeyStrip() {
 export function KeyboardHelpPanel({
   open,
   onClose,
-  keyboardOnly,
-  onToggleKeyboardOnly,
 }: {
   open: boolean;
   onClose: () => void;
-  keyboardOnly: boolean;
-  onToggleKeyboardOnly: (on: boolean) => void;
 }) {
   if (!open) return null;
 
@@ -49,7 +45,8 @@ export function KeyboardHelpPanel({
         <div className="border-b border-gray-200 px-5 py-3">
           <h2 className="text-[16px] font-bold text-gray-900">Keyboard controls</h2>
           <p className="text-[12px] text-gray-600">
-            The mouse is switched off during the test.
+            The mouse works normally — you can click an option. Only scrolling is
+            switched off, so use the keys below to move through the paper.
           </p>
         </div>
 
@@ -72,26 +69,6 @@ export function KeyboardHelpPanel({
             ))}
           </tbody>
         </table>
-
-        <div className="border-t border-gray-200 px-5 py-3">
-          {/* An escape hatch. Someone who cannot use a keyboard must not be
-              locked out of the exam entirely. */}
-          <label className="flex items-start gap-2 text-[12px] text-gray-700">
-            <input
-              type="checkbox"
-              checked={!keyboardOnly}
-              onChange={(e) => onToggleKeyboardOnly(!e.target.checked)}
-              className="mt-0.5 h-4 w-4"
-            />
-            <span>
-              Turn the mouse back on for this attempt. Use this if a keyboard is not
-              available to you — the exam works either way.
-              <span className="mt-0.5 block text-gray-500" lang="hi">
-                यदि कीबोर्ड उपलब्ध नहीं है तो माउस चालू करें।
-              </span>
-            </span>
-          </label>
-        </div>
 
         <div className="flex justify-end border-t border-gray-200 px-5 py-3">
           <button

@@ -12,7 +12,7 @@ export function QuestionList({
   questions,
   answers,
   currentIndex,
-  keyboardOnly,
+  showKeyHints,
   locked,
   onSelect,
   onFocusQuestion,
@@ -20,7 +20,8 @@ export function QuestionList({
   questions: WatchQuestion[];
   answers: Record<string, number | null>;
   currentIndex: number;
-  keyboardOnly: boolean;
+  /** Show the 1-5 key badges beside the current question's options. */
+  showKeyHints: boolean;
   locked: boolean;
   onSelect: (questionIndex: number, optionIndex: number) => void;
   onFocusQuestion: (index: number) => void;
@@ -81,26 +82,19 @@ export function QuestionList({
                           name={question.id}
                           checked={selected}
                           disabled={locked}
-                          // Keyboard-only mode answers through the page-level
-                          // key handler; the input stays in the DOM so screen
-                          // readers still announce the group correctly.
-                          onChange={() => {
-                            if (keyboardOnly) return;
-                            onSelect(qi, oi);
-                          }}
+                          onChange={() => onSelect(qi, oi)}
                           onFocus={() => onFocusQuestion(qi)}
-                          tabIndex={keyboardOnly ? -1 : 0}
-                          className="h-[18px] w-[18px] accent-wt-pill"
+                          className="h-[18px] w-[18px] cursor-pointer accent-wt-pill"
                         />
                         <label
                           htmlFor={id}
-                          className={`text-[17px] ${
+                          className={`cursor-pointer text-[17px] ${
                             selected ? "font-bold text-gray-900" : "text-gray-800"
                           }`}
                         >
                           {option}
                         </label>
-                        {current && keyboardOnly && (
+                        {current && showKeyHints && (
                           <kbd
                             className="rounded border border-gray-400 bg-white px-1 text-[10px]
                                        font-semibold text-gray-500"

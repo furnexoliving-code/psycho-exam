@@ -1,67 +1,73 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
- * Makes the exam keyboard-driven and the mouse inert.
+ * Locks free scrolling inside the exam.
  *
- * What is deliberately NOT blocked: browser zoom, the browser's own chrome,
- * caret browsing, and anything assistive technology needs. Blocking those
- * would lock a candidate out of the exam rather than keep them honest.
+ * The mouse itself stays fully usable — the cursor shows and clicking an option
+ * answers it. Only scrolling is taken away, so a candidate moves through the
+ * paper deliberately with the keyboard instead of spinning the wheel.
  *
- * Mouse suppression here means "the pointer cannot answer or navigate". It is
- * not a security boundary — anyone with devtools can undo it. It exists to
- * make the exam behave like the hall machine, not to stop a determined cheat.
+ * The container is held at `overflow: hidden`, which stops the wheel, the
+ * trackpad, a dragged scrollbar and touch panning in one move, while leaving
+ * programmatic scrolling (scrollIntoView, scrollTop) working — that is how
+ * question navigation still moves the view.
+ *
+ * The wheel listener on top of that exists only to notice the attempt, so the
+ * screen can say what to press instead of silently doing nothing.
  */
-export function useMouseSuppression(enabled: boolean) {
+export function useScrollLock(enabled: boolean) {
+  const [blockedAt, setBlockedAt] = useState(0);
+  const timer = useRef<number | null>(null);
+
   useEffect(() => {
     if (!enabled) return;
 
-    const root = document.documentElement;
-    const previousUserSelect = root.style.userSelect;
-    root.style.userSelect = "none";
-    root.dataset.mouseSuppressed = "true";
+    const nudge = () => {
+      setBlockedAt((n) => n + 1);
+      if (timer.current) window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => setBlockedAt(0), 2200);
+    };
 
-    const swallow = (event: Event) => {
-      // Let the browser's own UI keep working; only suppress inside the page.
+    const onWheel = (event: WheelEvent) => {
+      // Leave pinch-zoom alone; it is a browser accessibility affordance.
+      if (event.ctrlKey) return;
       event.preventDefault();
-      event.stopPropagation();
+      nudge();
     };
 
-    const onContextMenu = (event: MouseEvent) => swallow(event);
+    const onTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+      nudge();
+    };
 
-    const onPointer = (event: PointerEvent | MouseEvent) => {
+    const onKeyScroll = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      // An explicit opt-out for controls that must stay clickable, such as the
-      // dialog that offers to turn keyboard-only mode off again.
-      if (target?.closest("[data-allow-mouse='true']")) return;
-      swallow(event);
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      // Space and PageUp/PageDown scroll the document by default.
+      if ([" ", "PageUp", "PageDown"].includes(event.key)) {
+        event.preventDefault();
+        nudge();
+      }
     };
 
-    const onSelectStart = (event: Event) => swallow(event);
-    const onDragStart = (event: Event) => swallow(event);
-
-    const options = { capture: true } as const;
-    document.addEventListener("contextmenu", onContextMenu, options);
-    document.addEventListener("mousedown", onPointer, options);
-    document.addEventListener("mouseup", onPointer, options);
-    document.addEventListener("click", onPointer, options);
-    document.addEventListener("dblclick", onPointer, options);
-    document.addEventListener("selectstart", onSelectStart, options);
-    document.addEventListener("dragstart", onDragStart, options);
+    // passive:false is required, or preventDefault on wheel is ignored.
+    // removeEventListener takes no `passive`, so the options differ per call.
+    const addOpts: AddEventListenerOptions = { passive: false };
+    window.addEventListener("wheel", onWheel, addOpts);
+    window.addEventListener("touchmove", onTouchMove, addOpts);
+    window.addEventListener("keydown", onKeyScroll);
 
     return () => {
-      root.style.userSelect = previousUserSelect;
-      delete root.dataset.mouseSuppressed;
-      document.removeEventListener("contextmenu", onContextMenu, options);
-      document.removeEventListener("mousedown", onPointer, options);
-      document.removeEventListener("mouseup", onPointer, options);
-      document.removeEventListener("click", onPointer, options);
-      document.removeEventListener("dblclick", onPointer, options);
-      document.removeEventListener("selectstart", onSelectStart, options);
-      document.removeEventListener("dragstart", onDragStart, options);
+      if (timer.current) window.clearTimeout(timer.current);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKeyScroll);
     };
   }, [enabled]);
+
+  return blockedAt > 0;
 }
 
 export interface ExamKeyHandlers {
@@ -76,19 +82,19 @@ export interface ExamKeyHandlers {
 }
 
 /**
- * The exam's key bindings. Registered once at the page level rather than per
- * question, so the candidate never has to hunt for focus.
+ * The exam's key bindings, registered once at page level so the candidate
+ * never has to hunt for focus before a key does something.
  */
 export function useExamKeys(handlers: ExamKeyHandlers, enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      // Never hijack a real text field, and leave browser shortcuts alone.
       const target = event.target as HTMLElement | null;
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) {
         if ((target as HTMLInputElement).type !== "radio") return;
       }
+      // Never shadow a browser shortcut.
       if (event.ctrlKey || event.metaKey || event.altKey) return;
 
       switch (event.key) {
@@ -159,7 +165,7 @@ export function useExamKeys(handlers: ExamKeyHandlers, enabled: boolean) {
   }, [handlers, enabled]);
 }
 
-/** The bindings, for the on-screen help and the instruction page. */
+/** The bindings, for the on-screen strip and the instruction page. */
 export const KEY_HELP: { keys: string; action: string; actionHi: string }[] = [
   { keys: "1 – 5", action: "Choose that option", actionHi: "वह विकल्प चुनें" },
   { keys: "↓ / → / Enter / N", action: "Next question", actionHi: "अगला प्रश्न" },

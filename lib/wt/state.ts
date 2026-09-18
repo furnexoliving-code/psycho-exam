@@ -14,7 +14,8 @@ export interface AttemptState {
   remainingSec: number;
   paused: boolean;
   submitted: boolean;
-  keyboardOnly: boolean;
+  /** Free scrolling is off during the test; navigation moves the view instead. */
+  scrollLocked: boolean;
 }
 
 type Action =
@@ -24,7 +25,7 @@ type Action =
   | { type: "goto"; index: number }
   | { type: "pause"; paused: boolean }
   | { type: "submit" }
-  | { type: "keyboard-only"; on: boolean }
+  | { type: "scroll-lock"; on: boolean }
   | { type: "restore"; state: AttemptState };
 
 function initial(paper: WatchPaper, now: number): AttemptState {
@@ -39,7 +40,7 @@ function initial(paper: WatchPaper, now: number): AttemptState {
     remainingSec: paper.timeLimitMin * 60,
     paused: false,
     submitted: false,
-    keyboardOnly: true,
+    scrollLocked: true,
   };
 }
 
@@ -86,8 +87,8 @@ function makeReducer(questionCount: number) {
       case "submit":
         return { ...state, submitted: true };
 
-      case "keyboard-only":
-        return { ...state, keyboardOnly: action.on };
+      case "scroll-lock":
+        return { ...state, scrollLocked: action.on };
 
       default:
         return state;

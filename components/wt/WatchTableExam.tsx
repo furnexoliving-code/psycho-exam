@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
-import { useExamKeys, useMouseSuppression } from "@/lib/wt/useKeyboardOnly";
+import { useExamKeys, useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { PortalBanner } from "./PortalBanner";
 import { PortalToolbar } from "./PortalToolbar";
 import { TestTabs } from "./TestTabs";
@@ -28,7 +28,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   const onTest = tab === "test";
   const active = onTest && !state.submitted && !state.paused && !helpOpen && !confirmSubmit;
 
-  useMouseSuppression(state.keyboardOnly && onTest && !state.submitted);
+  // Scrolling is locked during the test; the mouse itself stays fully usable.
+  const scrollNudge = useScrollLock(state.scrollLocked && onTest && !state.submitted);
 
   const current = paper.questions[state.currentIndex];
   const table = paper.tables[current?.tableIndex ?? 0];
@@ -114,13 +115,30 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
               )}
             </section>
 
-            {/* Right portion — the questions. */}
-            <section className="min-w-0 flex-1 overflow-y-auto" aria-label="Questions">
+            {/* Right portion — the questions. overflow-hidden while locked kills
+                the wheel, a dragged scrollbar and touch panning at once, while
+                leaving scrollIntoView free to move the view. */}
+            <section
+              className={`relative min-w-0 flex-1 ${
+                state.scrollLocked && !state.submitted ? "overflow-hidden" : "overflow-y-auto"
+              }`}
+              aria-label="Questions"
+            >
+              {scrollNudge && (
+                <div
+                  className="pointer-events-none sticky top-0 z-10 flex justify-center py-2"
+                  role="status"
+                >
+                  <span className="rounded-full bg-gray-900/85 px-4 py-1.5 text-[12px] font-semibold text-white shadow">
+                    Scrolling is off — press ↓ or ↑ to move between questions
+                  </span>
+                </div>
+              )}
               <QuestionList
                 questions={paper.questions}
                 answers={state.answers}
                 currentIndex={state.currentIndex}
-                keyboardOnly={state.keyboardOnly}
+                showKeyHints
                 locked={state.submitted}
                 onSelect={(qi, oi) => {
                   const q = paper.questions[qi];
@@ -160,12 +178,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
         </button>
       </div>
 
-      <KeyboardHelpPanel
-        open={helpOpen}
-        onClose={() => setHelpOpen(false)}
-        keyboardOnly={state.keyboardOnly}
-        onToggleKeyboardOnly={(on) => dispatch({ type: "keyboard-only", on })}
-      />
+      <KeyboardHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
 
       <ConfirmBox
         open={state.paused && !state.submitted}
