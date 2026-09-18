@@ -11,12 +11,17 @@ import type {
 } from "@/app/api/watch-table/score/route";
 import {
   AttemptHistory,
-  CutOffBadge,
+  Card,
+  CutOffBanner,
   ExpertComment,
-  StandingCard,
+  OUTCOME,
+  OutcomeTag,
+  StandingCards,
   Stat,
+  TScoreHero,
   TimeAnalysis,
   TopicBreakdown,
+  type Outcome,
   type PastAttempt,
 } from "@/components/wt/ResultPanels";
 import type { AttemptState } from "@/lib/wt/state";
@@ -39,7 +44,7 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "unattempted", label: "Unattempted" },
 ];
 
-function groupOf(q: MarkedQuestion): Exclude<Filter, "all"> {
+function groupOf(q: MarkedQuestion): Outcome {
   if (q.given === null) return "unattempted";
   return q.isCorrect ? "correct" : "incorrect";
 }
@@ -222,189 +227,194 @@ export function ResultView({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="viz flex min-h-screen flex-col" style={{ background: "var(--plane)" }}>
       <PortalBanner showInstructions={false} showQuestionPaper={false} />
 
-      <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-7">
-        <h1 className="text-2xl font-bold text-gray-900">Result</h1>
-        <p className="mt-1 text-[13px] text-gray-600">{displayName}</p>
-
-        <div className="mt-5 grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <Stat label="Score" value={`${score.correct} / ${score.total}`} />
-          <Stat label="Attempted" value={`${score.attempted} / ${score.total}`} />
-          <Stat label="Incorrect" value={String(score.wrong)} />
-          <Stat label="Accuracy" value={`${score.accuracy.toFixed(1)}%`} />
-          <StandingCard standing={standing} />
-        </div>
-
-        <CutOffBadge cutOff={cutOff} />
-        <TScoreCard tScore={tScore} marks={score.correct} />
-        <ExpertComment comment={comment} />
-        <TopicBreakdown topics={topics} />
-        <TimeAnalysis
-          takenSec={takenSec}
-          allowedSec={allowedSec}
-          attempted={score.attempted}
-        />
-        <AttemptHistory attempts={history} />
-
-        <h2 className="mt-8 text-[16px] font-bold text-gray-900">Review</h2>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {FILTERS.map((f) => {
-            const n = counts[f.id];
-            const active = filter === f.id;
-            return (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setFilter(f.id)}
-                className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold ${
-                  active
-                    ? "border-wt-submit bg-wt-submit text-white"
-                    : "border-gray-400 bg-white text-gray-800 hover:bg-gray-100"
-                }`}
-                aria-pressed={active}
-              >
-                {f.label}
-                <span className={`ml-2 ${active ? "text-white/80" : "text-gray-500"}`}>
-                  {n}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {visible.length === 0 && (
-          <p className="mt-4 rounded border border-gray-300 bg-white px-4 py-6 text-center text-[13px] text-gray-500">
-            Nothing in this group.
+      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
+        <header>
+          <h1
+            className="text-[26px] font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Analysis
+          </h1>
+          <p className="mt-0.5 text-[13px]" style={{ color: "var(--text-muted)" }}>
+            {displayName}
           </p>
-        )}
+        </header>
 
-        <ol className="mt-3 space-y-3">
-          {visible.map(({ q, i }) => (
-            <li
-              key={q.id}
-              className={`rounded border bg-white p-4 ${
-                q.given === null
-                  ? "border-gray-300"
-                  : q.isCorrect
-                    ? "border-green-400"
-                    : "border-red-400"
-              }`}
-            >
-              <p className="text-[12px] font-bold text-gray-500">Q. {i + 1}</p>
-              <p className="mt-1 text-[15px] text-[#494949]">{q.promptEn}</p>
-              {q.promptHi && (
-                <p className="text-[15px] text-[#494949]" lang="hi">
-                  {q.promptHi}
-                </p>
-              )}
+        {/* The one hero figure on this view. */}
+        <div className="mt-5">
+          <TScoreHero tScore={tScore} marks={score.correct} total={score.total} />
+        </div>
 
-              <p className="mt-2 text-[13px]">
-                <span className="text-gray-600">Your answer: </span>
-                <strong
-                  className={
-                    q.given === null
-                      ? "text-gray-500"
-                      : q.isCorrect
-                        ? "text-green-700"
-                        : "text-red-700"
-                  }
+        <div className="mt-4">
+          <CutOffBanner cutOff={cutOff} />
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {tScore && (
+            <Stat label="Score" value={String(score.correct)} foot={`of ${score.total}`} />
+          )}
+          <Stat label="Attempted" value={String(score.attempted)} foot={`of ${score.total}`} />
+          <Stat label="Incorrect" value={String(score.wrong)} />
+          <Stat label="Accuracy" value={`${score.accuracy.toFixed(0)}%`} foot="of attempted" />
+          <StandingCards standing={standing} />
+        </div>
+
+        <div className="mt-4 space-y-4">
+          <ExpertComment comment={comment} />
+          <TopicBreakdown topics={topics} />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <TimeAnalysis
+              takenSec={takenSec}
+              allowedSec={allowedSec}
+              attempted={score.attempted}
+            />
+            <AttemptHistory attempts={history} />
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <h2
+            className="text-[17px] font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Review
+          </h2>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {FILTERS.map((f) => {
+              const active = filter === f.id;
+              const mark = f.id === "all" ? null : OUTCOME[f.id];
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFilter(f.id)}
+                  aria-pressed={active}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors"
+                  style={{
+                    background: active ? "var(--text-primary)" : "var(--surface-1)",
+                    color: active ? "#ffffff" : "var(--text-secondary)",
+                    border: "1px solid var(--hairline)",
+                  }}
                 >
-                  {q.given ?? "not attempted"}
-                </strong>
-                <span className="ml-4 text-gray-600">Correct: </span>
-                <strong className="text-green-700">{q.correct}</strong>
-              </p>
+                  {mark && (
+                    <span
+                      aria-hidden="true"
+                      className="flex h-[16px] w-[16px] items-center justify-center rounded-full text-[10px] text-white"
+                      style={{ background: mark.color }}
+                    >
+                      {mark.glyph}
+                    </span>
+                  )}
+                  {f.label}
+                  <span
+                    className="tabular-nums"
+                    style={{ color: active ? "rgba(255,255,255,0.7)" : "var(--text-muted)" }}
+                  >
+                    {counts[f.id]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-              {q.workingEn && (
-                <p className="mt-2 rounded bg-gray-50 px-3 py-2 text-[12px] text-gray-700">
-                  {q.workingEn}
-                </p>
-              )}
-            </li>
-          ))}
-        </ol>
+          {visible.length === 0 && (
+            <Card className="mt-4">
+              <p className="text-center text-[13px]" style={{ color: "var(--text-muted)" }}>
+                Nothing in this group.
+              </p>
+            </Card>
+          )}
+
+          <ol className="mt-4 space-y-3">
+            {visible.map(({ q, i }) => {
+              const outcome = groupOf(q);
+              return (
+                <li
+                  key={q.id}
+                  data-outcome={outcome}
+                  className="rounded-lg p-4"
+                  style={{
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--hairline)",
+                    borderLeft: `4px solid ${OUTCOME[outcome].color}`,
+                  }}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[12px] font-semibold" style={{ color: "var(--text-muted)" }}>
+                      Q. {i + 1}
+                    </span>
+                    <OutcomeTag outcome={outcome} />
+                  </div>
+
+                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--text-primary)" }}>
+                    {q.promptEn}
+                  </p>
+                  {q.promptHi && (
+                    <p className="text-[15px]" style={{ color: "var(--text-secondary)" }} lang="hi">
+                      {q.promptHi}
+                    </p>
+                  )}
+
+                  <p className="mt-2 flex flex-wrap gap-x-6 text-[13px]">
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      Your answer:{" "}
+                      <strong style={{ color: "var(--text-primary)" }}>
+                        {q.given ?? "not attempted"}
+                      </strong>
+                    </span>
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      Correct:{" "}
+                      <strong style={{ color: "var(--text-primary)" }}>{q.correct}</strong>
+                    </span>
+                    {q.topic && (
+                      <span
+                        className="rounded px-2 py-0.5 text-[11px]"
+                        style={{ background: "var(--plane)", color: "var(--text-secondary)" }}
+                      >
+                        {q.topic}
+                      </span>
+                    )}
+                  </p>
+
+                  {q.workingEn && (
+                    <p
+                      className="mt-2 rounded px-3 py-2 text-[12px]"
+                      style={{ background: "var(--plane)", color: "var(--text-secondary)" }}
+                    >
+                      {q.workingEn}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
 
         <div className="mt-8 flex gap-3">
           <Link
             href={`/watch-table/${paperId}`}
-            className="rounded bg-wt-submit px-6 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className="rounded-lg px-6 py-2 text-sm font-semibold text-white"
+            style={{ background: "var(--text-primary)" }}
           >
             Re-attempt
           </Link>
           <Link
             href="/"
-            className="rounded border border-gray-400 bg-white px-6 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
+            className="rounded-lg px-6 py-2 text-sm font-semibold"
+            style={{
+              background: "var(--surface-1)",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--hairline)",
+            }}
           >
             Home
           </Link>
         </div>
       </main>
-    </div>
-  );
-}
-
-/**
- * The T-score, with the arithmetic shown. A single number nobody can check is
- * worth less than one they can.
- */
-function TScoreCard({ tScore, marks }: { tScore: TScore | null; marks: number }) {
-  if (!tScore) {
-    return (
-      <div className="mt-4 rounded border border-gray-300 bg-white px-4 py-3">
-        <div className="text-[11px] uppercase tracking-wide text-gray-500">T-Score</div>
-        <p className="mt-1 text-[13px] text-gray-600">
-          Not available yet. It compares a candidate against everyone who has sat
-          this paper, so it needs either enough submitted attempts or the
-          reference mean and standard deviation set in the admin panel.
-        </p>
-      </div>
-    );
-  }
-
-  const { cohort } = tScore;
-
-  return (
-    <div className="mt-4 rounded border border-gray-300 bg-white px-4 py-4">
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <span className="text-[11px] uppercase tracking-wide text-gray-500">T-Score</span>
-        <span className="text-3xl font-bold text-wt-submit">
-          {formatTScore(tScore.value)}
-        </span>
-        <span className="text-[12px] text-gray-500">
-          50 is the average candidate; every 10 points is one standard deviation.
-        </span>
-      </div>
-
-      <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-1 text-[12px] text-gray-700">
-        <Pair label="Your marks" value={String(marks)} />
-        <Pair label="Mean" value={cohort.mean.toFixed(2)} />
-        <Pair label="Standard deviation" value={cohort.sd.toFixed(2)} />
-        <Pair
-          label={cohort.source === "cohort" ? "Papers compared" : "Reference figures"}
-          value={cohort.source === "cohort" ? String(cohort.count) : "set by institute"}
-        />
-      </dl>
-
-      <p className="mt-3 rounded bg-gray-50 px-3 py-2 font-mono text-[12px] text-gray-700">
-        T = 50 + 10 × ({marks} − {cohort.mean.toFixed(2)}) ÷ {cohort.sd.toFixed(2)} ={" "}
-        {formatTScore(tScore.value)}
-      </p>
-
-      {tScore.note && (
-        <p className="mt-2 text-[12px] text-amber-800">{tScore.note}</p>
-      )}
-    </div>
-  );
-}
-
-function Pair({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-1.5">
-      <dt className="text-gray-500">{label}:</dt>
-      <dd className="font-semibold text-gray-900">{value}</dd>
     </div>
   );
 }

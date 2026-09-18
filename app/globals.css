@@ -19,6 +19,41 @@ body {
 }
 
 /*
+ * Analysis surface tokens.
+ *
+ * The page chrome keeps the portal's own RRB blue and teal; the ANALYSIS
+ * screen's data marks use a validated palette instead, so colour carries
+ * meaning reliably rather than by taste. Values from the data-viz reference
+ * palette, checked with its validator against a white surface.
+ *
+ * One finding drives a rule elsewhere in this file's components: status green
+ * and status red measure a deuteranopia delta-E of 4.1 — about one man in
+ * twelve cannot tell them apart. So correct/incorrect NEVER rely on colour
+ * alone; every one carries an icon and a word too.
+ */
+.viz {
+  --surface-1: #ffffff;
+  --plane: #f4f5f3;
+
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+
+  --grid: #e1e0d9;
+  --hairline: rgba(11, 11, 11, 0.1);
+
+  /* Sequential blue: the fill, and a lighter step of the same ramp as track. */
+  --series-1: #2a78d6;
+  --series-1-track: #cde2fb;
+
+  /* Status. Fixed, never themed, always paired with an icon and a label. */
+  --good: #0ca30c;
+  --warning: #fab219;
+  --critical: #d03b3b;
+  --success-text: #006300;
+}
+
+/*
  * The question column scrolls, but its native scrollbar is hidden: overlay
  * scrollbars collapse to a hairline and cannot be styled reliably across
  * browsers. <ScrollRail> draws the visible strip instead.
