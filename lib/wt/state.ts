@@ -180,23 +180,3 @@ export function useAttempt(paper: WatchPaper) {
 
   return { state, dispatch, answered, clearSaved };
 }
-
-export function scoreAttempt(paper: WatchPaper, answers: Record<string, number | null>) {
-  let correct = 0;
-  let attempted = 0;
-
-  for (const q of paper.questions) {
-    const given = answers[q.id];
-    if (given === null || given === undefined) continue;
-    attempted += 1;
-    if (given === q.answer) correct += 1;
-  }
-
-  return {
-    total: paper.questions.length,
-    attempted,
-    correct,
-    wrong: attempted - correct,
-    accuracy: attempted ? (correct / attempted) * 100 : 0,
-  };
-}

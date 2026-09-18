@@ -36,6 +36,7 @@ export function QuestionList({
   locked,
   container,
   scrollToken,
+  overflow = true,
   onSelect,
 }: {
   questions: WatchQuestion[];
@@ -52,6 +53,8 @@ export function QuestionList({
    * selecting an option used to take two clicks.
    */
   scrollToken: number;
+  /** Run the column past the panel's right edge, as the reference does. */
+  overflow?: boolean;
   onSelect: (questionIndex: number, optionIndex: number) => void;
 }) {
   const refs = useRef<(HTMLLIElement | null)[]>([]);
@@ -81,7 +84,7 @@ export function QuestionList({
   return (
     <ol
       className="border-t border-[#ececec]"
-      style={{ width: `${WIDTH_RATIO * 100}%` }}
+      style={{ width: overflow ? `${WIDTH_RATIO * 100}%` : "100%" }}
     >
       {questions.map((question, qi) => {
         const current = qi === currentIndex;

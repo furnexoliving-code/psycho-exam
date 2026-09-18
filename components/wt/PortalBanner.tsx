@@ -9,9 +9,14 @@ export function PortalBanner({
   onInstructions,
   onQuestionPaper,
   disabled = false,
+  showInstructions = true,
+  showQuestionPaper = true,
 }: {
   onInstructions?: () => void;
   onQuestionPaper?: () => void;
+  /** Switched off per paper in the admin panel. */
+  showInstructions?: boolean;
+  showQuestionPaper?: boolean;
   /**
    * Both buttons are off during the instruction screen: the instructions are
    * already on view there, and the question paper is not the candidate's to
@@ -51,12 +56,16 @@ export function PortalBanner({
       </div>
 
       <div className="flex shrink-0 items-center gap-2 px-3">
-        <BannerButton onClick={onInstructions} disabled={disabled}>
-          Instructions
-        </BannerButton>
-        <BannerButton onClick={onQuestionPaper} disabled={disabled}>
-          Question Paper
-        </BannerButton>
+        {showInstructions && (
+          <BannerButton onClick={onInstructions} disabled={disabled}>
+            Instructions
+          </BannerButton>
+        )}
+        {showQuestionPaper && (
+          <BannerButton onClick={onQuestionPaper} disabled={disabled}>
+            Question Paper
+          </BannerButton>
+        )}
       </div>
     </div>
   );

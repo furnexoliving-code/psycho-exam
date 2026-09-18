@@ -18,6 +18,8 @@ export function PortalToolbar({
   label = "Time Left",
   secondsLeft,
   paused,
+  showPause = true,
+  showFullscreen = true,
   onTogglePause,
   onToggleFullscreen,
   rollNo,
@@ -28,6 +30,9 @@ export function PortalToolbar({
   label?: string;
   secondsLeft: number;
   paused: boolean;
+  /** Switched off per paper in the admin panel. */
+  showPause?: boolean;
+  showFullscreen?: boolean;
   onTogglePause: () => void;
   onToggleFullscreen: () => void;
   rollNo: string;
@@ -51,10 +56,14 @@ export function PortalToolbar({
         {label} <span className="font-mono tabular-nums">{clock(secondsLeft)}</span>
       </div>
 
-      <ToolbarButton onClick={onTogglePause}>
-        {paused ? "▶ Resume" : "❚❚ Pause"}
-      </ToolbarButton>
-      <ToolbarButton onClick={onToggleFullscreen}>Switch Fullscreen</ToolbarButton>
+      {showPause && (
+        <ToolbarButton onClick={onTogglePause}>
+          {paused ? "▶ Resume" : "❚❚ Pause"}
+        </ToolbarButton>
+      )}
+      {showFullscreen && (
+        <ToolbarButton onClick={onToggleFullscreen}>Switch Fullscreen</ToolbarButton>
+      )}
 
       <div className="flex shrink-0 items-end gap-3 border-l border-gray-300 pl-3">
         <Candidate label={`Roll No: ${rollNo}`} />

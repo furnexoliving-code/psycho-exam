@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { WatchPaper } from "@/lib/wt/types";
+import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
 import { useExamKeys, useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { PortalBanner } from "./PortalBanner";
@@ -35,6 +35,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   // Which screen is up, and therefore which clock is running, lives in the
   // attempt so both survive a reload.
   const onTest = state.phase === "test";
+  // Which controls this paper grants. Set per paper in the admin panel.
+  const features = resolveFeatures(paper.features);
   const active =
     onTest &&
     !state.submitted &&
@@ -47,7 +49,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
 
   // The wheel is off during the test; the scrollbar and the keyboard still move
   // the column, and the mouse stays fully usable everywhere else.
-  useScrollLock(state.scrollLocked && onTest && !state.submitted);
+  useScrollLock(features.lockScroll && state.scrollLocked && onTest && !state.submitted);
 
   const current = paper.questions[state.currentIndex];
   const table = paper.tables[current?.tableIndex ?? 0];
@@ -98,6 +100,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
     <div className="flex h-screen flex-col overflow-hidden bg-white">
       <PortalBanner
         disabled={!onTest}
+        showInstructions={features.showInstructionsButton}
+        showQuestionPaper={features.showQuestionPaperButton}
         onInstructions={() => setInstructionsOpen(true)}
         onQuestionPaper={() => setPaperOpen(true)}
       />
@@ -106,6 +110,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
         label={onTest ? "Time Left" : "Instruction Time Left"}
         secondsLeft={onTest ? state.remainingSec : state.instructionRemainingSec}
         paused={state.paused}
+        showPause={features.allowPause}
+        showFullscreen={features.allowFullscreen}
         onTogglePause={() => dispatch({ type: "pause", paused: !state.paused })}
         onToggleFullscreen={() => {
           if (document.fullscreenElement) void document.exitFullscreen();
@@ -164,6 +170,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
                 locked={state.submitted}
                 container={questionColumn}
                 scrollToken={scrollToken}
+                overflow={features.overflowQuestions}
                 onSelect={(qi, oi) => {
                   const q = paper.questions[qi];
                   const value = q.options[oi];

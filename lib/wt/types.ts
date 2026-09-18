@@ -74,11 +74,40 @@ export interface WatchQuestion {
   working: Bilingual;
 }
 
+/**
+ * Which controls a candidate gets. Every switch is optional; `resolveFeatures`
+ * fills in the default, so adding one here needs no data migration.
+ */
+export interface WatchFeatures {
+  showInstructionsButton?: boolean;
+  showQuestionPaperButton?: boolean;
+  allowPause?: boolean;
+  allowFullscreen?: boolean;
+  /** Turns the mouse wheel off inside the question column. */
+  lockScroll?: boolean;
+  /** Runs the question column wider than its panel, as the real portal does. */
+  overflowQuestions?: boolean;
+}
+
+export const DEFAULT_FEATURES: Required<WatchFeatures> = {
+  showInstructionsButton: true,
+  showQuestionPaperButton: true,
+  allowPause: true,
+  allowFullscreen: true,
+  lockScroll: true,
+  overflowQuestions: true,
+};
+
+export function resolveFeatures(features?: WatchFeatures): Required<WatchFeatures> {
+  return { ...DEFAULT_FEATURES, ...(features ?? {}) };
+}
+
 export interface WatchPaper {
   id: string;
   title: string;
   /** e.g. "Watch Table Test - 1 (Easy Level)". */
   displayName: string;
+  features?: WatchFeatures;
   /** The test's own clock, in minutes. */
   timeLimitMin: number;
   /**

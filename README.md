@@ -1,5 +1,48 @@
 # ALP Psycho Test Portal
 
+## Watch Table Test
+
+The portal's main paper is the RRB **Watch Table Test** (the following-directions
+test): eight letter-and-number positions round a circle with a compass at the
+centre, and twenty questions that walk a path between two compass points.
+
+- `/watch-table/<slug>` — the exam
+- `/admin/watch-table` — the panel
+
+### The admin panel
+
+Everything about a paper is set there, with no code change:
+
+| | |
+|---|---|
+| **Timers** | Instruction screen and test clock, separately, in minutes |
+| **Controls** | Instructions button, Question Paper button, Pause, Fullscreen, mouse-wheel lock, and whether questions run past the right edge |
+| **Diagram** | The eight positions, or a link to your own image |
+| **Questions** | Upload your own, edit one inline, or download what is saved |
+| **Publish** | Papers stay drafts until you tick Published |
+
+Questions upload one per line:
+
+```
+English question | Hindi question | 1,5,4,3,2 | 4
+```
+
+Nothing is written until every line parses, so one typo cannot leave half a
+paper. "Build a sample set" fills a new paper from its diagram so you can see
+the format, then download it as a starting file.
+
+### Where the answer key lives
+
+The key never reaches a candidate's browser. The exam page is served with the
+answers stripped, candidates read a database view that omits the key column,
+and `/api/watch-table/score` marks the paper server-side with the service-role
+client. Without that, anyone could open the result page in a second tab and
+read every answer out of the page source.
+
+Run `supabase/schema.sql` first, then `supabase/watch-table-schema.sql`.
+
+
+
 A mock exam portal for the **RRB ALP Computer Based Aptitude Test (CBAT)** — the
 "psycho test" — rebuilt as a Next.js application. It reproduces the exam-hall
 experience candidates actually sit: per-test timers, a bilingual question paper,
