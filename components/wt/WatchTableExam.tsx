@@ -156,6 +156,7 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
                 currentIndex={state.currentIndex}
                 showKeyHints
                 locked={state.submitted}
+                container={questionColumn}
                 onSelect={(qi, oi) => {
                   const q = paper.questions[qi];
                   const value = q.options[oi];

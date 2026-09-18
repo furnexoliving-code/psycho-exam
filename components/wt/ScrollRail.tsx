@@ -141,8 +141,8 @@ export function ScrollRail({
         onPointerMove={onThumbPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className={`absolute bg-[#878787] ${
-          metrics.scrollable ? "cursor-grab active:cursor-grabbing hover:bg-[#6f6f6f]" : ""
+        className={`absolute ${vertical ? "bg-[#878787]" : "bg-[#4e4e4e]"} ${
+          metrics.scrollable ? "cursor-grab active:cursor-grabbing hover:brightness-90" : ""
         } ${vertical ? "left-0 w-full" : "top-0 h-full"}`}
         style={
           vertical

@@ -19,15 +19,23 @@ import type { WatchQuestion } from "@/lib/wt/types";
  * - the Hindi line is simply the next line of the same paragraph
  * - a rule runs above the first question as well as between every pair
  *
- * The one thing deliberately NOT copied: the reference clips its question text
- * mid-word because the text column is wider than the panel. Text wraps here.
+ * The question column is deliberately WIDER than the panel that holds it, so a
+ * question runs off the right edge and has to be brought into view with the
+ * horizontal scrollbar. The reference portal does exactly this — its text
+ * column is about 1060px inside a 710px panel, which is why its sentences break
+ * mid-word at "...up to South-We". Asked for, so reproduced: WIDTH_RATIO below
+ * is that same 1.49.
  */
+
+/** Content width as a multiple of the panel width, matching the reference. */
+const WIDTH_RATIO = 1.49;
 export function QuestionList({
   questions,
   answers,
   currentIndex,
   showKeyHints,
   locked,
+  container,
   onSelect,
   onFocusQuestion,
 }: {
@@ -37,18 +45,36 @@ export function QuestionList({
   /** Show the 1-5 key badges beside the current question's options. */
   showKeyHints: boolean;
   locked: boolean;
+  /** The scrolling panel, so navigation can move one axis only. */
+  container: React.RefObject<HTMLElement | null>;
   onSelect: (questionIndex: number, optionIndex: number) => void;
   onFocusQuestion: (index: number) => void;
 }) {
   const refs = useRef<(HTMLLIElement | null)[]>([]);
 
   // Keep the active question in view as the keyboard moves through the paper.
+  //
+  // scrollIntoView is not used: a question is wider than the panel, so even
+  // `inline: "nearest"` nudges the column sideways and undoes wherever the
+  // candidate had scrolled to horizontally. Setting scrollTop by hand moves
+  // the vertical axis and leaves scrollLeft exactly where it was.
   useEffect(() => {
-    refs.current[currentIndex]?.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [currentIndex]);
+    const el = refs.current[currentIndex];
+    const panel = container.current;
+    if (!el || !panel) return;
+
+    const item = el.getBoundingClientRect();
+    const view = panel.getBoundingClientRect();
+    const delta = item.top - view.top - (view.height - item.height) / 2;
+
+    panel.scrollTo({ top: panel.scrollTop + delta, behavior: "smooth" });
+  }, [currentIndex, container]);
 
   return (
-    <ol className="border-t border-[#ececec]">
+    <ol
+      className="border-t border-[#ececec]"
+      style={{ width: `${WIDTH_RATIO * 100}%` }}
+    >
       {questions.map((question, qi) => {
         const current = qi === currentIndex;
         const chosen = answers[question.id];
