@@ -31,6 +31,27 @@ Nothing is written until every line parses, so one typo cannot leave half a
 paper. "Build a sample set" fills a new paper from its diagram so you can see
 the format, then download it as a starting file.
 
+### The T-score
+
+The result reports
+
+```
+T = 50 + 10 × (marks − mean) ÷ standard deviation
+```
+
+against everyone who has sat that paper. 50 is the average candidate and every
+10 points is one standard deviation. The arithmetic is printed under the figure
+so it can be checked.
+
+Attempts are recorded once, on the first visit to the result after submitting —
+reloading does not enter the same candidate twice. Until a paper has enough
+submissions (5 by default, set per paper) the mean and standard deviation an
+admin enters are used instead, and the result says so. With neither, the
+T-score reports that it is not available rather than showing a fictional 50.
+
+A standard deviation of zero would divide by zero; that case returns 50, since
+everyone scoring the same means everyone is exactly average.
+
 ### Where the answer key lives
 
 The key never reaches a candidate's browser. The exam page is served with the

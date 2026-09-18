@@ -16,6 +16,22 @@ import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
  * endpoint, so a hidden button is never the security boundary.
  */
 
+function numberOrNull(value: FormDataEntryValue | null): number | null {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+  const n = Number(text);
+  if (!Number.isFinite(n)) throw new Error(`"${text}" is not a number`);
+  return n;
+}
+
+function nonNegativeOrNull(value: FormDataEntryValue | null): number | null {
+  const n = numberOrNull(value);
+  // A negative standard deviation is not a thing, and a zero one would make
+  // the T-score divide by zero.
+  if (n !== null && n < 0) throw new Error("Standard deviation cannot be negative");
+  return n;
+}
+
 function slugify(input: string): string {
   return (
     input
@@ -135,6 +151,10 @@ export async function saveSettings(formData: FormData) {
       instruction_time_min: instruction,
       time_limit_min: test,
       is_published: formData.get("is_published") === "on",
+      // Blank means "no reference" — the T-score then waits for a real cohort.
+      reference_mean: numberOrNull(formData.get("reference_mean")),
+      reference_sd: nonNegativeOrNull(formData.get("reference_sd")),
+      stats_min_attempts: Math.max(1, Number(formData.get("stats_min_attempts") ?? 5)),
       features: {
         showInstructionsButton: formData.get("showInstructionsButton") === "on",
         showQuestionPaperButton: formData.get("showQuestionPaperButton") === "on",

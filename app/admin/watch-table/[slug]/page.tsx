@@ -20,9 +20,16 @@ export default async function EditWatchPaper({
   const supabase = await createClient();
   const { data: row } = await supabase
     .from("watch_papers")
-    .select("is_published, image_url")
+    .select(
+      "is_published, image_url, reference_mean, reference_sd, stats_min_attempts",
+    )
     .eq("slug", slug)
     .single();
+
+  const { count: attemptCount } = await supabase
+    .from("watch_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("paper_id", (await supabase.from("watch_papers").select("id").eq("slug", slug).single()).data?.id ?? "");
 
   const cells = paper.tables[0].cells;
   const features = resolveFeatures(paper.features);
@@ -87,6 +94,63 @@ export default async function EditWatchPaper({
                 </span>
               </label>
             ))}
+          </div>
+
+          <h3 className="mt-6 text-[13px] font-bold text-gray-900">
+            T-Score
+          </h3>
+          <p className="mt-0.5 text-[11px] text-gray-600">
+            T = 50 + 10 × (marks − mean) ÷ standard deviation. Once{" "}
+            <strong>{row?.stats_min_attempts ?? 5}</strong> papers have been
+            submitted the live figures are used. Until then these reference
+            figures stand in — leave them blank and the T-score simply waits.
+            {typeof attemptCount === "number" && (
+              <span className="ml-1 font-semibold">
+                {attemptCount} submitted so far.
+              </span>
+            )}
+          </p>
+          <div className="mt-2 grid gap-4 sm:grid-cols-3">
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+                Reference mean
+              </span>
+              <input
+                name="reference_mean"
+                type="number"
+                step="0.01"
+                defaultValue={row?.reference_mean ?? ""}
+                placeholder="e.g. 11.5"
+                className="w-full rounded border border-gray-400 px-3 py-2 text-[14px]"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+                Reference standard deviation
+              </span>
+              <input
+                name="reference_sd"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={row?.reference_sd ?? ""}
+                placeholder="e.g. 3.2"
+                className="w-full rounded border border-gray-400 px-3 py-2 text-[14px]"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+                Switch to live figures after
+              </span>
+              <input
+                name="stats_min_attempts"
+                type="number"
+                min={1}
+                defaultValue={row?.stats_min_attempts ?? 5}
+                className="w-full rounded border border-gray-400 px-3 py-2 text-[14px]"
+              />
+              <span className="mt-1 block text-[11px] text-gray-500">papers</span>
+            </label>
           </div>
 
           <label className="mt-5 flex items-start gap-2 rounded border border-amber-300 bg-amber-50 px-3 py-2">

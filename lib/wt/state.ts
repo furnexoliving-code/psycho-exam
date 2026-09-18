@@ -23,6 +23,12 @@ export interface AttemptState {
   remainingSec: number;
   paused: boolean;
   submitted: boolean;
+  /**
+   * True once this attempt has been counted into the paper's statistics.
+   * Without it, reloading the result page would enter the same candidate into
+   * the cohort again and drag the mean around.
+   */
+  recorded?: boolean;
   /** Free scrolling is off during the test; navigation moves the view instead. */
   scrollLocked: boolean;
 }

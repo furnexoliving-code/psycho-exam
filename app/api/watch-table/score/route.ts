@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { isConfigured } from "@/lib/auth";
+import { getProfile, isConfigured } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
+import { meanAndSd, tScore, type Cohort } from "@/lib/wt/tscore";
 
 /**
  * Scores an attempt on the server.
@@ -16,6 +17,8 @@ import { getBundledPaper } from "@/lib/wt/paper";
 interface Body {
   paperId?: unknown;
   answers?: unknown;
+  /** True on the submit that ends the attempt; false when merely reviewing. */
+  record?: unknown;
 }
 
 export interface MarkedQuestion {
@@ -61,6 +64,10 @@ export async function POST(request: Request) {
   const attempted = marked.filter((q) => q.given !== null).length;
   const correct = marked.filter((q) => q.isCorrect).length;
 
+  const cohort = isConfigured()
+    ? await cohortFor(paperId, correct, attempted, marked.length, body.record === true)
+    : null;
+
   return NextResponse.json({
     questions: marked,
     score: {
@@ -70,7 +77,68 @@ export async function POST(request: Request) {
       wrong: attempted - correct,
       accuracy: attempted ? (correct / attempted) * 100 : 0,
     },
+    tScore: tScore(correct, cohort),
   });
+}
+
+/**
+ * Records the attempt if this is the submitting call, then returns the figures
+ * the T-score is measured against.
+ *
+ * The live cohort is used once enough papers have been submitted; below that an
+ * institute's own reference mean and standard deviation stand in, because a
+ * mean taken from two attempts says nothing.
+ */
+async function cohortFor(
+  slug: string,
+  marks: number,
+  attempted: number,
+  total: number,
+  record: boolean,
+): Promise<Cohort | null> {
+  const supabase = createAdminClient();
+
+  const { data: paper } = await supabase
+    .from("watch_papers")
+    .select("id, reference_mean, reference_sd, stats_min_attempts")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!paper) return null;
+
+  if (record) {
+    const profile = await getProfile();
+    await supabase.from("watch_attempts").insert({
+      paper_id: paper.id,
+      user_id: profile?.id ?? null,
+      marks,
+      total,
+      attempted,
+    });
+  }
+
+  const { data: rows } = await supabase
+    .from("watch_attempts")
+    .select("marks")
+    .eq("paper_id", paper.id);
+
+  const all = (rows ?? []).map((r) => r.marks as number);
+  const minimum = paper.stats_min_attempts ?? 5;
+
+  if (all.length >= minimum) {
+    const { mean, sd } = meanAndSd(all);
+    return { count: all.length, mean, sd, source: "cohort" };
+  }
+
+  if (paper.reference_mean !== null && paper.reference_sd !== null) {
+    return {
+      count: all.length,
+      mean: Number(paper.reference_mean),
+      sd: Number(paper.reference_sd),
+      source: "reference",
+    };
+  }
+
+  return null;
 }
 
 async function markFromDatabase(

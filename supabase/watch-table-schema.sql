@@ -109,3 +109,43 @@ drop policy if exists watch_diagrams_write on storage.objects;
 create policy watch_diagrams_write on storage.objects
   for all using (bucket_id = 'watch-diagrams' and public.is_admin())
   with check (bucket_id = 'watch-diagrams' and public.is_admin());
+
+-- ---------------------------------------------------------------------------
+-- Attempts, and the cohort statistics the T-score needs
+-- ---------------------------------------------------------------------------
+create table if not exists public.watch_attempts (
+  id            uuid primary key default gen_random_uuid(),
+  paper_id      uuid not null references public.watch_papers on delete cascade,
+  /* Null for a candidate who took the paper without signing in. */
+  user_id       uuid references auth.users on delete set null,
+  marks         integer not null,
+  total         integer not null,
+  attempted     integer not null default 0,
+  submitted_at  timestamptz not null default now()
+);
+
+create index if not exists watch_attempts_paper_idx
+  on public.watch_attempts (paper_id, submitted_at desc);
+
+alter table public.watch_attempts enable row level security;
+
+-- Candidates may see their own; admins see the cohort. Rows are written by the
+-- scoring route with the service-role client, which bypasses these.
+drop policy if exists watch_attempts_own on public.watch_attempts;
+create policy watch_attempts_own on public.watch_attempts
+  for select using (user_id = auth.uid() or public.is_admin());
+
+/*
+ * Reference statistics for the T-score.
+ *
+ * T = 50 + 10 * (marks - mean) / sd
+ *
+ * Early on there is no cohort to average, so an admin can enter the mean and
+ * standard deviation from their own past data. Once at least
+ * `stats_min_attempts` papers have been submitted, the live cohort is used
+ * instead.
+ */
+alter table public.watch_papers
+  add column if not exists reference_mean   numeric,
+  add column if not exists reference_sd     numeric,
+  add column if not exists stats_min_attempts integer not null default 5;
