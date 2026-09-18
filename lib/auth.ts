@@ -11,9 +11,17 @@ export interface Profile {
 
 /** True once the Supabase environment variables are present. */
 export function isConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  );
+  return missingConfig().length === 0;
+}
+
+/** Which environment variables still need setting, for the setup guide. */
+export function missingConfig(): string[] {
+  const required = [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+  ];
+  return required.filter((name) => !process.env[name]);
 }
 
 /** The signed-in user's profile, or null when signed out. */

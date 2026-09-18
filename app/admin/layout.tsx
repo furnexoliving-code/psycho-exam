@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { AdminSetupGuide } from "@/components/AdminSetupGuide";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
-import { requireAdmin } from "@/lib/auth";
+import { isConfigured, missingConfig, requireAdmin } from "@/lib/auth";
 
 const NAV = [
   { href: "/admin", label: "Overview" },
@@ -10,6 +11,17 @@ const NAV = [
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // Say plainly that the database is missing rather than bouncing to a login
+  // page that cannot work yet.
+  if (!isConfigured()) {
+    return (
+      <div className="flex min-h-screen flex-col bg-gray-50">
+        <SiteHeader />
+        <AdminSetupGuide missing={missingConfig()} />
+      </div>
+    );
+  }
+
   // Checked here on the server for every admin page, not just in middleware.
   const profile = await requireAdmin();
 
