@@ -8,8 +8,8 @@ export function ExamBanner() {
     <div className="flex h-[52px] w-full items-stretch bg-rrb-teal text-white">
       <div className="flex w-[180px] shrink-0 items-center justify-center bg-gradient-to-r from-emerald-500 to-emerald-400 px-3">
         <span className="text-[13px] font-bold leading-tight tracking-wide">
-          UNLIMITED
-          <span className="block text-[9px] font-medium opacity-90">EDUCATION</span>
+          KAUTILYA
+          <span className="block text-[9px] font-medium opacity-90">CLASSES</span>
         </span>
       </div>
 
