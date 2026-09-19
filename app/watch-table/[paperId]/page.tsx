@@ -77,7 +77,7 @@ export default async function WatchTablePage({
     <WatchTableExam
       paper={withoutAnswerKey(paper)}
       candidateName={who?.full_name || "Candidate"}
-      rollNo={who?.roll_no || "—"}
+      rollNo={who?.roll_no || ""}
       elapsedSec={sitting?.elapsedSec ?? null}
       questionElapsedSec={sitting?.questionElapsedSec ?? null}
       storageOwner={who?.id ?? "guest"}

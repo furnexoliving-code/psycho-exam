@@ -66,7 +66,7 @@ export function PortalToolbar({
       )}
 
       <div className="hidden shrink-0 items-end gap-3 border-l border-gray-300 pl-3 sm:flex">
-        <Candidate label={`Roll No: ${rollNo}`} />
+        {rollNo && rollNo !== "—" && <Candidate label={`Roll No: ${rollNo}`} />}
         <Candidate label={`Name: ${name}`} />
       </div>
     </div>

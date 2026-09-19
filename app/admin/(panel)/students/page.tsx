@@ -13,7 +13,7 @@ export default async function StudentsPage() {
 
   const { data: students } = await supabase
     .from("profiles")
-    .select("id, full_name, roll_no, phone, created_at, is_active")
+    .select("id, full_name, phone, created_at, is_active")
     .eq("role", "student")
     .order("created_at", { ascending: false });
 
@@ -28,7 +28,7 @@ export default async function StudentsPage() {
     .select("id, display_name");
   const paperName = new Map((papers ?? []).map((p) => [p.id, p.display_name]));
   const studentName = new Map(
-    (students ?? []).map((s) => [s.id, s.full_name || s.roll_no || "Unnamed"]),
+    (students ?? []).map((s) => [s.id, s.full_name || "Unnamed"]),
   );
 
   return (
@@ -47,14 +47,10 @@ export default async function StudentsPage() {
           submitLabel="Create the account"
           className="mt-3"
         >
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-3">
           <label className="block">
             <span className="mb-1 block text-[12px] font-semibold text-gray-700">Name</span>
             <input name="full_name" required className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Roll no.</span>
-            <input name="roll_no" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
           </label>
           <label className="block">
             <span className="mb-1 block text-[12px] font-semibold text-gray-700">Mobile number</span>
@@ -90,7 +86,6 @@ export default async function StudentsPage() {
               <thead>
                 <tr className="bg-rrb-banner text-left text-white">
                   <th className="border border-gray-300 px-3 py-2">Name</th>
-                  <th className="border border-gray-300 px-3 py-2">Roll no.</th>
                   <th className="border border-gray-300 px-3 py-2">Mobile</th>
                   <th className="border border-gray-300 px-3 py-2">Registered</th>
                   <th className="border border-gray-300 px-3 py-2">Account</th>
@@ -103,7 +98,6 @@ export default async function StudentsPage() {
                     <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">
                       {s.full_name || "—"}
                     </td>
-                    <td className="border border-gray-300 px-3 py-2">{s.roll_no || "—"}</td>
                     <td className="border border-gray-300 px-3 py-2">{s.phone || "—"}</td>
                     <td className="border border-gray-300 px-3 py-2">
                       {new Date(s.created_at).toLocaleDateString("en-IN")}

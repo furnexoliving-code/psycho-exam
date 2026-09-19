@@ -26,7 +26,6 @@ export async function createStudent(
     const supabase = createAdminClient();
 
     const fullName = String(formData.get("full_name") ?? "").trim();
-    const rollNo = String(formData.get("roll_no") ?? "").trim();
     const phoneRaw = String(formData.get("phone") ?? "");
     const password = String(formData.get("password") ?? "");
 
@@ -44,7 +43,7 @@ export async function createStudent(
       email: phoneToEmail(phone),
       password,
       email_confirm: true,
-      user_metadata: { full_name: fullName, roll_no: rollNo, phone },
+      user_metadata: { full_name: fullName, phone },
       // Only the server can write app_metadata. The profile trigger switches
       // an account on only when this mark is present, so an account made any
       // other way — the auth API is public — starts life switched off.
@@ -63,7 +62,7 @@ export async function createStudent(
     // if that trigger is missing on an older database.
     await supabase
       .from("profiles")
-      .update({ full_name: fullName, roll_no: rollNo, phone })
+      .update({ full_name: fullName, phone })
       .eq("id", created.user.id);
 
     revalidatePath(BACK);
@@ -193,7 +192,6 @@ export async function importStudents(
             app_metadata: { issued: true },
             user_metadata: {
               full_name: student.fullName,
-              roll_no: student.rollNo,
               phone: student.phone,
             },
           });
@@ -211,7 +209,6 @@ export async function importStudents(
             .from("profiles")
             .update({
               full_name: student.fullName,
-              roll_no: student.rollNo,
               phone: student.phone,
             })
             .eq("id", created.user.id);

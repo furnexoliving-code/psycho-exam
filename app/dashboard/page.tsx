@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
+import { ChangePassword } from "@/components/ChangePassword";
 import { isConfigured, requireUser } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { listPublishedPapers } from "@/lib/wt/db";
@@ -178,6 +179,8 @@ export default async function DashboardPage() {
             </table>
           </div>
         )}
+
+        {profile.phone && <ChangePassword phone={profile.phone} />}
       </main>
     </div>
   );

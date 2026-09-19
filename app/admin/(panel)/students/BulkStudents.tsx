@@ -4,9 +4,9 @@ import { useRef, useState } from "react";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { importStudents } from "./actions";
 
-const SAMPLE = `Name,Roll no,Mobile,Password
-Ram Kumar,001,9876543210,ram12345
-Shyam Singh,002,9876543211,shyam12345`;
+const SAMPLE = `Name,Mobile,Password
+Ram Kumar,9876543210,ram12345
+Shyam Singh,9876543211,shyam12345`;
 
 /** Many students at once, from a pasted block or a saved CSV. */
 export function BulkStudents() {
@@ -26,8 +26,8 @@ export function BulkStudents() {
     <section className="mt-6 rounded border border-gray-300 bg-white p-5">
       <h2 className="text-[15px] font-bold text-gray-900">Add many students at once</h2>
       <p className="mt-1 text-[12px] text-gray-600">
-        Paste straight out of Excel, or choose a CSV file. Four columns: name,
-        roll no, mobile, password.
+        Paste straight out of Excel, or choose a CSV file. Three columns: name,
+        mobile, password.
       </p>
 
       <div className="mt-3 rounded border border-gray-300 bg-gray-50 p-3">
