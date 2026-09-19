@@ -251,16 +251,20 @@ export function ResultView({
       <PortalBanner showInstructions={false} showQuestionPaper={false} />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
-        <header>
-          <h1
-            className="text-[26px] font-semibold"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Analysis
-          </h1>
-          <p className="mt-0.5 text-[13px]" style={{ color: "var(--text-muted)" }}>
-            {displayName}
-          </p>
+        <header
+          className="flex flex-wrap items-center justify-between gap-4 rounded-2xl px-6 py-5 text-white shadow-lg"
+          style={{ background: "linear-gradient(120deg,#1565b0 0%,#1668b0 45%,#0f766e 100%)" }}
+        >
+          <div className="flex items-center gap-4">
+            <span aria-hidden="true" className="text-[40px] leading-none">📊</span>
+            <div>
+              <h1 className="text-[26px] font-extrabold leading-tight">Your Result</h1>
+              <p className="mt-0.5 text-[13px] text-white/85">{displayName}</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-white/15 px-4 py-1.5 text-[12px] font-semibold">
+            ✨ {score.correct} of {score.total} correct
+          </span>
         </header>
 
         {/* The one hero figure on this view. */}
@@ -281,12 +285,12 @@ export function ResultView({
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {tScore && (
-            <Stat label="Score" value={String(score.correct)} foot={`of ${score.total}`} />
+            <Stat label="Score" value={String(score.correct)} foot={`of ${score.total}`} emoji="🏆" tone="amber" />
           )}
-          <Stat label="Attempted" value={String(score.attempted)} foot={`of ${score.total}`} />
-          <Stat label="Incorrect" value={String(score.wrong)} />
+          <Stat label="Attempted" value={String(score.attempted)} foot={`of ${score.total}`} emoji="✍️" tone="blue" />
+          <Stat label="Incorrect" value={String(score.wrong)} emoji="❌" tone="red" />
           {view.accuracy && (
-            <Stat label="Accuracy" value={`${score.accuracy.toFixed(0)}%`} foot="of attempted" />
+            <Stat label="Accuracy" value={`${score.accuracy.toFixed(0)}%`} foot="of attempted" emoji="🎯" tone="green" />
           )}
           <StandingCards standing={standing} showRank={view.rank} showPercentile={view.percentile} />
         </div>
@@ -309,9 +313,10 @@ export function ResultView({
         {view.review && (
         <div className="mt-8">
           <h2
-            className="text-[17px] font-semibold"
+            className="flex items-center gap-2 text-[18px] font-bold"
             style={{ color: "var(--text-primary)" }}
           >
+            <span aria-hidden="true" className="text-[22px] leading-none">🔍</span>
             Review
           </h2>
           <p className="mt-1 text-[13px]" style={{ color: "var(--text-secondary)" }}>
@@ -452,23 +457,23 @@ export function ResultView({
         <div className="mt-8 flex gap-3">
           <Link
             href={`/watch-table/${paperId}`}
-            className="rounded-lg px-6 py-2 text-sm font-semibold text-white"
-            style={{ background: "var(--text-primary)" }}
+            className="rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+            style={{ background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
           >
-            Re-attempt
+            🔁 Re-attempt
           </Link>
           {/* The candidate's own page, not the public front door — after a
               test, "home" means where their tests and results are. */}
           <Link
             href="/dashboard"
-            className="rounded-lg px-6 py-2 text-sm font-semibold"
+            className="rounded-xl px-6 py-2.5 text-sm font-bold"
             style={{
               background: "var(--surface-1)",
               color: "var(--text-secondary)",
               border: "1px solid var(--hairline)",
             }}
           >
-            Home
+            🏠 Home
           </Link>
         </div>
       </main>

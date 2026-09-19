@@ -63,29 +63,37 @@ export function OutcomeTag({ outcome }: { outcome: Outcome }) {
 export function Card({
   title,
   subtitle,
+  emoji,
   children,
   className = "",
 }: {
   title?: string;
   subtitle?: string;
+  /** A picture for the heading, so a card can be found at a glance. */
+  emoji?: string;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
     <section
-      className={`rounded-lg p-5 ${className}`}
+      className={`rounded-2xl p-5 ${className}`}
       style={{
         background: "var(--surface-1)",
-        boxShadow: "0 1px 2px rgba(11,11,11,0.05)",
+        boxShadow: "0 4px 16px rgba(11,11,11,0.06)",
         border: "1px solid var(--hairline)",
       }}
     >
       {title && (
         <header className="mb-3">
           <h2
-            className="text-[15px] font-semibold"
+            className="flex items-center gap-2 text-[16px] font-bold"
             style={{ color: "var(--text-primary)" }}
           >
+            {emoji && (
+              <span aria-hidden="true" className="text-[20px] leading-none">
+                {emoji}
+              </span>
+            )}
             {title}
           </h2>
           {subtitle && (
@@ -105,30 +113,47 @@ export function Card({
  * proportional figures — tabular figures make a number like 121 look loose at
  * this size.
  */
+export type StatTone = "blue" | "green" | "red" | "amber" | "purple" | "teal" | "grey";
+
+/** Each tone: a soft tinted surface and the colour its number is written in. */
+const TONES: Record<StatTone, { bg: string; ring: string; ink: string }> = {
+  blue: { bg: "linear-gradient(135deg,#eff6ff,#dbeafe)", ring: "#bfdbfe", ink: "#1d4ed8" },
+  green: { bg: "linear-gradient(135deg,#ecfdf5,#d1fae5)", ring: "#a7f3d0", ink: "#047857" },
+  red: { bg: "linear-gradient(135deg,#fff1f2,#ffe4e6)", ring: "#fecdd3", ink: "#be123c" },
+  amber: { bg: "linear-gradient(135deg,#fffbeb,#fef3c7)", ring: "#fde68a", ink: "#b45309" },
+  purple: { bg: "linear-gradient(135deg,#f5f3ff,#ede9fe)", ring: "#ddd6fe", ink: "#6d28d9" },
+  teal: { bg: "linear-gradient(135deg,#f0fdfa,#ccfbf1)", ring: "#99f6e4", ink: "#0f766e" },
+  grey: { bg: "linear-gradient(135deg,#f9fafb,#f3f4f6)", ring: "#e5e7eb", ink: "#374151" },
+};
+
 export function Stat({
   label,
   value,
   foot,
+  emoji,
+  tone = "grey",
 }: {
   label: string;
   value: string;
   foot?: string;
+  emoji?: string;
+  tone?: StatTone;
 }) {
+  const t = TONES[tone];
   return (
     <div
-      className="rounded-lg px-4 py-3"
-      style={{
-        background: "var(--surface-1)",
-        border: "1px solid var(--hairline)",
-      }}
+      className="rounded-2xl px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md"
+      style={{ background: t.bg, border: `1px solid ${t.ring}` }}
     >
-      <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
+        {emoji && (
+          <span aria-hidden="true" className="text-[15px] leading-none">
+            {emoji}
+          </span>
+        )}
         {label}
       </div>
-      <div
-        className="mt-0.5 text-[22px] font-semibold leading-tight"
-        style={{ color: "var(--text-primary)" }}
-      >
+      <div className="mt-1 text-[26px] font-extrabold leading-tight" style={{ color: t.ink }}>
         {value}
       </div>
       {foot && (
@@ -153,13 +178,21 @@ export function StandingCards({
   return (
     <>
       {showRank && standing.rank !== undefined && (
-        <Stat label="Rank" value={String(standing.rank)} foot={`of ${standing.outOf}`} />
+        <Stat
+          label="Rank"
+          value={String(standing.rank)}
+          foot={`of ${standing.outOf}`}
+          emoji={standing.rank === 1 ? "🥇" : standing.rank === 2 ? "🥈" : standing.rank === 3 ? "🥉" : "🏅"}
+          tone="purple"
+        />
       )}
       {showPercentile && standing.percentile !== undefined && (
         <Stat
           label="Percentile"
           value={standing.percentile.toFixed(1)}
           foot="scored below you"
+          emoji="📈"
+          tone="teal"
         />
       )}
     </>
@@ -208,12 +241,12 @@ export function TScoreHero({
       <Card>
         <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
           <div>
-            <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-              Score
+            <div className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
+              <span aria-hidden="true" className="text-[18px]">🏆</span> Score
             </div>
             <div
-              className="text-[52px] font-semibold leading-none"
-              style={{ color: "var(--text-primary)" }}
+              className="text-[56px] font-extrabold leading-none"
+              style={{ color: "#1d4ed8" }}
             >
               {marks}
               <span
@@ -262,22 +295,37 @@ export function TScoreHero({
   const HI = 80;
   const pos = Math.min(100, Math.max(0, ((value - LO) / (HI - LO)) * 100));
   const mid = ((50 - LO) / (HI - LO)) * 100;
+  // Where the candidate stands against the average of 50, said in words.
+  const standing =
+    value >= 60
+      ? { emoji: "🌟", text: "Well above average", bg: "#ecfdf5", ink: "#047857" }
+      : value >= 50
+        ? { emoji: "👍", text: "Above average", bg: "#eff6ff", ink: "#1d4ed8" }
+        : value >= 40
+          ? { emoji: "💪", text: "A little below average — keep going", bg: "#fffbeb", ink: "#b45309" }
+          : { emoji: "📚", text: "Below average — more practice will lift this", bg: "#fff1f2", ink: "#be123c" };
 
   return (
     <Card>
-      <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
-          <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-            T-Score
+          <div className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>
+            <span aria-hidden="true" className="text-[18px]">🎯</span> T-Score
           </div>
           <div
-            className="text-[52px] font-semibold leading-none"
-            style={{ color: "var(--text-primary)" }}
+            className="text-[56px] font-extrabold leading-none"
+            style={{ color: "#1d4ed8" }}
           >
             {value.toFixed(1)}
           </div>
         </div>
-
+        <span
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-bold"
+          style={{ background: standing.bg, color: standing.ink }}
+        >
+          <span aria-hidden="true">{standing.emoji}</span>
+          {standing.text}
+        </span>
       </div>
 
       <div className="relative mt-5 h-2 rounded-full" style={{ background: "var(--series-1-track)" }}>
@@ -355,33 +403,66 @@ export function CutOffBanner({ cutOff }: { cutOff: CutOff | null }) {
   // false verdict, and the kind a candidate remembers.
   const tone =
     cutOff.qualified === null
-      ? { color: "var(--text-muted)", glyph: "…", label: "Not yet decided" }
+      ? {
+          color: "var(--text-muted)",
+          glyph: "…",
+          emoji: "⏳",
+          label: "Not yet decided",
+          note: "The cut-off will be applied once enough papers are in.",
+          bg: "linear-gradient(135deg,#f9fafb,#f3f4f6)",
+          ring: "#e5e7eb",
+          ink: "#374151",
+        }
       : cutOff.qualified
-        ? { color: "var(--good)", glyph: "✓", label: "Qualified" }
-        : { color: "var(--critical)", glyph: "✕", label: "Not qualified" };
+        ? {
+            color: "var(--good)",
+            glyph: "✓",
+            emoji: "🎉",
+            label: "Qualified!",
+            note: "You cleared the cut-off. Well done — keep it up.",
+            bg: "linear-gradient(135deg,#ecfdf5,#d1fae5)",
+            ring: "#a7f3d0",
+            ink: "#047857",
+          }
+        : {
+            color: "var(--critical)",
+            glyph: "✕",
+            emoji: "💪",
+            label: "Not qualified this time",
+            note: "Every attempt teaches something — go through the review below and try again.",
+            bg: "linear-gradient(135deg,#fff1f2,#ffe4e6)",
+            ring: "#fecdd3",
+            ink: "#be123c",
+          };
 
   return (
     <div
-      className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-4 py-3"
-      style={{
-        background: "var(--surface-1)",
-        border: "1px solid var(--hairline)",
-        borderLeft: `4px solid ${tone.color}`,
-      }}
+      className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl px-5 py-4"
+      style={{ background: tone.bg, border: `1px solid ${tone.ring}` }}
     >
-      <span
-        aria-hidden="true"
-        className="flex h-6 w-6 items-center justify-center rounded-full text-[13px] text-white"
-        style={{ background: tone.color }}
-      >
-        {tone.glyph}
+      <span aria-hidden="true" className="text-[34px] leading-none">
+        {tone.emoji}
       </span>
-      <span className="text-[16px] font-semibold" style={{ color: "var(--text-primary)" }}>
-        {tone.label}
-      </span>
-      <span className="text-[12px]" style={{ color: "var(--text-secondary)" }}>
-        {cutOff.reason}
-      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            aria-hidden="true"
+            className="flex h-5 w-5 items-center justify-center rounded-full text-[11px] text-white"
+            style={{ background: tone.color }}
+          >
+            {tone.glyph}
+          </span>
+          <span className="text-[19px] font-extrabold" style={{ color: tone.ink }}>
+            {tone.label}
+          </span>
+          <span className="text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
+            {cutOff.reason}
+          </span>
+        </div>
+        <p className="mt-0.5 text-[13px]" style={{ color: "var(--text-secondary)" }}>
+          {tone.note}
+        </p>
+      </div>
     </div>
   );
 }
@@ -390,11 +471,22 @@ export function ExpertComment({ comment }: { comment: string | null }) {
   if (!comment) return null;
 
   return (
-    <Card title="Expert's comment">
-      <p className="text-[17px] font-medium" style={{ color: "var(--text-primary)" }}>
+    <section
+      className="rounded-2xl p-5"
+      style={{
+        background: "linear-gradient(135deg,#fffbeb,#fef3c7)",
+        border: "1px solid #fde68a",
+        boxShadow: "0 4px 16px rgba(11,11,11,0.06)",
+      }}
+    >
+      <h2 className="flex items-center gap-2 text-[16px] font-bold" style={{ color: "#92400e" }}>
+        <span aria-hidden="true" className="text-[20px] leading-none">💬</span>
+        Expert&apos;s comment
+      </h2>
+      <p className="mt-2 text-[17px] font-medium" style={{ color: "#78350f" }}>
         {comment}
       </p>
-    </Card>
+    </section>
   );
 }
 
@@ -415,35 +507,36 @@ export function TopicBreakdown({ topics }: { topics: TopicRow[] }) {
 
   return (
     <Card
+      emoji="📚"
       title="Where the marks went"
       subtitle="Accuracy over the questions you attempted. Weakest first."
     >
       <ul className="space-y-3">
         {topics.map((row) => {
-          const weak = row.attempted > 0 && row.accuracy < 50;
+          // Three tiers, each with a colour AND a word AND a picture.
+          const tier =
+            row.attempted === 0
+              ? { emoji: "⬜", word: "not attempted", color: "#9ca3af", ink: "var(--text-muted)" }
+              : row.accuracy >= 70
+                ? { emoji: "✅", word: "strong", color: "#059669", ink: "#047857" }
+                : row.accuracy >= 40
+                  ? { emoji: "⚠️", word: "needs work", color: "#d97706", ink: "#b45309" }
+                  : { emoji: "❌", word: "weak", color: "#e11d48", ink: "#be123c" };
           return (
             <li key={row.topic}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
                 <span
-                  className="text-[13px] font-medium"
+                  className="text-[14px] font-semibold"
                   style={{ color: "var(--text-primary)" }}
                 >
+                  <span aria-hidden="true" className="mr-1.5">{tier.emoji}</span>
                   {row.topic}
-                  {weak && (
-                    <span
-                      className="ml-2 inline-flex items-center gap-1 align-middle text-[11px] font-semibold"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="flex h-[15px] w-[15px] items-center justify-center rounded-full text-[10px] text-white"
-                        style={{ background: "var(--warning)" }}
-                      >
-                        !
-                      </span>
-                      needs work
-                    </span>
-                  )}
+                  <span
+                    className="ml-2 rounded-full px-2 py-0.5 align-middle text-[11px] font-bold"
+                    style={{ background: `${tier.color}1a`, color: tier.ink }}
+                  >
+                    {tier.word}
+                  </span>
                 </span>
                 <span className="text-[12px]" style={{ color: "var(--text-muted)" }}>
                   {row.correct} of {row.attempted || 0} attempted · {row.total} asked
@@ -460,14 +553,13 @@ export function TopicBreakdown({ topics }: { topics: TopicRow[] }) {
                     className="h-full rounded-r-[4px]"
                     style={{
                       width: `${Math.max(row.attempted ? 1.5 : 0, row.accuracy)}%`,
-                      background: "var(--series-1)",
+                      background: tier.color,
                     }}
                   />
                 </div>
-                {/* The value rides the bar's end, in ink — never the data colour. */}
                 <span
-                  className="w-[46px] shrink-0 text-right text-[13px] font-semibold tabular-nums"
-                  style={{ color: "var(--text-primary)" }}
+                  className="w-[46px] shrink-0 text-right text-[13px] font-bold tabular-nums"
+                  style={{ color: tier.ink }}
                 >
                   {row.attempted ? `${row.accuracy.toFixed(0)}%` : "—"}
                 </span>
@@ -498,8 +590,15 @@ export function TimeAnalysis({
   const used = Math.min(100, (takenSec / allowedSec) * 100);
   const perQuestion = attempted > 0 ? takenSec / attempted : null;
 
+  const pace =
+    used >= 95
+      ? { emoji: "⏰", text: "Every second used", color: "#e11d48" }
+      : used >= 60
+        ? { emoji: "⏱", text: "Well paced", color: "#2563eb" }
+        : { emoji: "⚡", text: "Finished quickly", color: "#059669" };
+
   return (
-    <Card title="Time">
+    <Card emoji="⏱" title="Time">
       <div
         className="flex flex-wrap gap-x-8 gap-y-1 text-[12px]"
         style={{ color: "var(--text-secondary)" }}
@@ -519,11 +618,12 @@ export function TimeAnalysis({
       >
         <div
           className="h-full rounded-r-[4px]"
-          style={{ width: `${Math.max(1, used)}%`, background: "var(--series-1)" }}
+          style={{ width: `${Math.max(1, used)}%`, background: pace.color }}
         />
       </div>
-      <p className="mt-1.5 text-[11px]" style={{ color: "var(--text-muted)" }}>
-        {used.toFixed(0)}% of the allowed time was used.
+      <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: pace.color }}>
+        <span aria-hidden="true">{pace.emoji}</span>
+        {pace.text} · {used.toFixed(0)}% of the allowed time
       </p>
     </Card>
   );
@@ -563,7 +663,7 @@ export function AttemptHistory({ attempts }: { attempts: PastAttempt[] }) {
   const last = attempts[attempts.length - 1];
 
   return (
-    <Card title="Your attempts" subtitle={`Marks out of ${total}, oldest first.`}>
+    <Card emoji="📈" title="Your attempts" subtitle={`Marks out of ${total}, oldest first.`}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full"
