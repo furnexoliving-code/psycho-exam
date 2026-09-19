@@ -18,7 +18,12 @@ export interface Cohort {
 
 export interface TScore {
   value: number;
-  cohort: Cohort;
+  /**
+   * The figures the value was computed from. Always present when tScore()
+   * returns; omitted on the wire when the paper does not publish them, so a
+   * hidden mean and sd do not travel to the browser inside the response.
+   */
+  cohort?: Cohort;
   /** Set when the figure needs explaining rather than just showing. */
   note?: string;
 }

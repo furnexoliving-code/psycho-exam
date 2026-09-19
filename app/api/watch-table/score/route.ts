@@ -5,6 +5,7 @@ import { getBundledPaper } from "@/lib/wt/paper";
 import { meanAndSd, tScore, type Cohort } from "@/lib/wt/tscore";
 import { resolveResultView, type ResultView } from "@/lib/wt/types";
 import { closeSitting } from "@/lib/wt/session";
+import { decideCutOff, type CutOffVerdict } from "@/lib/wt/cutoff";
 
 /**
  * Scores an attempt on the server.
@@ -31,10 +32,13 @@ export interface MarkedQuestion {
   promptHi: string;
   options: number[];
   given: number | null;
-  correct: number;
+  /** The answer key. Absent on the wire unless the paper publishes it. */
+  correct?: number;
+  /** The verdict on this question. Stays even when the key is withheld. */
   isCorrect: boolean;
-  workingEn: string;
-  workingHi: string;
+  /** The worked solution spells the answer out, so it travels with the key. */
+  workingEn?: string;
+  workingHi?: string;
   topic: string;
 }
 
@@ -54,13 +58,14 @@ export interface Standing {
   percentile: number;
 }
 
-export interface CutOff {
-  marks: number | null;
-  tScore: number | null;
-  qualified: boolean;
-  /** Which bar decided it, when both are set. */
-  reason: string;
-}
+/**
+ * The standing as it travels to the browser: only the halves the paper
+ * publishes. Gating the object as a whole let a switched-off rank ride along
+ * with a switched-on percentile.
+ */
+export type StandingWire = Partial<Standing>;
+
+export type CutOff = CutOffVerdict;
 
 export async function POST(request: Request) {
   let body: Body;
@@ -112,12 +117,29 @@ export async function POST(request: Request) {
   // browser at all — hiding it in the markup would leave it in the response
   // for anyone who opened the network tab.
   const view = resolveResultView(stats?.resultView);
-  const t = view.tScore ? tRaw : null;
+
+  // The T-score as published. The cohort figures behind it travel only when a
+  // panel that shows them is on; otherwise a hidden mean and sd sat inside the
+  // response for anyone reading the network tab.
+  const t =
+    view.tScore && tRaw
+      ? view.tScoreStats || view.tScoreFormula
+        ? tRaw
+        : { value: tRaw.value, note: tRaw.note }
+      : null;
+
+  // The questions as published. The review off means none at all — every
+  // question, key included, used to ship regardless. The key off strips the
+  // answer AND the worked solution, which spells the answer out; the verdict
+  // on each question stays, since Correct / Incorrect is the review's point.
+  const questions = !view.review
+    ? []
+    : view.correctAnswers
+      ? marked
+      : marked.map(({ correct: _c, workingEn: _e, workingHi: _h, ...rest }) => rest);
 
   return NextResponse.json({
-    questions: view.correctAnswers
-      ? marked
-      : marked.map(({ correct: _c, isCorrect: _i, ...rest }) => rest),
+    questions,
     score: {
       total: marked.length,
       attempted,
@@ -127,29 +149,45 @@ export async function POST(request: Request) {
     },
     tScore: t,
     topics: view.topicBreakdown ? topicBreakdown(marked) : [],
-    standing: view.rank || view.percentile ? stats?.standing ?? null : null,
+    standing: pickStanding(stats?.standing ?? null, view),
+    // Decided on the REAL T-score whether or not it is shown; only the wording
+    // withholds the figure. A verdict must never depend on a display switch.
     cutOff:
       view.cutOff && stats
-        ? decideCutOff(stats.cutOff, correct, tRaw?.value ?? null, view.cutOffMarks)
+        ? decideCutOff(stats.cutOff, correct, tRaw?.value ?? null, {
+            useMarks: view.cutOffMarks,
+            showTScore: view.tScore,
+          })
         : null,
     expertComment: view.expertComment ? stats?.expertComment ?? null : null,
-    durationSec: stats?.durationSec ?? null,
+    durationSec: view.timeAnalysis ? stats?.durationSec ?? null : null,
     view,
   });
 }
 
-/** Per-topic tally, for the "what should I revise" panel. */
+/** Only the halves of the standing this paper publishes. */
+function pickStanding(
+  standing: Standing | null,
+  view: ReturnType<typeof resolveResultView>,
+): StandingWire | null {
+  if (!standing) return null;
+  const out: StandingWire = {};
+  if (view.rank) {
+    out.rank = standing.rank;
+    out.outOf = standing.outOf;
+  }
+  if (view.percentile) out.percentile = standing.percentile;
+  return view.rank || view.percentile ? out : null;
+}
+
+/** Per-topic tally, weakest topic first, so the candidate sees where to work. */
 function topicBreakdown(marked: MarkedQuestion[]): TopicRow[] {
   const byTopic = new Map<string, MarkedQuestion[]>();
-
   for (const q of marked) {
-    const topic = q.topic?.trim() || "Untagged";
-    byTopic.set(topic, [...(byTopic.get(topic) ?? []), q]);
+    const rows = byTopic.get(q.topic) ?? [];
+    rows.push(q);
+    byTopic.set(q.topic, rows);
   }
-
-  // A paper with no topics at all has nothing to break down.
-  if (byTopic.size === 1 && byTopic.has("Untagged")) return [];
-
   return [...byTopic.entries()]
     .map(([topic, rows]) => {
       const attempted = rows.filter((q) => q.given !== null).length;
@@ -162,47 +200,7 @@ function topicBreakdown(marked: MarkedQuestion[]): TopicRow[] {
         accuracy: attempted ? (correct / attempted) * 100 : 0,
       };
     })
-    // Weakest first: that is the one worth reading.
     .sort((a, b) => a.accuracy - b.accuracy || b.total - a.total);
-}
-
-function decideCutOff(
-  cutOff: { marks: number | null; tScore: number | null },
-  marks: number,
-  t: number | null,
-  /** Whether the marks bar counts at all — see below. */
-  useMarks: boolean,
-): CutOff | null {
-  if ((cutOff.marks === null || !useMarks) && cutOff.tScore === null) return null;
-
-  // The switch decides whether the marks bar APPLIES, not merely whether it is
-  // mentioned. Hiding a bar that still decides produced a verdict the
-  // candidate could not make sense of: "Not qualified · T-score 44.3 against
-  // 42 needed" — the only reason given was one the candidate had cleared,
-  // while the marks bar that actually failed them was never shown. A rule that
-  // counts is always stated; a rule that is not stated does not count.
-  const byMarks = cutOff.marks === null || !useMarks ? null : marks >= cutOff.marks;
-
-  // A T-score bar cannot be judged before there is a T-score to judge it by.
-  const byT = cutOff.tScore === null || t === null ? null : t >= cutOff.tScore;
-
-  const checks = [byMarks, byT].filter((v): v is boolean => v !== null);
-  if (checks.length === 0) {
-    return {
-      marks: cutOff.marks,
-      tScore: cutOff.tScore,
-      qualified: false,
-      reason: "The T-score cut off cannot be applied until there is a T-score.",
-    };
-  }
-
-  // Both bars must be cleared when both are set.
-  const qualified = checks.every(Boolean);
-  const parts: string[] = [];
-  if (byMarks !== null) parts.push(`${marks} of ${cutOff.marks} marks needed`);
-  if (byT !== null) parts.push(`T-score ${t!.toFixed(1)} against ${cutOff.tScore} needed`);
-
-  return { marks: cutOff.marks, tScore: cutOff.tScore, qualified, reason: parts.join(" · ") };
 }
 
 /**

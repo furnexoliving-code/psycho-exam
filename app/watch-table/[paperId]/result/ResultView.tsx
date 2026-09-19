@@ -6,7 +6,7 @@ import { PortalBanner } from "@/components/wt/PortalBanner";
 import type {
   CutOff,
   MarkedQuestion,
-  Standing,
+  StandingWire,
   TopicRow,
 } from "@/app/api/watch-table/score/route";
 import {
@@ -81,7 +81,7 @@ export function ResultView({
   const [score, setScore] = useState<Score | null>(null);
   const [tScore, setTScore] = useState<TScore | null>(null);
   const [topics, setTopics] = useState<TopicRow[]>([]);
-  const [standing, setStanding] = useState<Standing | null>(null);
+  const [standing, setStanding] = useState<StandingWire | null>(null);
   const [cutOff, setCutOff] = useState<CutOff | null>(null);
   const [comment, setComment] = useState<string | null>(null);
   const [history, setHistory] = useState<PastAttempt[]>([]);
@@ -134,7 +134,7 @@ export function ResultView({
           score: Score;
           tScore: TScore | null;
           topics: TopicRow[];
-          standing: Standing | null;
+          standing: StandingWire | null;
           cutOff: CutOff | null;
           expertComment: string | null;
           durationSec?: number | null;
@@ -267,6 +267,7 @@ export function ResultView({
             total={score.total}
             showFormula={view.tScoreFormula}
             showStats={view.tScoreStats}
+            showTScore={view.tScore}
           />
         </div>
 

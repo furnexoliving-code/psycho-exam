@@ -1,6 +1,6 @@
 "use client";
 
-import type { CutOff, Standing, TopicRow } from "@/app/api/watch-table/score/route";
+import type { CutOff, StandingWire, TopicRow } from "@/app/api/watch-table/score/route";
 import type { TScore } from "@/lib/wt/tscore";
 
 /**
@@ -145,17 +145,17 @@ export function StandingCards({
   showRank = true,
   showPercentile = true,
 }: {
-  standing: Standing | null;
+  standing: StandingWire | null;
   showRank?: boolean;
   showPercentile?: boolean;
 }) {
   if (!standing) return null;
   return (
     <>
-      {showRank && (
+      {showRank && standing.rank !== undefined && (
         <Stat label="Rank" value={String(standing.rank)} foot={`of ${standing.outOf}`} />
       )}
-      {showPercentile && (
+      {showPercentile && standing.percentile !== undefined && (
         <Stat
           label="Percentile"
           value={standing.percentile.toFixed(1)}
@@ -181,6 +181,7 @@ export function TScoreHero({
   total,
   showFormula = false,
   showStats = false,
+  showTScore = true,
 }: {
   tScore: TScore | null;
   marks: number;
@@ -190,6 +191,13 @@ export function TScoreHero({
   showFormula?: boolean;
   /** Mean, standard deviation and the size of the cohort. */
   showStats?: boolean;
+  /**
+   * Whether this paper publishes a T-score at all. When it does not, the
+   * marks hero stands alone: telling the candidate the T-score is "not
+   * available yet" would be a false explanation for a figure that was
+   * withheld on purpose.
+   */
+  showTScore?: boolean;
 }) {
   // Until a cohort exists the T-score has no number, and an empty hero slot is
   // worse than none. Lead with the figure that always exists — the marks — and
@@ -232,15 +240,17 @@ export function TScoreHero({
           />
         </div>
 
-        <p
-          className="mt-6 rounded px-3 py-2 text-[12px]"
-          style={{ background: "var(--plane)", color: "var(--text-secondary)" }}
-        >
-          <strong style={{ color: "var(--text-primary)" }}>T-Score not available yet.</strong>{" "}
-          It places a candidate against everyone who has sat this paper, so it
-          needs either enough submitted attempts or the reference figures set in
-          the admin panel.
-        </p>
+        {showTScore && (
+          <p
+            className="mt-6 rounded px-3 py-2 text-[12px]"
+            style={{ background: "var(--plane)", color: "var(--text-secondary)" }}
+          >
+            <strong style={{ color: "var(--text-primary)" }}>T-Score not available yet.</strong>{" "}
+            It places a candidate against everyone who has sat this paper, so it
+            needs either enough submitted attempts or the reference figures set in
+            the admin panel.
+          </p>
+        )}
       </Card>
     );
   }
@@ -299,7 +309,7 @@ export function TScoreHero({
         />
       </div>
 
-      {showStats && (
+      {showStats && cohort && (
       <dl
         className="mt-8 flex flex-wrap gap-x-8 gap-y-1 text-[12px]"
         style={{ color: "var(--text-secondary)" }}
@@ -314,7 +324,7 @@ export function TScoreHero({
       </dl>
       )}
 
-      {showFormula && (
+      {showFormula && cohort && (
         <p
           className="mt-3 rounded px-3 py-2 text-[12px]"
           style={{ background: "var(--plane)", color: "var(--text-secondary)" }}
@@ -340,9 +350,15 @@ export function TScoreHero({
 export function CutOffBanner({ cutOff }: { cutOff: CutOff | null }) {
   if (!cutOff) return null;
 
-  const tone = cutOff.qualified
-    ? { color: "var(--good)", glyph: "✓", label: "Qualified" }
-    : { color: "var(--critical)", glyph: "✕", label: "Not qualified" };
+  // Three states, not two. A verdict that cannot be reached yet is shown as
+  // exactly that — a red "Not qualified" for an unjudged paper would be a
+  // false verdict, and the kind a candidate remembers.
+  const tone =
+    cutOff.qualified === null
+      ? { color: "var(--text-muted)", glyph: "…", label: "Not yet decided" }
+      : cutOff.qualified
+        ? { color: "var(--good)", glyph: "✓", label: "Qualified" }
+        : { color: "var(--critical)", glyph: "✕", label: "Not qualified" };
 
   return (
     <div

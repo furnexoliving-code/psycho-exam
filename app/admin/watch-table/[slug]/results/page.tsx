@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { meanAndSd, tScore } from "@/lib/wt/tscore";
+import { decideCutOff } from "@/lib/wt/cutoff";
+import { resolveResultView } from "@/lib/wt/types";
 import { ResultsTable, type ResultRow } from "./ResultsTable";
 
 export default async function PaperResultsPage({
@@ -14,7 +16,7 @@ export default async function PaperResultsPage({
 
   const { data: paper } = await supabase
     .from("watch_papers")
-    .select("id, display_name, cut_off_marks, cut_off_tscore, reference_mean, reference_sd, stats_min_attempts")
+    .select("id, display_name, cut_off_marks, cut_off_tscore, reference_mean, reference_sd, stats_min_attempts, result_view")
     .eq("slug", slug)
     .maybeSingle();
   if (!paper) notFound();
@@ -26,6 +28,7 @@ export default async function PaperResultsPage({
     .order("submitted_at", { ascending: false });
 
   const rows = attempts ?? [];
+  const view = resolveResultView(paper.result_view ?? undefined);
   const marks = rows.map((a) => a.marks as number);
 
   // The same figures the candidate's own result was measured against, so the
@@ -70,7 +73,15 @@ export default async function PaperResultsPage({
       durationSec: a.duration_sec,
       tScore: t ? Number(t.value.toFixed(1)) : null,
       rank: sortedMarks.filter((m) => m > a.marks).length + 1,
-      qualified: qualifies(a.marks, t?.value ?? null, paper),
+      // The same decision the candidate saw — same module, same switches — so
+      // staff and student can never be shown opposite verdicts.
+      qualified:
+        decideCutOff(
+          { marks: paper.cut_off_marks, tScore: paper.cut_off_tscore },
+          a.marks,
+          t?.value ?? null,
+          { useMarks: view.cutOffMarks, showTScore: true },
+        )?.qualified ?? null,
       submittedAt: a.submitted_at,
     };
   });
@@ -110,18 +121,6 @@ export default async function PaperResultsPage({
   );
 }
 
-function qualifies(
-  marks: number,
-  t: number | null,
-  paper: { cut_off_marks: number | null; cut_off_tscore: number | null },
-): boolean | null {
-  const byMarks = paper.cut_off_marks === null ? null : marks >= paper.cut_off_marks;
-  const byT =
-    paper.cut_off_tscore === null || t === null ? null : t >= Number(paper.cut_off_tscore);
-
-  const checks = [byMarks, byT].filter((v): v is boolean => v !== null);
-  return checks.length === 0 ? null : checks.every(Boolean);
-}
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
