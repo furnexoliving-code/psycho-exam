@@ -79,9 +79,10 @@ create policy watch_questions_admin on public.watch_questions
 -- Key-free view. Candidates read this; `answer` never leaves the server for
 -- them, and scoring happens in the submit route with the service-role client.
 -- ---------------------------------------------------------------------------
-create or replace view public.watch_questions_public
+drop view if exists public.watch_questions_public;
+create view public.watch_questions_public
 with (security_invoker = true) as
-  select id, paper_id, position, prompt_en, prompt_hi, options
+  select id, paper_id, position, prompt_en, prompt_hi, options, topic
   from public.watch_questions;
 
 drop policy if exists watch_questions_read_via_view on public.watch_questions;
@@ -93,8 +94,17 @@ create policy watch_questions_read_via_view on public.watch_questions
     )
   );
 
+-- The view is security_invoker, so reading it checks the READER's rights on
+-- the table underneath. A blanket revoke would therefore break the view as
+-- well — including for the candidates it exists to serve. Grant the safe
+-- columns instead: `answer` and the worked solution are simply not among them,
+-- so no query can reach them, whatever it selects. Row level security still
+-- decides WHICH rows, and the grants decide which columns; neither alone is
+-- load-bearing.
 revoke select on public.watch_questions from anon, authenticated;
-grant  select on public.watch_questions_public to anon, authenticated;
+grant select (id, paper_id, position, prompt_en, prompt_hi, options, topic)
+  on public.watch_questions to anon, authenticated;
+grant select on public.watch_questions_public to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Storage for uploaded diagrams.

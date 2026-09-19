@@ -86,11 +86,19 @@ export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | 
     .maybeSingle();
   if (!row) return null;
 
-  const { data: questions } = await supabase
+  const { data: questions, error } = await supabase
     .from("watch_questions_public")
     .select("id, position, prompt_en, prompt_hi, options, topic")
     .eq("paper_id", (row as PaperRow).id)
     .order("position");
+
+  // Ignoring this error made a failed read look exactly like a paper with no
+  // questions, so the exam said "This paper has no questions yet" over a paper
+  // holding twenty of them. A paper whose questions cannot be read is unusable
+  // either way; saying so beats a wrong explanation.
+  if (error) {
+    throw new Error(`Could not read the questions for "${slug}": ${error.message}`);
+  }
 
   return toPaper(row as PaperRow, (questions ?? []) as QuestionRow[]);
 }
