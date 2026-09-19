@@ -14,6 +14,31 @@ export function getBundledPaper(paperId: string): WatchPaper | undefined {
 }
 
 /**
+ * The sample's instruction paragraphs with THIS paper's timings in them.
+ *
+ * A paper saved without its own wording falls back to the sample's, whose
+ * last paragraph names the sample's five and ten minutes — wrong for any
+ * other limits, in both languages.
+ */
+export function defaultInstructions(
+  instructionMin: number,
+  testMin: number,
+): WatchPaper["instructions"] {
+  const sampleRead = SAMPLE_PAPER.instructionTimeLimitMin;
+  const sampleTest = SAMPLE_PAPER.timeLimitMin;
+  const swap = (text: string) =>
+    text
+      .replace(new RegExp(`\\b${sampleRead} (minutes|मिनट)`, "g"), `${instructionMin} $1`)
+      .replace(new RegExp(`\\b${sampleTest} (minute|मिनट)`, "g"), `${testMin} $1`);
+
+  return SAMPLE_PAPER.instructions.map((block) => ({
+    ...block,
+    en: swap(block.en),
+    hi: swap(block.hi),
+  }));
+}
+
+/**
  * The paper with its answer key removed, for handing to the browser.
  *
  * The exam screen is a client component, so whatever it is given is serialised

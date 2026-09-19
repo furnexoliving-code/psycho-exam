@@ -2,6 +2,8 @@ import Link from "next/link";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { listPapersForAdmin, type PaperSummary } from "@/lib/wt/db";
 import { createPaper } from "./actions";
+import { AdminNotice } from "@/components/admin/AdminNotice";
+import { PendingButton } from "@/components/admin/PendingButton";
 
 /**
  * Every Following Directions paper, grouped by which of the three it is.
@@ -9,8 +11,12 @@ import { createPaper } from "./actions";
  * One flat table hid which test a paper belonged to, and gave no sense of the
  * order a student would meet them in — both of which the institute decides.
  */
-export default async function FollowingDirectionsPage() {
-  const papers = await listPapersForAdmin();
+export default async function FollowingDirectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; saved?: string }>;
+}) {
+  const [papers, { error, saved }] = await Promise.all([listPapersForAdmin(), searchParams]);
 
   return (
     <>
@@ -19,6 +25,8 @@ export default async function FollowingDirectionsPage() {
         Three tests share this engine. Set the timers, upload your questions,
         and choose the order students meet them in.
       </p>
+
+      <AdminNotice error={error} saved={saved} />
 
       {CATEGORIES.map((category) => {
         const mine = papers.filter((p) => p.category === category.id);
@@ -96,12 +104,12 @@ export default async function FollowingDirectionsPage() {
           />
         </label>
 
-        <button
-          type="submit"
-          className="rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
+        <PendingButton
+          pendingLabel="Creating…"
+          className="rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900 disabled:opacity-60"
         >
           Create paper
-        </button>
+        </PendingButton>
       </form>
     </>
   );

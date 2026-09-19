@@ -27,10 +27,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const profile = await requireUser();
-  const papers = await listPublishedPapers();
-  // Attempts live in watch_attempts. Reading the older `attempts` table here
-  // told a student who had sat three papers that they had completed none.
+  const [profile, papers] = await Promise.all([requireUser(), listPublishedPapers()]);
   const history = await attemptsFor(profile.id);
 
   const best = history.length

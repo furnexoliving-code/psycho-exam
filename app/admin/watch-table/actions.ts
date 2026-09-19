@@ -79,11 +79,33 @@ function numberOrNull(value: FormDataEntryValue | null): number | null {
   return n;
 }
 
-function nonNegativeOrNull(value: FormDataEntryValue | null): number | null {
+/**
+ * A picture's address, or null for none. Only a web address is accepted: the
+ * value goes straight into <img src> on every candidate's screen, and a
+ * pasted data: blob would ride along inside every render of the exam.
+ */
+function imageUrlOrNull(value: FormDataEntryValue | null): string | null {
+  const url = String(value ?? "").trim();
+  if (!url) return null;
+  if (!/^https:\/\/\S+$/i.test(url) || url.length > 2048) {
+    throw new Error("The picture must be a web address starting with https://");
+  }
+  return url;
+}
+
+/** A whole number, or the fallback when the field is blank or not a number. */
+function wholeNumber(value: FormDataEntryValue | null, fallback: number): number {
+  const n = numberOrNull(value);
+  if (n === null) return fallback;
+  if (!Number.isInteger(n)) throw new Error(`${value} is not a whole number`);
+  return n;
+}
+
+function positiveOrNull(value: FormDataEntryValue | null): number | null {
   const n = numberOrNull(value);
   // A negative standard deviation is not a thing, and a zero one would make
-  // the T-score divide by zero.
-  if (n !== null && n < 0) throw new Error("Standard deviation cannot be negative");
+  // every candidate exactly average whatever they scored.
+  if (n !== null && n <= 0) throw new Error("Standard deviation must be greater than zero");
   return n;
 }
 
@@ -135,6 +157,9 @@ function readCells(formData: FormData, prefix = "cell"): WatchCell[] {
 }
 
 export async function createPaper(formData: FormData) {
+  // A failure — a web address already taken, most often — lands back on the
+  // list with its reason, rather than on the generic error page.
+  return run("/admin/watch-table", "New paper", async () => {
   await requireAdmin();
   const supabase = await createClient();
 
@@ -169,9 +194,15 @@ export async function createPaper(formData: FormData) {
     .select("id, slug")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(
+      /duplicate key|unique/i.test(error.message)
+        ? "That web address is already taken by another paper. Choose a different one, or leave it blank."
+        : error.message,
+    );
+  }
 
-  await questionStore().from("watch_questions").insert(
+  const { error: questionError } = await questionStore().from("watch_questions").insert(
     questions.map((q, i) => ({
       paper_id: data.id,
       position: i,
@@ -183,8 +214,10 @@ export async function createPaper(formData: FormData) {
       working_hi: q.working.hi,
     })),
   );
+  if (questionError) throw new Error(questionError.message);
 
   redirect(`/admin/watch-table/${data.slug}`);
+  });
 }
 
 export async function saveSettings(
@@ -235,6 +268,22 @@ export async function saveSettings(
     // never touches this field leaves the order exactly as it was.
     const orderRaw = String(formData.get("sort_order") ?? "").trim();
     const sortOrder = orderRaw ? Math.trunc(Number(orderRaw) || 0) : 0;
+    if (Math.abs(sortOrder) > 1_000_000) {
+      throw new Error("The order in the list must be between -1000000 and 1000000");
+    }
+
+    const displayName = String(formData.get("display_name") ?? "").trim();
+    if (!displayName) throw new Error("The name shown in the toolbar cannot be blank");
+
+    const minAttempts = wholeNumber(formData.get("stats_min_attempts"), 5);
+    if (minAttempts < 1 || minAttempts > 100_000) {
+      throw new Error("Switch to live figures after: give a whole number from 1 to 100000");
+    }
+
+    const cutOffMarks = numberOrNull(formData.get("cut_off_marks"));
+    if (cutOffMarks !== null && (!Number.isInteger(cutOffMarks) || cutOffMarks < 0)) {
+      throw new Error("Cut-off marks must be a whole number, 0 or more");
+    }
 
     const resultView = Object.fromEntries(
       RESULT_VIEW_KEYS.map((k) => [k, formData.get(`rv_${k}`) === "on"]),
@@ -243,18 +292,18 @@ export async function saveSettings(
     const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
-        title: String(formData.get("title") ?? "").trim(),
-        display_name: String(formData.get("display_name") ?? "").trim(),
+        title: String(formData.get("title") ?? "").trim() || "Watch Table Test",
+        display_name: displayName,
         instruction_time_min: instruction,
         time_limit_min: test,
         is_published: formData.get("is_published") === "on",
         // Blank means "no reference" — the T-score then waits for a real cohort.
         reference_mean: numberOrNull(formData.get("reference_mean")),
-        reference_sd: nonNegativeOrNull(formData.get("reference_sd")),
-        cut_off_marks: numberOrNull(formData.get("cut_off_marks")),
+        reference_sd: positiveOrNull(formData.get("reference_sd")),
+        cut_off_marks: cutOffMarks,
         cut_off_tscore: numberOrNull(formData.get("cut_off_tscore")),
         expert_comment: String(formData.get("expert_comment") ?? "").trim() || null,
-        stats_min_attempts: Math.max(1, Number(formData.get("stats_min_attempts") ?? 5)),
+        stats_min_attempts: minAttempts,
         font_scale: fontScale,
         max_attempts: maxAttempts,
         result_view: resultView,
@@ -294,7 +343,7 @@ export async function saveDiagram(
       .update({
         cells,
         example_cells: cells,
-        image_url: String(formData.get("image_url") ?? "").trim() || null,
+        image_url: imageUrlOrNull(formData.get("image_url")),
         image_width_pct: Math.min(
           100,
           Math.max(30, Math.round(Number(formData.get("image_width_pct") ?? 100) || 100)),
@@ -316,12 +365,17 @@ export async function saveDiagram(
  * would have two defensible answers is discarded rather than shipped — so a
  * generated paper cannot contain an unanswerable question.
  */
-export async function regenerateQuestions(formData: FormData) {
+export async function regenerateQuestions(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Sample questions", async () => {
   await requireAdmin();
   const supabase = await createClient();
 
   const slug = String(formData.get("slug"));
-  const count = Math.min(60, Math.max(1, Number(formData.get("count") ?? 20)));
+  const count = wholeNumber(formData.get("count"), 20);
+  if (count < 1 || count > 60) throw new Error("Ask for between 1 and 60 questions");
 
   const { data: paper, error: readError } = await supabase
     .from("watch_papers")
@@ -392,9 +446,8 @@ export async function regenerateQuestions(formData: FormData) {
     usedByKind.set(picked.kind, [...(usedByKind.get(picked.kind) ?? []), picked.answer]);
   }
 
-  await questionStore().from("watch_questions").delete().eq("paper_id", paper.id);
-
-  const { error } = await questionStore().from("watch_questions").insert(
+  const { error } = await replaceQuestions(
+    paper.id,
     chosen.map((c, i) => ({
       paper_id: paper.id,
       position: i,
@@ -410,8 +463,60 @@ export async function regenerateQuestions(formData: FormData) {
     })),
   );
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(error);
   revalidatePath(`/admin/watch-table/${slug}`);
+  return `${chosen.length} built from the diagram`;
+  });
+}
+
+/**
+ * Swaps a paper's questions for a new set: the new rows go in FIRST, and the
+ * old ones are removed only once they are there. Deleting first meant that an
+ * insert refused by the database left a published paper with no questions at
+ * all, while the form reported the failure as if nothing had changed.
+ */
+async function replaceQuestions(
+  paperId: string,
+  rows: Record<string, unknown>[],
+): Promise<{ inserted: number; error: string | null }> {
+  const store = questionStore();
+
+  const { data: old } = await store
+    .from("watch_questions")
+    .select("id")
+    .eq("paper_id", paperId);
+  const oldIds = (old ?? []).map((q) => q.id as string);
+
+  const { data: inserted, error } = await store
+    .from("watch_questions")
+    .insert(rows)
+    .select("id");
+  if (error) return { inserted: 0, error: error.message };
+
+  // Reading the rows back proves they are really there. Without this the
+  // action reported success whenever the database merely declined quietly —
+  // which is exactly how "saved" appeared over an empty paper.
+  if ((inserted?.length ?? 0) !== rows.length) {
+    return {
+      inserted: inserted?.length ?? 0,
+      error:
+        `${rows.length} question(s) were sent but ${inserted?.length ?? 0} were stored. ` +
+        `The database accepted the request without saving, which usually means your ` +
+        `account is not an admin there. Check the role on your row in the profiles table.`,
+    };
+  }
+
+  if (oldIds.length) {
+    const { error: deleteError } = await store.from("watch_questions").delete().in("id", oldIds);
+    if (deleteError) {
+      return {
+        inserted: inserted?.length ?? 0,
+        error: `The new questions are in, but the old ones could not be removed: ${deleteError.message}`,
+      };
+    }
+  }
+
+  return { inserted: inserted?.length ?? 0, error: null };
 }
 
 /**
@@ -442,34 +547,45 @@ export async function importQuestions(
     let offset = 0;
 
     if (append) {
-      const { count } = await questionStore()
+      // After the LAST position, not after the count: a deleted question
+      // leaves a gap, and a count would hand the newcomer a number already
+      // in use, leaving two questions to swap places between loads.
+      const { data: last } = await questionStore()
         .from("watch_questions")
-        .select("id", { count: "exact", head: true })
-        .eq("paper_id", paper.id);
-      offset = count ?? 0;
-    } else {
-      await questionStore().from("watch_questions").delete().eq("paper_id", paper.id);
+        .select("position")
+        .eq("paper_id", paper.id)
+        .order("position", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      offset = last ? Number(last.position) + 1 : 0;
     }
 
-    const { data: inserted, error } = await questionStore().from("watch_questions").insert(
-      parsed.map((q, i) => ({
-        paper_id: paper.id,
-        position: offset + i,
-        prompt_en: q.prompt_en,
-        prompt_hi: q.prompt_hi,
-        options: q.options,
-        answer: q.answer,
-        topic: q.topic,
-        // Uploaded questions carry no derivation; the review screen just omits it.
-        working_en: "",
-        working_hi: "",
-      })),
-    ).select("id");
+    const rows = parsed.map((q, i) => ({
+      paper_id: paper.id,
+      position: offset + i,
+      prompt_en: q.prompt_en,
+      prompt_hi: q.prompt_hi,
+      options: q.options,
+      answer: q.answer,
+      topic: q.topic,
+      // Uploaded questions carry no derivation; the review screen just omits it.
+      working_en: "",
+      working_hi: "",
+    }));
+
+    if (!append) {
+      const { inserted, error } = await replaceQuestions(paper.id, rows);
+      if (error) throw new Error(error);
+      revalidatePath(`/admin/watch-table/${slug}`);
+      return `${inserted} questions`;
+    }
+
+    const { data: inserted, error } = await questionStore()
+      .from("watch_questions")
+      .insert(rows)
+      .select("id");
 
     if (error) throw new Error(error.message);
-    // Reading the rows back proves they are really there. Without this the
-    // action reported success whenever the database merely declined quietly —
-    // which is exactly how "saved" appeared over an empty paper.
     if ((inserted?.length ?? 0) !== parsed.length) {
       throw new Error(
         `${parsed.length} question(s) were sent but ${inserted?.length ?? 0} were stored. ` +
@@ -478,68 +594,99 @@ export async function importQuestions(
       );
     }
     revalidatePath(`/admin/watch-table/${slug}`);
-    return `${inserted.length} questions`;  });
+    return `${inserted.length} questions added`;
+  });
 }
 
-export async function deleteQuestion(formData: FormData) {
-  await requireAdmin();
-  const supabase = await createClient();
-
+export async function deleteQuestion(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
   const slug = String(formData.get("slug"));
-  const { error } = await questionStore()
-    .from("watch_questions")
-    .delete()
-    .eq("id", String(formData.get("id")));
+  return attempt("Question", async () => {
+    await requireAdmin();
 
-  if (error) throw new Error(error.message);
-  revalidatePath(`/admin/watch-table/${slug}`);
+    const { data: gone, error } = await questionStore()
+      .from("watch_questions")
+      .delete()
+      .eq("id", String(formData.get("id")))
+      .select("id");
+
+    if (error) throw new Error(error.message);
+    if (!gone?.length) throw new Error("That question is already gone");
+    revalidatePath(`/admin/watch-table/${slug}`);
+    return "deleted";
+  });
 }
 
-export async function saveQuestion(formData: FormData) {
-  await requireAdmin();
-  const supabase = await createClient();
-
+export async function saveQuestion(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
   const slug = String(formData.get("slug"));
-  const topic = String(formData.get("topic") ?? "").trim().slice(0, 60);
-  const options = String(formData.get("options") ?? "")
-    .split(/[,\s]+/)
-    .map((v) => Number(v))
-    .filter((v) => Number.isInteger(v));
+  return attempt("Question", async () => {
+    await requireAdmin();
 
-  if (options.length < 2) throw new Error("A question needs at least two options");
+    const topic = String(formData.get("topic") ?? "").trim().slice(0, 60);
+    const promptEn = String(formData.get("prompt_en") ?? "").trim();
+    if (!promptEn) throw new Error("The English question cannot be blank");
 
-  const answer = Number(formData.get("answer"));
-  if (!options.includes(answer)) {
-    throw new Error(`The answer ${answer} is not one of the options ${options.join(", ")}`);
-  }
+    // The same rules the upload applies, so the two ways of editing agree:
+    // every option a whole number, no two the same, between two and ten.
+    const tokens = String(formData.get("options") ?? "")
+      .split(/[,\s]+/)
+      .filter(Boolean);
+    const options = tokens.map((v) => Number(v));
+    const bad = tokens.find((v, i) => !Number.isInteger(options[i]));
+    if (bad !== undefined) throw new Error(`"${bad}" is not a whole number`);
+    if (options.length < 2) throw new Error("A question needs at least two options");
+    if (options.length > 10) throw new Error("A question can offer at most ten options");
+    if (new Set(options).size !== options.length) {
+      throw new Error("The same number appears twice among the options");
+    }
 
-  const { error } = await questionStore()
-    .from("watch_questions")
-    .update({
-      prompt_en: String(formData.get("prompt_en") ?? "").trim(),
-      prompt_hi: String(formData.get("prompt_hi") ?? "").trim(),
-      options,
-      answer,
-      topic,
-    })
-    .eq("id", String(formData.get("id")));
+    const answer = Number(formData.get("answer"));
+    if (!options.includes(answer)) {
+      throw new Error(`The answer ${answer} is not one of the options ${options.join(", ")}`);
+    }
 
-  if (error) throw new Error(error.message);
-  revalidatePath(`/admin/watch-table/${slug}`);
+    const { data: updated, error } = await questionStore()
+      .from("watch_questions")
+      .update({
+        prompt_en: promptEn,
+        prompt_hi: String(formData.get("prompt_hi") ?? "").trim(),
+        options,
+        answer,
+        topic,
+      })
+      .eq("id", String(formData.get("id")))
+      .select("id");
+
+    if (error) throw new Error(error.message);
+    if (!updated?.length) throw new Error("That question no longer exists");
+    revalidatePath(`/admin/watch-table/${slug}`);
+  });
 }
 
 export async function deletePaper(formData: FormData) {
-  await requireAdmin();
-  const supabase = await createClient();
+  const slug = String(formData.get("slug"));
+  return run(`/admin/watch-table/${slug}`, "Delete", async () => {
+    await requireAdmin();
+    const supabase = await createClient();
 
-  // Questions go with it via ON DELETE CASCADE.
-  const { error } = await supabase
-    .from("watch_papers")
-    .delete()
-    .eq("slug", String(formData.get("slug")));
+    // Questions, attempts and sittings go with it via ON DELETE CASCADE.
+    const { data: gone, error } = await supabase
+      .from("watch_papers")
+      .delete()
+      .eq("slug", slug)
+      .select("display_name");
 
-  if (error) throw new Error(error.message);
-  redirect("/admin/watch-table");
+    if (error) throw new Error(error.message);
+    if (!gone?.length) throw new Error(NOTHING_CHANGED);
+    redirect(
+      `/admin/watch-table?saved=${encodeURIComponent(`Deleted — ${gone[0].display_name}, with its questions and results`)}`,
+    );
+  });
 }
 
 /**

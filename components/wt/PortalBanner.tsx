@@ -26,7 +26,7 @@ export function PortalBanner({
 }) {
   return (
     <div className="flex h-[58px] items-stretch bg-wt-teal">
-      <div className="flex w-[200px] shrink-0 items-center gap-2 px-3">
+      <div className="hidden w-[200px] shrink-0 items-center gap-2 px-3 sm:flex">
         <InstituteMark />
         <div className="leading-none">
           <div className="text-[13px] font-extrabold tracking-tight text-white">
@@ -55,7 +55,7 @@ export function PortalBanner({
         <RrbRoundel />
       </div>
 
-      <div className="flex shrink-0 items-center gap-2 px-3">
+      <div className="flex shrink-0 flex-col items-stretch justify-center gap-1 px-2 sm:flex-row sm:items-center sm:gap-2 sm:px-3">
         {showInstructions && (
           <BannerButton onClick={onInstructions} disabled={disabled}>
             Instructions

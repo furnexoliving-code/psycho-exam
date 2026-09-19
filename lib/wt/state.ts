@@ -5,6 +5,29 @@ import type { WatchPaper } from "./types";
 
 const STORAGE_PREFIX = "wt-attempt:";
 
+/**
+ * Where an attempt is kept in this browser. It is keyed by WHO as well as
+ * which paper: on a shared institute PC, a key by paper alone handed the next
+ * student who signed in the previous one's half-finished answers and clock.
+ */
+export function attemptStorageKey(owner: string, paperId: string): string {
+  return `${STORAGE_PREFIX}${owner}:${paperId}`;
+}
+
+/** Forgets every attempt kept in this browser, whoever it belonged to. */
+export function clearAttemptStorage(): void {
+  try {
+    const doomed: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i += 1) {
+      const key = window.localStorage.key(i);
+      if (key?.startsWith(STORAGE_PREFIX) || key?.startsWith("wt-history:")) doomed.push(key);
+    }
+    doomed.forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // Nothing to do.
+  }
+}
+
 export interface AttemptState {
   paperId: string;
   startedAt: number;
@@ -31,10 +54,17 @@ export interface AttemptState {
   recorded?: boolean;
   /** Free scrolling is off during the test; navigation moves the view instead. */
   scrollLocked: boolean;
+  /**
+   * When the clock last moved, by the wall clock. A background tab is only
+   * ticked about once a minute by the browser, so counting ticks let a
+   * candidate who switched tabs bank the difference; each tick now takes off
+   * the time that actually passed.
+   */
+  lastTickAt?: number;
 }
 
 type Action =
-  | { type: "tick" }
+  | { type: "tick"; now: number }
   | { type: "answer"; questionId: string; value: number }
   | { type: "clear"; questionId: string }
   | { type: "goto"; index: number }
@@ -71,20 +101,28 @@ function makeReducer(questionCount: number) {
       case "tick": {
         if (state.paused || state.submitted) return state;
 
+        // Seconds actually passed since the last tick — one when the tab is in
+        // front, more when the browser throttled it in the background.
+        const passed = state.lastTickAt
+          ? Math.max(1, Math.round((action.now - state.lastTickAt) / 1000))
+          : 1;
+
         // The two screens keep separate clocks. Only the one on screen runs.
         if (state.phase === "instructions") {
-          const left = state.instructionRemainingSec - 1;
+          const left = state.instructionRemainingSec - passed;
           return {
             ...state,
+            lastTickAt: action.now,
             instructionRemainingSec: Math.max(0, left),
             // Reading time over: the test opens by itself, as in the hall.
             phase: left <= 0 ? "test" : "instructions",
           };
         }
 
-        const left = state.remainingSec - 1;
+        const left = state.remainingSec - passed;
         return {
           ...state,
+          lastTickAt: action.now,
           remainingSec: Math.max(0, left),
           // Running out of time ends the attempt, exactly as the hall clock does.
           submitted: left <= 0 ? true : state.submitted,
@@ -116,7 +154,9 @@ function makeReducer(questionCount: number) {
         };
 
       case "pause":
-        return { ...state, paused: action.paused };
+        // Resuming restarts the wall clock from now; the pause itself is not
+        // time passed.
+        return { ...state, paused: action.paused, lastTickAt: action.paused ? state.lastTickAt : undefined };
 
       case "submit":
         return { ...state, submitted: true };
@@ -134,9 +174,16 @@ function makeReducer(questionCount: number) {
  * Attempt state with a one-second clock and local persistence, so a refresh
  * mid-test resumes rather than starting over.
  */
-export function useAttempt(paper: WatchPaper, serverElapsedSec: number | null = null) {
+export function useAttempt(
+  paper: WatchPaper,
+  serverElapsedSec: number | null = null,
+  serverQuestionElapsedSec: number | null = null,
+  /** Whose attempt this is — the signed-in account, so two students on one PC never share one. */
+  owner = "guest",
+) {
   const reducer = useMemo(() => makeReducer(paper.questions.length), [paper.questions.length]);
   const [state, dispatch] = useReducer(reducer, paper, (p) => initial(p, 0));
+  const storageKey = attemptStorageKey(owner, paper.id);
 
   // Restore before the first paint that matters; startedAt is stamped here
   // rather than in the initialiser so server and client render the same thing.
@@ -152,14 +199,31 @@ export function useAttempt(paper: WatchPaper, serverElapsedSec: number | null = 
     const capped = (state: AttemptState): AttemptState => {
       if (serverElapsedSec === null) return state;
 
-      const total = paper.instructionTimeLimitMin * 60 + paper.timeLimitMin * 60;
+      const testSec = paper.timeLimitMin * 60;
+
+      // The questions have already opened, by the server's record: the test
+      // clock can only have what it had then, less the time since. The
+      // instruction screen is behind the candidate whatever this browser
+      // remembers — there is no way back to it.
+      if (serverQuestionElapsedSec !== null) {
+        const left = Math.max(0, testSec - serverQuestionElapsedSec);
+        return {
+          ...state,
+          phase: "test",
+          instructionRemainingSec: 0,
+          remainingSec: Math.min(state.remainingSec, left),
+          submitted: state.submitted || left <= 0,
+        };
+      }
+
+      const total = paper.instructionTimeLimitMin * 60 + testSec;
       const left = Math.max(0, total - serverElapsedSec);
 
       return {
         ...state,
         instructionRemainingSec: Math.min(
           state.instructionRemainingSec,
-          Math.max(0, left - paper.timeLimitMin * 60),
+          Math.max(0, left - testSec),
         ),
         remainingSec: Math.min(state.remainingSec, left),
         // Both clocks spent means the paper is over, whatever the browser says.
@@ -168,11 +232,19 @@ export function useAttempt(paper: WatchPaper, serverElapsedSec: number | null = 
     };
 
     try {
-      const raw = window.localStorage.getItem(STORAGE_PREFIX + paper.id);
+      const raw = window.localStorage.getItem(storageKey);
       if (raw) {
         const saved = JSON.parse(raw) as AttemptState;
         if (saved.paperId === paper.id && !saved.submitted) {
-          dispatch({ type: "restore", state: capped(saved) });
+          dispatch({ type: "restore", state: capped({ ...saved, lastTickAt: undefined }) });
+          return;
+        }
+        // Submitted but not yet on record: the result page has not had its
+        // answer from the server. Starting afresh here would overwrite the
+        // answers with blanks while the sitting is still open; keeping the
+        // state sends the candidate back to the result instead.
+        if (saved.paperId === paper.id && saved.submitted && saved.recorded !== true) {
+          dispatch({ type: "restore", state: saved });
           return;
         }
       }
@@ -180,20 +252,20 @@ export function useAttempt(paper: WatchPaper, serverElapsedSec: number | null = 
       // Unavailable storage just means a fresh attempt.
     }
     dispatch({ type: "restore", state: capped(initial(paper, Date.now())) });
-  }, [paper, serverElapsedSec]);
+  }, [paper, serverElapsedSec, serverQuestionElapsedSec, storageKey]);
 
   useEffect(() => {
     if (state.startedAt === 0) return;
     try {
-      window.localStorage.setItem(STORAGE_PREFIX + paper.id, JSON.stringify(state));
+      window.localStorage.setItem(storageKey, JSON.stringify(state));
     } catch {
       // Ignore quota and private-mode failures.
     }
-  }, [state, paper.id]);
+  }, [state, storageKey]);
 
   useEffect(() => {
     if (state.paused || state.submitted || state.startedAt === 0) return;
-    const id = window.setInterval(() => dispatch({ type: "tick" }), 1000);
+    const id = window.setInterval(() => dispatch({ type: "tick", now: Date.now() }), 1000);
     return () => window.clearInterval(id);
   }, [state.paused, state.submitted, state.startedAt]);
 
@@ -204,11 +276,11 @@ export function useAttempt(paper: WatchPaper, serverElapsedSec: number | null = 
 
   const clearSaved = useCallback(() => {
     try {
-      window.localStorage.removeItem(STORAGE_PREFIX + paper.id);
+      window.localStorage.removeItem(storageKey);
     } catch {
       // Nothing to do.
     }
-  }, [paper.id]);
+  }, [storageKey]);
 
   return { state, dispatch, answered, clearSaved };
 }

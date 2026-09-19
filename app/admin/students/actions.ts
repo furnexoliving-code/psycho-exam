@@ -45,6 +45,10 @@ export async function createStudent(
       password,
       email_confirm: true,
       user_metadata: { full_name: fullName, roll_no: rollNo, phone },
+      // Only the server can write app_metadata. The profile trigger switches
+      // an account on only when this mark is present, so an account made any
+      // other way — the auth API is public — starts life switched off.
+      app_metadata: { issued: true },
     });
 
     if (error) {
@@ -79,6 +83,7 @@ export async function resetPassword(
     const id = String(formData.get("id"));
     const password = String(formData.get("password") ?? "");
     if (password.length < 6) throw new Error("The password must be at least 6 characters");
+    await studentOnly(supabase, id);
 
     const { error } = await supabase.auth.admin.updateUserById(id, { password });
     if (error) throw new Error(error.message);
@@ -104,6 +109,7 @@ export async function setActive(
 
     const id = String(formData.get("id"));
     const active = formData.get("active") === "true";
+    await studentOnly(supabase, id);
 
     const { data: updated, error } = await supabase
       .from("profiles")
@@ -116,14 +122,39 @@ export async function setActive(
 
     // Banning at the auth layer too, so an already-signed-in student cannot
     // keep using the session they had before being switched off.
-    await supabase.auth.admin.updateUserById(id, {
+    const { error: banError } = await supabase.auth.admin.updateUserById(id, {
       ban_duration: active ? "none" : "87600h",
     });
+    // The profile flag alone already signs the student out on their next
+    // request; the ban is the second lock, and a failure to set it must not
+    // be reported as "switched off" as if both had held.
+    if (banError) {
+      throw new Error(`The account flag is saved, but the sign-in block failed: ${banError.message}`);
+    }
 
     revalidatePath(BACK);
     return active ? "switched on" : "switched off";
   });
 }
+
+/**
+ * These actions manage STUDENTS. The list never offers an admin's row, but an
+ * action is a public endpoint: a posted admin id would switch off — or reset
+ * the password of — the only account that can switch it back on.
+ */
+async function studentOnly(
+  supabase: ReturnType<typeof createAdminClient>,
+  id: string,
+): Promise<void> {
+  const { data } = await supabase.from("profiles").select("role").eq("id", id).maybeSingle();
+  if (!data) throw new Error("That account no longer exists");
+  if (data.role !== "student") {
+    throw new Error("Admin accounts are not managed from here");
+  }
+}
+
+/** How many accounts are created at once. */
+const IMPORT_CHUNK = 8;
 
 /**
  * Creates many accounts from a pasted list or an uploaded CSV.
@@ -148,34 +179,46 @@ export async function importStudents(
     const skipped: string[] = [];
     const failed: string[] = [];
 
-    for (const student of parsed) {
-      const { data: created, error } = await supabase.auth.admin.createUser({
-        email: phoneToEmail(student.phone),
-        password: student.password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: student.fullName,
-          roll_no: student.rollNo,
-          phone: student.phone,
-        },
-      });
+    // A few at a time rather than one after another: a thousand accounts made
+    // serially took minutes, past the point the hosting cut the action off
+    // with no word on which accounts existed.
+    for (let i = 0; i < parsed.length; i += IMPORT_CHUNK) {
+      const chunk = parsed.slice(i, i + IMPORT_CHUNK);
+      await Promise.all(
+        chunk.map(async (student) => {
+          const { data: created, error } = await supabase.auth.admin.createUser({
+            email: phoneToEmail(student.phone),
+            password: student.password,
+            email_confirm: true,
+            app_metadata: { issued: true },
+            user_metadata: {
+              full_name: student.fullName,
+              roll_no: student.rollNo,
+              phone: student.phone,
+            },
+          });
 
-      if (error) {
-        if (/already/i.test(error.message)) skipped.push(student.phone);
-        else failed.push(`${student.phone} (${error.message})`);
-        continue;
-      }
+          if (error) {
+            if (/already/i.test(error.message)) skipped.push(student.phone);
+            else failed.push(`${student.phone} (${error.message})`);
+            return;
+          }
 
-      await supabase
-        .from("profiles")
-        .update({
-          full_name: student.fullName,
-          roll_no: student.rollNo,
-          phone: student.phone,
-        })
-        .eq("id", created.user.id);
+          // The signup trigger fills the profile from user_metadata; writing
+          // the fields again makes the row correct even if that trigger is
+          // missing on an older database.
+          await supabase
+            .from("profiles")
+            .update({
+              full_name: student.fullName,
+              roll_no: student.rollNo,
+              phone: student.phone,
+            })
+            .eq("id", created.user.id);
 
-      made++;
+          made++;
+        }),
+      );
     }
 
     revalidatePath(BACK);

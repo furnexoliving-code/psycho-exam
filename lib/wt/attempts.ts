@@ -18,46 +18,29 @@ export interface AttemptAllowance {
  * enforced from data the person being limited controls is not enforced at all.
  */
 export async function allowanceFor(
-  paperId: string,
-  userId: string | null,
+  paperDbId: string,
+  max: number | null,
+  userId: string,
 ): Promise<AttemptAllowance> {
-  const supabase = createAdminClient();
-
-  const { data: paper } = await supabase
-    .from("watch_papers")
-    .select("id, max_attempts")
-    .eq("slug", paperId)
-    .maybeSingle();
-
-  const max =
-    paper?.max_attempts === null || paper?.max_attempts === undefined
-      ? null
-      : Number(paper.max_attempts);
-
-  // A signed-out visitor has nothing to count against, so a limited paper is
-  // simply closed to them rather than open without limit.
-  if (!userId) {
-    return max === null
-      ? { max: null, used: 0, remaining: null, exhausted: false }
-      : { max, used: 0, remaining: 0, exhausted: true };
-  }
-  if (!paper) return { max: null, used: 0, remaining: null, exhausted: false };
-
-  const { count } = await supabase
-    .from("watch_attempts")
-    .select("id", { count: "exact", head: true })
-    .eq("paper_id", paper.id)
-    .eq("user_id", userId);
-
-  const used = count ?? 0;
+  const used = await countAttempts(paperDbId, userId);
+  // No limit: the count is still shown, so the card can say "Re-attempt".
   if (max === null) return { max: null, used, remaining: null, exhausted: false };
 
   const remaining = Math.max(0, max - used);
   return { max, used, remaining, exhausted: remaining === 0 };
 }
 
+async function countAttempts(paperDbId: string, userId: string): Promise<number> {
+  const { count } = await createAdminClient()
+    .from("watch_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("paper_id", paperDbId)
+    .eq("user_id", userId);
+  return count ?? 0;
+}
+
 /**
- * The same answer for many papers, in two queries rather than two per paper.
+ * The same answer for many papers, in one query rather than one per paper.
  *
  * Asking one paper at a time meant a page listing ten papers made twenty
  * round trips before it could render, and the count grew with the catalogue.
@@ -65,53 +48,28 @@ export async function allowanceFor(
  * difference between a page and a queue.
  */
 export async function allowancesFor(
-  slugs: string[],
-  userId: string | null,
+  papers: { id: string; slug: string; maxAttempts: number | null }[],
+  userId: string,
 ): Promise<Map<string, AttemptAllowance>> {
   const out = new Map<string, AttemptAllowance>();
-  if (slugs.length === 0) return out;
+  if (papers.length === 0) return out;
 
-  const supabase = createAdminClient();
-
-  const { data: papers } = await supabase
-    .from("watch_papers")
-    .select("id, slug, max_attempts")
-    .in("slug", slugs);
-
-  const rows = papers ?? [];
-
-  // One count query for every paper at once. Postgres returns the rows; the
+  // One query for every paper at once. Postgres returns the rows; the
   // tallying is cheaper here than a round trip each.
-  const used = new Map<string, number>();
-  if (userId && rows.length) {
-    const { data: attempts } = await supabase
-      .from("watch_attempts")
-      .select("paper_id")
-      .eq("user_id", userId)
-      .in("paper_id", rows.map((p) => p.id));
+  const { data: attempts } = await createAdminClient()
+    .from("watch_attempts")
+    .select("paper_id")
+    .eq("user_id", userId)
+    .in("paper_id", papers.map((p) => p.id));
 
-    for (const a of attempts ?? []) {
-      used.set(a.paper_id, (used.get(a.paper_id) ?? 0) + 1);
-    }
+  const used = new Map<string, number>();
+  for (const a of attempts ?? []) {
+    used.set(a.paper_id, (used.get(a.paper_id) ?? 0) + 1);
   }
 
-  for (const paper of rows) {
-    const max =
-      paper.max_attempts === null || paper.max_attempts === undefined
-        ? null
-        : Number(paper.max_attempts);
-
-    if (!userId) {
-      out.set(
-        paper.slug,
-        max === null
-          ? { max: null, used: 0, remaining: null, exhausted: false }
-          : { max, used: 0, remaining: 0, exhausted: true },
-      );
-      continue;
-    }
-
+  for (const paper of papers) {
     const count = used.get(paper.id) ?? 0;
+    const max = paper.maxAttempts;
     out.set(
       paper.slug,
       max === null

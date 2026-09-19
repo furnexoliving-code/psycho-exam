@@ -75,6 +75,13 @@ drop policy if exists watch_questions_admin on public.watch_questions;
 create policy watch_questions_admin on public.watch_questions
   for all using (public.is_admin()) with check (public.is_admin());
 
+-- The topic label is selected by the view below, so it must exist first. On a
+-- database that already has it this is a no-op; on a fresh one, creating the
+-- view before the column made the whole file fail at this point.
+alter table public.watch_questions
+  /* Free-form label used for the topic breakdown, e.g. "Opposite". */
+  add column if not exists topic text not null default '';
+
 -- ---------------------------------------------------------------------------
 -- Key-free view. Candidates read this; `answer` never leaves the server for
 -- them, and scoring happens in the submit route with the service-role client.
@@ -170,13 +177,12 @@ alter table public.watch_papers
   add column if not exists cut_off_tscore  numeric,
   add column if not exists expert_comment  text;
 
-alter table public.watch_questions
-  /* Free-form label used for the topic breakdown, e.g. "Opposite". */
-  add column if not exists topic text not null default '';
-
 alter table public.watch_attempts
-  add column if not exists duration_sec integer,
-  add column if not exists t_score      numeric;
+  add column if not exists duration_sec integer;
+
+-- Was added for a T-score at insert time that was never written; every row
+-- carried a null that looked like missing data in an export.
+alter table public.watch_attempts drop column if exists t_score;
 
 -- ---------------------------------------------------------------------------
 -- Presentation controls (added later)
@@ -302,6 +308,14 @@ create table if not exists public.watch_sessions (
   submitted_at  timestamptz
 );
 
+alter table public.watch_sessions
+  /* When the questions opened: the test clock starts here, not at page load. */
+  add column if not exists questions_started_at timestamptz,
+  /* What was answered, kept at submit. Later visits are marked from this copy,
+     never from answers sent up afterwards — marking arbitrary answers on
+     demand would hand the key out one guess at a time. */
+  add column if not exists responses jsonb;
+
 create unique index if not exists watch_sessions_one_open
   on public.watch_sessions (paper_id, user_id)
   where submitted_at is null;
@@ -317,3 +331,75 @@ alter table public.watch_sessions enable row level security;
 drop policy if exists watch_sessions_own on public.watch_sessions;
 create policy watch_sessions_own on public.watch_sessions
   for select using (user_id = auth.uid() or public.is_admin());
+
+-- ---------------------------------------------------------------------------
+-- Question counts, grouped in the database (added later)
+--
+-- The dashboard used to fetch one row per question across the whole
+-- catalogue just to count them, and past a thousand questions the count went
+-- quietly wrong. security_invoker: a candidate counts only what they may
+-- read, which is the published papers.
+-- ---------------------------------------------------------------------------
+drop view if exists public.watch_question_counts;
+create view public.watch_question_counts
+with (security_invoker = true) as
+  select paper_id, count(*)::integer as question_count
+  from public.watch_questions
+  group by paper_id;
+
+grant select on public.watch_question_counts to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- A cleared worked example stays cleared (added later)
+--
+-- The example paragraphs defaulted to an empty list, which the app read as
+-- "never set" and replaced with the sample's wording — so an institute that
+-- deleted the example got it straight back. Null now means never set; an
+-- empty list is a choice.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers alter column example_text drop not null;
+alter table public.watch_papers alter column example_text set default null;
+update public.watch_papers set example_text = null where example_text = '[]'::jsonb;
+
+-- ---------------------------------------------------------------------------
+-- Accounts are the institute's to change, not the student's (added later)
+--
+-- The original profiles_update_own policy let a signed-in user update their
+-- own row with no column restriction — including `role`. A student could set
+-- role = 'admin' from the browser console and pass every admin check on the
+-- next request. Nothing in the site lets a student edit their own profile, so
+-- the policy goes, and the table-level UPDATE right goes with it: the admin
+-- panel writes profiles through the service-role client, which is unaffected.
+-- ---------------------------------------------------------------------------
+drop policy if exists profiles_update_own on public.profiles;
+revoke insert, update, delete on public.profiles from anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Accounts come only from the admin panel (added later)
+--
+-- The Supabase auth API is public, and the anon key is in every browser. Even
+-- with sign-up turned off in the dashboard (do that too: Authentication →
+-- Providers → Email → untick "Allow new users to sign up"), the profile row
+-- for a new user is created here, and it must not be a working account unless
+-- the admin panel made it. The panel marks the users it creates in
+-- app_metadata, which only the service-role key can write; anything without
+-- that mark starts switched off, and shows up as Off in the students list.
+-- ---------------------------------------------------------------------------
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name, roll_no, phone, is_active)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'full_name', ''),
+    coalesce(new.raw_user_meta_data ->> 'roll_no', ''),
+    coalesce(new.raw_user_meta_data ->> 'phone', ''),
+    coalesce((new.raw_app_meta_data ->> 'issued')::boolean, false)
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
@@ -25,15 +25,26 @@ export function WatchTableExam({
   candidateName = "Candidate",
   rollNo = "—",
   elapsedSec = null,
+  questionElapsedSec = null,
+  storageOwner = "guest",
 }: {
   paper: WatchPaper;
   candidateName?: string;
   rollNo?: string;
   /** How long the server says this sitting has been running. */
   elapsedSec?: number | null;
+  /** How long the server says the questions have been open; null until they are. */
+  questionElapsedSec?: number | null;
+  /** Whose attempt this browser keeps: the account id, never shared between students. */
+  storageOwner?: string;
 }) {
   const router = useRouter();
-  const { state, dispatch, answered, clearSaved } = useAttempt(paper, elapsedSec);
+  const { state, dispatch, answered, clearSaved } = useAttempt(
+    paper,
+    elapsedSec,
+    questionElapsedSec,
+    storageOwner,
+  );
   const questionColumn = useRef<HTMLElement | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
@@ -70,8 +81,46 @@ export function WatchTableExam({
 
   const finish = useCallback(() => {
     dispatch({ type: "submit" });
-    router.push(`/watch-table/${paper.id}/result`);
-  }, [dispatch, router, paper.id]);
+  }, [dispatch]);
+
+  // Submitted — by the button, by the clock running out, or by the server
+  // saying the sitting's time is spent — means the result, at once. Leaving a
+  // finished paper on screen with a Submit button that still had to be found
+  // was how a candidate whose time ran out sat looking at a frozen page.
+  useEffect(() => {
+    if (state.submitted && state.startedAt !== 0) {
+      router.replace(`/watch-table/${paper.id}/result`);
+    }
+  }, [state.submitted, state.startedAt, router, paper.id]);
+
+  // The help opened from the keyboard closes from it too. The exam's own key
+  // handler is off while a dialog is up, so the panel listens for itself.
+  useEffect(() => {
+    if (!helpOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (["Escape", "h", "H", "?"].includes(event.key)) {
+        event.preventDefault();
+        setHelpOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [helpOpen]);
+
+  // Tell the server the moment the questions open, once. That is when the
+  // test's clock starts, and it is where the time on the paper is measured
+  // from — reading the instructions is not time spent on the questions.
+  const announcedStart = useRef(false);
+  useEffect(() => {
+    if (!onTestPhase(state) || announcedStart.current) return;
+    announcedStart.current = true;
+    void fetch("/api/watch-table/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paperId: paper.id }),
+      keepalive: true,
+    }).catch(() => undefined);
+  }, [state, paper.id]);
 
   const handlers = useMemo(
     () => ({
@@ -144,12 +193,13 @@ export function WatchTableExam({
 
       {onTest ? (
         <>
-          <div className="flex min-h-0 flex-1">
+          <div className="flex min-h-0 flex-1 flex-col md:flex-row">
             {/* Left portion — the fixed diagram. Never scrolls with questions. */}
             {/* Scrolls in BOTH directions: a diagram wider or taller than its
-                half of the screen must stay reachable, not be cut off. */}
+                half of the screen must stay reachable, not be cut off. On a
+                phone it sits ABOVE the questions, capped so they stay in view. */}
             <section
-              className="flex w-1/2 shrink-0 flex-col items-center overflow-auto px-4 py-4"
+              className="flex max-h-[38vh] w-full shrink-0 flex-col items-center overflow-auto px-4 py-2 md:max-h-none md:w-1/2 md:py-4"
               aria-label="Watch table diagram"
             >
               <div className="w-full max-w-[520px] text-[13px] font-bold text-gray-800">
@@ -174,7 +224,7 @@ export function WatchTableExam({
                 still be dragged; only the mouse wheel is off. */}
             {/* The rails are inset by their own 9px so they never sit over
                 the question text. */}
-            <div className="relative min-w-0 flex-1 border-l border-[#dcdcdc]">
+            <div className="relative min-h-0 min-w-0 flex-1 border-t border-[#dcdcdc] md:border-l md:border-t-0">
             <section
               ref={questionColumn}
               className="wt-scroll-host h-full pb-[9px] pr-[9px]"
@@ -279,7 +329,7 @@ export function WatchTableExam({
       <ConfirmBox
         open={confirmSkip}
         title="Start the test now?"
-        body="The instruction screen closes and the test's own 10 minute clock starts. You cannot come back to the instructions."
+        body={`The instruction screen closes and the test's own ${paper.timeLimitMin} minute clock starts. You cannot come back to the instructions.`}
         confirmLabel="Start test"
         cancelLabel="Keep reading"
         onConfirm={() => {
@@ -308,4 +358,9 @@ export function WatchTableExam({
       />
     </div>
   );
+}
+
+/** The test is on screen and the clock is running. */
+function onTestPhase(state: { phase: string; submitted: boolean; startedAt: number }): boolean {
+  return state.phase === "test" && !state.submitted && state.startedAt !== 0;
 }

@@ -28,13 +28,10 @@ export function useScrollLock(enabled: boolean) {
       event.preventDefault();
     };
 
-    const onTouchMove = (event: TouchEvent) => {
-      event.preventDefault();
-    };
-
     const onKeyScroll = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      // A focused button keeps Space: it is how the keyboard presses it.
+      if (target && /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(target.tagName)) return;
       // Space and PageUp/PageDown scroll the container by default.
       if ([" ", "PageUp", "PageDown"].includes(event.key)) {
         event.preventDefault();
@@ -44,13 +41,14 @@ export function useScrollLock(enabled: boolean) {
     // passive:false is required, or preventDefault on wheel is ignored.
     // removeEventListener takes no `passive`, so the options differ per call.
     const addOpts: AddEventListenerOptions = { passive: false };
+    // Touch is left alone: a swipe is the touch equivalent of dragging the
+    // scrollbar, which is kept on purpose. Blocking it left a phone with a
+    // nine-pixel rail as the only way down the paper.
     window.addEventListener("wheel", onWheel, addOpts);
-    window.addEventListener("touchmove", onTouchMove, addOpts);
     window.addEventListener("keydown", onKeyScroll);
 
     return () => {
       window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("keydown", onKeyScroll);
     };
   }, [enabled]);
@@ -79,6 +77,11 @@ export function useExamKeys(handlers: ExamKeyHandlers, enabled: boolean) {
       const target = event.target as HTMLElement | null;
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) {
         if ((target as HTMLInputElement).type !== "radio") return;
+      }
+      // Enter and Space on a focused button press that button. Taking them as
+      // "next question" left Submit, Pause and the rest unreachable by key.
+      if (target && /^(BUTTON|A)$/.test(target.tagName) && ["Enter", " "].includes(event.key)) {
+        return;
       }
       // Never shadow a browser shortcut.
       if (event.ctrlKey || event.metaKey || event.altKey) return;

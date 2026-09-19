@@ -2,19 +2,39 @@ import { NextResponse } from "next/server";
 import { getProfile, isConfigured } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
-import { meanAndSd, tScore, type Cohort } from "@/lib/wt/tscore";
-import { resolveResultView, type ResultView } from "@/lib/wt/types";
-import { closeSitting } from "@/lib/wt/session";
+import { tScore, type Cohort } from "@/lib/wt/tscore";
+import {
+  resolveFeatures,
+  resolveResultView,
+  type ResultView,
+  type WatchFeatures,
+} from "@/lib/wt/types";
+import { closeExpiredSitting, closeSitting, lastSubmission } from "@/lib/wt/session";
 import { decideCutOff, type CutOffVerdict } from "@/lib/wt/cutoff";
+import { cohortFor, cohortMarks, type AttemptMark } from "@/lib/wt/cohort";
 
 /**
  * Scores an attempt on the server.
  *
  * The answer key must never reach a candidate's browser: otherwise anyone can
  * open the result page in a second tab, read the page source and copy every
- * answer back into the running test. So the browser posts what it chose, this
- * route looks the key up with the service-role client, and only the marked-up
- * result goes back.
+ * answer back into the running test. So this route looks the key up with the
+ * service-role client, and only the marked-up result goes back.
+ *
+ * Three rules keep that true, and each one exists because without it the key
+ * leaked in practice:
+ *
+ *  - Only a signed-in candidate is answered at all. Anonymous posts used to be
+ *    marked in full, key included, for any paper by slug.
+ *  - A paper is marked ONLY once its sitting is closed. The submit that closes
+ *    the sitting is marked; any later call is shown the answers the server
+ *    kept at that moment. Marking whatever answers a browser sent up, at any
+ *    time, was an oracle: five posts — every question set to each of the five
+ *    options in turn — read the whole key off the per-question verdicts,
+ *    even with the "show correct answers" switch off.
+ *  - Drafts are not marked for candidates. Slugs are guessable, and an
+ *    unpublished paper's key is exactly the one the institute has not
+ *    released yet.
  */
 
 interface Body {
@@ -22,7 +42,6 @@ interface Body {
   answers?: unknown;
   /** True on the submit that ends the attempt; false when merely reviewing. */
   record?: unknown;
-  /** Seconds the candidate spent on the questions. */
 }
 
 export interface MarkedQuestion {
@@ -67,6 +86,15 @@ export type StandingWire = Partial<Standing>;
 
 export type CutOff = CutOffVerdict;
 
+/** One earlier attempt of this paper by this candidate, for the trend line. */
+export interface HistoryPoint {
+  at: number;
+  marks: number;
+  total: number;
+  attempted: number;
+  durationSec: number | null;
+}
+
 export async function POST(request: Request) {
   let body: Body;
   try {
@@ -80,42 +108,154 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "paperId is required" }, { status: 400 });
   }
 
-  // questionId -> chosen number. Anything else in the object is ignored.
-  const given = new Map<string, number>();
-  if (body.answers && typeof body.answers === "object") {
-    for (const [key, value] of Object.entries(body.answers as Record<string, unknown>)) {
-      if (typeof value === "number" && Number.isInteger(value)) given.set(key, value);
+  const given = toAnswers(body.answers);
+  const wantsRecord = body.record === true;
+
+  // No database: the bundled sample only, whose key ships in the bundle.
+  if (!isConfigured()) {
+    const marked = markFromBundle(paperId, given);
+    if (!marked) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
+    return NextResponse.json(respond(marked, null, null));
+  }
+
+  const [profile, paper] = await Promise.all([getProfile(), fetchPaperRow(paperId)]);
+
+  if (!profile) {
+    return NextResponse.json({ error: "Sign in to see your result" }, { status: 401 });
+  }
+  const admin = profile.role === "admin";
+
+  // With a database, every paper is in it. The bundled sample is not served
+  // alongside: it has no sitting, no record, and marking it on demand would
+  // hand out its key.
+  if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
+
+  if (!paper.is_published && !admin) {
+    return NextResponse.json({ error: "Paper not found" }, { status: 404 });
+  }
+
+  const instructionSec = (paper.instruction_time_min ?? 0) * 60;
+  const limitSec = (paper.time_limit_min ?? 0) * 60;
+
+  // The questions do not depend on which answers are marked, so they are
+  // fetched while the sitting is being closed rather than after it.
+  const [rows, closed] = await Promise.all([
+    fetchQuestions(paper.id),
+    wantsRecord
+      ? closeSitting(paper.id, profile.id, instructionSec, limitSec, Object.fromEntries(given))
+      : Promise.resolve(null),
+  ]);
+
+  // Which answers this call marks, and whether it records an attempt.
+  //
+  // Closing the sitting is what makes an attempt real, and it is the one
+  // moment the browser's answers are taken: they are stored with the sitting
+  // and every later visit is marked from that copy. A null from closeSitting
+  // means there was no open sitting — a reload, a second tab arriving late, a
+  // bare post — and none of them may add another attempt or pick the answers.
+  let answers = given;
+  let record = false;
+  let durationSec: number | null = null;
+
+  if (closed) {
+    durationSec = closed.durationSec;
+    // A sitting that never reached the questions, with nothing answered, is
+    // closed but not counted: a paper opened by mistake and shut again must
+    // not spend an attempt or put a zero into everyone's cohort.
+    record = closed.questionsOpened || given.size > 0;
+
+    // With the pause button off, the clock is the server's: a paper that
+    // arrives long after its time ran out is a paper whose clock was held.
+    // The sitting still ends and the attempt still counts — with what the
+    // hall would have taken at the bell, which is nothing more. With pause
+    // on, the browser keeps the time, and the server cannot know how long
+    // the candidate stopped the clock for.
+    if (closed.late && !resolveFeatures(paper.features ?? undefined).allowPause) {
+      answers = new Map();
+    }
+  } else {
+    // A sitting whose clock has run out with no submit — the browser was
+    // closed mid-paper — is ended here with nothing answered, so the
+    // candidate is not left with a paper that can neither be submitted nor
+    // seen. A sitting with time still on it is not touched.
+    const expired = await closeExpiredSitting(paper.id, profile.id, instructionSec, limitSec);
+
+    if (expired) {
+      answers = new Map();
+      record = expired.questionsOpened;
+      durationSec = expired.durationSec;
+    } else {
+      const last = await lastSubmission(paper.id, profile.id, limitSec);
+      if (last) {
+        durationSec = last.durationSec;
+        // The server's copy, always — never the browser's. A sitting closed
+        // before answers were kept with it falls back to the attempt's own
+        // copy inside lastSubmission; one with neither is marked as blank.
+        // Marking the browser's answers here, even for those old rows, would
+        // reopen the key-by-guessing oracle for every candidate who has one.
+        answers = toAnswers(last.responses);
+      } else if (!admin) {
+        return NextResponse.json({ error: "Submit the paper first" }, { status: 403 });
+      }
+      // An admin with no sitting is previewing: marked, never recorded.
     }
   }
 
-  const [marked, paperRow] = isConfigured()
-    ? await Promise.all([markFromDatabase(paperId, given), fetchPaperRow(paperId)])
-    : [markFromBundle(paperId, given), null];
-
-  if (!marked) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
-
+  const marked = mark(rows, answers);
   const attempted = marked.filter((q) => q.given !== null).length;
   const correct = marked.filter((q) => q.isCorrect).length;
 
-  const stats = isConfigured()
-    ? await statsFor({
-        marks: correct,
-        attempted,
-        total: marked.length,
-        record: body.record === true,
-        // `given` is a Map — Object.entries on one returns nothing, which
-        // would have stored an empty breakdown without any error.
-        responses: Object.fromEntries(given),
-        paper: paperRow,
-      })
-    : null;
+  const stats = await statsFor({
+    marks: correct,
+    attempted,
+    total: marked.length,
+    record,
+    // The sheet as marked: known questions, offered numbers, nothing else.
+    responses: Object.fromEntries(
+      marked.filter((q) => q.given !== null).map((q) => [q.id, q.given as number]),
+    ),
+    paper,
+    userId: profile.id,
+    durationSec,
+  });
 
+  return NextResponse.json(respond(marked, stats, durationSec));
+}
+
+/** No paper has this many questions; anything past it is not an answer sheet. */
+const MAX_ANSWERS = 500;
+/** A question id is a 36-character uuid; a longer key is not one. */
+const MAX_KEY_LENGTH = 64;
+
+/**
+ * questionId -> chosen number. Anything else in the object is ignored, and the
+ * sheet is cut off at a size no real paper reaches, so a post cannot park a
+ * multi-megabyte object in the sitting for every admin page to load later.
+ */
+function toAnswers(raw: unknown): Map<string, number> {
+  const given = new Map<string, number>();
+  if (raw && typeof raw === "object") {
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (given.size >= MAX_ANSWERS) break;
+      if (key.length > MAX_KEY_LENGTH) continue;
+      if (typeof value === "number" && Number.isInteger(value) && Math.abs(value) < 1e6) {
+        given.set(key, value);
+      }
+    }
+  }
+  return given;
+}
+
+/**
+ * The response as published. Hidden panels are dropped HERE rather than in
+ * the page, so a figure the institute chose not to publish never reaches the
+ * browser at all — hiding it in the markup would leave it in the response for
+ * anyone who opened the network tab.
+ */
+function respond(marked: MarkedQuestion[], stats: Stats | null, durationSec: number | null) {
+  const attempted = marked.filter((q) => q.given !== null).length;
+  const correct = marked.filter((q) => q.isCorrect).length;
   const tRaw = tScore(correct, stats?.cohort ?? null);
-
-  // Which panels this paper shows. Hidden ones are dropped HERE rather than in
-  // the page, so a figure the institute chose not to publish never reaches the
-  // browser at all — hiding it in the markup would leave it in the response
-  // for anyone who opened the network tab.
   const view = resolveResultView(stats?.resultView);
 
   // The T-score as published. The cohort figures behind it travel only when a
@@ -138,7 +278,7 @@ export async function POST(request: Request) {
       ? marked
       : marked.map(({ correct: _c, workingEn: _e, workingHi: _h, ...rest }) => rest);
 
-  return NextResponse.json({
+  return {
     questions,
     score: {
       total: marked.length,
@@ -160,9 +300,10 @@ export async function POST(request: Request) {
           })
         : null,
     expertComment: view.expertComment ? stats?.expertComment ?? null : null,
-    durationSec: view.timeAnalysis ? stats?.durationSec ?? null : null,
+    durationSec: view.timeAnalysis ? durationSec : null,
+    history: view.attemptHistory ? stats?.history ?? [] : [],
     view,
-  });
+  };
 }
 
 /** Only the halves of the standing this paper publishes. */
@@ -203,9 +344,19 @@ function topicBreakdown(marked: MarkedQuestion[]): TopicRow[] {
     .sort((a, b) => a.accuracy - b.accuracy || b.total - a.total);
 }
 
+interface Stats {
+  cohort: Cohort | null;
+  standing: Standing | null;
+  cutOff: { marks: number | null; tScore: number | null };
+  expertComment: string | null;
+  resultView: ResultView;
+  /** This candidate's attempts of the paper, oldest first, this one included. */
+  history: HistoryPoint[];
+}
+
 /**
- * Records the attempt if this is the submitting call, then returns the figures
- * the T-score is measured against.
+ * Records the attempt if this call closed the sitting, then returns the
+ * figures the T-score is measured against.
  *
  * The live cohort is used once enough papers have been submitted; below that an
  * institute's own reference mean and standard deviation stand in, because a
@@ -215,9 +366,11 @@ async function statsFor({
   marks,
   attempted,
   total,
-  record: recordRequested,
+  record: shouldRecord,
   responses,
   paper,
+  userId,
+  durationSec,
 }: {
   marks: number;
   attempted: number;
@@ -225,110 +378,94 @@ async function statsFor({
   record: boolean;
   /** What was chosen per question, kept for the per-question breakdown. */
   responses: Record<string, number>;
-  /** Fetched alongside the marking, so it is not looked up a second time. */
-  paper: PaperRow | null;
-}): Promise<{
-  cohort: Cohort | null;
-  standing: Standing | null;
-  cutOff: { marks: number | null; tScore: number | null };
-  expertComment: string | null;
-  resultView: ResultView;
-  /** Measured by the server; null when this call recorded nothing. */
+  paper: PaperRow;
+  userId: string;
+  /** Measured by the server from the sitting. */
   durationSec: number | null;
-} | null> {
+}): Promise<Stats> {
   const supabase = createAdminClient();
-  if (!paper) return null;
 
   const cutOff = {
     marks: paper.cut_off_marks === null ? null : Number(paper.cut_off_marks),
     tScore: paper.cut_off_tscore === null ? null : Number(paper.cut_off_tscore),
   };
 
-  // Resolved once. Asking twice meant two round trips to the auth service on
-  // every submit, which the candidate waits through.
-  const profile = recordRequested ? await getProfile() : null;
-
-  // An attempt is only recorded for a signed-in candidate. This route is a
-  // public endpoint: without this, anyone could post to it repeatedly and each
-  // post would land in watch_attempts as an anonymous row. Those rows are the
-  // cohort every T-score, rank and percentile is measured against, so a
-  // stranger with curl could move every student's reported standing. A paper
-  // with an attempt limit was already closed to the signed-out; one without a
-  // limit was wide open.
-  let record = recordRequested && profile !== null;
-
-  // Ending the sitting is what makes this attempt real, and it returns how
-  // long the paper actually took — measured by the server, not reported by the
-  // browser. A null means there was no open sitting: the paper is already
-  // submitted, so this is a reload, a replay, or a second tab arriving late,
-  // and none of them may add another attempt.
-  let measuredSec: number | null = null;
-  if (record && profile) {
-    measuredSec = await closeSitting(
-      paper.id,
-      profile.id,
-      (paper.time_limit_min ?? 0) * 60,
-    );
-    if (measuredSec === null) record = false;
-  }
-
-  if (record && paper.max_attempts !== null && paper.max_attempts !== undefined) {
-    // The same limit the exam page applies, applied again here. That page can
-    // be skipped — this route is reachable on its own — so the count must be
-    // guarded where the row is actually written, not only where the paper is
-    // handed out.
-    const { count } = await supabase
-      .from("watch_attempts")
-      .select("id", { count: "exact", head: true })
-      .eq("paper_id", paper.id)
-      .eq("user_id", profile?.id ?? "");
-
-    if ((count ?? 0) >= Number(paper.max_attempts)) record = false;
-  }
-
-  if (record && profile) {
-    await supabase.from("watch_attempts").insert({
-      paper_id: paper.id,
-      user_id: profile.id,
-      marks,
-      total,
-      attempted,
-      // The server's measurement, never the browser's claim.
-      duration_sec: measuredSec,
-      // What was chosen per question, so the batch's weak spots can be found
-      // later. Unanswered questions are left out rather than stored as null.
-      responses,
-    });
-  }
-
-  const { data: rows } = await supabase
+  // Every attempt of the paper, in one query. The cohort, this candidate's
+  // own history and their count against the attempt limit all come out of it.
+  const { data } = await supabase
     .from("watch_attempts")
-    .select("marks")
-    .eq("paper_id", paper.id);
+    .select("user_id, marks, total, attempted, duration_sec, submitted_at")
+    .eq("paper_id", paper.id)
+    .order("submitted_at", { ascending: true });
 
-  const all = (rows ?? []).map((r) => r.marks as number);
-  const minimum = paper.stats_min_attempts ?? 5;
+  const rows = (data ?? []) as (AttemptMark & {
+    attempted: number;
+    duration_sec: number | null;
+  })[];
+  const own = () => rows.filter((r) => r.user_id === userId);
 
-  let cohort: Cohort | null = null;
-  if (all.length >= minimum) {
-    const { mean, sd } = meanAndSd(all);
-    cohort = { count: all.length, mean, sd, source: "cohort" };
-  } else if (paper.reference_mean !== null && paper.reference_sd !== null) {
-    cohort = {
-      count: all.length,
-      mean: Number(paper.reference_mean),
-      sd: Number(paper.reference_sd),
-      source: "reference",
-    };
+  // The same limit the exam page applies, applied again here. That page can
+  // be skipped — this route is reachable on its own — so the count must be
+  // guarded where the row is actually written, not only where the paper is
+  // handed out.
+  let record = shouldRecord;
+  if (record && paper.max_attempts !== null && paper.max_attempts !== undefined) {
+    if (own().length >= Number(paper.max_attempts)) record = false;
   }
+
+  if (record) {
+    const { data: made } = await supabase
+      .from("watch_attempts")
+      .insert({
+        paper_id: paper.id,
+        user_id: userId,
+        marks,
+        total,
+        attempted,
+        // The server's measurement, never the browser's claim.
+        duration_sec: durationSec,
+        // What was chosen per question, so the batch's weak spots can be found
+        // later. Unanswered questions are left out rather than stored as null.
+        responses,
+      })
+      .select("submitted_at")
+      .single();
+
+    // Counted into the figures below only once it is actually on record.
+    if (made) {
+      rows.push({
+        user_id: userId,
+        marks,
+        total,
+        attempted,
+        duration_sec: durationSec,
+        submitted_at: made.submitted_at as string,
+      });
+    }
+  }
+
+  // One mark per candidate, their latest. The candidate's own standing is
+  // measured against everyone ELSE's latest plus this paper — whether or not
+  // this paper was recorded — so the same marks always give the same rank.
+  const all = cohortMarks(rows, total);
+  const others = cohortMarks(
+    rows.filter((r) => r.user_id !== userId),
+    total,
+  );
 
   return {
-    cohort,
-    standing: standingIn(all, marks),
+    cohort: cohortFor(all, paper),
+    standing: standingIn([...others, marks], marks),
     cutOff,
     expertComment: paper.expert_comment ?? null,
     resultView: (paper.result_view ?? {}) as ResultView,
-    durationSec: measuredSec,
+    history: own().map((a) => ({
+      at: new Date(a.submitted_at).getTime(),
+      marks: a.marks,
+      total: a.total,
+      attempted: a.attempted,
+      durationSec: a.duration_sec ?? null,
+    })),
   };
 }
 
@@ -355,6 +492,7 @@ function standingIn(all: number[], marks: number): Standing | null {
 
 interface PaperRow {
   id: string;
+  is_published: boolean;
   reference_mean: number | null;
   reference_sd: number | null;
   stats_min_attempts: number | null;
@@ -363,6 +501,8 @@ interface PaperRow {
   expert_comment: string | null;
   max_attempts: number | null;
   result_view: ResultView | null;
+  features: WatchFeatures | null;
+  instruction_time_min: number | null;
   time_limit_min: number | null;
 }
 
@@ -372,54 +512,61 @@ async function fetchPaperRow(slug: string): Promise<PaperRow | null> {
   const { data } = await supabase
     .from("watch_papers")
     .select(
-      "id, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view, time_limit_min",
+      "id, is_published, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view, features, instruction_time_min, time_limit_min",
     )
     .eq("slug", slug)
     .maybeSingle();
   return (data as PaperRow) ?? null;
 }
 
-async function markFromDatabase(
-  slug: string,
-  given: Map<string, number>,
-): Promise<MarkedQuestion[] | null> {
+interface QuestionRow {
+  id: string;
+  position: number;
+  prompt_en: string;
+  prompt_hi: string;
+  options: number[];
+  answer: number;
+  working_en: string | null;
+  working_hi: string | null;
+  topic: string | null;
+}
+
+/** The paper's questions with their key, in order. Service role: the key column is revoked from everyone else. */
+async function fetchQuestions(paperId: string): Promise<QuestionRow[]> {
   const supabase = createAdminClient();
-
-  const { data: paper } = await supabase
-    .from("watch_papers")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-  if (!paper) return markFromBundle(slug, given);
-
-  const { data: rows } = await supabase
+  const { data } = await supabase
     .from("watch_questions")
     .select("id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic")
-    .eq("paper_id", paper.id)
+    .eq("paper_id", paperId)
     .order("position");
+  return (data ?? []) as QuestionRow[];
+}
 
-  return (rows ?? []).map((q) => {
-    const chosen = given.get(q.id) ?? null;
+function mark(rows: QuestionRow[], given: Map<string, number>): MarkedQuestion[] {
+  return rows.map((q) => {
+    // Only one of the numbers on offer is an answer. Anything else — a value
+    // no button produces — is not "wrong", it is not an answer at all.
+    const raw = given.get(q.id);
+    const chosen = raw !== undefined && q.options.includes(raw) ? raw : null;
     return {
       id: q.id,
       position: q.position,
       promptEn: q.prompt_en,
       promptHi: q.prompt_hi,
-      options: q.options as number[],
+      options: q.options,
       given: chosen,
       correct: q.answer,
       isCorrect: chosen === q.answer,
       workingEn: q.working_en ?? "",
       workingHi: q.working_hi ?? "",
-      topic: (q.topic as string) ?? "",
+      topic: q.topic ?? "",
     };
   });
 }
 
 /**
- * The bundled sample paper ships its key in the client bundle already — it is
- * a public demo with no database behind it — so marking it here changes
- * nothing about its secrecy. It keeps the result screen working either way.
+ * The bundled sample paper, for a portal with no database yet: a demo with no
+ * accounts and nothing to record, marked so the result screen can be seen.
  */
 function markFromBundle(
   paperId: string,

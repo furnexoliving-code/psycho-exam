@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { isConfigured } from "@/lib/auth";
+import { isConfigured, requireUser } from "@/lib/auth";
 import { loadPaperForCandidate } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { ResultView } from "./ResultView";
@@ -11,11 +11,14 @@ export default async function ResultPage({
 }) {
   const { paperId } = await params;
 
+  // A result belongs to the account that sat the paper.
+  const who = isConfigured() ? await requireUser(`/watch-table/${paperId}/result`) : null;
+
   // Deliberately the CANDIDATE view — it carries no answer key. The marks come
   // from /api/watch-table/score, which looks the key up server-side.
-  const paper =
-    (isConfigured() ? await loadPaperForCandidate(paperId) : null) ??
-    getBundledPaper(paperId);
+  const paper = isConfigured()
+    ? await loadPaperForCandidate(paperId)
+    : getBundledPaper(paperId);
 
   if (!paper) notFound();
   return (
@@ -28,6 +31,7 @@ export default async function ResultPage({
       table={paper.tables[0]}
       imageUrl={paper.imageUrl}
       imageWidthPct={paper.imageWidthPct}
+      storageOwner={who?.id ?? "guest"}
     />
   );
 }

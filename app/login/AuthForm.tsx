@@ -36,9 +36,14 @@ export function AuthForm({ next }: { next: string }) {
     });
 
     if (signInError) {
+      // A switched-off account is told so; anything else is one message.
       // Never say which half was wrong: that would confirm to a stranger which
       // mobile numbers have accounts.
-      setError("That mobile number and password do not match. Please try again.");
+      setError(
+        /banned/i.test(signInError.message)
+          ? "This account has been switched off by the institute."
+          : "That mobile number and password do not match. Please try again.",
+      );
       setBusy(false);
       return;
     }

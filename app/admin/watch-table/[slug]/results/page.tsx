@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { meanAndSd, tScore } from "@/lib/wt/tscore";
+import { tScore } from "@/lib/wt/tscore";
+import { cohortFor, cohortMarks } from "@/lib/wt/cohort";
 import { decideCutOff } from "@/lib/wt/cutoff";
 import { resolveResultView } from "@/lib/wt/types";
 import { ResultsTable, type ResultRow } from "./ResultsTable";
@@ -21,31 +22,28 @@ export default async function PaperResultsPage({
     .maybeSingle();
   if (!paper) notFound();
 
-  const { data: attempts } = await supabase
-    .from("watch_attempts")
-    .select("id, user_id, marks, total, attempted, duration_sec, submitted_at")
-    .eq("paper_id", paper.id)
-    .order("submitted_at", { ascending: false });
+  const [{ data: attempts }, { count: questionCount }] = await Promise.all([
+    supabase
+      .from("watch_attempts")
+      .select("id, user_id, marks, total, attempted, duration_sec, submitted_at")
+      .eq("paper_id", paper.id)
+      .order("submitted_at", { ascending: false }),
+    supabase
+      .from("watch_questions_public")
+      .select("id", { count: "exact", head: true })
+      .eq("paper_id", paper.id),
+  ]);
 
   const rows = attempts ?? [];
   const view = resolveResultView(paper.result_view ?? undefined);
-  const marks = rows.map((a) => a.marks as number);
 
-  // The same figures the candidate's own result was measured against, so the
-  // two never disagree.
-  const { mean, sd } = meanAndSd(marks);
-  const enough = marks.length >= (paper.stats_min_attempts ?? 5);
-  const cohort =
-    enough
-      ? { count: marks.length, mean, sd, source: "cohort" as const }
-      : paper.reference_mean !== null && paper.reference_sd !== null
-        ? {
-            count: marks.length,
-            mean: Number(paper.reference_mean),
-            sd: Number(paper.reference_sd),
-            source: "reference" as const,
-          }
-        : null;
+  // The same figures the candidate's own result was measured against — the
+  // same module, so the two never disagree: one mark per candidate, their
+  // latest, over the paper's current length.
+  const marks = cohortMarks(rows, questionCount ?? 0);
+  const cohort = cohortFor(marks, paper);
+  const enough = cohort?.source === "cohort";
+  const { mean, sd } = cohort ?? { mean: 0, sd: 0 };
 
   // Names come from profiles; an attempt taken without signing in has none.
   const userIds = [...new Set(rows.map((a) => a.user_id).filter(Boolean))] as string[];
@@ -99,10 +97,11 @@ export default async function PaperResultsPage({
         </Link>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-4">
+      <div className="mt-4 grid gap-4 sm:grid-cols-5">
         <Stat label="Attempts" value={String(rows.length)} />
-        <Stat label="Mean" value={marks.length ? mean.toFixed(2) : "—"} />
-        <Stat label="Standard deviation" value={marks.length ? sd.toFixed(2) : "—"} />
+        <Stat label="Candidates" value={String(marks.length)} />
+        <Stat label="Mean" value={cohort ? mean.toFixed(2) : "—"} />
+        <Stat label="Standard deviation" value={cohort ? sd.toFixed(2) : "—"} />
         <Stat
           label="T-score source"
           value={cohort ? (cohort.source === "cohort" ? "Live cohort" : "Reference") : "None"}
@@ -111,8 +110,9 @@ export default async function PaperResultsPage({
 
       {!enough && cohort?.source === "reference" && (
         <p className="mt-3 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
-          Fewer than {paper.stats_min_attempts ?? 5} attempts so far, so T-scores use
-          the reference figures rather than this cohort.
+          Fewer than {paper.stats_min_attempts ?? 5} candidates so far, so T-scores use
+          the reference figures rather than this cohort. Each candidate counts once,
+          by their latest attempt.
         </p>
       )}
 

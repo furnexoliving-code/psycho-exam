@@ -43,8 +43,8 @@ export function parseQuestionLines(text: string): ParsedQuestion[] {
       .filter(Boolean)
       .map((v) => Number(v));
 
-    if (options.some((v) => !Number.isInteger(v))) {
-      throw new Error(`Line ${i + 1}: options must be whole numbers, found "${optionsRaw}"`);
+    if (options.some((v) => !Number.isInteger(v) || Math.abs(v) >= 1_000_000)) {
+      throw new Error(`Line ${i + 1}: options must be whole numbers below a million, found "${optionsRaw}"`);
     }
     if (options.length < 2) {
       throw new Error(`Line ${i + 1}: needs at least two options`);
@@ -53,6 +53,7 @@ export function parseQuestionLines(text: string): ParsedQuestion[] {
       throw new Error(`Line ${i + 1}: the same option is listed twice`);
     }
 
+    if (!answerRaw) throw new Error(`Line ${i + 1}: the answer is missing`);
     const answer = Number(answerRaw);
     if (!Number.isInteger(answer)) {
       throw new Error(`Line ${i + 1}: the answer "${answerRaw}" is not a number`);

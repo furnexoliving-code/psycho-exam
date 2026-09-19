@@ -19,7 +19,7 @@ export const FEATURE_LABELS: {
   {
     name: "allowPause",
     label: "Pause button",
-    hint: "Lets the candidate stop the clock.",
+    hint: "Lets the candidate stop the clock. With this on, the time limit is kept by the browser; off, the server refuses a paper submitted after time.",
   },
   {
     name: "allowFullscreen",

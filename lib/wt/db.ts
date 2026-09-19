@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { SAMPLE_PAPER } from "./paper";
+import { SAMPLE_PAPER, defaultInstructions } from "./paper";
 import type { WatchCell, WatchPaper, WatchQuestion } from "./types";
 
 /**
@@ -23,10 +23,11 @@ interface PaperRow {
   example_cells: WatchCell[];
   image_url: string | null;
   instructions: { en: string; hi: string }[];
-  example_text: { en: string; hi: string }[];
+  example_text: { en: string; hi: string }[] | null;
   font_scale: number | null;
   image_width_pct: number | null;
   result_view: WatchPaper["resultView"];
+  max_attempts: number | null;
 }
 
 interface QuestionRow {
@@ -58,15 +59,22 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
 
   return {
     id: row.slug,
+    dbId: row.id,
+    maxAttempts: row.max_attempts ?? null,
     title: row.title,
     displayName: row.display_name,
     features: row.features ?? {},
     timeLimitMin: row.time_limit_min,
     instructionTimeLimitMin: row.instruction_time_min,
-    instructions: row.instructions?.length ? row.instructions : SAMPLE_PAPER.instructions,
+    instructions: row.instructions?.length
+      ? row.instructions
+      : defaultInstructions(row.instruction_time_min, row.time_limit_min),
     example: {
       table: { label: "Example", cells: example },
-      text: row.example_text?.length ? row.example_text : SAMPLE_PAPER.example.text,
+      // Null means never set, and the sample's wording stands in. An empty
+      // list is the institute's own choice — a cleared example stays cleared
+      // rather than the sample coming back.
+      text: row.example_text === null ? SAMPLE_PAPER.example.text : row.example_text,
     },
     tables: [{ label: "No. 1", cells }],
     questions,
@@ -144,7 +152,12 @@ export interface PaperSummary {
   questionCount: number;
   instructionTimeMin: number;
   timeLimitMin: number;
+  /** How many sittings the paper allows; null for no limit. */
+  maxAttempts: number | null;
 }
+
+const SUMMARY_COLUMNS =
+  "id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order, max_attempts";
 
 /** Every paper, published or not, with its real question count. Admins only. */
 export async function listPapersForAdmin(): Promise<PaperSummary[]> {
@@ -153,37 +166,41 @@ export async function listPapersForAdmin(): Promise<PaperSummary[]> {
 
   const { data: rows } = await supabase
     .from("watch_papers")
-    .select("id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order")
+    .select(SUMMARY_COLUMNS)
     .order("category")
     .order("sort_order")
     .order("created_at");
   if (!rows?.length) return [];
 
-  const { data: counts } = await supabase.from("watch_questions").select("paper_id");
+  const { data: counts } = await supabase
+    .from("watch_question_counts")
+    .select("paper_id, question_count")
+    .in("paper_id", rows.map((r) => r.id));
   return withCounts(rows, counts ?? []);
 }
 
 /**
- * The papers a signed-in student may open.
+ * The papers a signed-in student may open, optionally of one kind.
  *
- * Counts come from the key-free view rather than the questions table, because
- * SELECT on that table is revoked from `authenticated` to keep the answer
- * column out of reach.
+ * Counts come from a grouped view rather than one row per question: the
+ * dashboard used to pull every question of every paper to count them.
  */
-export async function listPublishedPapers(): Promise<PaperSummary[]> {
+export async function listPublishedPapers(category?: string): Promise<PaperSummary[]> {
   const supabase = await createClient();
 
-  const { data: rows } = await supabase
+  let query = supabase
     .from("watch_papers")
-    .select("id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order")
-    .eq("is_published", true)
-    .order("sort_order")
-    .order("created_at");
+    .select(SUMMARY_COLUMNS)
+    .eq("is_published", true);
+  if (category) query = query.eq("category", category);
+
+  const { data: rows } = await query.order("sort_order").order("created_at");
   if (!rows?.length) return [];
 
   const { data: counts } = await supabase
-    .from("watch_questions_public")
-    .select("paper_id");
+    .from("watch_question_counts")
+    .select("paper_id, question_count")
+    .in("paper_id", rows.map((r) => r.id));
   return withCounts(rows, counts ?? []);
 }
 
@@ -196,14 +213,14 @@ interface PaperRowLite {
   time_limit_min: number;
   category: string | null;
   sort_order: number | null;
+  max_attempts: number | null;
 }
 
 function withCounts(
   rows: PaperRowLite[],
-  counts: { paper_id: string }[],
+  counts: { paper_id: string; question_count: number }[],
 ): PaperSummary[] {
-  const perPaper = new Map<string, number>();
-  for (const q of counts) perPaper.set(q.paper_id, (perPaper.get(q.paper_id) ?? 0) + 1);
+  const perPaper = new Map(counts.map((c) => [c.paper_id, c.question_count]));
 
   return rows.map((r) => ({
     id: r.id,
@@ -215,5 +232,6 @@ function withCounts(
     questionCount: perPaper.get(r.id) ?? 0,
     instructionTimeMin: r.instruction_time_min,
     timeLimitMin: r.time_limit_min,
+    maxAttempts: r.max_attempts === null || r.max_attempts === undefined ? null : Number(r.max_attempts),
   }));
 }

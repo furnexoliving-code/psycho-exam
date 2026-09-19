@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ALP Psycho Test Portal | RRB CBAT Mock Exam",
+  title: "KAUTILYA CLASSES | Following Directions Test",
   description:
-    "Computer Based Aptitude Test (CBAT) mock exam portal for RRB ALP candidates, with all five official psycho test sections.",
+    "Practice portal for the RRB ALP Computer Based Aptitude Test's Following Directions papers — Watch, Letter and Number Table tests.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -24,13 +24,13 @@ export default async function CategoryPage({
   const category = CATEGORIES.find((c) => c.id === id);
   if (!category) notFound();
 
-  const profile = await requireUser(`/tests/${id}`);
-  const papers = (await listPublishedPapers()).filter((p) => p.category === id);
-  // One pair of queries for the whole list, not a pair per paper.
-  const allowances = await allowancesFor(
-    papers.map((p) => p.slug),
-    profile.id,
-  );
+  // Who is asking and what is on offer are independent, so they load together.
+  const [profile, papers] = await Promise.all([
+    requireUser(`/tests/${id}`),
+    listPublishedPapers(id),
+  ]);
+  // One query for the whole list, not one per paper.
+  const allowances = await allowancesFor(papers, profile.id);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">

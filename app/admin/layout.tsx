@@ -7,7 +7,6 @@ import { isConfigured, missingConfig, requireAdmin } from "@/lib/auth";
 const NAV = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/watch-table", label: "Following Directions Test" },
-  { href: "/admin/tests", label: "Other Tests" },
   { href: "/admin/students", label: "Students & Results" },
 ];
 

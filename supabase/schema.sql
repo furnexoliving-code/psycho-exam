@@ -146,9 +146,11 @@ drop policy if exists profiles_select_own on public.profiles;
 create policy profiles_select_own on public.profiles
   for select using (id = auth.uid() or public.is_admin());
 
+-- Deliberately no self-update policy. One that let a user update their own row
+-- also let them set role = 'admin'. Profiles are changed by the admin panel
+-- through the service-role client, never by the student.
 drop policy if exists profiles_update_own on public.profiles;
-create policy profiles_update_own on public.profiles
-  for update using (id = auth.uid()) with check (id = auth.uid());
+revoke insert, update, delete on public.profiles from anon, authenticated;
 
 drop policy if exists profiles_admin_all on public.profiles;
 create policy profiles_admin_all on public.profiles

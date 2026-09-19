@@ -33,12 +33,34 @@ export async function middleware(request: NextRequest) {
     },
   );
 
+  // getSession reads the cookie and refreshes the token only when it has
+  // expired, so a valid session costs no round trip to the auth server here.
+  // getUser would verify it with the auth server on EVERY request — and every
+  // page then verifies it again for real inside requireUser. This redirect is
+  // a courtesy; the page's own check is the gate, so the cheaper read is fine.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   const path = request.nextUrl.pathname;
-  const isPrivate = path.startsWith("/admin") || path.startsWith("/dashboard");
+
+  // The front door goes straight to the right place, without a page render
+  // whose only job was to decide this.
+  if (path === "/") {
+    const to = request.nextUrl.clone();
+    to.pathname = user ? "/dashboard" : "/login";
+    to.search = "";
+    return NextResponse.redirect(to);
+  }
+
+  // Everything a candidate does needs an account: there is no public paper.
+  // The pages check again on the server; this only saves the round trip.
+  const isPrivate =
+    path.startsWith("/admin") ||
+    path.startsWith("/dashboard") ||
+    path.startsWith("/tests") ||
+    path.startsWith("/watch-table");
 
   if (isPrivate && !user) {
     const login = request.nextUrl.clone();

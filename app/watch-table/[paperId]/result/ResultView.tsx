@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PortalBanner } from "@/components/wt/PortalBanner";
 import type {
   CutOff,
+  HistoryPoint,
   MarkedQuestion,
   StandingWire,
   TopicRow,
@@ -22,10 +23,9 @@ import {
   TimeAnalysis,
   TopicBreakdown,
   type Outcome,
-  type PastAttempt,
 } from "@/components/wt/ResultPanels";
 import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
-import type { AttemptState } from "@/lib/wt/state";
+import { attemptStorageKey, type AttemptState } from "@/lib/wt/state";
 import { resolveResultView, type ResultView as ResultFlags, type WatchTable } from "@/lib/wt/types";
 import { formatTScore, type TScore } from "@/lib/wt/tscore";
 
@@ -54,11 +54,12 @@ function groupOf(q: MarkedQuestion): Outcome {
 /**
  * Result and review.
  *
- * The page is handed no answer key. It posts what the candidate chose to the
- * scoring route and renders what comes back, so opening this page before
- * submitting reveals nothing.
+ * The page is handed no answer key. On the submit it posts what the candidate
+ * chose; the server keeps that copy with the sitting and every later visit is
+ * marked from it, so this page shows the same result on a reload, on another
+ * device, or after the browser's own copy is gone — and opening it before
+ * submitting shows nothing.
  */
-const HISTORY_KEY = (paperId: string) => `wt-history:${paperId}`;
 
 export function ResultView({
   paperId,
@@ -67,6 +68,7 @@ export function ResultView({
   table,
   imageUrl,
   imageWidthPct,
+  storageOwner = "guest",
 }: {
   paperId: string;
   displayName: string;
@@ -76,6 +78,8 @@ export function ResultView({
   table: WatchTable;
   imageUrl?: string;
   imageWidthPct?: number;
+  /** Whose attempt to look for in this browser. */
+  storageOwner?: string;
 }) {
   const [marked, setMarked] = useState<MarkedQuestion[] | null>(null);
   const [score, setScore] = useState<Score | null>(null);
@@ -84,7 +88,7 @@ export function ResultView({
   const [standing, setStanding] = useState<StandingWire | null>(null);
   const [cutOff, setCutOff] = useState<CutOff | null>(null);
   const [comment, setComment] = useState<string | null>(null);
-  const [history, setHistory] = useState<PastAttempt[]>([]);
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [takenSec, setTakenSec] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [view, setView] = useState<Required<ResultFlags>>(resolveResultView());
@@ -94,29 +98,26 @@ export function ResultView({
     let cancelled = false;
 
     (async () => {
-      const storageKey = `wt-attempt:${paperId}`;
-      let attempt: AttemptState;
+      const storageKey = attemptStorageKey(storageOwner, paperId);
+
+      // The browser's copy of the attempt, if there is one. Its absence is not
+      // a missing result any more: the server holds the submission.
+      let attempt: AttemptState | null = null;
       try {
         const raw = window.localStorage.getItem(storageKey);
-        if (!raw) {
-          setState("missing");
-          return;
-        }
-        attempt = JSON.parse(raw) as AttemptState;
+        if (raw) attempt = JSON.parse(raw) as AttemptState;
       } catch {
-        setState("missing");
-        return;
+        attempt = null;
       }
 
-      const answers = attempt.answers ?? {};
-      // Count this paper into the cohort once, on the first visit after
-      // submitting. Reloading the result must not enter it a second time.
-      const record = attempt.submitted === true && attempt.recorded !== true;
+      const answers = attempt?.answers ?? {};
+      // The submit that ends the attempt is sent once. A reload asks for the
+      // result the server already holds rather than submitting again.
+      const record = attempt?.submitted === true && attempt.recorded !== true;
 
-      // What was actually spent on the questions: the paper's limit less
-      // whatever was still on the clock.
+      // The browser's own estimate, only until the server's measurement lands.
       const spent =
-        typeof attempt.remainingSec === "number"
+        typeof attempt?.remainingSec === "number"
           ? Math.max(0, allowedSec - attempt.remainingSec)
           : null;
       setTakenSec(spent);
@@ -125,8 +126,20 @@ export function ResultView({
         const response = await fetch("/api/watch-table/score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paperId, answers, record, durationSec: spent }),
+          body: JSON.stringify({ paperId, answers, record }),
         });
+
+        if (response.status === 401) {
+          // The session ended between the paper and its result.
+          window.location.assign(
+            `/login?next=${encodeURIComponent(window.location.pathname)}`,
+          );
+          return;
+        }
+        if (response.status === 403) {
+          if (!cancelled) setState("missing");
+          return;
+        }
         if (!response.ok) throw new Error(String(response.status));
 
         const data = (await response.json()) as {
@@ -138,50 +151,28 @@ export function ResultView({
           cutOff: CutOff | null;
           expertComment: string | null;
           durationSec?: number | null;
+          history?: HistoryPoint[];
           view?: ResultFlags;
         };
         if (cancelled) return;
 
-        // Attempt history is kept in the browser as well as the database, so
-        // it works for a candidate who never signed in.
-        let past: PastAttempt[] = [];
-        try {
-          past = JSON.parse(
-            window.localStorage.getItem(HISTORY_KEY(paperId)) ?? "[]",
-          ) as PastAttempt[];
-        } catch {
-          past = [];
-        }
-
-        if (record) {
-          past = [
-            ...past,
-            {
-              at: Date.now(),
-              marks: data.score.correct,
-              total: data.score.total,
-              attempted: data.score.attempted,
-              durationSec: spent,
-            },
-          ].slice(-10);
-
+        if (record && attempt) {
           try {
-            window.localStorage.setItem(HISTORY_KEY(paperId), JSON.stringify(past));
             window.localStorage.setItem(
               storageKey,
               JSON.stringify({ ...attempt, recorded: true }),
             );
           } catch {
-            // If storage is unavailable the worst case is a second count, which
-            // is better than losing the result the candidate is waiting for.
+            // If storage is unavailable the server still refuses a second
+            // record for the same sitting, so nothing is counted twice.
           }
         }
 
         setView(resolveResultView(data.view));
         // The server measured this sitting; its figure beats the browser's own
-        // estimate, which is only a fallback for a reload that recorded nothing.
+        // estimate.
         if (typeof data.durationSec === "number") setTakenSec(data.durationSec);
-        setHistory(past);
+        setHistory(data.history ?? []);
         setMarked(data.questions);
         setScore(data.score);
         setTScore(data.tScore);
@@ -198,25 +189,38 @@ export function ResultView({
     return () => {
       cancelled = true;
     };
-  }, [paperId, allowedSec]);
+  }, [paperId, allowedSec, storageOwner]);
 
   if (state === "missing" || state === "error") {
     return (
       <Shell>
         <h1 className="text-xl font-bold text-gray-900">
-          {state === "missing" ? "No attempt found" : "Could not load your result"}
+          {state === "missing" ? "Nothing submitted yet" : "Could not load your result"}
         </h1>
         <p className="mt-2 text-[14px] text-gray-600">
           {state === "missing"
-            ? "Nothing is saved for this paper in this browser."
+            ? "You have not submitted this paper yet. Sit it and submit, and the result appears here."
             : "Something went wrong while marking the paper. Try again."}
         </p>
-        <Link
-          href={`/watch-table/${paperId}`}
-          className="mt-6 inline-block rounded bg-wt-submit px-6 py-2 text-sm font-semibold text-white hover:opacity-90"
-        >
-          Back to the test
-        </Link>
+        {state === "missing" ? (
+          <Link
+            href={`/watch-table/${paperId}`}
+            className="mt-6 inline-block rounded bg-wt-submit px-6 py-2 text-sm font-semibold text-white hover:opacity-90"
+          >
+            Go to the test
+          </Link>
+        ) : (
+          // A retry, not a route back into the paper: the answers are still
+          // here and the server still holds the sitting, so asking again is
+          // all it takes.
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-6 inline-block rounded bg-wt-submit px-6 py-2 text-sm font-semibold text-white hover:opacity-90"
+          >
+            Try again
+          </button>
+        )}
       </Shell>
     );
   }

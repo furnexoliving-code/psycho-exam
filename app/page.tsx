@@ -9,6 +9,10 @@ import { getProfile, isConfigured } from "@/lib/auth";
  * the address was shown where the staff entrance was. An admin reaches /admin
  * by typing it; nothing on the site points there.
  */
+// A redirect, decided per request — never a prerendered page carrying a
+// meta refresh. In production the middleware answers first.
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   if (!isConfigured()) redirect("/login");
 

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { clearAttemptStorage } from "@/lib/wt/state";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -10,6 +11,8 @@ export function SignOutButton() {
     <button
       type="button"
       onClick={async () => {
+        // Whatever this browser kept of a paper leaves with the account.
+        clearAttemptStorage();
         await createClient().auth.signOut();
         router.push("/login");
         router.refresh();

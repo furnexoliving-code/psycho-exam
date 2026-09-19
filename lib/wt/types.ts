@@ -172,7 +172,12 @@ export function resolveResultView(view?: ResultView): Required<ResultView> {
 }
 
 export interface WatchPaper {
+  /** The slug — what the URL and the browser's storage know the paper by. */
   id: string;
+  /** The database row's own id, so the server never re-resolves the slug. */
+  dbId?: string;
+  /** How many sittings the paper allows; null or absent for no limit. */
+  maxAttempts?: number | null;
   title: string;
   /** e.g. "Watch Table Test - 1 (Easy Level)". */
   displayName: string;

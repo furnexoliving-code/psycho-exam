@@ -23,6 +23,7 @@ export interface ParsedStudent {
 export function parseStudentLines(text: string): ParsedStudent[] {
   const out: ParsedStudent[] = [];
   const seen = new Map<string, number>();
+  let first = true;
 
   text.split(/\r?\n/).forEach((raw, i) => {
     const line = raw.trim();
@@ -30,16 +31,22 @@ export function parseStudentLines(text: string): ParsedStudent[] {
 
     const parts = line.split(/\t|,/).map((p) => p.trim().replace(/^"|"$/g, ""));
 
-    // A header row names its columns instead of holding a mobile number.
-    if (i === 0 && /name/i.test(parts[0] ?? "") && !isValidPhone(parts[2] ?? "")) {
+    // A header row names its columns instead of holding a mobile number. It
+    // is the first line WITH anything on it — a paste from a spreadsheet
+    // often starts with a blank one.
+    const isFirst = first;
+    first = false;
+    if (isFirst && /name/i.test(parts[0] ?? "") && !isValidPhone(parts[2] ?? "")) {
       return;
     }
 
-    if (parts.length < 4) {
+    // Exactly four: a fifth field means a comma inside a name or a password,
+    // and the account would be made with the wrong half of it.
+    if (parts.length !== 4) {
       throw new Error(
         `Line ${i + 1}: expected "name, roll no, mobile, password" — found ${parts.length} field${
           parts.length === 1 ? "" : "s"
-        }`,
+        }${parts.length > 4 ? ". A comma inside a name or password is not allowed." : ""}`,
       );
     }
 

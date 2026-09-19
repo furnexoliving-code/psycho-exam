@@ -7,6 +7,8 @@ import { DIRECTIONS, DIRECTION_NAME, resolveFeatures, resolveResultView } from "
 import { deletePaper, duplicatePaper, saveDiagram, saveSettings } from "../actions";
 import { formatInstructionLines } from "@/lib/wt/parse-instructions";
 import { SaveForm } from "@/components/admin/SaveForm";
+import { AdminNotice } from "@/components/admin/AdminNotice";
+import { PendingButton } from "@/components/admin/PendingButton";
 import { DiagramImageField } from "./DiagramImageField";
 import { InstructionsEditor } from "./InstructionsEditor";
 import { QuestionsPanel } from "./QuestionsPanel";
@@ -15,10 +17,13 @@ import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./
 
 export default async function EditWatchPaper({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   const { slug } = await params;
+  const { error: noticeError, saved: noticeSaved } = await searchParams;
   const paper = await loadPaperForAdmin(slug);
   if (!paper) notFound();
 
@@ -64,6 +69,8 @@ export default async function EditWatchPaper({
           Question analysis
         </Link>
       </div>
+
+      <AdminNotice error={noticeError} saved={noticeSaved} />
 
       {/* ------------------------------ Settings ------------------------------ */}
       <section className="mt-5 rounded border border-gray-300 bg-white p-5">
@@ -481,20 +488,24 @@ export default async function EditWatchPaper({
               className="w-[280px] rounded border border-gray-400 px-3 py-2 text-[13px]"
             />
           </label>
-          <button
-            type="submit"
-            className="rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
+          <PendingButton
+            pendingLabel="Copying…"
+            className="rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900 disabled:opacity-60"
           >
             Copy this test
-          </button>
+          </PendingButton>
         </form>
       </section>
 
       <form action={deletePaper} className="mt-10 border-t border-gray-300 pt-4">
         <input type="hidden" name="slug" value={slug} />
-        <button type="submit" className="text-[12px] font-semibold text-red-700 hover:underline">
-          Delete this paper and all its questions
-        </button>
+        <PendingButton
+          pendingLabel="Deleting…"
+          confirm={`Delete "${paper.displayName}"?\n\nIts questions, every student's results for it, and any sitting in progress go with it. This cannot be undone.`}
+          className="text-[12px] font-semibold text-red-700 hover:underline disabled:opacity-60"
+        >
+          Delete this paper, its questions and all its results
+        </PendingButton>
       </form>
     </>
   );

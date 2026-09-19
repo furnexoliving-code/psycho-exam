@@ -35,7 +35,9 @@ export function AdminSetupGuide({ missing }: { missing: string[] }) {
         <Step n={2} title="Create the tables">
           In Supabase open <strong>SQL Editor → New query</strong>. Paste the whole of{" "}
           <code className="rounded bg-gray-200 px-1">supabase/schema.sql</code> from this
-          repository and press <strong>Run</strong>. It is safe to run more than once.
+          repository and press <strong>Run</strong>; then do the same with{" "}
+          <code className="rounded bg-gray-200 px-1">supabase/watch-table-schema.sql</code>.
+          Both are safe to run more than once.
         </Step>
 
         <Step n={3} title="Copy the three keys">
@@ -58,28 +60,33 @@ export function AdminSetupGuide({ missing }: { missing: string[] }) {
         </Step>
 
         <Step n={5} title="Make yourself the admin">
-          Public sign-up is off — accounts are issued from this panel. Create the
-          first admin by running this in the Supabase SQL editor, once an account
-          exists:
+          There is no public sign-up — accounts are issued from this panel, and the login
+          page takes a mobile number. For the very first account, add a user in the
+          Supabase dashboard under <strong>Authentication → Users → Add user</strong> with
+          the email <code className="rounded bg-gray-200 px-1">&lt;your 10-digit mobile&gt;@students.kautilya.local</code>,
+          a password, and &ldquo;auto confirm&rdquo; on. Then run this in the SQL editor:
           <pre className="mt-2 overflow-x-auto rounded bg-gray-900 p-3 text-[12px] text-gray-100">
-{`update public.profiles set role = 'admin'
+{`update public.profiles
+set role = 'admin', is_active = true, phone = '9876543210'
 where id = (select id from auth.users
-            where email = 'you@example.com');`}
+            where email = '9876543210@students.kautilya.local');`}
           </pre>
-          Reload this page and the panel opens.
+          Sign in with that mobile number and password, and the panel opens.
+        </Step>
+
+        <Step n={6} title="Close the door on self sign-up">
+          In the Supabase dashboard, <strong>Authentication → Providers → Email</strong>:
+          untick <strong>Allow new users to sign up</strong>. Accounts made any other
+          way are created switched off, but the door should be shut as well.
         </Step>
       </ol>
 
       <div className="mt-8 border-t border-gray-300 pt-4">
-        <p className="text-[13px] text-gray-600">
-          The sample papers work without any of this — nothing is saved, but the exam
-          itself runs.
-        </p>
         <Link
-          href="/"
-          className="mt-3 inline-block rounded border border-gray-400 bg-white px-5 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100"
+          href="/login"
+          className="inline-block rounded border border-gray-400 bg-white px-5 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100"
         >
-          Back to home
+          Back to the login page
         </Link>
       </div>
     </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { WatchQuestion } from "@/lib/wt/types";
 
 /**
@@ -29,6 +29,19 @@ import type { WatchQuestion } from "@/lib/wt/types";
 
 /** Content width as a multiple of the panel width, matching the reference. */
 const WIDTH_RATIO = 1.49;
+
+/** True from the tablet breakpoint up — the same line Tailwind's `md:` draws. */
+function useWide(): boolean {
+  const [wide, setWide] = useState(true);
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)");
+    const apply = () => setWide(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
+  return wide;
+}
 export function QuestionList({
   questions,
   answers,
@@ -57,6 +70,7 @@ export function QuestionList({
   overflow?: boolean;
   onSelect: (questionIndex: number, optionIndex: number) => void;
 }) {
+  const wide = useWide();
   const refs = useRef<(HTMLLIElement | null)[]>([]);
   const indexRef = useRef(currentIndex);
   indexRef.current = currentIndex;
@@ -84,7 +98,9 @@ export function QuestionList({
   return (
     <ol
       className="border-t border-[#ececec]"
-      style={{ width: overflow ? `${WIDTH_RATIO * 100}%` : "100%" }}
+      // The over-wide column is a desktop reproduction; on a phone, where the
+      // column is already narrow, it would push most of every sentence away.
+      style={{ width: overflow && wide ? `${WIDTH_RATIO * 100}%` : "100%" }}
     >
       {questions.map((question, qi) => {
         const current = qi === currentIndex;
@@ -125,10 +141,7 @@ export function QuestionList({
 
             {/* Options hang to the LEFT of the sentence, lining up with the
                 number gutter, on a fixed pitch grid. */}
-            <div
-              className="mt-3 grid gap-y-2"
-              style={{ gridTemplateColumns: "repeat(5, 92px)" }}
-            >
+            <div className="mt-3 grid grid-cols-[repeat(5,minmax(0,1fr))] gap-y-2 md:grid-cols-[repeat(5,92px)]">
               {question.options.map((option, oi) => {
                 const selected = chosen === option;
                 const id = `${question.id}-opt-${oi}`;

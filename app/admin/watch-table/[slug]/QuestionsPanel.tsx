@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
 import type { WatchQuestion } from "@/lib/wt/types";
 import {
@@ -158,8 +159,10 @@ export function QuestionsPanel({
 
           </SaveForm>
 
-          <form
+          <SaveForm
             action={regenerateQuestions}
+            submitLabel="Build a sample set"
+            buttonClassName="rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100 disabled:opacity-60"
             className="mt-6 border-t border-gray-200 pt-4"
           >
             <input type="hidden" name="slug" value={slug} />
@@ -171,7 +174,8 @@ export function QuestionsPanel({
               itself. Replaces whatever is there. Use it to fill a new paper, then
               download it as a starting file.
             </p>
-            <div className="mt-2 flex items-center gap-2">
+            <label className="mt-2 flex items-center gap-2 text-[12px] text-gray-700">
+              How many
               <input
                 name="count"
                 type="number"
@@ -180,14 +184,8 @@ export function QuestionsPanel({
                 defaultValue={20}
                 className="w-[80px] rounded border border-gray-400 px-2 py-1.5 text-center text-[13px]"
               />
-              <button
-                type="submit"
-                className="rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
-              >
-                Build a sample set
-              </button>
-            </div>
-          </form>
+            </label>
+          </SaveForm>
         </div>
       ) : (
         <div className="mt-4">
@@ -200,13 +198,7 @@ export function QuestionsPanel({
               {questions.map((q, i) => (
                 <li key={q.id} className="px-3 py-2.5">
                   {editing?.id === q.id ? (
-                    <form
-                      action={async (formData) => {
-                        await saveQuestion(formData);
-                        setEditing(null);
-                      }}
-                      className="space-y-2"
-                    >
+                    <EditQuestionForm onSaved={() => setEditing(null)}>
                       <input type="hidden" name="id" value={q.id} />
                       <input type="hidden" name="slug" value={slug} />
                       <textarea
@@ -263,7 +255,7 @@ export function QuestionsPanel({
                           Cancel
                         </button>
                       </div>
-                    </form>
+                    </EditQuestionForm>
                   ) : (
                     <div className="flex items-start gap-3">
                       <span className="w-[34px] shrink-0 text-[12px] font-semibold text-gray-400">
@@ -296,7 +288,7 @@ export function QuestionsPanel({
                         >
                           Edit
                         </button>
-                        <form action={deleteQuestion}>
+                        <RowForm action={deleteQuestion}>
                           <input type="hidden" name="id" value={q.id} />
                           <input type="hidden" name="slug" value={slug} />
                           <button
@@ -305,7 +297,7 @@ export function QuestionsPanel({
                           >
                             Delete
                           </button>
-                        </form>
+                        </RowForm>
                       </div>
                     </div>
                   )}
@@ -340,5 +332,34 @@ function TabButton({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * The inline editor's form. The outcome comes back into the row: a refused
+ * save says why, right under the fields, and a good one closes the editor.
+ */
+function EditQuestionForm({
+  children,
+  onSaved,
+}: {
+  children: React.ReactNode;
+  onSaved: () => void;
+}) {
+  const [state, formAction, pending] = useActionState(saveQuestion, null);
+
+  useEffect(() => {
+    if (state?.ok) onSaved();
+  }, [state, onSaved]);
+
+  return (
+    <form action={formAction} className="space-y-2" data-pending={pending || undefined}>
+      {children}
+      {state && !state.ok && (
+        <p role="alert" className="text-[12px] font-semibold text-red-700">
+          ✕ {state.message}
+        </p>
+      )}
+    </form>
   );
 }
