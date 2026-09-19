@@ -185,6 +185,18 @@ export async function saveSettings(formData: FormData) {
     // error text.
     const fontScale = Math.min(2, Math.max(0.7, Number(formData.get("font_scale") ?? 1) || 1));
 
+    // Blank means no limit, which is what every paper did before limits
+    // existed — so an admin who never touches this field changes nothing.
+    const attemptsRaw = String(formData.get("max_attempts") ?? "").trim();
+    let maxAttempts: number | null = null;
+    if (attemptsRaw) {
+      const n = Number(attemptsRaw);
+      if (!Number.isInteger(n) || n < 1 || n > 100) {
+        throw new Error("Attempts allowed must be a whole number between 1 and 100, or blank for no limit");
+      }
+      maxAttempts = n;
+    }
+
     const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
@@ -201,6 +213,7 @@ export async function saveSettings(formData: FormData) {
         expert_comment: String(formData.get("expert_comment") ?? "").trim() || null,
         stats_min_attempts: Math.max(1, Number(formData.get("stats_min_attempts") ?? 5)),
         font_scale: fontScale,
+        max_attempts: maxAttempts,
         features: {
           showInstructionsButton: formData.get("showInstructionsButton") === "on",
           showQuestionPaperButton: formData.get("showQuestionPaperButton") === "on",

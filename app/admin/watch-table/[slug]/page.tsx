@@ -27,7 +27,7 @@ export default async function EditWatchPaper({
   const { data: row } = await supabase
     .from("watch_papers")
     .select(
-      "is_published, image_url, image_width_pct, font_scale, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
+      "is_published, image_url, image_width_pct, font_scale, max_attempts, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
     )
     .eq("slug", slug)
     .single();
@@ -107,6 +107,26 @@ export default async function EditWatchPaper({
               hint="Minutes for the questions. The paper submits itself when this runs out."
             />
           </div>
+
+          <h3 className="mt-6 text-[13px] font-bold text-gray-900">
+            How many times a student may sit this paper
+          </h3>
+          <label className="mt-2 block max-w-xs">
+            <input
+              name="max_attempts"
+              type="number"
+              min={1}
+              max={100}
+              defaultValue={row?.max_attempts ?? ""}
+              placeholder="Leave blank for no limit"
+              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+            />
+            <span className="mt-1 block text-[11px] text-gray-500">
+              The student sees how many they have left. Blank means unlimited.
+              The limit is enforced on the server, so it holds even if someone
+              reaches the paper by its link.
+            </span>
+          </label>
 
           <h3 className="mt-6 text-[13px] font-bold text-gray-900">
             Question text size

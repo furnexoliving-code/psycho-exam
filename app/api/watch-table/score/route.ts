@@ -201,7 +201,7 @@ async function statsFor({
   attempted,
   total,
   durationSec,
-  record,
+  record: recordRequested,
   responses,
 }: {
   slug: string;
@@ -223,7 +223,7 @@ async function statsFor({
   const { data: paper } = await supabase
     .from("watch_papers")
     .select(
-      "id, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
+      "id, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -233,6 +233,30 @@ async function statsFor({
     marks: paper.cut_off_marks === null ? null : Number(paper.cut_off_marks),
     tScore: paper.cut_off_tscore === null ? null : Number(paper.cut_off_tscore),
   };
+
+  let record = recordRequested;
+
+  if (record) {
+    const profile = await getProfile();
+
+    // The same limit the exam page applies, applied again here. That page can
+    // be skipped — this route is reachable on its own — so the count must be
+    // guarded where the row is actually written, not only where the paper is
+    // handed out.
+    if (paper.max_attempts !== null && paper.max_attempts !== undefined) {
+      const { count } = await supabase
+        .from("watch_attempts")
+        .select("id", { count: "exact", head: true })
+        .eq("paper_id", paper.id)
+        .eq("user_id", profile?.id ?? "");
+
+      // A paper with a limit is not open to someone signed out: there is no
+      // account to count against.
+      if (!profile || (count ?? 0) >= Number(paper.max_attempts)) {
+        record = false;
+      }
+    }
+  }
 
   if (record) {
     const profile = await getProfile();

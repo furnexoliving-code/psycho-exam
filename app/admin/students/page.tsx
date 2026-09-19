@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatClock } from "@/lib/scoring";
+import { createStudent, resetPassword, setActive } from "./actions";
 
 interface AttemptScore {
   totalCorrect?: number;
@@ -8,12 +9,17 @@ interface AttemptScore {
   overallAccuracy?: number;
 }
 
-export default async function StudentsPage() {
+export default async function StudentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; saved?: string }>;
+}) {
+  const { error: saveError, saved } = await searchParams;
   const supabase = await createClient();
 
   const { data: students } = await supabase
     .from("profiles")
-    .select("id, full_name, roll_no, phone, created_at")
+    .select("id, full_name, roll_no, phone, created_at, is_active")
     .eq("role", "student")
     .order("created_at", { ascending: false });
 
@@ -46,7 +52,65 @@ export default async function StudentsPage() {
 
   return (
     <>
+      {saveError && (
+        <p role="alert" className="mb-4 rounded border border-red-400 bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-800">
+          Not saved — {saveError}
+        </p>
+      )}
+      {saved && (
+        <p className="mb-4 rounded border border-green-300 bg-green-50 px-4 py-3 text-[13px] font-semibold text-green-800">
+          {saved} saved.
+        </p>
+      )}
+
       <h1 className="text-xl font-bold text-gray-900">Students &amp; Results</h1>
+
+      <section className="mt-4 rounded border border-gray-300 bg-white p-5">
+        <h2 className="text-[15px] font-bold text-gray-900">Add a student</h2>
+        <p className="mt-1 text-[12px] text-gray-600">
+          Students cannot sign themselves up. Give them the mobile number and
+          password you set here — that is how they sign in.
+        </p>
+
+        <form action={createStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Name</span>
+            <input name="full_name" required className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Roll no.</span>
+            <input name="roll_no" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Mobile number</span>
+            <input
+              name="phone"
+              required
+              inputMode="numeric"
+              placeholder="10 digits"
+              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Password</span>
+            <input
+              name="password"
+              required
+              minLength={6}
+              placeholder="at least 6 characters"
+              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+            />
+          </label>
+          <div className="sm:col-span-2 lg:col-span-4">
+            <button
+              type="submit"
+              className="rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
+            >
+              Create the account
+            </button>
+          </div>
+        </form>
+      </section>
 
       <section className="mt-5">
         <h2 className="mb-2 text-[15px] font-bold text-gray-900">
@@ -61,6 +125,8 @@ export default async function StudentsPage() {
                   <th className="border border-gray-300 px-3 py-2">Roll no.</th>
                   <th className="border border-gray-300 px-3 py-2">Mobile</th>
                   <th className="border border-gray-300 px-3 py-2">Registered</th>
+                  <th className="border border-gray-300 px-3 py-2">Account</th>
+                  <th className="border border-gray-300 px-3 py-2">New password</th>
                 </tr>
               </thead>
               <tbody>
@@ -73,6 +139,40 @@ export default async function StudentsPage() {
                     <td className="border border-gray-300 px-3 py-2">{s.phone || "—"}</td>
                     <td className="border border-gray-300 px-3 py-2">
                       {new Date(s.created_at).toLocaleDateString("en-IN")}
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">
+                      <form action={setActive}>
+                        <input type="hidden" name="id" value={s.id} />
+                        <input type="hidden" name="active" value={String(!s.is_active)} />
+                        <button
+                          type="submit"
+                          className={`rounded px-2 py-1 text-[11px] font-semibold ${
+                            s.is_active
+                              ? "bg-green-100 text-green-800 hover:bg-green-200"
+                              : "bg-red-100 text-red-800 hover:bg-red-200"
+                          }`}
+                        >
+                          {s.is_active ? "On — switch off" : "Off — switch on"}
+                        </button>
+                      </form>
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">
+                      <form action={resetPassword} className="flex gap-1">
+                        <input type="hidden" name="id" value={s.id} />
+                        <input
+                          name="password"
+                          required
+                          minLength={6}
+                          placeholder="new password"
+                          className="w-[130px] rounded border border-gray-400 px-2 py-1 text-[12px]"
+                        />
+                        <button
+                          type="submit"
+                          className="rounded border border-gray-400 px-2 py-1 text-[11px] font-semibold text-gray-800 hover:bg-gray-100"
+                        >
+                          Set
+                        </button>
+                      </form>
                     </td>
                   </tr>
                 ))}

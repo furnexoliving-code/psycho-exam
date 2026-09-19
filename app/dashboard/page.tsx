@@ -4,6 +4,7 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { isConfigured, requireUser } from "@/lib/auth";
 import { listTests } from "@/lib/db";
 import { listPublishedPapers } from "@/lib/wt/db";
+import { allowanceFor } from "@/lib/wt/attempts";
 import { createClient } from "@/lib/supabase/server";
 import { formatClock } from "@/lib/scoring";
 
@@ -42,6 +43,11 @@ export default async function DashboardPage() {
   // otherwise a published paper is reachable only by someone who already has
   // its link.
   const watchPapers = await listPublishedPapers();
+  // What each paper still allows this student, so the card can say it before
+  // they start rather than after they are turned away.
+  const allowances = await Promise.all(
+    watchPapers.map((p) => allowanceFor(p.slug, profile.id)),
+  );
   const supabase = await createClient();
 
   const { data: attempts } = await supabase
@@ -93,7 +99,9 @@ export default async function DashboardPage() {
               Watch Table tests
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {watchPapers.map((paper) => (
+              {watchPapers.map((paper, i) => {
+                const allowance = allowances[i];
+                return (
                 <div
                   key={paper.id}
                   className="flex flex-col rounded border border-gray-300 bg-white p-4"
@@ -107,13 +115,36 @@ export default async function DashboardPage() {
                       {paper.instructionTimeMin} min to read the instructions first
                     </span>
                   </p>
-                  <Link href={`/watch-table/${paper.slug}`} className="mt-auto pt-4">
-                    <span className="block rounded bg-indigo-800 px-4 py-2 text-center text-[13px] font-semibold text-white hover:bg-indigo-900">
-                      Start test
+                  {allowance.max !== null && (
+                    <p
+                      className={`mt-2 rounded px-2 py-1 text-[12px] font-semibold ${
+                        allowance.exhausted
+                          ? "bg-red-50 text-red-800"
+                          : "bg-green-50 text-green-800"
+                      }`}
+                    >
+                      {allowance.exhausted
+                        ? `No attempts left (${allowance.used} of ${allowance.max} used)`
+                        : `${allowance.remaining} of ${allowance.max} attempt${
+                            allowance.max === 1 ? "" : "s"
+                          } left`}
+                    </p>
+                  )}
+
+                  {allowance.exhausted ? (
+                    <span className="mt-auto block cursor-not-allowed rounded bg-gray-300 px-4 py-2 pt-2 text-center text-[13px] font-semibold text-gray-600">
+                      Attempts finished
                     </span>
-                  </Link>
+                  ) : (
+                    <Link href={`/watch-table/${paper.slug}`} className="mt-auto pt-4">
+                      <span className="block rounded bg-indigo-800 px-4 py-2 text-center text-[13px] font-semibold text-white hover:bg-indigo-900">
+                        Start test
+                      </span>
+                    </Link>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}

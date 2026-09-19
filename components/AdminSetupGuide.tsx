@@ -58,11 +58,9 @@ export function AdminSetupGuide({ missing }: { missing: string[] }) {
         </Step>
 
         <Step n={5} title="Make yourself the admin">
-          Register once through{" "}
-          <Link href="/signup" className="font-semibold text-rrb-banner hover:underline">
-            the sign-up page
-          </Link>
-          , then run this in the Supabase SQL editor with your own email:
+          Public sign-up is off — accounts are issued from this panel. Create the
+          first admin by running this in the Supabase SQL editor, once an account
+          exists:
           <pre className="mt-2 overflow-x-auto rounded bg-gray-900 p-3 text-[12px] text-gray-100">
 {`update public.profiles set role = 'admin'
 where id = (select id from auth.users

@@ -210,3 +210,37 @@ alter table public.watch_papers
 -- ---------------------------------------------------------------------------
 alter table public.watch_attempts
   add column if not exists responses jsonb not null default '{}'::jsonb;
+
+-- ---------------------------------------------------------------------------
+-- Attempt limits (added later)
+--
+-- How many times one candidate may sit a paper. NULL means no limit, which is
+-- the behaviour every existing paper already had, so adding the column changes
+-- nothing until an admin sets a number.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers
+  add column if not exists max_attempts integer;
+
+alter table public.watch_papers drop constraint if exists watch_papers_max_attempts_ck;
+alter table public.watch_papers
+  add constraint watch_papers_max_attempts_ck
+  check (max_attempts is null or max_attempts between 1 and 100);
+
+-- Counting a candidate's own attempts is the commonest query on this table
+-- once limits exist.
+create index if not exists watch_attempts_user_paper_idx
+  on public.watch_attempts (user_id, paper_id);
+
+-- ---------------------------------------------------------------------------
+-- Accounts are issued, not self-created
+--
+-- Students sign in with a mobile number the institute gives them, so the
+-- number has to identify exactly one account. Without this a second account on
+-- the same number would make logins ambiguous.
+-- ---------------------------------------------------------------------------
+create unique index if not exists profiles_phone_unique
+  on public.profiles (phone)
+  where phone <> '';
+
+alter table public.profiles
+  add column if not exists is_active boolean not null default true;
