@@ -1,3 +1,5 @@
+import { requireAdmin } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { SAMPLE_PAPER } from "./paper";
 import type { WatchCell, WatchPaper, WatchQuestion } from "./types";
@@ -95,7 +97,12 @@ export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | 
 
 /** The paper as the admin edits it, answer key included. */
 export async function loadPaperForAdmin(slug: string): Promise<WatchPaper | null> {
-  const supabase = await createClient();
+  await requireAdmin();
+  // SELECT on watch_questions is revoked from `authenticated` so a candidate
+  // cannot read the answer column straight off the table. That revoke applies
+  // to the admin's own session too, since an admin is an authenticated user —
+  // so the panel reads through the service-role client, behind requireAdmin().
+  const supabase = createAdminClient();
 
   const { data: row } = await supabase
     .from("watch_papers")
@@ -125,8 +132,10 @@ export interface PaperSummary {
   timeLimitMin: number;
 }
 
-export async function listPapers(): Promise<PaperSummary[]> {
-  const supabase = await createClient();
+/** Every paper, published or not, with its real question count. Admins only. */
+export async function listPapersForAdmin(): Promise<PaperSummary[]> {
+  await requireAdmin();
+  const supabase = createAdminClient();
 
   const { data: rows } = await supabase
     .from("watch_papers")
@@ -135,10 +144,47 @@ export async function listPapers(): Promise<PaperSummary[]> {
   if (!rows?.length) return [];
 
   const { data: counts } = await supabase.from("watch_questions").select("paper_id");
+  return withCounts(rows, counts ?? []);
+}
+
+/**
+ * The papers a signed-in student may open.
+ *
+ * Counts come from the key-free view rather than the questions table, because
+ * SELECT on that table is revoked from `authenticated` to keep the answer
+ * column out of reach.
+ */
+export async function listPublishedPapers(): Promise<PaperSummary[]> {
+  const supabase = await createClient();
+
+  const { data: rows } = await supabase
+    .from("watch_papers")
+    .select("id, slug, display_name, is_published, instruction_time_min, time_limit_min")
+    .eq("is_published", true)
+    .order("created_at");
+  if (!rows?.length) return [];
+
+  const { data: counts } = await supabase
+    .from("watch_questions_public")
+    .select("paper_id");
+  return withCounts(rows, counts ?? []);
+}
+
+interface PaperRowLite {
+  id: string;
+  slug: string;
+  display_name: string;
+  is_published: boolean;
+  instruction_time_min: number;
+  time_limit_min: number;
+}
+
+function withCounts(
+  rows: PaperRowLite[],
+  counts: { paper_id: string }[],
+): PaperSummary[] {
   const perPaper = new Map<string, number>();
-  for (const q of counts ?? []) {
-    perPaper.set(q.paper_id, (perPaper.get(q.paper_id) ?? 0) + 1);
-  }
+  for (const q of counts) perPaper.set(q.paper_id, (perPaper.get(q.paper_id) ?? 0) + 1);
 
   return rows.map((r) => ({
     id: r.id,

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { listPapers } from "@/lib/wt/db";
+import { listPapersForAdmin } from "@/lib/wt/db";
 import { createPaper } from "./actions";
 
 export default async function WatchTablePapersPage() {
-  const papers = await listPapers();
+  const papers = await listPapersForAdmin();
 
   return (
     <>

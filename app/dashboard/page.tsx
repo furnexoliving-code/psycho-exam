@@ -3,7 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { isConfigured, requireUser } from "@/lib/auth";
 import { listTests } from "@/lib/db";
-import { listPapers } from "@/lib/wt/db";
+import { listPublishedPapers } from "@/lib/wt/db";
 import { createClient } from "@/lib/supabase/server";
 import { formatClock } from "@/lib/scoring";
 
@@ -41,7 +41,7 @@ export default async function DashboardPage() {
   // Watch Table papers live in their own tables, so they need listing too —
   // otherwise a published paper is reachable only by someone who already has
   // its link.
-  const watchPapers = (await listPapers()).filter((p) => p.isPublished);
+  const watchPapers = await listPublishedPapers();
   const supabase = await createClient();
 
   const { data: attempts } = await supabase

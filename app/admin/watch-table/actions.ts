@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { run } from "@/lib/admin-result";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { generateQuestions, optionValues } from "@/lib/wt/generate";
 import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
@@ -17,6 +18,17 @@ import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
  * Every one re-checks that the caller is an admin: a server action is a public
  * endpoint, so a hidden button is never the security boundary.
  */
+
+/**
+ * The client used for the questions table.
+ *
+ * SELECT on watch_questions is revoked from `authenticated` so a candidate
+ * cannot read the answer column off the table directly. An admin's session is
+ * also `authenticated`, so the panel would be locked out of its own questions
+ * — it uses the service-role client instead. Every caller has already passed
+ * requireAdmin(), which is the real boundary.
+ */
+const questionStore = createAdminClient;
 
 /**
  * What to say when a write reports no error but changes nothing.
@@ -136,7 +148,7 @@ export async function createPaper(formData: FormData) {
 
   if (error) throw new Error(error.message);
 
-  await supabase.from("watch_questions").insert(
+  await questionStore().from("watch_questions").insert(
     questions.map((q, i) => ({
       paper_id: data.id,
       position: i,
@@ -318,9 +330,9 @@ export async function regenerateQuestions(formData: FormData) {
     usedByKind.set(picked.kind, [...(usedByKind.get(picked.kind) ?? []), picked.answer]);
   }
 
-  await supabase.from("watch_questions").delete().eq("paper_id", paper.id);
+  await questionStore().from("watch_questions").delete().eq("paper_id", paper.id);
 
-  const { error } = await supabase.from("watch_questions").insert(
+  const { error } = await questionStore().from("watch_questions").insert(
     chosen.map((c, i) => ({
       paper_id: paper.id,
       position: i,
@@ -365,16 +377,16 @@ export async function importQuestions(formData: FormData) {
     let offset = 0;
 
     if (append) {
-      const { count } = await supabase
+      const { count } = await questionStore()
         .from("watch_questions")
         .select("id", { count: "exact", head: true })
         .eq("paper_id", paper.id);
       offset = count ?? 0;
     } else {
-      await supabase.from("watch_questions").delete().eq("paper_id", paper.id);
+      await questionStore().from("watch_questions").delete().eq("paper_id", paper.id);
     }
 
-    const { data: inserted, error } = await supabase.from("watch_questions").insert(
+    const { data: inserted, error } = await questionStore().from("watch_questions").insert(
       parsed.map((q, i) => ({
         paper_id: paper.id,
         position: offset + i,
@@ -409,7 +421,7 @@ export async function deleteQuestion(formData: FormData) {
   const supabase = await createClient();
 
   const slug = String(formData.get("slug"));
-  const { error } = await supabase
+  const { error } = await questionStore()
     .from("watch_questions")
     .delete()
     .eq("id", String(formData.get("id")));
@@ -436,7 +448,7 @@ export async function saveQuestion(formData: FormData) {
     throw new Error(`The answer ${answer} is not one of the options ${options.join(", ")}`);
   }
 
-  const { error } = await supabase
+  const { error } = await questionStore()
     .from("watch_questions")
     .update({
       prompt_en: String(formData.get("prompt_en") ?? "").trim(),
@@ -550,7 +562,7 @@ export async function duplicatePaper(formData: FormData) {
 
     if (insErr || !copy) throw new Error(insErr?.message ?? "Could not create the copy");
 
-    const { data: questions, error: qErr } = await supabase
+    const { data: questions, error: qErr } = await questionStore()
       .from("watch_questions")
       .select("position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic")
       .eq("paper_id", source.id)
@@ -559,7 +571,7 @@ export async function duplicatePaper(formData: FormData) {
     if (qErr) throw new Error(qErr.message);
 
     if (questions?.length) {
-      const { error: copyErr } = await supabase
+      const { error: copyErr } = await questionStore()
         .from("watch_questions")
         .insert(questions.map((q) => ({ ...q, paper_id: copy.id })));
 

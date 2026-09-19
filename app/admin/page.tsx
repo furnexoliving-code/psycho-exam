@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { listTests } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
-import { listPapers } from "@/lib/wt/db";
+import { listPapersForAdmin } from "@/lib/wt/db";
 
 export default async function AdminHome() {
   const tests = await listTests(true);
   // Watch Table papers are a separate set of tables. Counting only the older
   // ones made the overview read "0 tests" while a paper sat published, and
   // "0 attempts" while students had already sat it.
-  const papers = await listPapers();
+  const papers = await listPapersForAdmin();
   const supabase = await createClient();
 
   const { count: studentCount } = await supabase
