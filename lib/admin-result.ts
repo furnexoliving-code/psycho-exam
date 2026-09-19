@@ -25,10 +25,12 @@ function isRedirect(error: unknown): boolean {
 export async function run(
   backTo: string,
   what: string,
-  body: () => Promise<void>,
+  /** May return a detail to show, such as how many rows were written. */
+  body: () => Promise<string | void>,
 ): Promise<never> {
+  let detail: string | void;
   try {
-    await body();
+    detail = await body();
   } catch (error) {
     if (isRedirect(error)) throw error;
 
@@ -36,7 +38,7 @@ export async function run(
     redirect(`${backTo}?error=${encodeURIComponent(`${what}: ${explain(message)}`)}`);
   }
 
-  redirect(`${backTo}?saved=${encodeURIComponent(what)}`);
+  redirect(`${backTo}?saved=${encodeURIComponent(detail ? `${what} — ${detail}` : what)}`);
 }
 
 /**

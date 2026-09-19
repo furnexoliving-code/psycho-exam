@@ -18,6 +18,17 @@ import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
  * endpoint, so a hidden button is never the security boundary.
  */
 
+/**
+ * What to say when a write reports no error but changes nothing.
+ *
+ * Postgres row level security refuses an UPDATE by matching no rows, not by
+ * raising an error, so this is indistinguishable from success unless the rows
+ * are read back.
+ */
+const NOTHING_CHANGED =
+  "the database accepted the request but changed nothing. This usually means your " +
+  "account is not an admin there — check the role on your row in the profiles table.";
+
 /** Human names for the question kinds, used as the default topic labels. */
 const TOPIC_OF: Record<QuestionKind, string> = {
   "highest-frequency": "Most frequent number",
@@ -162,7 +173,7 @@ export async function saveSettings(formData: FormData) {
     // error text.
     const fontScale = Math.min(2, Math.max(0.7, Number(formData.get("font_scale") ?? 1) || 1));
 
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
         title: String(formData.get("title") ?? "").trim(),
@@ -188,9 +199,11 @@ export async function saveSettings(formData: FormData) {
         },
         updated_at: new Date().toISOString(),
       })
-      .eq("slug", slug);
+      .eq("slug", slug)
+      .select("id");
 
     if (error) throw new Error(error.message);
+    if (!updated?.length) throw new Error(NOTHING_CHANGED);
     revalidatePath(`/admin/watch-table/${slug}`);  });
 }
 
@@ -202,7 +215,7 @@ export async function saveDiagram(formData: FormData) {
 
       const cells = readCells(formData);
 
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
         cells,
@@ -214,9 +227,11 @@ export async function saveDiagram(formData: FormData) {
         ),
         updated_at: new Date().toISOString(),
       })
-      .eq("slug", slug);
+      .eq("slug", slug)
+      .select("id");
 
     if (error) throw new Error(error.message);
+    if (!updated?.length) throw new Error(NOTHING_CHANGED);
     revalidatePath(`/admin/watch-table/${slug}`);  });
 }
 
@@ -359,7 +374,7 @@ export async function importQuestions(formData: FormData) {
       await supabase.from("watch_questions").delete().eq("paper_id", paper.id);
     }
 
-    const { error } = await supabase.from("watch_questions").insert(
+    const { data: inserted, error } = await supabase.from("watch_questions").insert(
       parsed.map((q, i) => ({
         paper_id: paper.id,
         position: offset + i,
@@ -372,10 +387,21 @@ export async function importQuestions(formData: FormData) {
         working_en: "",
         working_hi: "",
       })),
-    );
+    ).select("id");
 
     if (error) throw new Error(error.message);
-    revalidatePath(`/admin/watch-table/${slug}`);  });
+    // Reading the rows back proves they are really there. Without this the
+    // action reported success whenever the database merely declined quietly —
+    // which is exactly how "saved" appeared over an empty paper.
+    if ((inserted?.length ?? 0) !== parsed.length) {
+      throw new Error(
+        `${parsed.length} question(s) were sent but ${inserted?.length ?? 0} were stored. ` +
+          `The database accepted the request without saving, which usually means your ` +
+          `account is not an admin there. Check the role on your row in the profiles table.`,
+      );
+    }
+    revalidatePath(`/admin/watch-table/${slug}`);
+    return `${inserted.length} questions`;  });
 }
 
 export async function deleteQuestion(formData: FormData) {
@@ -459,16 +485,18 @@ export async function saveInstructions(formData: FormData) {
       throw new Error("The instruction screen cannot be left blank");
     }
 
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
         instructions,
         example_text: exampleText,
         updated_at: new Date().toISOString(),
       })
-      .eq("slug", slug);
+      .eq("slug", slug)
+      .select("id");
 
     if (error) throw new Error(error.message);
+    if (!updated?.length) throw new Error(NOTHING_CHANGED);
     revalidatePath(`/admin/watch-table/${slug}`);  });
 }
 
