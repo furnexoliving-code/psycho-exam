@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { listTests } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
+import { listPapers } from "@/lib/wt/db";
 
 export default async function AdminHome() {
   const tests = await listTests(true);
+  // Watch Table papers are a separate set of tables. Counting only the older
+  // ones made the overview read "0 tests" while a paper sat published, and
+  // "0 attempts" while students had already sat it.
+  const papers = await listPapers();
   const supabase = await createClient();
 
   const { count: studentCount } = await supabase
@@ -16,18 +21,27 @@ export default async function AdminHome() {
     .select("id", { count: "exact", head: true })
     .not("submitted_at", "is", null);
 
-  const published = tests.filter((t) => t.is_published).length;
-  const questions = tests.reduce((n, t) => n + t.question_count, 0);
+  const { count: watchAttemptCount } = await supabase
+    .from("watch_attempts")
+    .select("id", { count: "exact", head: true });
+
+  const published =
+    tests.filter((t) => t.is_published).length + papers.filter((p) => p.isPublished).length;
+  const total = tests.length + papers.length;
+  const questions =
+    tests.reduce((n, t) => n + t.question_count, 0) +
+    papers.reduce((n, p) => n + p.questionCount, 0);
+  const attempts = (attemptCount ?? 0) + (watchAttemptCount ?? 0);
 
   return (
     <>
       <h1 className="text-xl font-bold text-gray-900">Overview</h1>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-4">
-        <Stat label="Tests" value={`${published} / ${tests.length}`} note="published" />
+        <Stat label="Tests" value={`${published} / ${total}`} note="published" />
         <Stat label="Questions" value={String(questions)} note="across all tests" />
         <Stat label="Students" value={String(studentCount ?? 0)} note="registered" />
-        <Stat label="Attempts" value={String(attemptCount ?? 0)} note="submitted" />
+        <Stat label="Attempts" value={String(attempts)} note="submitted" />
       </div>
 
       <div className="mt-8 flex gap-3">

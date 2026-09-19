@@ -25,6 +25,20 @@ export default async function StudentsPage() {
     .limit(200);
 
   const { data: tests } = await supabase.from("tests").select("id, display_name");
+
+  // Watch Table attempts are kept in their own table. Reading only `attempts`
+  // left this page claiming "No submitted attempts yet" while students had
+  // already sat a Watch Table paper.
+  const { data: watchAttempts } = await supabase
+    .from("watch_attempts")
+    .select("id, paper_id, user_id, marks, total, attempted, submitted_at")
+    .order("submitted_at", { ascending: false })
+    .limit(100);
+
+  const { data: papers } = await supabase
+    .from("watch_papers")
+    .select("id, display_name");
+  const paperName = new Map((papers ?? []).map((p) => [p.id, p.display_name]));
   const testName = new Map((tests ?? []).map((t) => [t.id, t.display_name]));
   const studentName = new Map(
     (students ?? []).map((s) => [s.id, s.full_name || s.roll_no || "Unnamed"]),
@@ -74,7 +88,58 @@ export default async function StudentsPage() {
 
       <section className="mt-8">
         <h2 className="mb-2 text-[15px] font-bold text-gray-900">
-          Recent attempts ({attempts?.length ?? 0})
+          Watch Table attempts ({watchAttempts?.length ?? 0})
+        </h2>
+        {watchAttempts?.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr className="bg-rrb-banner text-left text-white">
+                  <th className="border border-gray-300 px-3 py-2">Student</th>
+                  <th className="border border-gray-300 px-3 py-2">Paper</th>
+                  <th className="border border-gray-300 px-3 py-2">Marks</th>
+                  <th className="border border-gray-300 px-3 py-2">Attempted</th>
+                  <th className="border border-gray-300 px-3 py-2">Accuracy</th>
+                  <th className="border border-gray-300 px-3 py-2">Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {watchAttempts.map((a) => (
+                  <tr key={a.id} className="bg-white even:bg-gray-50">
+                    <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">
+                      {/* Null when the paper was sat without signing in. */}
+                      {a.user_id ? studentName.get(a.user_id) ?? "—" : "Not signed in"}
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">
+                      {paperName.get(a.paper_id) ?? "—"}
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">
+                      {a.marks} / {a.total}
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">{a.attempted}</td>
+                    <td className="border border-gray-300 px-3 py-2">
+                      {a.attempted > 0
+                        ? `${((a.marks / a.attempted) * 100).toFixed(1)}%`
+                        : "—"}
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">
+                      {new Date(a.submitted_at).toLocaleString("en-IN")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="rounded border border-gray-300 bg-white p-5 text-center text-[13px] text-gray-500">
+            No Watch Table attempts yet.
+          </p>
+        )}
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-2 text-[15px] font-bold text-gray-900">
+          Other test attempts ({attempts?.length ?? 0})
         </h2>
         {attempts?.length ? (
           <div className="overflow-x-auto">
