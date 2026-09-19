@@ -250,7 +250,15 @@ async function statsFor({
   // Resolved once. Asking twice meant two round trips to the auth service on
   // every submit, which the candidate waits through.
   const profile = recordRequested ? await getProfile() : null;
-  let record = recordRequested;
+
+  // An attempt is only recorded for a signed-in candidate. This route is a
+  // public endpoint: without this, anyone could post to it repeatedly and each
+  // post would land in watch_attempts as an anonymous row. Those rows are the
+  // cohort every T-score, rank and percentile is measured against, so a
+  // stranger with curl could move every student's reported standing. A paper
+  // with an attempt limit was already closed to the signed-out; one without a
+  // limit was wide open.
+  let record = recordRequested && profile !== null;
 
   if (record && paper.max_attempts !== null && paper.max_attempts !== undefined) {
     // The same limit the exam page applies, applied again here. That page can
@@ -263,15 +271,13 @@ async function statsFor({
       .eq("paper_id", paper.id)
       .eq("user_id", profile?.id ?? "");
 
-    // A paper with a limit is not open to someone signed out: there is no
-    // account to count against.
-    if (!profile || (count ?? 0) >= Number(paper.max_attempts)) record = false;
+    if ((count ?? 0) >= Number(paper.max_attempts)) record = false;
   }
 
-  if (record) {
+  if (record && profile) {
     await supabase.from("watch_attempts").insert({
       paper_id: paper.id,
-      user_id: profile?.id ?? null,
+      user_id: profile.id,
       marks,
       total,
       attempted,

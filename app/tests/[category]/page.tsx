@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { PaperCard } from "@/components/PaperCard";
 import { requireUser } from "@/lib/auth";
-import { allowanceFor } from "@/lib/wt/attempts";
+import { allowancesFor } from "@/lib/wt/attempts";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { listPublishedPapers } from "@/lib/wt/db";
 
@@ -26,8 +26,10 @@ export default async function CategoryPage({
 
   const profile = await requireUser(`/tests/${id}`);
   const papers = (await listPublishedPapers()).filter((p) => p.category === id);
-  const allowances = await Promise.all(
-    papers.map((p) => allowanceFor(p.slug, profile.id)),
+  // One pair of queries for the whole list, not a pair per paper.
+  const allowances = await allowancesFor(
+    papers.map((p) => p.slug),
+    profile.id,
   );
 
   return (
@@ -63,8 +65,8 @@ export default async function CategoryPage({
           </p>
         ) : (
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            {papers.map((paper, i) => (
-              <PaperCard key={paper.id} paper={paper} allowance={allowances[i]} />
+            {papers.map((paper) => (
+              <PaperCard key={paper.id} paper={paper} allowance={allowances.get(paper.slug)!} />
             ))}
           </div>
         )}
