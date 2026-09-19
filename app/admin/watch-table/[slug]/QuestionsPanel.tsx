@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { SaveForm } from "@/components/admin/SaveForm";
 import type { WatchQuestion } from "@/lib/wt/types";
 import {
   deleteQuestion,
@@ -132,7 +133,7 @@ export function QuestionsPanel({
             </div>
           </div>
 
-          <form action={importQuestions} className="mt-4">
+          <SaveForm action={importQuestions} submitLabel="Upload questions" className="mt-4">
             <input type="hidden" name="slug" value={slug} />
             <textarea
               name="bulk"
@@ -155,13 +156,7 @@ export function QuestionsPanel({
               </span>
             </label>
 
-            <button
-              type="submit"
-              className="mt-3 rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
-            >
-              Upload questions
-            </button>
-          </form>
+          </SaveForm>
 
           <form
             action={regenerateQuestions}

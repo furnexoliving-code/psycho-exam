@@ -58,3 +58,32 @@ function explain(message: string): string {
   }
   return message;
 }
+
+/** What a save reports back to the form it came from. */
+export interface SaveState {
+  ok: boolean;
+  message: string;
+}
+
+/**
+ * Runs a save and hands the outcome back to the form, without navigating.
+ *
+ * The redirect in `run` above is what made every save reload the page and jump
+ * to the top — losing the admin's place on a long form after changing one
+ * field. Returning the outcome instead lets the page update where it stands:
+ * `revalidatePath` inside the body refreshes the server data, and React swaps
+ * in the new markup without a navigation.
+ */
+export async function attempt(
+  what: string,
+  body: () => Promise<string | void>,
+): Promise<SaveState> {
+  try {
+    const detail = await body();
+    return { ok: true, message: detail ? `${what} — ${detail}` : `${what} saved.` };
+  } catch (error) {
+    if (isRedirect(error)) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    return { ok: false, message: `${what}: ${explain(message)}` };
+  }
+}

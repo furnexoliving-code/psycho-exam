@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { run } from "@/lib/admin-result";
+import { attempt, run, type SaveState } from "@/lib/admin-result";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -182,9 +182,12 @@ export async function createPaper(formData: FormData) {
   redirect(`/admin/watch-table/${data.slug}`);
 }
 
-export async function saveSettings(formData: FormData) {
+export async function saveSettings(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
   const slug = String(formData.get("slug"));
-  return run(`/admin/watch-table/${slug}`, "Settings", async () => {
+  return attempt("Settings", async () => {
     await requireAdmin();
     const supabase = await createClient();
 
@@ -258,9 +261,12 @@ export async function saveSettings(formData: FormData) {
     revalidatePath(`/admin/watch-table/${slug}`);  });
 }
 
-export async function saveDiagram(formData: FormData) {
+export async function saveDiagram(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
   const slug = String(formData.get("slug"));
-  return run(`/admin/watch-table/${slug}`, "Diagram", async () => {
+  return attempt("Diagram", async () => {
     await requireAdmin();
     const supabase = await createClient();
 
@@ -397,9 +403,12 @@ export async function regenerateQuestions(formData: FormData) {
  * Nothing is deleted until the whole batch has parsed, so a typo on line 30
  * cannot leave the paper half-empty.
  */
-export async function importQuestions(formData: FormData) {
+export async function importQuestions(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
   const slug = String(formData.get("slug"));
-  return run(`/admin/watch-table/${slug}`, "Questions", async () => {
+  return attempt("Questions", async () => {
     await requireAdmin();
     const supabase = await createClient();
 
@@ -523,9 +532,12 @@ export async function deletePaper(formData: FormData) {
  * can never drift out of step: a paragraph exists in both languages or in
  * neither.
  */
-export async function saveInstructions(formData: FormData) {
+export async function saveInstructions(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
   const slug = String(formData.get("slug"));
-  return run(`/admin/watch-table/${slug}`, "Instructions", async () => {
+  return attempt("Instructions", async () => {
     await requireAdmin();
     const supabase = await createClient();
 

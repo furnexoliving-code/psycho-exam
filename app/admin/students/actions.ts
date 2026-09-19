@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { run } from "@/lib/admin-result";
+import { attempt, type SaveState } from "@/lib/admin-result";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidPhone, normalisePhone, phoneToEmail } from "@/lib/phone";
@@ -17,8 +17,11 @@ const BACK = "/admin/students";
  * behind the address, and a student waiting on a confirmation mail that can
  * never arrive would simply be locked out.
  */
-export async function createStudent(formData: FormData) {
-  return run(BACK, "Student", async () => {
+export async function createStudent(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Student", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
 
@@ -65,8 +68,11 @@ export async function createStudent(formData: FormData) {
 }
 
 /** Sets a new password for a student who has forgotten theirs. */
-export async function resetPassword(formData: FormData) {
-  return run(BACK, "Password", async () => {
+export async function resetPassword(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Password", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
 
@@ -88,8 +94,11 @@ export async function resetPassword(formData: FormData) {
  * Deleting would take the student's results with it, which is usually not what
  * an institute wants when someone leaves a batch.
  */
-export async function setActive(formData: FormData) {
-  return run(BACK, "Account", async () => {
+export async function setActive(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Account", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
 
@@ -125,8 +134,11 @@ export async function setActive(formData: FormData) {
  * already taken — a partial run has to be legible, because the admin has to
  * know who still needs an account.
  */
-export async function importStudents(formData: FormData) {
-  return run(BACK, "Students", async () => {
+export async function importStudents(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Students", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
 

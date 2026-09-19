@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DIRECTIONS, DIRECTION_NAME, resolveFeatures, resolveResultView } from "@/lib/wt/types";
 import { deletePaper, duplicatePaper, saveDiagram, saveSettings } from "../actions";
 import { formatInstructionLines } from "@/lib/wt/parse-instructions";
+import { SaveForm } from "@/components/admin/SaveForm";
 import { DiagramImageField } from "./DiagramImageField";
 import { InstructionsEditor } from "./InstructionsEditor";
 import { QuestionsPanel } from "./QuestionsPanel";
@@ -13,13 +14,10 @@ import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./
 
 export default async function EditWatchPaper({
   params,
-  searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   const { slug } = await params;
-  const { error: saveError, saved } = await searchParams;
   const paper = await loadPaperForAdmin(slug);
   if (!paper) notFound();
 
@@ -43,20 +41,6 @@ export default async function EditWatchPaper({
 
   return (
     <>
-      {saveError && (
-        <p
-          role="alert"
-          className="mb-4 rounded border border-red-400 bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-800"
-        >
-          Not saved — {saveError}
-        </p>
-      )}
-      {saved && (
-        <p className="mb-4 rounded border border-green-300 bg-green-50 px-4 py-3 text-[13px] font-semibold text-green-800">
-          {saved} saved.
-        </p>
-      )}
-
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-bold text-gray-900">{paper.displayName}</h1>
         <Link
@@ -84,7 +68,7 @@ export default async function EditWatchPaper({
       <section className="mt-5 rounded border border-gray-300 bg-white p-5">
         <h2 className="text-[15px] font-bold text-gray-900">Timers and controls</h2>
 
-        <form action={saveSettings} className="mt-3">
+        <SaveForm action={saveSettings} submitLabel="Save settings" className="mt-3">
           <input type="hidden" name="slug" value={slug} />
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -313,13 +297,7 @@ export default async function EditWatchPaper({
             </span>
           </label>
 
-          <button
-            type="submit"
-            className="mt-4 rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
-          >
-            Save settings
-          </button>
-        </form>
+        </SaveForm>
       </section>
 
       {/* ---------------------------- Instructions ---------------------------- */}
@@ -347,7 +325,11 @@ export default async function EditWatchPaper({
           letter and the number inside its square.
         </p>
 
-        <form action={saveDiagram} className="mt-3 flex flex-col gap-6 lg:flex-row">
+        <SaveForm
+          action={saveDiagram}
+          submitLabel="Save diagram"
+          className="mt-3 flex flex-col gap-6 lg:flex-row lg:flex-wrap"
+        >
           <input type="hidden" name="slug" value={slug} />
 
           <div className="min-w-0 flex-1">
@@ -409,12 +391,6 @@ export default async function EditWatchPaper({
               </span>
             </label>
 
-            <button
-              type="submit"
-              className="mt-4 rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
-            >
-              Save diagram
-            </button>
           </div>
 
           <div className="shrink-0 lg:w-[300px]">
@@ -423,7 +399,7 @@ export default async function EditWatchPaper({
             </p>
             <WatchTableDiagram table={paper.tables[0]} />
           </div>
-        </form>
+        </SaveForm>
       </section>
 
       {/* ----------------------------- Questions ------------------------------ */}

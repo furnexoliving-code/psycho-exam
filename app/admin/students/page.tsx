@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatClock } from "@/lib/scoring";
 import { createStudent, resetPassword, setActive } from "./actions";
+import { RowForm } from "@/components/admin/RowForm";
+import { SaveForm } from "@/components/admin/SaveForm";
 import { BulkStudents } from "./BulkStudents";
 
 interface AttemptScore {
@@ -10,12 +12,7 @@ interface AttemptScore {
   overallAccuracy?: number;
 }
 
-export default async function StudentsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string; saved?: string }>;
-}) {
-  const { error: saveError, saved } = await searchParams;
+export default async function StudentsPage() {
   const supabase = await createClient();
 
   const { data: students } = await supabase
@@ -53,17 +50,6 @@ export default async function StudentsPage({
 
   return (
     <>
-      {saveError && (
-        <p role="alert" className="mb-4 rounded border border-red-400 bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-800">
-          Not saved — {saveError}
-        </p>
-      )}
-      {saved && (
-        <p className="mb-4 rounded border border-green-300 bg-green-50 px-4 py-3 text-[13px] font-semibold text-green-800">
-          {saved} saved.
-        </p>
-      )}
-
       <h1 className="text-xl font-bold text-gray-900">Students &amp; Results</h1>
 
       <section className="mt-4 rounded border border-gray-300 bg-white p-5">
@@ -73,7 +59,12 @@ export default async function StudentsPage({
           password you set here — that is how they sign in.
         </p>
 
-        <form action={createStudent} className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SaveForm
+          action={createStudent}
+          submitLabel="Create the account"
+          className="mt-3"
+        >
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block">
             <span className="mb-1 block text-[12px] font-semibold text-gray-700">Name</span>
             <input name="full_name" required className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
@@ -102,15 +93,8 @@ export default async function StudentsPage({
               className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
             />
           </label>
-          <div className="sm:col-span-2 lg:col-span-4">
-            <button
-              type="submit"
-              className="rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
-            >
-              Create the account
-            </button>
           </div>
-        </form>
+        </SaveForm>
       </section>
 
       <section className="mt-5">
@@ -142,7 +126,7 @@ export default async function StudentsPage({
                       {new Date(s.created_at).toLocaleDateString("en-IN")}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <form action={setActive}>
+                      <RowForm action={setActive}>
                         <input type="hidden" name="id" value={s.id} />
                         <input type="hidden" name="active" value={String(!s.is_active)} />
                         <button
@@ -155,10 +139,10 @@ export default async function StudentsPage({
                         >
                           {s.is_active ? "On — switch off" : "Off — switch on"}
                         </button>
-                      </form>
+                      </RowForm>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <form action={resetPassword} className="flex gap-1">
+                      <RowForm action={resetPassword} className="flex gap-1">
                         <input type="hidden" name="id" value={s.id} />
                         <input
                           name="password"
@@ -173,7 +157,7 @@ export default async function StudentsPage({
                         >
                           Set
                         </button>
-                      </form>
+                      </RowForm>
                     </td>
                   </tr>
                 ))}

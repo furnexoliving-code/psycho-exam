@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { SaveForm } from "@/components/admin/SaveForm";
 import { saveInstructions } from "../actions";
 
 const SAMPLE = `Read every question carefully. | हर प्रश्न ध्यान से पढ़ें।
@@ -26,7 +27,7 @@ export function InstructionsEditor({
   const [example, setExample] = useState(exampleText);
 
   return (
-    <form action={saveInstructions} className="mt-4">
+    <SaveForm action={saveInstructions} submitLabel="Save the instructions" className="mt-4">
       <input type="hidden" name="slug" value={slug} />
 
       <div className="rounded border border-gray-300 bg-gray-50 p-3">
@@ -91,12 +92,6 @@ export function InstructionsEditor({
         />
       </div>
 
-      <button
-        type="submit"
-        className="mt-5 rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
-      >
-        Save the instructions
-      </button>
-    </form>
+    </SaveForm>
   );
 }

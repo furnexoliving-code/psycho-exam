@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { SaveForm } from "@/components/admin/SaveForm";
 import { importStudents } from "./actions";
 
 const SAMPLE = `Name,Roll no,Mobile,Password
@@ -71,7 +72,7 @@ export function BulkStudents() {
         </div>
       </div>
 
-      <form action={importStudents} className="mt-3">
+      <SaveForm action={importStudents} submitLabel="Create these accounts" className="mt-3">
         <textarea
           name="bulk"
           rows={8}
@@ -81,13 +82,7 @@ export function BulkStudents() {
           placeholder="Paste your student list here, or choose a file above…"
           className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
         />
-        <button
-          type="submit"
-          className="mt-3 rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
-        >
-          Create these accounts
-        </button>
-      </form>
+      </SaveForm>
     </section>
   );
 }
