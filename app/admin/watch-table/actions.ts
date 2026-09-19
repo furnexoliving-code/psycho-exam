@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { generateQuestions, optionValues } from "@/lib/wt/generate";
 import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
-import { parseQuestionLines } from "@/lib/wt/parse-questions";
+import { MAX_OPTION, parseQuestionLines } from "@/lib/wt/parse-questions";
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
@@ -132,8 +132,8 @@ function readCells(formData: FormData, prefix = "cell"): WatchCell[] {
     const value = Number(formData.get(`${prefix}_${direction}_value`) ?? 0);
 
     if (!letter) throw new Error(`${direction} has no letter`);
-    if (!Number.isInteger(value) || value < 0) {
-      throw new Error(`${direction} needs a whole number`);
+    if (!Number.isInteger(value) || value < 0 || value >= MAX_OPTION) {
+      throw new Error(`${direction} needs a whole number below a million`);
     }
     cells.push({ direction: direction as Direction, letter, value });
   }
@@ -637,8 +637,10 @@ export async function saveQuestion(
       .split(/[,\s]+/)
       .filter(Boolean);
     const options = tokens.map((v) => Number(v));
-    const bad = tokens.find((v, i) => !Number.isInteger(options[i]));
-    if (bad !== undefined) throw new Error(`"${bad}" is not a whole number`);
+    const bad = tokens.find(
+      (v, i) => !Number.isInteger(options[i]) || Math.abs(options[i]) >= MAX_OPTION,
+    );
+    if (bad !== undefined) throw new Error(`"${bad}" is not a whole number below a million`);
     if (options.length < 2) throw new Error("A question needs at least two options");
     if (options.length > 10) throw new Error("A question can offer at most ten options");
     if (new Set(options).size !== options.length) {

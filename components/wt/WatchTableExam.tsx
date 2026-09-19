@@ -175,7 +175,7 @@ export function WatchTableExam({
         paused={state.paused}
         showPause={features.allowPause}
         showFullscreen={features.allowFullscreen}
-        onTogglePause={() => dispatch({ type: "pause", paused: !state.paused })}
+        onTogglePause={() => dispatch({ type: "pause", paused: !state.paused, now: Date.now() })}
         onToggleFullscreen={() => {
           if (document.fullscreenElement) void document.exitFullscreen();
           else void document.documentElement.requestFullscreen().catch(() => {});
@@ -322,7 +322,7 @@ export function WatchTableExam({
         body="The clock is stopped. Resume when you are ready."
         confirmLabel="Resume"
         cancelLabel="Stay paused"
-        onConfirm={() => dispatch({ type: "pause", paused: false })}
+        onConfirm={() => dispatch({ type: "pause", paused: false, now: Date.now() })}
         onCancel={() => undefined}
       />
 

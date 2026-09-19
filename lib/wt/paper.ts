@@ -1,4 +1,5 @@
 import type { WatchPaper } from "./types";
+import { retime } from "./retime";
 import bundled from "@/data/watch-table-1.json";
 
 /**
@@ -24,17 +25,13 @@ export function defaultInstructions(
   instructionMin: number,
   testMin: number,
 ): WatchPaper["instructions"] {
-  const sampleRead = SAMPLE_PAPER.instructionTimeLimitMin;
-  const sampleTest = SAMPLE_PAPER.timeLimitMin;
-  const swap = (text: string) =>
-    text
-      .replace(new RegExp(`\\b${sampleRead} (minutes|मिनट)`, "g"), `${instructionMin} $1`)
-      .replace(new RegExp(`\\b${sampleTest} (minute|मिनट)`, "g"), `${testMin} $1`);
+  const from = { read: SAMPLE_PAPER.instructionTimeLimitMin, test: SAMPLE_PAPER.timeLimitMin };
+  const to = { read: instructionMin, test: testMin };
 
   return SAMPLE_PAPER.instructions.map((block) => ({
     ...block,
-    en: swap(block.en),
-    hi: swap(block.hi),
+    en: retime(block.en, from, to),
+    hi: retime(block.hi, from, to),
   }));
 }
 

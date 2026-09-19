@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { isConfigured, requireUser } from "@/lib/auth";
-import { loadPaperForCandidate } from "@/lib/wt/db";
+import { headerOf, loadPaperHeader } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { ResultView } from "./ResultView";
 
@@ -14,11 +14,14 @@ export default async function ResultPage({
   // A result belongs to the account that sat the paper.
   const who = isConfigured() ? await requireUser(`/watch-table/${paperId}/result`) : null;
 
-  // Deliberately the CANDIDATE view — it carries no answer key. The marks come
-  // from /api/watch-table/score, which looks the key up server-side.
+  // Only the paper's name and diagram: no questions, and no answer key. The
+  // marks come from /api/watch-table/score, which looks the key up server-side.
   const paper = isConfigured()
-    ? await loadPaperForCandidate(paperId)
-    : getBundledPaper(paperId);
+    ? await loadPaperHeader(paperId)
+    : (() => {
+        const bundled = getBundledPaper(paperId);
+        return bundled ? headerOf(bundled) : null;
+      })();
 
   if (!paper) notFound();
   return (
@@ -28,7 +31,7 @@ export default async function ResultPage({
       allowedSec={paper.timeLimitMin * 60}
       // The review shows the same diagram the candidate sat with, so a question
       // can be re-read against it rather than from memory.
-      table={paper.tables[0]}
+      table={paper.table}
       imageUrl={paper.imageUrl}
       imageWidthPct={paper.imageWidthPct}
       storageOwner={who?.id ?? "guest"}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAll } from "@/lib/wt/cohort";
 import { questionStats } from "@/lib/wt/question-stats";
 
 /**
@@ -37,16 +38,24 @@ export default async function PaperAnalysisPage({
     .eq("paper_id", paper.id)
     .order("position");
 
-  const { data: attempts } = await supabase
-    .from("watch_attempts")
-    .select("responses")
-    .eq("paper_id", paper.id);
+  // Page by page: a plain select stops at a thousand attempts without saying so.
+  const attempts = await fetchAll<{ responses: Record<string, number> | null }>((from, to) =>
+    supabase
+      .from("watch_attempts")
+      .select("responses")
+      .eq("paper_id", paper.id)
+      .order("submitted_at", { ascending: true })
+      .order("id")
+      .range(from, to),
+  );
 
-  const sheets = (attempts ?? [])
+  const ids = new Set((questions ?? []).map((q) => q.id));
+  const sheets = attempts
     .map((a) => (a.responses ?? {}) as Record<string, number>)
-    // Attempts recorded before responses were kept arrive empty; counting them
-    // would report everything as skipped.
-    .filter((r) => Object.keys(r).length > 0);
+    // Attempts recorded before responses were kept arrive empty, and attempts
+    // of an earlier question set answer ids that no longer exist; counting
+    // either would report every question as skipped.
+    .filter((r) => Object.keys(r).some((k) => ids.has(k)));
 
   const stats = questionStats(
     (questions ?? []).map((q) => ({
@@ -59,7 +68,7 @@ export default async function PaperAnalysisPage({
     sheets,
   );
 
-  const older = (attempts?.length ?? 0) - sheets.length;
+  const older = attempts.length - sheets.length;
 
   return (
     <>
@@ -86,8 +95,8 @@ export default async function PaperAnalysisPage({
       {older > 0 && (
         <p className="mt-3 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
           {older} earlier attempt{older === 1 ? " is" : "s are"} not counted here — they
-          were recorded before per-question answers were kept. New attempts will
-          all appear.
+          were recorded before per-question answers were kept, or on an earlier set
+          of questions. New attempts will all appear.
         </p>
       )}
 

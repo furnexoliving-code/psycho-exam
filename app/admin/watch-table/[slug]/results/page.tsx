@@ -2,10 +2,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { tScore } from "@/lib/wt/tscore";
-import { cohortFor, cohortMarks } from "@/lib/wt/cohort";
+import {
+  aggregateFromRows,
+  cohortFromMoments,
+  cohortMarks,
+  fetchAll,
+  momentsFromAggregate,
+  type AttemptMark,
+  type CohortAggregate,
+} from "@/lib/wt/cohort";
 import { decideCutOff } from "@/lib/wt/cutoff";
 import { resolveResultView } from "@/lib/wt/types";
 import { ResultsTable, type ResultRow } from "./ResultsTable";
+
+interface AttemptRow extends AttemptMark {
+  id: string;
+  attempted: number;
+  duration_sec: number | null;
+}
 
 export default async function PaperResultsPage({
   params,
@@ -22,28 +36,44 @@ export default async function PaperResultsPage({
     .maybeSingle();
   if (!paper) notFound();
 
-  const [{ data: attempts }, { count: questionCount }] = await Promise.all([
+  const { count: questionCount } = await supabase
+    .from("watch_questions_public")
+    .select("id", { count: "exact", head: true })
+    .eq("paper_id", paper.id);
+  const total = questionCount ?? 0;
+
+  // Every attempt, page by page — a plain select stops at a thousand — and
+  // the cohort summed by the database, the same function the candidate's
+  // own result uses, so the two can never disagree.
+  const [rows, aggregate] = await Promise.all([
+    fetchAll<AttemptRow>((from, to) =>
+      supabase
+        .from("watch_attempts")
+        .select("id, user_id, marks, total, attempted, duration_sec, submitted_at")
+        .eq("paper_id", paper.id)
+        .order("submitted_at", { ascending: false })
+        .order("id")
+        .range(from, to),
+    ),
     supabase
-      .from("watch_attempts")
-      .select("id, user_id, marks, total, attempted, duration_sec, submitted_at")
-      .eq("paper_id", paper.id)
-      .order("submitted_at", { ascending: false }),
-    supabase
-      .from("watch_questions_public")
-      .select("id", { count: "exact", head: true })
-      .eq("paper_id", paper.id),
+      .rpc("watch_cohort", { p_paper: paper.id, p_total: total, p_user: null, p_marks: 0 })
+      .maybeSingle(),
   ]);
 
-  const rows = attempts ?? [];
   const view = resolveResultView(paper.result_view ?? undefined);
 
-  // The same figures the candidate's own result was measured against — the
-  // same module, so the two never disagree: one mark per candidate, their
-  // latest, over the paper's current length.
-  const marks = cohortMarks(rows, questionCount ?? 0);
-  const cohort = cohortFor(marks, paper);
+  // One mark per candidate, their latest, over the paper's current length.
+  // Without the database function (schema file not re-run yet) the same sum
+  // is taken here from the rows.
+  const agg =
+    aggregate.error || !aggregate.data
+      ? aggregateFromRows(rows, null, total, 0)
+      : (aggregate.data as CohortAggregate);
+  const cohort = cohortFromMoments(momentsFromAggregate(agg, null), paper);
   const enough = cohort?.source === "cohort";
   const { mean, sd } = cohort ?? { mean: 0, sd: 0 };
+  // For the rank column: everyone's latest, in memory.
+  const marks = cohortMarks(rows, total);
 
   // Names come from profiles; an attempt taken without signing in has none.
   const userIds = [...new Set(rows.map((a) => a.user_id).filter(Boolean))] as string[];

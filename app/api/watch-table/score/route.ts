@@ -11,7 +11,16 @@ import {
 } from "@/lib/wt/types";
 import { closeExpiredSitting, closeSitting, lastSubmission } from "@/lib/wt/session";
 import { decideCutOff, type CutOffVerdict } from "@/lib/wt/cutoff";
-import { cohortFor, cohortMarks, type AttemptMark } from "@/lib/wt/cohort";
+import { MAX_OPTION } from "@/lib/wt/parse-questions";
+import {
+  aggregateFromRows,
+  cohortFromMoments,
+  fetchAll,
+  momentsFromAggregate,
+  standingFromAggregate,
+  type AttemptMark,
+  type CohortAggregate,
+} from "@/lib/wt/cohort";
 
 /**
  * Scores an attempt on the server.
@@ -238,7 +247,7 @@ function toAnswers(raw: unknown): Map<string, number> {
     for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
       if (given.size >= MAX_ANSWERS) break;
       if (key.length > MAX_KEY_LENGTH) continue;
-      if (typeof value === "number" && Number.isInteger(value) && Math.abs(value) < 1e6) {
+      if (typeof value === "number" && Number.isInteger(value) && Math.abs(value) < MAX_OPTION) {
         given.set(key, value);
       }
     }
@@ -390,19 +399,29 @@ async function statsFor({
     tScore: paper.cut_off_tscore === null ? null : Number(paper.cut_off_tscore),
   };
 
-  // Every attempt of the paper, in one query. The cohort, this candidate's
-  // own history and their count against the attempt limit all come out of it.
-  const { data } = await supabase
-    .from("watch_attempts")
-    .select("user_id, marks, total, attempted, duration_sec, submitted_at")
-    .eq("paper_id", paper.id)
-    .order("submitted_at", { ascending: true });
+  // The cohort as one sum, done by the database, and this candidate's own
+  // attempts — side by side. Fetching every attempt of the paper here used
+  // to stop quietly at a thousand rows, so the figures went wrong for
+  // exactly the papers with the most candidates.
+  const [aggregate, { data: ownRows }] = await Promise.all([
+    supabase
+      .rpc("watch_cohort", { p_paper: paper.id, p_total: total, p_user: userId, p_marks: marks })
+      .maybeSingle(),
+    supabase
+      .from("watch_attempts")
+      .select("marks, total, attempted, duration_sec, submitted_at")
+      .eq("paper_id", paper.id)
+      .eq("user_id", userId)
+      .order("submitted_at", { ascending: true }),
+  ]);
 
-  const rows = (data ?? []) as (AttemptMark & {
-    attempted: number;
-    duration_sec: number | null;
-  })[];
-  const own = () => rows.filter((r) => r.user_id === userId);
+  const history: HistoryPoint[] = (ownRows ?? []).map((a) => ({
+    at: new Date(a.submitted_at as string).getTime(),
+    marks: a.marks as number,
+    total: a.total as number,
+    attempted: a.attempted as number,
+    durationSec: (a.duration_sec as number | null) ?? null,
+  }));
 
   // The same limit the exam page applies, applied again here. That page can
   // be skipped — this route is reachable on its own — so the count must be
@@ -410,9 +429,10 @@ async function statsFor({
   // handed out.
   let record = shouldRecord;
   if (record && paper.max_attempts !== null && paper.max_attempts !== undefined) {
-    if (own().length >= Number(paper.max_attempts)) record = false;
+    if (history.length >= Number(paper.max_attempts)) record = false;
   }
 
+  let recorded = false;
   if (record) {
     const { data: made } = await supabase
       .from("watch_attempts")
@@ -433,60 +453,52 @@ async function statsFor({
 
     // Counted into the figures below only once it is actually on record.
     if (made) {
-      rows.push({
-        user_id: userId,
+      recorded = true;
+      history.push({
+        at: new Date(made.submitted_at as string).getTime(),
         marks,
         total,
         attempted,
-        duration_sec: durationSec,
-        submitted_at: made.submitted_at as string,
+        durationSec,
       });
     }
   }
 
-  // One mark per candidate, their latest. The candidate's own standing is
-  // measured against everyone ELSE's latest plus this paper — whether or not
-  // this paper was recorded — so the same marks always give the same rank.
-  const all = cohortMarks(rows, total);
-  const others = cohortMarks(
-    rows.filter((r) => r.user_id !== userId),
-    total,
-  );
+  // A database the schema file has not been re-run on has no watch_cohort()
+  // yet. The rows are read instead — page by page — so no result is refused.
+  let agg = (aggregate.data as CohortAggregate | null) ?? null;
+  if (aggregate.error || !agg) {
+    const rows = await fetchAll<AttemptMark>((from, to) =>
+      supabase
+        .from("watch_attempts")
+        .select("user_id, marks, total, submitted_at")
+        .eq("paper_id", paper.id)
+        .order("submitted_at", { ascending: true })
+        .order("id")
+        .range(from, to),
+    );
+    agg = aggregateFromRows(
+      // The row just written is already among these; keep it out and let it
+      // come back in as the contribution below, the same as the RPC path.
+      recorded ? rows.filter((r) => r.user_id !== userId) : rows,
+      userId,
+      total,
+      marks,
+    );
+    if (recorded) agg.own_latest = null;
+  }
+
+  // One mark per candidate, their latest: everyone else's, plus this
+  // candidate's own — the mark just recorded, or their previous latest.
+  const contribution = recorded ? marks : agg.own_latest;
 
   return {
-    cohort: cohortFor(all, paper),
-    standing: standingIn([...others, marks], marks),
+    cohort: cohortFromMoments(momentsFromAggregate(agg, contribution), paper),
+    standing: standingFromAggregate(agg),
     cutOff,
     expertComment: paper.expert_comment ?? null,
     resultView: (paper.result_view ?? {}) as ResultView,
-    history: own().map((a) => ({
-      at: new Date(a.submitted_at).getTime(),
-      marks: a.marks,
-      total: a.total,
-      attempted: a.attempted,
-      durationSec: a.duration_sec ?? null,
-    })),
-  };
-}
-
-/**
- * Rank and percentile within the cohort.
- *
- * Equal marks share a rank — "competition ranking", so two candidates tied at
- * the top are both 1st and the next is 3rd. The percentile is the share of the
- * cohort scoring STRICTLY less, so the bottom scorer is not told they beat
- * themselves.
- */
-function standingIn(all: number[], marks: number): Standing | null {
-  if (all.length === 0) return null;
-
-  const better = all.filter((m) => m > marks).length;
-  const worse = all.filter((m) => m < marks).length;
-
-  return {
-    rank: better + 1,
-    outOf: all.length,
-    percentile: (worse / all.length) * 100,
+    history,
   };
 }
 

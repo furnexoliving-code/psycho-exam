@@ -11,11 +11,17 @@ import { SetupNotice } from "./SetupNotice";
  * student anywhere at all.
  */
 function safeNext(next: string | undefined): string {
-  // A path on this site starts with one slash and nothing that a browser
-  // could read as a host: not a second slash, and no backslash anywhere —
-  // the URL parser turns "/\evil.com" into https://evil.com/.
-  if (!next || !/^\/(?![\/\\])/.test(next) || next.includes("\\")) return "/dashboard";
-  return next;
+  if (!next || !next.startsWith("/")) return "/dashboard";
+  // Judged by the same parser the browser uses, so every spelling of "another
+  // site" — //evil.com, /\evil.com, a tab or newline before the host — is
+  // caught by the one rule: it must resolve to THIS origin.
+  try {
+    const url = new URL(next, "http://x");
+    if (url.origin !== "http://x") return "/dashboard";
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return "/dashboard";
+  }
 }
 
 export default async function LoginPage({

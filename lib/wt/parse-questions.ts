@@ -21,6 +21,14 @@ export interface ParsedQuestion {
   topic: string;
 }
 
+/**
+ * The largest number an option may be. The same bound applies wherever a
+ * number enters — the upload, the inline editor, the diagram — and where an
+ * answer arrives for marking, so no value can be accepted here and refused
+ * there.
+ */
+export const MAX_OPTION = 1_000_000;
+
 export function parseQuestionLines(text: string): ParsedQuestion[] {
   const out: ParsedQuestion[] = [];
 
@@ -43,7 +51,7 @@ export function parseQuestionLines(text: string): ParsedQuestion[] {
       .filter(Boolean)
       .map((v) => Number(v));
 
-    if (options.some((v) => !Number.isInteger(v) || Math.abs(v) >= 1_000_000)) {
+    if (options.some((v) => !Number.isInteger(v) || Math.abs(v) >= MAX_OPTION)) {
       throw new Error(`Line ${i + 1}: options must be whole numbers below a million, found "${optionsRaw}"`);
     }
     if (options.length < 2) {

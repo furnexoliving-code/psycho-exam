@@ -235,3 +235,49 @@ function withCounts(
     maxAttempts: r.max_attempts === null || r.max_attempts === undefined ? null : Number(r.max_attempts),
   }));
 }
+
+/** What the result page shows beside the review: the diagram and the name. No questions, no key. */
+export interface PaperHeader {
+  displayName: string;
+  timeLimitMin: number;
+  table: WatchPaper["tables"][number];
+  imageUrl?: string;
+  imageWidthPct?: number;
+}
+
+/**
+ * The result page used to load the whole paper, questions included, and use
+ * five fields of it — while the score route fetched the same questions again
+ * with the key. This reads the five fields.
+ */
+export async function loadPaperHeader(slug: string): Promise<PaperHeader | null> {
+  const supabase = await createClient();
+  const { data: row } = await supabase
+    .from("watch_papers")
+    .select("display_name, time_limit_min, cells, image_url, image_width_pct")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!row) return null;
+
+  const cells = (row.cells as WatchCell[] | null)?.length
+    ? (row.cells as WatchCell[])
+    : SAMPLE_PAPER.tables[0].cells;
+
+  return {
+    displayName: row.display_name,
+    timeLimitMin: row.time_limit_min,
+    table: { label: "No. 1", cells },
+    imageUrl: row.image_url ?? undefined,
+    imageWidthPct: row.image_width_pct ?? undefined,
+  };
+}
+
+export function headerOf(paper: WatchPaper): PaperHeader {
+  return {
+    displayName: paper.displayName,
+    timeLimitMin: paper.timeLimitMin,
+    table: paper.tables[0],
+    imageUrl: paper.imageUrl,
+    imageWidthPct: paper.imageWidthPct,
+  };
+}

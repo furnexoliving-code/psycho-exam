@@ -350,6 +350,59 @@ with (security_invoker = true) as
 grant select on public.watch_question_counts to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- The cohort, as one aggregate (added later)
+--
+-- Every result view used to fetch every attempt of the paper to work out a
+-- mean, a standard deviation and a rank — and past a thousand rows the
+-- fetch was quietly cut short, so the figures were wrong for exactly the
+-- papers with the most candidates. The database now does the sum.
+--
+-- One mark per candidate: their LATEST attempt, over the paper's current
+-- length. Rows with no account (from before accounts were required) each
+-- count once. Everyone EXCEPT p_user is summed, so the caller can add the
+-- candidate's own contribution — the mark just recorded, or their previous
+-- latest — and rank them against everyone else. p_user may be null: then
+-- everyone is "others".
+-- ---------------------------------------------------------------------------
+create or replace function public.watch_cohort(
+  p_paper uuid,
+  p_total integer,
+  p_user uuid,
+  p_marks integer
+)
+returns table (
+  others_n      integer,
+  others_sum    bigint,
+  others_sumsq  bigint,
+  others_better integer,
+  others_worse  integer,
+  own_latest    integer
+)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  with latest as (
+    select distinct on (coalesce(a.user_id::text, a.id::text)) a.user_id, a.marks
+    from public.watch_attempts a
+    where a.paper_id = p_paper and a.total = p_total
+    order by coalesce(a.user_id::text, a.id::text), a.submitted_at desc
+  )
+  select
+    count(*) filter (where user_id is distinct from p_user)::integer,
+    coalesce(sum(marks) filter (where user_id is distinct from p_user), 0)::bigint,
+    coalesce(sum(marks * marks) filter (where user_id is distinct from p_user), 0)::bigint,
+    count(*) filter (where user_id is distinct from p_user and marks > p_marks)::integer,
+    count(*) filter (where user_id is distinct from p_user and marks < p_marks)::integer,
+    (select l.marks from latest l where p_user is not null and l.user_id = p_user limit 1)
+  from latest;
+$$;
+
+grant execute on function public.watch_cohort(uuid, integer, uuid, integer)
+  to authenticated, service_role;
+
+-- ---------------------------------------------------------------------------
 -- A cleared worked example stays cleared (added later)
 --
 -- The example paragraphs defaulted to an empty list, which the app read as

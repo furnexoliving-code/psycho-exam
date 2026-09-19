@@ -61,6 +61,10 @@ export interface AttemptState {
    * the time that actually passed.
    */
   lastTickAt?: number;
+  /** Seconds banked by finished pauses, credited back against the server's clock. */
+  pausedSec?: number;
+  /** When the current pause began, by the wall clock. */
+  pausedAt?: number;
 }
 
 type Action =
@@ -69,7 +73,7 @@ type Action =
   | { type: "clear"; questionId: string }
   | { type: "goto"; index: number }
   | { type: "begin-test" }
-  | { type: "pause"; paused: boolean }
+  | { type: "pause"; paused: boolean; now: number }
   | { type: "submit" }
   | { type: "scroll-lock"; on: boolean }
   | { type: "restore"; state: AttemptState };
@@ -153,10 +157,23 @@ function makeReducer(questionCount: number) {
           currentIndex: Math.min(Math.max(0, action.index), questionCount - 1),
         };
 
-      case "pause":
+      case "pause": {
+        if (action.paused === state.paused) return state;
+        if (action.paused) return { ...state, paused: true, pausedAt: action.now };
         // Resuming restarts the wall clock from now; the pause itself is not
-        // time passed.
-        return { ...state, paused: action.paused, lastTickAt: action.paused ? state.lastTickAt : undefined };
+        // time passed, and how long it held is banked so a reload can credit
+        // it back against the server's clock, which never stopped.
+        const held = state.pausedAt
+          ? Math.max(0, Math.round((action.now - state.pausedAt) / 1000))
+          : 0;
+        return {
+          ...state,
+          paused: false,
+          lastTickAt: undefined,
+          pausedAt: undefined,
+          pausedSec: (state.pausedSec ?? 0) + held,
+        };
+      }
 
       case "submit":
         return { ...state, submitted: true };
@@ -201,12 +218,26 @@ export function useAttempt(
 
       const testSec = paper.timeLimitMin * 60;
 
+      // The server's clock never pauses. Where the paper allows a pause, the
+      // time this browser recorded as paused is credited back, or a reload
+      // after a pause would take those minutes off the clock without a word.
+      const pausedSoFar =
+        (state.pausedSec ?? 0) +
+        (state.paused && state.pausedAt
+          ? Math.max(0, Math.round((Date.now() - state.pausedAt) / 1000))
+          : 0);
+      const questionElapsed =
+        serverQuestionElapsedSec === null
+          ? null
+          : Math.max(0, serverQuestionElapsedSec - pausedSoFar);
+      const elapsed = Math.max(0, serverElapsedSec - pausedSoFar);
+
       // The questions have already opened, by the server's record: the test
       // clock can only have what it had then, less the time since. The
       // instruction screen is behind the candidate whatever this browser
       // remembers — there is no way back to it.
-      if (serverQuestionElapsedSec !== null) {
-        const left = Math.max(0, testSec - serverQuestionElapsedSec);
+      if (questionElapsed !== null) {
+        const left = Math.max(0, testSec - questionElapsed);
         return {
           ...state,
           phase: "test",
@@ -217,7 +248,7 @@ export function useAttempt(
       }
 
       const total = paper.instructionTimeLimitMin * 60 + testSec;
-      const left = Math.max(0, total - serverElapsedSec);
+      const left = Math.max(0, total - elapsed);
 
       return {
         ...state,
