@@ -188,3 +188,15 @@ alter table public.watch_papers
 alter table public.watch_papers drop constraint if exists watch_papers_image_width_ck;
 alter table public.watch_papers
   add constraint watch_papers_image_width_ck check (image_width_pct between 30 and 100);
+
+-- ---------------------------------------------------------------------------
+-- Per-question responses (added later)
+--
+-- An attempt stored only its total, so nothing could answer "which question
+-- did the batch get wrong?" — the question most worth reteaching. This keeps
+-- what was chosen for each question: { "<question id>": <option chosen> }.
+-- Safe to re-run. Attempts recorded before this arrive as {} and are simply
+-- not counted in the breakdown.
+-- ---------------------------------------------------------------------------
+alter table public.watch_attempts
+  add column if not exists responses jsonb not null default '{}'::jsonb;

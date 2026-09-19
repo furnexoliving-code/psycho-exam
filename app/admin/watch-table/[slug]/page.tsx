@@ -4,7 +4,7 @@ import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
 import { loadPaperForAdmin } from "@/lib/wt/db";
 import { createClient } from "@/lib/supabase/server";
 import { DIRECTIONS, DIRECTION_NAME, resolveFeatures } from "@/lib/wt/types";
-import { deletePaper, saveDiagram, saveSettings } from "../actions";
+import { deletePaper, duplicatePaper, saveDiagram, saveSettings } from "../actions";
 import { formatInstructionLines } from "@/lib/wt/parse-instructions";
 import { DiagramImageField } from "./DiagramImageField";
 import { InstructionsEditor } from "./InstructionsEditor";
@@ -53,6 +53,12 @@ export default async function EditWatchPaper({
           className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
         >
           Results{typeof attemptCount === "number" ? ` (${attemptCount})` : ""}
+        </Link>
+        <Link
+          href={`/admin/watch-table/${slug}/analysis`}
+          className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
+        >
+          Question analysis
         </Link>
       </div>
 
@@ -362,6 +368,36 @@ export default async function EditWatchPaper({
 
       {/* ----------------------------- Questions ------------------------------ */}
       <QuestionsPanel slug={slug} questions={paper.questions} />
+
+      {/* ------------------------------- Copy -------------------------------- */}
+      <section className="mt-6 rounded border border-gray-300 bg-white p-5">
+        <h2 className="text-[15px] font-bold text-gray-900">Make another test from this one</h2>
+        <p className="mt-1 text-[12px] text-gray-600">
+          Copies the diagram, the instructions, every setting and all{" "}
+          {paper.questions.length} questions. The copy starts unpublished, so you
+          can change the questions before any student sees it.
+        </p>
+
+        <form action={duplicatePaper} className="mt-3 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="slug" value={slug} />
+          <label className="block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+              Name for the copy
+            </span>
+            <input
+              name="display_name"
+              placeholder={`${paper.displayName} (copy)`}
+              className="w-[280px] rounded border border-gray-400 px-3 py-2 text-[13px]"
+            />
+          </label>
+          <button
+            type="submit"
+            className="rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
+          >
+            Copy this test
+          </button>
+        </form>
+      </section>
 
       <form action={deletePaper} className="mt-10 border-t border-gray-300 pt-4">
         <input type="hidden" name="slug" value={slug} />

@@ -466,3 +466,74 @@ export async function saveInstructions(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath(`/admin/watch-table/${slug}`);
 }
+
+/**
+ * Copies a paper, with its diagram, wording, settings and every question.
+ *
+ * Building Test 2 from Test 1 otherwise means retyping all of it. The copy
+ * arrives UNPUBLISHED whatever the original was, so a half-edited duplicate
+ * cannot appear on the students' dashboard while it is still being worked on.
+ */
+export async function duplicatePaper(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const slug = String(formData.get("slug"));
+
+  const { data: source, error: readErr } = await supabase
+    .from("watch_papers")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (readErr || !source) throw new Error(readErr?.message ?? "Paper not found");
+
+  // Everything except the row's own identity and its published state.
+  const {
+    id: _id,
+    slug: _slug,
+    created_at: _createdAt,
+    updated_at: _updatedAt,
+    is_published: _published,
+    display_name: sourceName,
+    ...rest
+  } = source as Record<string, unknown> & { display_name: string };
+
+  const displayName = String(formData.get("display_name") ?? "").trim() ||
+    `${sourceName} (copy)`;
+
+  // A slug collides the moment you copy the same paper twice, so give it
+  // something unique rather than letting the insert fail.
+  const newSlug = `${slugify(displayName)}-${Date.now().toString(36).slice(-4)}`;
+
+  const { data: copy, error: insErr } = await supabase
+    .from("watch_papers")
+    .insert({ ...rest, slug: newSlug, display_name: displayName, is_published: false })
+    .select("id, slug")
+    .single();
+
+  if (insErr || !copy) throw new Error(insErr?.message ?? "Could not create the copy");
+
+  const { data: questions, error: qErr } = await supabase
+    .from("watch_questions")
+    .select("position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic")
+    .eq("paper_id", source.id)
+    .order("position");
+
+  if (qErr) throw new Error(qErr.message);
+
+  if (questions?.length) {
+    const { error: copyErr } = await supabase
+      .from("watch_questions")
+      .insert(questions.map((q) => ({ ...q, paper_id: copy.id })));
+
+    // A paper whose questions failed to copy is worse than no copy at all:
+    // it looks complete in the list and turns out empty when opened.
+    if (copyErr) {
+      await supabase.from("watch_papers").delete().eq("id", copy.id);
+      throw new Error(`The questions could not be copied: ${copyErr.message}`);
+    }
+  }
+
+  redirect(`/admin/watch-table/${copy.slug}`);
+}

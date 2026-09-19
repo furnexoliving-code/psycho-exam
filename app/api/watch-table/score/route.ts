@@ -104,6 +104,9 @@ export async function POST(request: Request) {
         total: marked.length,
         durationSec,
         record: body.record === true,
+        // `given` is a Map — Object.entries on one returns nothing, which
+        // would have stored an empty breakdown without any error.
+        responses: Object.fromEntries(given),
       })
     : null;
 
@@ -199,6 +202,7 @@ async function statsFor({
   total,
   durationSec,
   record,
+  responses,
 }: {
   slug: string;
   marks: number;
@@ -206,6 +210,8 @@ async function statsFor({
   total: number;
   durationSec: number | null;
   record: boolean;
+  /** What was chosen per question, kept for the per-question breakdown. */
+  responses: Record<string, number>;
 }): Promise<{
   cohort: Cohort | null;
   standing: Standing | null;
@@ -237,6 +243,9 @@ async function statsFor({
       total,
       attempted,
       duration_sec: durationSec,
+      // What was chosen per question, so the batch's weak spots can be found
+      // later. Unanswered questions are left out rather than stored as null.
+      responses,
     });
   }
 
