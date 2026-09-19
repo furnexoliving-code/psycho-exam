@@ -137,6 +137,7 @@ export function ResultView({
           standing: Standing | null;
           cutOff: CutOff | null;
           expertComment: string | null;
+          durationSec?: number | null;
           view?: ResultFlags;
         };
         if (cancelled) return;
@@ -177,6 +178,9 @@ export function ResultView({
         }
 
         setView(resolveResultView(data.view));
+        // The server measured this sitting; its figure beats the browser's own
+        // estimate, which is only a fallback for a reload that recorded nothing.
+        if (typeof data.durationSec === "number") setTakenSec(data.durationSec);
         setHistory(past);
         setMarked(data.questions);
         setScore(data.score);

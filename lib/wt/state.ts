@@ -134,27 +134,53 @@ function makeReducer(questionCount: number) {
  * Attempt state with a one-second clock and local persistence, so a refresh
  * mid-test resumes rather than starting over.
  */
-export function useAttempt(paper: WatchPaper) {
+export function useAttempt(paper: WatchPaper, serverElapsedSec: number | null = null) {
   const reducer = useMemo(() => makeReducer(paper.questions.length), [paper.questions.length]);
   const [state, dispatch] = useReducer(reducer, paper, (p) => initial(p, 0));
 
   // Restore before the first paint that matters; startedAt is stamped here
   // rather than in the initialiser so server and client render the same thing.
   useEffect(() => {
+    /**
+     * The server's clock wins.
+     *
+     * Local storage is the candidate's own file: clearing it, or opening the
+     * paper in a second tab, used to hand back a full countdown. The server
+     * says how long this sitting has actually been running, so the clock can
+     * only ever be that or less — never more.
+     */
+    const capped = (state: AttemptState): AttemptState => {
+      if (serverElapsedSec === null) return state;
+
+      const total = paper.instructionTimeLimitMin * 60 + paper.timeLimitMin * 60;
+      const left = Math.max(0, total - serverElapsedSec);
+
+      return {
+        ...state,
+        instructionRemainingSec: Math.min(
+          state.instructionRemainingSec,
+          Math.max(0, left - paper.timeLimitMin * 60),
+        ),
+        remainingSec: Math.min(state.remainingSec, left),
+        // Both clocks spent means the paper is over, whatever the browser says.
+        submitted: state.submitted || left <= 0,
+      };
+    };
+
     try {
       const raw = window.localStorage.getItem(STORAGE_PREFIX + paper.id);
       if (raw) {
         const saved = JSON.parse(raw) as AttemptState;
         if (saved.paperId === paper.id && !saved.submitted) {
-          dispatch({ type: "restore", state: saved });
+          dispatch({ type: "restore", state: capped(saved) });
           return;
         }
       }
     } catch {
       // Unavailable storage just means a fresh attempt.
     }
-    dispatch({ type: "restore", state: initial(paper, Date.now()) });
-  }, [paper]);
+    dispatch({ type: "restore", state: capped(initial(paper, Date.now())) });
+  }, [paper, serverElapsedSec]);
 
   useEffect(() => {
     if (state.startedAt === 0) return;

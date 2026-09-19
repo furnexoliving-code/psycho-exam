@@ -24,13 +24,16 @@ export function WatchTableExam({
   paper,
   candidateName = "Candidate",
   rollNo = "—",
+  elapsedSec = null,
 }: {
   paper: WatchPaper;
   candidateName?: string;
   rollNo?: string;
+  /** How long the server says this sitting has been running. */
+  elapsedSec?: number | null;
 }) {
   const router = useRouter();
-  const { state, dispatch, answered, clearSaved } = useAttempt(paper);
+  const { state, dispatch, answered, clearSaved } = useAttempt(paper, elapsedSec);
   const questionColumn = useRef<HTMLElement | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);

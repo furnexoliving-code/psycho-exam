@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { WatchTableExam } from "@/components/wt/WatchTableExam";
 import { getProfile, isConfigured } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
+import { openSitting } from "@/lib/wt/session";
 import { loadPaperForCandidate } from "@/lib/wt/db";
 import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
 
@@ -63,11 +64,18 @@ export default async function WatchTablePage({
 
   // The key never goes to the browser; /api/watch-table/score marks the paper.
   const who = isConfigured() ? await getProfile() : null;
+
+  // Start the sitting, or join the one already running. The elapsed time comes
+  // back from the server's clock, so a second tab cannot buy a fresh
+  // countdown and a reload cannot rewind one.
+  const sitting = who ? await openSitting(paperId, who.id) : null;
+
   return (
     <WatchTableExam
       paper={withoutAnswerKey(paper)}
       candidateName={who?.full_name || "Candidate"}
       rollNo={who?.roll_no || "—"}
+      elapsedSec={sitting?.elapsedSec ?? null}
     />
   );
 }

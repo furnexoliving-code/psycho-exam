@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { meanAndSd, tScore, type Cohort } from "@/lib/wt/tscore";
 import { resolveResultView, type ResultView } from "@/lib/wt/types";
+import { closeSitting } from "@/lib/wt/session";
 
 /**
  * Scores an attempt on the server.
@@ -21,7 +22,6 @@ interface Body {
   /** True on the submit that ends the attempt; false when merely reviewing. */
   record?: unknown;
   /** Seconds the candidate spent on the questions. */
-  durationSec?: unknown;
 }
 
 export interface MarkedQuestion {
@@ -70,11 +70,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Malformed request" }, { status: 400 });
   }
 
-  const durationSec =
-    typeof body.durationSec === "number" && Number.isFinite(body.durationSec)
-      ? Math.max(0, Math.round(body.durationSec))
-      : null;
-
   const paperId = typeof body.paperId === "string" ? body.paperId : "";
   if (!paperId) {
     return NextResponse.json({ error: "paperId is required" }, { status: 400 });
@@ -102,7 +97,6 @@ export async function POST(request: Request) {
         marks: correct,
         attempted,
         total: marked.length,
-        durationSec,
         record: body.record === true,
         // `given` is a Map — Object.entries on one returns nothing, which
         // would have stored an empty breakdown without any error.
@@ -139,6 +133,7 @@ export async function POST(request: Request) {
         ? decideCutOff(stats.cutOff, correct, tRaw?.value ?? null, view.cutOffMarks)
         : null,
     expertComment: view.expertComment ? stats?.expertComment ?? null : null,
+    durationSec: stats?.durationSec ?? null,
     view,
   });
 }
@@ -218,7 +213,6 @@ async function statsFor({
   marks,
   attempted,
   total,
-  durationSec,
   record: recordRequested,
   responses,
   paper,
@@ -226,7 +220,6 @@ async function statsFor({
   marks: number;
   attempted: number;
   total: number;
-  durationSec: number | null;
   record: boolean;
   /** What was chosen per question, kept for the per-question breakdown. */
   responses: Record<string, number>;
@@ -238,6 +231,8 @@ async function statsFor({
   cutOff: { marks: number | null; tScore: number | null };
   expertComment: string | null;
   resultView: ResultView;
+  /** Measured by the server; null when this call recorded nothing. */
+  durationSec: number | null;
 } | null> {
   const supabase = createAdminClient();
   if (!paper) return null;
@@ -260,6 +255,21 @@ async function statsFor({
   // limit was wide open.
   let record = recordRequested && profile !== null;
 
+  // Ending the sitting is what makes this attempt real, and it returns how
+  // long the paper actually took — measured by the server, not reported by the
+  // browser. A null means there was no open sitting: the paper is already
+  // submitted, so this is a reload, a replay, or a second tab arriving late,
+  // and none of them may add another attempt.
+  let measuredSec: number | null = null;
+  if (record && profile) {
+    measuredSec = await closeSitting(
+      paper.id,
+      profile.id,
+      (paper.time_limit_min ?? 0) * 60,
+    );
+    if (measuredSec === null) record = false;
+  }
+
   if (record && paper.max_attempts !== null && paper.max_attempts !== undefined) {
     // The same limit the exam page applies, applied again here. That page can
     // be skipped — this route is reachable on its own — so the count must be
@@ -281,7 +291,8 @@ async function statsFor({
       marks,
       total,
       attempted,
-      duration_sec: durationSec,
+      // The server's measurement, never the browser's claim.
+      duration_sec: measuredSec,
       // What was chosen per question, so the batch's weak spots can be found
       // later. Unanswered questions are left out rather than stored as null.
       responses,
@@ -315,6 +326,7 @@ async function statsFor({
     cutOff,
     expertComment: paper.expert_comment ?? null,
     resultView: (paper.result_view ?? {}) as ResultView,
+    durationSec: measuredSec,
   };
 }
 
@@ -349,6 +361,7 @@ interface PaperRow {
   expert_comment: string | null;
   max_attempts: number | null;
   result_view: ResultView | null;
+  time_limit_min: number | null;
 }
 
 /** The paper's scoring settings, in one query. */
@@ -357,7 +370,7 @@ async function fetchPaperRow(slug: string): Promise<PaperRow | null> {
   const { data } = await supabase
     .from("watch_papers")
     .select(
-      "id, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view",
+      "id, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view, time_limit_min",
     )
     .eq("slug", slug)
     .maybeSingle();

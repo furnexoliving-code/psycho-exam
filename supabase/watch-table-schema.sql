@@ -282,3 +282,38 @@ alter table public.watch_papers
 
 create index if not exists watch_papers_order_idx
   on public.watch_papers (category, sort_order, created_at);
+
+-- ---------------------------------------------------------------------------
+-- One sitting of a paper (added later)
+--
+-- Two things were taken on trust from the browser: how long the candidate
+-- spent, and that they were sitting the paper once. Both now have a row here.
+--
+-- started_at is the server's clock, so the time spent is measured rather than
+-- reported. The partial unique index allows exactly ONE unsubmitted sitting
+-- per candidate per paper, so a second tab joins the sitting already running
+-- instead of starting a fresh one with a fresh clock.
+-- ---------------------------------------------------------------------------
+create table if not exists public.watch_sessions (
+  id            uuid primary key default gen_random_uuid(),
+  paper_id      uuid not null references public.watch_papers on delete cascade,
+  user_id       uuid not null references auth.users on delete cascade,
+  started_at    timestamptz not null default now(),
+  submitted_at  timestamptz
+);
+
+create unique index if not exists watch_sessions_one_open
+  on public.watch_sessions (paper_id, user_id)
+  where submitted_at is null;
+
+create index if not exists watch_sessions_lookup
+  on public.watch_sessions (user_id, paper_id, started_at desc);
+
+alter table public.watch_sessions enable row level security;
+
+-- Written only by the server with the service-role client. A candidate may
+-- read their own, which is what the exam page needs; nobody writes through
+-- this policy.
+drop policy if exists watch_sessions_own on public.watch_sessions;
+create policy watch_sessions_own on public.watch_sessions
+  for select using (user_id = auth.uid() or public.is_admin());
