@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useReducer } from "react";
-import type { WatchPaper } from "./types";
+import { resolveFeatures, type WatchPaper } from "./types";
 
 const STORAGE_PREFIX = "wt-attempt:";
 
@@ -221,11 +221,12 @@ export function useAttempt(
       // The server's clock never pauses. Where the paper allows a pause, the
       // time this browser recorded as paused is credited back, or a reload
       // after a pause would take those minutes off the clock without a word.
-      const pausedSoFar =
-        (state.pausedSec ?? 0) +
-        (state.paused && state.pausedAt
-          ? Math.max(0, Math.round((Date.now() - state.pausedAt) / 1000))
-          : 0);
+      const pausedSoFar = resolveFeatures(paper.features).allowPause
+        ? (state.pausedSec ?? 0) +
+          (state.paused && state.pausedAt
+            ? Math.max(0, Math.round((Date.now() - state.pausedAt) / 1000))
+            : 0)
+        : 0;
       const questionElapsed =
         serverQuestionElapsedSec === null
           ? null
@@ -267,7 +268,13 @@ export function useAttempt(
       if (raw) {
         const saved = JSON.parse(raw) as AttemptState;
         if (saved.paperId === paper.id && !saved.submitted) {
-          dispatch({ type: "restore", state: capped({ ...saved, lastTickAt: undefined }) });
+          // A pause taken while the paper still allowed one, then the paper
+          // changed: the clock runs from here, and no credit is claimed.
+          const pauseAllowed = resolveFeatures(paper.features).allowPause;
+          const restored = pauseAllowed
+            ? { ...saved, lastTickAt: undefined }
+            : { ...saved, lastTickAt: undefined, paused: false, pausedAt: undefined, pausedSec: 0 };
+          dispatch({ type: "restore", state: capped(restored) });
           return;
         }
         // Submitted but not yet on record: the result page has not had its

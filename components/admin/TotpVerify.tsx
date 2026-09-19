@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { describeMfaError } from "./mfa-errors";
 
 /** The six-digit code from the admin's authenticator, checked against it. */
 export function TotpVerify({ next }: { next: string }) {
@@ -23,9 +24,15 @@ export function TotpVerify({ next }: { next: string }) {
     setBusy(true);
     const supabase = createClient();
     const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
+    if (listError) {
+      setError(`Could not reach the sign-in service: ${listError.message}. Try again.`);
+      setBusy(false);
+      return;
+    }
     const factor = factors?.totp?.[0];
-    if (listError || !factor) {
+    if (!factor) {
       router.replace("/admin/setup-2fa");
+      router.refresh();
       return;
     }
 
@@ -34,9 +41,7 @@ export function TotpVerify({ next }: { next: string }) {
       code: digits,
     });
     if (verifyError) {
-      setError(
-        "That code did not match. Codes change every 30 seconds — enter the one showing now.",
-      );
+      setError(describeMfaError(verifyError));
       setBusy(false);
       return;
     }

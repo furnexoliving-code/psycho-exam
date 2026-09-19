@@ -107,6 +107,40 @@ export function WatchTableExam({
     return () => window.removeEventListener("keydown", onKey);
   }, [helpOpen]);
 
+  // The sheet goes up to the server as it changes — a little after each
+  // answer, and at once when the tab is hidden — so a browser that dies
+  // mid-paper has lost nothing, and a paper submitted after the bell is
+  // marked from what the server held at the bell.
+  const answersRef = useRef(state.answers);
+  answersRef.current = state.answers;
+  const sentRef = useRef<string>("");
+  useEffect(() => {
+    if (!onTestPhase(state)) return;
+    const send = (keepalive: boolean) => {
+      const answers = answersRef.current;
+      const serialised = JSON.stringify(answers);
+      if (serialised === sentRef.current) return;
+      sentRef.current = serialised;
+      void fetch("/api/watch-table/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paperId: paper.id, answers }),
+        keepalive,
+      }).catch(() => {
+        sentRef.current = "";
+      });
+    };
+    const timer = window.setTimeout(() => send(false), 1500);
+    const onHide = () => {
+      if (document.visibilityState === "hidden") send(true);
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onHide);
+    };
+  }, [state, paper.id]);
+
   // Tell the server the moment the questions open, once. That is when the
   // test's clock starts, and it is where the time on the paper is measured
   // from — reading the instructions is not time spent on the questions.

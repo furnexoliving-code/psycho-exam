@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { TotpSetup } from "@/components/admin/TotpSetup";
-import { secondFactor } from "@/lib/auth";
+import { requireAdminRole, secondFactor } from "@/lib/auth";
 
 export default async function SetupTwoFactorPage() {
+  await requireAdminRole("/admin");
   const { enrolled } = await secondFactor();
   // Already set up: the code page is the one to be on.
   if (enrolled) redirect("/admin/verify");
@@ -18,9 +19,10 @@ export default async function SetupTwoFactorPage() {
         <TotpSetup />
       </div>
       <p className="mt-4 text-[12px] text-gray-500">
-        Lost the phone later? An admin with access to the Supabase dashboard can
-        remove the authenticator under Authentication → Users → your account →
-        Factors, and the panel will ask you to set one up again.
+        Lost the phone later? Whoever holds the Supabase dashboard login opens
+        Authentication → Users, opens your account and chooses{" "}
+        <strong>Remove MFA factors</strong>; the panel then asks you to set one up
+        again.
       </p>
     </>
   );

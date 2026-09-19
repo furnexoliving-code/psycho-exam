@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProfile, isConfigured } from "@/lib/auth";
+import { getProfile, isConfigured, isVerifiedAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { tScore, type Cohort } from "@/lib/wt/tscore";
@@ -132,7 +132,10 @@ export async function POST(request: Request) {
   if (!profile) {
     return NextResponse.json({ error: "Sign in to see your result" }, { status: 401 });
   }
-  const admin = profile.role === "admin";
+  // The role alone is not enough for what follows — a draft's questions, a
+  // marking with no sitting behind it. Only the admin who passed the second
+  // factor in this session gets more than a student.
+  const admin = profile.role === "admin" && (await isVerifiedAdmin());
 
   // With a database, every paper is in it. The bundled sample is not served
   // alongside: it has no sitting, no record, and marking it on demand would
@@ -145,13 +148,21 @@ export async function POST(request: Request) {
 
   const instructionSec = (paper.instruction_time_min ?? 0) * 60;
   const limitSec = (paper.time_limit_min ?? 0) * 60;
+  const pauseAllowed = resolveFeatures(paper.features ?? undefined).allowPause;
 
   // The questions do not depend on which answers are marked, so they are
   // fetched while the sitting is being closed rather than after it.
   const [rows, closed] = await Promise.all([
     fetchQuestions(paper.id),
     wantsRecord
-      ? closeSitting(paper.id, profile.id, instructionSec, limitSec, Object.fromEntries(given))
+      ? closeSitting(
+          paper.id,
+          profile.id,
+          instructionSec,
+          limitSec,
+          Object.fromEntries(given),
+          !pauseAllowed,
+        )
       : Promise.resolve(null),
   ]);
 
@@ -175,23 +186,23 @@ export async function POST(request: Request) {
 
     // With the pause button off, the clock is the server's: a paper that
     // arrives long after its time ran out is a paper whose clock was held.
-    // The sitting still ends and the attempt still counts — with what the
-    // hall would have taken at the bell, which is nothing more. With pause
-    // on, the browser keeps the time, and the server cannot know how long
-    // the candidate stopped the clock for.
-    if (closed.late && !resolveFeatures(paper.features ?? undefined).allowPause) {
-      answers = new Map();
+    // The sitting still ends and the attempt still counts — with the sheet
+    // the server held at the bell, which the exam page keeps sending up
+    // while the clock runs. With pause on, the browser keeps the time, and
+    // the server cannot know how long the candidate stopped the clock for.
+    if (closed.late && !pauseAllowed) {
+      answers = toAnswers(closed.snapshot ?? {});
     }
   } else {
     // A sitting whose clock has run out with no submit — the browser was
-    // closed mid-paper — is ended here with nothing answered, so the
-    // candidate is not left with a paper that can neither be submitted nor
-    // seen. A sitting with time still on it is not touched.
+    // closed mid-paper — is ended here on whatever sheet the server last
+    // saw, so the candidate is not left with a paper that can neither be
+    // submitted nor seen. A sitting with time still on it is not touched.
     const expired = await closeExpiredSitting(paper.id, profile.id, instructionSec, limitSec);
 
     if (expired) {
-      answers = new Map();
-      record = expired.questionsOpened;
+      answers = toAnswers(expired.snapshot ?? {});
+      record = expired.questionsOpened || answers.size > 0;
       durationSec = expired.durationSec;
     } else {
       const last = await lastSubmission(paper.id, profile.id, limitSec);

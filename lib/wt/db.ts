@@ -124,31 +124,45 @@ const PUBLIC_QUESTION_COLUMNS = "id, position, prompt_en, prompt_hi, options, to
  * merely stripped from the cached copy: it is never read into it.
  */
 export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | null> {
-  return unstable_cache(
-    async () => {
-      const supabase = createAdminClient();
+  try {
+    return await unstable_cache(
+      async () => {
+        const supabase = createAdminClient();
 
-      const { data: row } = await supabase
-        .from("watch_papers")
-        .select("*")
-        .eq("slug", slug)
-        .eq("is_published", true)
-        .maybeSingle();
-      if (!row) return null;
+        // A failed read is thrown, never returned: a thrown callback is not
+        // cached, whereas a null returned on a passing timeout would have
+        // made the paper vanish for every student for five minutes.
+        const { data: row, error: rowError } = await supabase
+          .from("watch_papers")
+          .select("*")
+          .eq("slug", slug)
+          .eq("is_published", true)
+          .maybeSingle();
+        if (rowError) throw new Error(`Could not read the paper "${slug}": ${rowError.message}`);
+        // Nor is "not published" memoised: a paper published a moment later
+        // must not answer "not found" until the cache turns over.
+        if (!row) throw new NotPublished();
 
-      const { data: questions, error } = await supabase
-        .from("watch_questions")
-        .select(PUBLIC_QUESTION_COLUMNS)
-        .eq("paper_id", (row as PaperRow).id)
-        .order("position");
-      if (error) throw new Error(`Could not read the questions for "${slug}": ${error.message}`);
+        const { data: questions, error } = await supabase
+          .from("watch_questions")
+          .select(PUBLIC_QUESTION_COLUMNS)
+          .eq("paper_id", (row as PaperRow).id)
+          .order("position");
+        if (error) throw new Error(`Could not read the questions for "${slug}": ${error.message}`);
 
-      return toPaper(row as PaperRow, (questions ?? []) as QuestionRow[]);
-    },
-    ["published-paper", slug],
-    { tags: [PAPERS_TAG, paperTag(slug)], revalidate: CACHE_SECONDS },
-  )();
+        return toPaper(row as PaperRow, (questions ?? []) as QuestionRow[]);
+      },
+      ["published-paper", slug],
+      { tags: [PAPERS_TAG, paperTag(slug)], revalidate: CACHE_SECONDS },
+    )();
+  } catch (error) {
+    if (error instanceof NotPublished) return null;
+    throw error;
+  }
 }
+
+/** Thrown inside a cached read so that an absence is not stored as an answer. */
+class NotPublished extends Error {}
 
 /**
  * The same paper, read live under the caller's own rights — for an admin
@@ -265,13 +279,17 @@ export async function listPublishedPapers(category?: string): Promise<PaperSumma
         .eq("is_published", true);
       if (category) query = query.eq("category", category);
 
-      const { data: rows } = await query.order("sort_order").order("created_at");
+      const { data: rows, error } = await query.order("sort_order").order("created_at");
+      // Thrown, not returned as an empty list: a failed read cached as "no
+      // papers" would tell every student there is nothing to sit.
+      if (error) throw new Error(`Could not read the papers: ${error.message}`);
       if (!rows?.length) return [];
 
-      const { data: counts } = await supabase
+      const { data: counts, error: countError } = await supabase
         .from("watch_question_counts")
         .select("paper_id, question_count")
         .in("paper_id", rows.map((r) => r.id));
+      if (countError) throw new Error(`Could not count the questions: ${countError.message}`);
       return withCounts(rows, counts ?? []);
     },
     ["published-papers", category ?? "all"],
@@ -326,11 +344,20 @@ export interface PaperHeader {
  * with the key. This reads the five fields.
  */
 export async function loadPaperHeader(slug: string): Promise<PaperHeader | null> {
-  return unstable_cache(
-    async () => readHeader(createAdminClient(), slug, true),
-    ["published-paper-header", slug],
-    { tags: [PAPERS_TAG, paperTag(slug)], revalidate: CACHE_SECONDS },
-  )();
+  try {
+    return await unstable_cache(
+      async () => {
+        const header = await readHeader(createAdminClient(), slug, true);
+        if (!header) throw new NotPublished();
+        return header;
+      },
+      ["published-paper-header", slug],
+      { tags: [PAPERS_TAG, paperTag(slug)], revalidate: CACHE_SECONDS },
+    )();
+  } catch (error) {
+    if (error instanceof NotPublished) return null;
+    throw error;
+  }
 }
 
 /** The header read live, under the caller's rights — for an admin's draft. */
@@ -348,7 +375,8 @@ async function readHeader(
     .select("display_name, time_limit_min, cells, image_url, image_width_pct")
     .eq("slug", slug);
   if (publishedOnly) query = query.eq("is_published", true);
-  const { data: row } = await query.maybeSingle();
+  const { data: row, error } = await query.maybeSingle();
+  if (error) throw new Error(`Could not read the paper "${slug}": ${error.message}`);
   if (!row) return null;
 
   const cells = (row.cells as WatchCell[] | null)?.length

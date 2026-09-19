@@ -467,9 +467,11 @@ export async function regenerateQuestions(
     })),
   );
 
-  if (error) throw new Error(error);
+  // Emptied whatever happened: the new rows may be in even when the old
+  // ones could not be removed, and the cache must show what the database holds.
   revalidatePath(`/admin/watch-table/${slug}`);
-    paperChanged(slug);
+  paperChanged(slug);
+  if (error) throw new Error(error);
   return `${chosen.length} built from the diagram`;
   });
 }
@@ -580,9 +582,9 @@ export async function importQuestions(
 
     if (!append) {
       const { inserted, error } = await replaceQuestions(paper.id, rows);
-      if (error) throw new Error(error);
       revalidatePath(`/admin/watch-table/${slug}`);
-    paperChanged(slug);
+      paperChanged(slug);
+      if (error) throw new Error(error);
       return `${inserted} questions`;
     }
 

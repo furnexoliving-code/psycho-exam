@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { describeMfaError } from "./mfa-errors";
 
 interface Enrolment {
   id: string;
@@ -25,7 +26,13 @@ export function TotpSetup() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // One enrolment per page, whatever React does with the effect: in
+  // development it runs effects twice, and two enrolments by the same name
+  // collide at the auth server.
+  const started = useRef(false);
   useEffect(() => {
+    if (started.current) return;
+    started.current = true;
     let cancelled = false;
     (async () => {
       const supabase = createClient();
@@ -46,7 +53,9 @@ export function TotpSetup() {
       });
       if (cancelled) return;
       if (enrolError || !data) {
-        setError(explain(enrolError?.message ?? "The authenticator could not be set up."));
+        setError(
+          enrolError ? describeMfaError(enrolError) : "The authenticator could not be set up.",
+        );
         return;
       }
       setEnrolment({ id: data.id, qr: data.totp.qr_code, secret: data.totp.secret });
@@ -73,7 +82,7 @@ export function TotpSetup() {
       code: digits,
     });
     if (verifyError) {
-      setError("That code did not match. Wait for the app to show a new one and try again.");
+      setError(describeMfaError(verifyError));
       setBusy(false);
       return;
     }
@@ -149,15 +158,4 @@ export function TotpSetup() {
       </button>
     </form>
   );
-}
-
-/** The auth server's wording, turned into something an admin can act on. */
-function explain(message: string): string {
-  if (/not enabled|disabled|mfa/i.test(message) && /enabl|disabl/i.test(message)) {
-    return (
-      `${message} — two-factor sign-in has to be switched on for the project: in the ` +
-      `Supabase dashboard open Authentication → Multi-Factor Authentication and enable TOTP, then reload this page.`
-    );
-  }
-  return message;
 }

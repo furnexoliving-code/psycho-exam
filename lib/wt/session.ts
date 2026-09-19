@@ -22,6 +22,12 @@ export interface Closed {
   questionsOpened: boolean;
   /** True when the submit arrived well after the paper's time was up. */
   late: boolean;
+  /**
+   * The sheet as the server last saw it while the clock was still running —
+   * what the hall would have collected at the bell. Null when nothing was
+   * ever saved.
+   */
+  snapshot: Record<string, number> | null;
 }
 
 /** How long past the limit a submit may still arrive and count. Covers a slow
@@ -144,24 +150,31 @@ export async function closeSitting(
   instructionSec: number,
   limitSec: number,
   responses: Record<string, number>,
+  /** Whether a late submit is held to the bell (pause off) or taken as sent (pause on). */
+  honourLate: boolean,
 ): Promise<Closed | null> {
   const supabase = createAdminClient();
 
   const { data: open } = await supabase
     .from("watch_sessions")
-    .select("id, started_at, questions_started_at")
+    .select("id, started_at, questions_started_at, responses")
     .eq("paper_id", paperId)
     .eq("user_id", userId)
     .is("submitted_at", null)
     .maybeSingle();
 
   if (!open) return null;
-  const row = open as SittingRow;
+  const row = open as SittingRow & { responses: Record<string, number> | null };
   const now = new Date().toISOString();
+  const late = overrun(row, instructionSec, limitSec) > LATE_GRACE_SEC;
+
+  // A late submit keeps the sheet the server held at the bell, not the one
+  // sent up now; an on-time submit is the sheet itself.
+  const kept = honourLate && late && row.responses ? row.responses : responses;
 
   const { data: closed } = await supabase
     .from("watch_sessions")
-    .update({ submitted_at: now, responses })
+    .update({ submitted_at: now, responses: kept })
     .eq("id", row.id)
     // Only close a sitting that is still open. Two submits arriving together
     // means the second one changes nothing and gets no attempt.
@@ -173,8 +186,53 @@ export async function closeSitting(
   return {
     durationSec: duration(row, now, limitSec),
     questionsOpened: row.questions_started_at !== null,
-    late: overrun(row, instructionSec, limitSec) > LATE_GRACE_SEC,
+    late,
+    snapshot: row.responses ?? null,
   };
+}
+
+/**
+ * Keeps the sheet as it stands while the clock runs, so a browser that dies
+ * mid-paper — power cut, closed lid, crash — has not lost what was answered:
+ * a late submit is marked from this copy. Refused once the paper's time is
+ * up, so a clock held open in the browser cannot keep adding answers after
+ * the bell.
+ */
+export async function saveSnapshot(
+  paperSlug: string,
+  userId: string,
+  responses: Record<string, number>,
+): Promise<boolean> {
+  const supabase = createAdminClient();
+
+  const { data: paper } = await supabase
+    .from("watch_papers")
+    .select("id, instruction_time_min, time_limit_min")
+    .eq("slug", paperSlug)
+    .maybeSingle();
+  if (!paper) return false;
+
+  const { data: open } = await supabase
+    .from("watch_sessions")
+    .select("id, started_at, questions_started_at")
+    .eq("paper_id", paper.id)
+    .eq("user_id", userId)
+    .is("submitted_at", null)
+    .maybeSingle();
+  if (!open) return false;
+
+  const row = open as SittingRow;
+  const instructionSec = (paper.instruction_time_min ?? 0) * 60;
+  const limitSec = (paper.time_limit_min ?? 0) * 60;
+  if (overrun(row, instructionSec, limitSec) > LATE_GRACE_SEC) return false;
+
+  const { data: saved } = await supabase
+    .from("watch_sessions")
+    .update({ responses })
+    .eq("id", row.id)
+    .is("submitted_at", null)
+    .select("id");
+  return (saved?.length ?? 0) > 0;
 }
 
 /**
@@ -210,18 +268,21 @@ export async function closeExpiredSitting(
   if (overrun(row, instructionSec, limitSec) < 0) return null;
   const now = new Date().toISOString();
 
+  // The sheet the server last saw stays: an abandoned paper is marked on
+  // what was answered before the browser went, not on nothing.
   const { data: closed } = await supabase
     .from("watch_sessions")
-    .update({ submitted_at: now, responses: {} })
+    .update({ submitted_at: now })
     .eq("id", row.id)
     .is("submitted_at", null)
-    .select("id");
+    .select("id, responses");
   if (!closed?.length) return null;
 
   return {
     durationSec: duration(row, now, limitSec),
     questionsOpened: row.questions_started_at !== null,
     late: false,
+    snapshot: (closed[0].responses as Record<string, number> | null) ?? null,
   };
 }
 

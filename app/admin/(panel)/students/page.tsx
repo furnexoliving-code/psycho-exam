@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createStudent, resetPassword, setActive } from "./actions";
 import { RowForm } from "@/components/admin/RowForm";
@@ -5,6 +6,9 @@ import { SaveForm } from "@/components/admin/SaveForm";
 import { BulkStudents } from "./BulkStudents";
 
 export default async function StudentsPage() {
+  // On the page itself, not only in the layout: a request can ask for the
+  // page segment alone, and the layout then never runs.
+  await requireAdmin("/admin/students");
   const supabase = await createClient();
 
   const { data: students } = await supabase

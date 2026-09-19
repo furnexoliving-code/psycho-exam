@@ -141,7 +141,23 @@ export interface SecondFactor {
 export const secondFactor = cache(async (): Promise<SecondFactor> => {
   const { aal } = await readProfile();
   const supabase = await createClient();
-  const { data } = await supabase.auth.mfa.listFactors();
-  const enrolled = (data?.totp?.length ?? 0) > 0;
+  const { data, error } = await supabase.auth.mfa.listFactors();
+  // Fail closed, and say so: an auth-server hiccup read as "not enrolled"
+  // would send an enrolled admin into a set-up the server then refuses.
+  if (error || !data) {
+    throw new Error(`Could not check the authenticator: ${error?.message ?? "no answer"}`);
+  }
+  const enrolled = data.all.some((factor) => factor.status === "verified");
   return { enrolled, passed: enrolled && aal === "aal2" };
 });
+
+/**
+ * True only for an admin who has passed the second factor in this session.
+ * Anything that hands an admin more than a student gets — the answer key,
+ * a draft paper — asks this, never the role alone.
+ */
+export async function isVerifiedAdmin(): Promise<boolean> {
+  const { profile } = await readProfile();
+  if (profile?.role !== "admin") return false;
+  return (await secondFactor()).passed;
+}

@@ -458,6 +458,29 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- The second lock, enforced by the database too (added later)
+--
+-- Every admin policy rests on is_admin(). With the panel behind an
+-- authenticator, the database must ask the same question: a token that
+-- came from the password alone (aal1) is not an admin's token. Only a
+-- session that has passed the second factor (aal2) is. The admin's own
+-- profile row stays readable through the `id = auth.uid()` arm of its
+-- policy, which is all the set-up and code pages need.
+-- ---------------------------------------------------------------------------
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+  and coalesce(auth.jwt() ->> 'aal', 'aal1') = 'aal2';
+$$;
+
+-- ---------------------------------------------------------------------------
 -- One-time changes (added later)
 --
 -- Some changes must run exactly once, not on every re-run of this file: a
