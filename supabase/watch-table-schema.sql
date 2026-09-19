@@ -167,3 +167,24 @@ alter table public.watch_questions
 alter table public.watch_attempts
   add column if not exists duration_sec integer,
   add column if not exists t_score      numeric;
+
+-- ---------------------------------------------------------------------------
+-- Presentation controls (added later)
+--
+-- These let an admin change how the paper LOOKS without touching code: the
+-- size of the question text, and how wide the uploaded diagram is drawn.
+-- Safe to re-run.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers
+  add column if not exists font_scale numeric not null default 1.0,
+  add column if not exists image_width_pct integer not null default 100,
+  add column if not exists example_text jsonb not null default '[]'::jsonb;
+
+-- Keep them inside sane bounds, so a stray value cannot make a paper unreadable.
+alter table public.watch_papers drop constraint if exists watch_papers_font_scale_ck;
+alter table public.watch_papers
+  add constraint watch_papers_font_scale_ck check (font_scale between 0.7 and 2.0);
+
+alter table public.watch_papers drop constraint if exists watch_papers_image_width_ck;
+alter table public.watch_papers
+  add constraint watch_papers_image_width_ck check (image_width_pct between 30 and 100);

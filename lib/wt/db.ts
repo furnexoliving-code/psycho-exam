@@ -21,6 +21,9 @@ interface PaperRow {
   example_cells: WatchCell[];
   image_url: string | null;
   instructions: { en: string; hi: string }[];
+  example_text: { en: string; hi: string }[];
+  font_scale: number | null;
+  image_width_pct: number | null;
 }
 
 interface QuestionRow {
@@ -60,11 +63,13 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
     instructions: row.instructions?.length ? row.instructions : SAMPLE_PAPER.instructions,
     example: {
       table: { label: "Example", cells: example },
-      text: SAMPLE_PAPER.example.text,
+      text: row.example_text?.length ? row.example_text : SAMPLE_PAPER.example.text,
     },
     tables: [{ label: "No. 1", cells }],
     questions,
     imageUrl: row.image_url ?? undefined,
+    fontScale: row.font_scale ?? undefined,
+    imageWidthPct: row.image_width_pct ?? undefined,
   };
 }
 

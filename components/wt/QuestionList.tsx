@@ -109,15 +109,15 @@ export function QuestionList({
             <div className="flex">
               {/* The number gutter: narrow, small, and centred against the
                   whole text block rather than aligned to its first line. */}
-              <span className="flex w-[46px] shrink-0 items-center justify-start text-[13px] font-semibold text-[#494949]">
+              <span className="flex w-[46px] shrink-0 items-center justify-start text-[0.8125em] font-semibold text-[#494949]">
                 Q. {qi + 1}
               </span>
 
               <div className="min-w-0 flex-1">
-                <p className="text-[20px] leading-[1.45] text-[#494949]">
+                <p className="text-[1.25em] leading-[1.45] text-[#494949]">
                   {question.prompt.en}
                 </p>
-                <p className="text-[20px] leading-[1.45] text-[#494949]" lang="hi">
+                <p className="text-[1.25em] leading-[1.45] text-[#494949]" lang="hi">
                   {question.prompt.hi}
                 </p>
               </div>
@@ -145,7 +145,7 @@ export function QuestionList({
                     />
                     <label
                       htmlFor={id}
-                      className={`cursor-pointer text-[20px] text-[#494949] ${
+                      className={`cursor-pointer text-[1.25em] text-[#494949] ${
                         selected ? "font-semibold" : ""
                       }`}
                     >

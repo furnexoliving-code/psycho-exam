@@ -4,9 +4,10 @@ import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
 import { loadPaperForAdmin } from "@/lib/wt/db";
 import { createClient } from "@/lib/supabase/server";
 import { DIRECTIONS, DIRECTION_NAME, resolveFeatures } from "@/lib/wt/types";
-import { deletePaper, saveDiagram, saveSettings } from "../actions";
+import { deletePaper, saveDiagram, saveInstructions, saveSettings } from "../actions";
+import { formatInstructionLines } from "@/lib/wt/parse-instructions";
 import { QuestionsPanel } from "./QuestionsPanel";
-import { FEATURE_LABELS } from "./labels";
+import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS } from "./labels";
 
 export default async function EditWatchPaper({
   params,
@@ -21,7 +22,7 @@ export default async function EditWatchPaper({
   const { data: row } = await supabase
     .from("watch_papers")
     .select(
-      "is_published, image_url, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
+      "is_published, image_url, image_width_pct, font_scale, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
     )
     .eq("slug", slug)
     .single();
@@ -82,7 +83,29 @@ export default async function EditWatchPaper({
             />
           </div>
 
-          <h3 className="mt-5 text-[13px] font-bold text-gray-900">
+          <h3 className="mt-6 text-[13px] font-bold text-gray-900">
+            Question text size
+          </h3>
+          <label className="mt-2 block max-w-xs">
+            <select
+              name="font_scale"
+              defaultValue={String(row?.font_scale ?? 1)}
+              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+            >
+              {FONT_STEPS.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1 block text-[11px] text-gray-500">
+              The size the questions start at. The candidate can still change it
+              during the test with the A− / A+ buttons, so this is the starting
+              point, not a limit.
+            </span>
+          </label>
+
+          <h3 className="mt-6 text-[13px] font-bold text-gray-900">
             What the candidate can use
           </h3>
           <div className="mt-2 grid gap-x-8 gap-y-2 sm:grid-cols-2">
@@ -231,6 +254,68 @@ export default async function EditWatchPaper({
         </form>
       </section>
 
+      {/* ---------------------------- Instructions ---------------------------- */}
+      <section className="mt-6 rounded border border-gray-300 bg-white p-5">
+        <h2 className="text-[15px] font-bold text-gray-900">
+          The instruction screen
+        </h2>
+        <p className="mt-1 text-[12px] text-gray-600">
+          Every word the candidate reads before the test opens. One paragraph per
+          line, English and Hindi separated by a bar.
+        </p>
+
+        <form action={saveInstructions} className="mt-4">
+          <input type="hidden" name="slug" value={slug} />
+
+          <div className="rounded border border-gray-300 bg-gray-50 p-3">
+            <pre className="overflow-x-auto rounded bg-white p-3 text-[11px] leading-relaxed text-gray-700">
+{`Read every question carefully. | हर प्रश्न ध्यान से पढ़ें।
+You may not go back once you submit. | जमा करने के बाद वापस नहीं जा सकते।`}
+            </pre>
+            <p className="mt-2 text-[11px] text-gray-600">
+              Leave the Hindi side empty if you do not need it — but keep the bar,
+              so a forgotten translation cannot be mistaken for a forgotten bar.
+            </p>
+          </div>
+
+          <label className="mt-4 block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+              Instructions
+            </span>
+            <textarea
+              name="instructions"
+              rows={8}
+              required
+              defaultValue={formatInstructionLines(paper.instructions)}
+              className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
+            />
+          </label>
+
+          <label className="mt-4 block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+              The worked example, below the instructions
+            </span>
+            <textarea
+              name="example_text"
+              rows={5}
+              defaultValue={formatInstructionLines(paper.example.text)}
+              className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
+            />
+            <span className="mt-1 block text-[11px] text-gray-500">
+              The example diagram itself is the one you set below — this is only the
+              wording around it.
+            </span>
+          </label>
+
+          <button
+            type="submit"
+            className="mt-4 rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
+          >
+            Save the instructions
+          </button>
+        </form>
+      </section>
+
       {/* ------------------------------ Diagram ------------------------------- */}
       <section className="mt-6 rounded border border-gray-300 bg-white p-5">
         <h2 className="text-[15px] font-bold text-gray-900">The diagram</h2>
@@ -292,6 +377,27 @@ export default async function EditWatchPaper({
                 When set, the exam shows this picture in place of the drawing. Keep
                 the eight positions above filled in anyway — they are what the
                 answers are checked against.
+              </span>
+            </label>
+
+            <label className="mt-4 block max-w-xs">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+                How wide the image is drawn
+              </span>
+              <select
+                name="image_width_pct"
+                defaultValue={String(row?.image_width_pct ?? 100)}
+                className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+              >
+                {IMAGE_WIDTHS.map((w) => (
+                  <option key={w.value} value={w.value}>
+                    {w.label}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-[11px] text-gray-500">
+                Shrinks the picture inside its own column — it never spills over.
+                Use this when your image is too big, instead of re-cropping it.
               </span>
             </label>
 

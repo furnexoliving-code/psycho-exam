@@ -22,6 +22,7 @@ export function PortalToolbar({
   showFullscreen = true,
   onTogglePause,
   onToggleFullscreen,
+  onFontStep,
   rollNo,
   name,
 }: {
@@ -35,6 +36,11 @@ export function PortalToolbar({
   showFullscreen?: boolean;
   onTogglePause: () => void;
   onToggleFullscreen: () => void;
+  /**
+   * Nudges the question text one step smaller or larger. Absent on the
+   * instruction screen, where there is nothing yet to resize.
+   */
+  onFontStep?: (direction: -1 | 1) => void;
   rollNo: string;
   name: string;
 }) {
@@ -64,6 +70,16 @@ export function PortalToolbar({
       {showFullscreen && (
         <ToolbarButton onClick={onToggleFullscreen}>Switch Fullscreen</ToolbarButton>
       )}
+      {onFontStep && (
+        <div className="flex shrink-0 items-center gap-1">
+          <ToolbarButton onClick={() => onFontStep(-1)} title="Smaller text">
+            A−
+          </ToolbarButton>
+          <ToolbarButton onClick={() => onFontStep(1)} title="Larger text">
+            A+
+          </ToolbarButton>
+        </div>
+      )}
 
       <div className="flex shrink-0 items-end gap-3 border-l border-gray-300 pl-3">
         <Candidate label={`Roll No: ${rollNo}`} />
@@ -76,14 +92,17 @@ export function PortalToolbar({
 function ToolbarButton({
   children,
   onClick,
+  title,
 }: {
   children: React.ReactNode;
   onClick: () => void;
+  title?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      title={title}
       className="shrink-0 rounded border border-gray-500 bg-white px-4 py-1.5 text-[13px]
                  font-semibold text-gray-800 hover:bg-gray-50"
     >

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { generateQuestions, optionValues } from "@/lib/wt/generate";
 import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
 import { parseQuestionLines } from "@/lib/wt/parse-questions";
+import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -154,6 +155,11 @@ export async function saveSettings(formData: FormData) {
     throw new Error("Test time must be between 1 and 300 minutes");
   }
 
+  // Clamped rather than rejected: the control only offers valid steps, so a
+  // value outside them means a hand-edited form, not a mistake worth a page of
+  // error text.
+  const fontScale = Math.min(2, Math.max(0.7, Number(formData.get("font_scale") ?? 1) || 1));
+
   const { error } = await supabase
     .from("watch_papers")
     .update({
@@ -169,6 +175,7 @@ export async function saveSettings(formData: FormData) {
       cut_off_tscore: numberOrNull(formData.get("cut_off_tscore")),
       expert_comment: String(formData.get("expert_comment") ?? "").trim() || null,
       stats_min_attempts: Math.max(1, Number(formData.get("stats_min_attempts") ?? 5)),
+      font_scale: fontScale,
       features: {
         showInstructionsButton: formData.get("showInstructionsButton") === "on",
         showQuestionPaperButton: formData.get("showQuestionPaperButton") === "on",
@@ -198,6 +205,10 @@ export async function saveDiagram(formData: FormData) {
       cells,
       example_cells: cells,
       image_url: String(formData.get("image_url") ?? "").trim() || null,
+      image_width_pct: Math.min(
+        100,
+        Math.max(30, Math.round(Number(formData.get("image_width_pct") ?? 100) || 100)),
+      ),
       updated_at: new Date().toISOString(),
     })
     .eq("slug", slug);
@@ -422,4 +433,36 @@ export async function deletePaper(formData: FormData) {
 
   if (error) throw new Error(error.message);
   redirect("/admin/watch-table");
+}
+
+/**
+ * Replaces the instruction screen's wording and its worked example.
+ *
+ * Both are stored as bilingual paragraphs, so the English and Hindi columns
+ * can never drift out of step: a paragraph exists in both languages or in
+ * neither.
+ */
+export async function saveInstructions(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const slug = String(formData.get("slug"));
+  const instructions = parseInstructionLines(String(formData.get("instructions") ?? ""));
+  const exampleText = parseInstructionLines(String(formData.get("example_text") ?? ""));
+
+  if (instructions.length === 0) {
+    throw new Error("The instruction screen cannot be left blank");
+  }
+
+  const { error } = await supabase
+    .from("watch_papers")
+    .update({
+      instructions,
+      example_text: exampleText,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("slug", slug);
+
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/watch-table/${slug}`);
 }

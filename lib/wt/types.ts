@@ -129,4 +129,12 @@ export interface WatchPaper {
    * drawing the table. The questions then come from the admin too.
    */
   imageUrl?: string;
+  /**
+   * How large the question text is drawn, as a multiplier. The admin sets a
+   * starting point; the candidate can still nudge it during the test, exactly
+   * as the real portal allows.
+   */
+  fontScale?: number;
+  /** How wide the uploaded diagram is drawn, as a percentage of its column. */
+  imageWidthPct?: number;
 }
