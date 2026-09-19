@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { isConfigured, requireUser } from "@/lib/auth";
 import { listTests } from "@/lib/db";
+import { listPapers } from "@/lib/wt/db";
 import { createClient } from "@/lib/supabase/server";
 import { formatClock } from "@/lib/scoring";
 
@@ -37,6 +38,10 @@ export default async function DashboardPage() {
 
   const profile = await requireUser();
   const tests = await listTests();
+  // Watch Table papers live in their own tables, so they need listing too —
+  // otherwise a published paper is reachable only by someone who already has
+  // its link.
+  const watchPapers = (await listPapers()).filter((p) => p.isPublished);
   const supabase = await createClient();
 
   const { data: attempts } = await supabase
@@ -82,11 +87,44 @@ export default async function DashboardPage() {
           )}
         </div>
 
+        {watchPapers.length > 0 && (
+          <section className="mt-6">
+            <h2 className="mb-3 text-[15px] font-bold text-gray-900">
+              Watch Table tests
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {watchPapers.map((paper) => (
+                <div
+                  key={paper.id}
+                  className="flex flex-col rounded border border-gray-300 bg-white p-4"
+                >
+                  <h3 className="text-[14px] font-bold text-gray-900">
+                    {paper.displayName}
+                  </h3>
+                  <p className="mt-1 text-[12px] text-gray-500">
+                    {paper.questionCount} questions · {paper.timeLimitMin} min
+                    <span className="block">
+                      {paper.instructionTimeMin} min to read the instructions first
+                    </span>
+                  </p>
+                  <Link href={`/watch-table/${paper.slug}`} className="mt-auto pt-4">
+                    <span className="block rounded bg-indigo-800 px-4 py-2 text-center text-[13px] font-semibold text-white hover:bg-indigo-900">
+                      Start test
+                    </span>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="mt-6">
           <h2 className="mb-3 text-[15px] font-bold text-gray-900">Available tests</h2>
           {tests.length === 0 ? (
             <p className="rounded border border-gray-300 bg-white p-5 text-center text-[13px] text-gray-500">
-              No tests have been published yet. Please check back later.
+              {watchPapers.length > 0
+                ? "No other tests have been published yet."
+                : "No tests have been published yet. Please check back later."}
             </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
