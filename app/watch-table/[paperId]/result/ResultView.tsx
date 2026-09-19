@@ -267,8 +267,8 @@ export function ResultView({
           </span>
         </header>
 
-        {/* The one hero figure on this view. */}
-        <div className="mt-5">
+        {/* The hero figure, with the expert's word beside it when there is one. */}
+        <div className={`mt-5 grid gap-4 ${comment && view.expertComment ? "lg:grid-cols-2" : ""}`}>
           <TScoreHero
             tScore={tScore}
             marks={score.correct}
@@ -277,6 +277,7 @@ export function ResultView({
             showStats={view.tScoreStats}
             showTScore={view.tScore}
           />
+          {view.expertComment && <ExpertComment comment={comment} />}
         </div>
 
         <div className="mt-4">
@@ -296,7 +297,6 @@ export function ResultView({
         </div>
 
         <div className="mt-4 space-y-4">
-          <ExpertComment comment={comment} />
           {view.topicBreakdown && <TopicBreakdown topics={topics} />}
           <div className="grid gap-4 lg:grid-cols-2">
             {view.timeAnalysis && (

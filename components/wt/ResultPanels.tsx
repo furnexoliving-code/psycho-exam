@@ -427,7 +427,7 @@ export function CutOffBanner({ cutOff }: { cutOff: CutOff | null }) {
         : {
             color: "var(--critical)",
             glyph: "✕",
-            emoji: "💪",
+            emoji: "😔",
             label: "Not qualified this time",
             note: "Every attempt teaches something — go through the review below and try again.",
             bg: "linear-gradient(135deg,#fff1f2,#ffe4e6)",
@@ -472,7 +472,7 @@ export function ExpertComment({ comment }: { comment: string | null }) {
 
   return (
     <section
-      className="rounded-2xl p-5"
+      className="flex h-full flex-col justify-center rounded-2xl p-5"
       style={{
         background: "linear-gradient(135deg,#fffbeb,#fef3c7)",
         border: "1px solid #fde68a",
