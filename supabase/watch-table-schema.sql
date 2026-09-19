@@ -456,3 +456,30 @@ begin
   return new;
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- One-time changes (added later)
+--
+-- Some changes must run exactly once, not on every re-run of this file: a
+-- setting the institute may later change by hand must not be reset each time
+-- the file is run again. Each is named here and recorded once applied.
+-- ---------------------------------------------------------------------------
+create table if not exists public.portal_migrations (
+  name        text primary key,
+  applied_at  timestamptz not null default now()
+);
+alter table public.portal_migrations enable row level security;
+-- No policies: only the SQL editor and the service role can see this table.
+
+-- Pause off on every paper. The hall has no pause button, and a paper whose
+-- clock can be stopped is one whose time the server cannot vouch for. A
+-- paper that needs it can be switched back on in its settings; this does
+-- not run a second time.
+do $$
+begin
+  if not exists (select 1 from public.portal_migrations where name = 'pause-off') then
+    update public.watch_papers
+      set features = coalesce(features, '{}'::jsonb) || '{"allowPause": false}'::jsonb;
+    insert into public.portal_migrations (name) values ('pause-off');
+  end if;
+end $$;

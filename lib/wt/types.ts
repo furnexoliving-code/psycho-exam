@@ -107,7 +107,9 @@ export interface WatchFeatures {
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   showInstructionsButton: true,
   showQuestionPaperButton: true,
-  allowPause: true,
+  // Off: the hall has no pause button, and a paper whose clock can be
+  // stopped is a paper whose time the server cannot vouch for.
+  allowPause: false,
   allowFullscreen: true,
   lockScroll: true,
   overflowQuestions: true,

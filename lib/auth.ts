@@ -40,29 +40,43 @@ export async function getProfile(): Promise<Profile | null> {
   return profile;
 }
 
+interface Session {
+  profile: Profile | null;
+  inactive: boolean;
+  /** The session's assurance level: aal2 once a second factor has been passed. */
+  aal: string | null;
+}
+
 /**
  * One lookup per request. A layout and its page both ask who is signed in,
  * and without this each asked the auth server and the database again.
+ *
+ * The token is verified here, against the project's public signing key, so
+ * a valid session costs no round trip to the auth server. (A project still
+ * on a shared secret is verified by the auth server instead — the same cost
+ * as before, never less safe.) A deleted account has no profile row and a
+ * switched-off one is refused below, so a token that outlives its account
+ * still opens nothing.
  */
-const readProfile = cache(async (): Promise<{ profile: Profile | null; inactive: boolean }> => {
-  if (!isConfigured()) return { profile: null, inactive: false };
+const readProfile = cache(async (): Promise<Session> => {
+  if (!isConfigured()) return { profile: null, inactive: false, aal: null };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { profile: null, inactive: false };
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) return { profile: null, inactive: false, aal: null };
 
-  const { data } = await supabase
+  const { data: row } = await supabase
     .from("profiles")
     .select("id, full_name, roll_no, phone, role, is_active")
-    .eq("id", user.id)
+    .eq("id", claims.sub)
     .single();
 
-  const profile = data as Profile | null;
-  if (!profile) return { profile: null, inactive: false };
-  if (profile.is_active === false) return { profile: null, inactive: true };
-  return { profile, inactive: false };
+  const profile = row as Profile | null;
+  const aal = typeof claims.aal === "string" ? claims.aal : "aal1";
+  if (!profile) return { profile: null, inactive: false, aal };
+  if (profile.is_active === false) return { profile: null, inactive: true, aal };
+  return { profile, inactive: false, aal };
 });
 
 /**
@@ -78,15 +92,56 @@ export async function requireUser(next = "/dashboard"): Promise<Profile> {
 }
 
 /**
- * Guards the admin area. This runs on the server on every admin page — the
- * middleware redirect is only a convenience, never the real check.
+ * The admin account, by role alone — the first of the two locks on the panel.
+ * Only the pages that SET UP or PASS the second lock use this; everything
+ * else uses requireAdmin below.
  *
  * A signed-in student who types /admin gets a plain "not found". Nothing links
  * to the panel, and a redirect that said "not an admin" would confirm to a
  * curious student that the panel exists at that address.
  */
-export async function requireAdmin(next = "/admin"): Promise<Profile> {
+export async function requireAdminRole(next = "/admin"): Promise<Profile> {
   const profile = await requireUser(next);
   if (profile.role !== "admin") notFound();
   return profile;
 }
+
+/**
+ * Guards the admin area: the admin role AND a second factor passed in this
+ * session. This runs on the server on every admin page and inside every
+ * admin action — the middleware redirect is only a convenience, never the
+ * real check.
+ *
+ * A password can be guessed, phished or reused; the six-digit code from the
+ * admin's own phone cannot. An admin who has not set the factor up yet is
+ * sent to do so; one who has, but has not passed it in this session, is sent
+ * to enter the code. Until then the panel — and every action behind it — is
+ * closed.
+ */
+export async function requireAdmin(next = "/admin"): Promise<Profile> {
+  const profile = await requireAdminRole(next);
+  const { enrolled, passed } = await secondFactor();
+
+  if (!enrolled) redirect("/admin/setup-2fa");
+  if (!passed) redirect(`/admin/verify?next=${encodeURIComponent(next)}`);
+  return profile;
+}
+
+export interface SecondFactor {
+  /** A verified authenticator is on the account. */
+  enrolled: boolean;
+  /** This session has passed it. */
+  passed: boolean;
+}
+
+/**
+ * Where the admin stands with the second factor. The list of factors comes
+ * from the auth server — one call per request, for admins only.
+ */
+export const secondFactor = cache(async (): Promise<SecondFactor> => {
+  const { aal } = await readProfile();
+  const supabase = await createClient();
+  const { data } = await supabase.auth.mfa.listFactors();
+  const enrolled = (data?.totp?.length ?? 0) > 0;
+  return { enrolled, passed: enrolled && aal === "aal2" };
+});

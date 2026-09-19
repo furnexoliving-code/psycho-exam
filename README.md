@@ -90,7 +90,22 @@ deleting its results.
 
 Every candidate page needs an account: `/dashboard`, the three test lists
 under `/tests/<kind>`, the exam and its result. The admin panel is reached
-only by typing `/admin`; nothing links to it.
+only by typing `/admin`; nothing links to it, and it opens with the admin's
+password AND a six-digit code from an authenticator app (TOTP, via Supabase
+MFA). The first visit sets the app up at `/admin/setup-2fa`; every later
+session enters its code at `/admin/verify`. Every admin page and every admin
+action checks both. A lost phone is recovered from the Supabase dashboard
+(Authentication → Users → the account → remove the factor), after which the
+panel asks for a new setup.
+
+### What is cached
+
+Published papers, their questions (never the key — the cached read selects
+only the public columns) and the published list are served from a shared
+cache tagged per paper, emptied by every admin save and in any case every
+five minutes. A thousand students opening a paper together cost the database
+one read. Anything about one student — profile, attempts, sitting — is read
+live.
 
 ### The sitting
 

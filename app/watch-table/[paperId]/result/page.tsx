@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { isConfigured, requireUser } from "@/lib/auth";
-import { headerOf, loadPaperHeader } from "@/lib/wt/db";
+import { headerOf, loadPaperHeader, loadPaperHeaderLive } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { ResultView } from "./ResultView";
 
@@ -17,7 +17,9 @@ export default async function ResultPage({
   // Only the paper's name and diagram: no questions, and no answer key. The
   // marks come from /api/watch-table/score, which looks the key up server-side.
   const paper = isConfigured()
-    ? await loadPaperHeader(paperId)
+    ? who?.role === "admin"
+      ? await loadPaperHeaderLive(paperId)
+      : await loadPaperHeader(paperId)
     : (() => {
         const bundled = getBundledPaper(paperId);
         return bundled ? headerOf(bundled) : null;

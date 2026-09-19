@@ -10,6 +10,7 @@ import { generateQuestions, optionValues } from "@/lib/wt/generate";
 import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
 import { MAX_OPTION, parseQuestionLines } from "@/lib/wt/parse-questions";
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
+import { paperChanged } from "@/lib/wt/db";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
@@ -216,6 +217,7 @@ export async function createPaper(formData: FormData) {
   );
   if (questionError) throw new Error(questionError.message);
 
+  paperChanged(data.slug);
   redirect(`/admin/watch-table/${data.slug}`);
   });
 }
@@ -324,7 +326,8 @@ export async function saveSettings(
 
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error(NOTHING_CHANGED);
-    revalidatePath(`/admin/watch-table/${slug}`);  });
+    revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);  });
 }
 
 export async function saveDiagram(
@@ -355,7 +358,8 @@ export async function saveDiagram(
 
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error(NOTHING_CHANGED);
-    revalidatePath(`/admin/watch-table/${slug}`);  });
+    revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);  });
 }
 
 /**
@@ -465,6 +469,7 @@ export async function regenerateQuestions(
 
   if (error) throw new Error(error);
   revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);
   return `${chosen.length} built from the diagram`;
   });
 }
@@ -577,6 +582,7 @@ export async function importQuestions(
       const { inserted, error } = await replaceQuestions(paper.id, rows);
       if (error) throw new Error(error);
       revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);
       return `${inserted} questions`;
     }
 
@@ -594,6 +600,7 @@ export async function importQuestions(
       );
     }
     revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);
     return `${inserted.length} questions added`;
   });
 }
@@ -615,6 +622,7 @@ export async function deleteQuestion(
     if (error) throw new Error(error.message);
     if (!gone?.length) throw new Error("That question is already gone");
     revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);
     return "deleted";
   });
 }
@@ -667,6 +675,7 @@ export async function saveQuestion(
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error("That question no longer exists");
     revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);
   });
 }
 
@@ -685,6 +694,7 @@ export async function deletePaper(formData: FormData) {
 
     if (error) throw new Error(error.message);
     if (!gone?.length) throw new Error(NOTHING_CHANGED);
+    paperChanged(slug);
     redirect(
       `/admin/watch-table?saved=${encodeURIComponent(`Deleted — ${gone[0].display_name}, with its questions and results`)}`,
     );
@@ -726,7 +736,8 @@ export async function saveInstructions(
 
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error(NOTHING_CHANGED);
-    revalidatePath(`/admin/watch-table/${slug}`);  });
+    revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);  });
 }
 
 /**
@@ -800,5 +811,6 @@ export async function duplicatePaper(formData: FormData) {
       }
     }
 
+    paperChanged(copy.slug);
     redirect(`/admin/watch-table/${copy.slug}`);  });
 }

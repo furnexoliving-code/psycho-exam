@@ -4,7 +4,7 @@ import { WatchTableExam } from "@/components/wt/WatchTableExam";
 import { isConfigured, requireUser } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
 import { openSitting } from "@/lib/wt/session";
-import { loadPaperForCandidate } from "@/lib/wt/db";
+import { loadPaperForCandidate, loadPaperLive } from "@/lib/wt/db";
 import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
 
 export default async function WatchTablePage({
@@ -22,10 +22,13 @@ export default async function WatchTablePage({
   // portal runs before a database is connected — once one is, it is not a
   // paper any student can reach, or its key would be marked on demand.
   //
-  // The two lookups do not depend on each other, so they run together.
-  const [who, paper] = isConfigured()
+  // The two lookups do not depend on each other, so they run together. A
+  // student's paper comes from the shared cache; an admin previewing sees the
+  // paper as it is right now, draft or not.
+  const [who, cached] = isConfigured()
     ? await Promise.all([requireUser(`/watch-table/${paperId}`), loadPaperForCandidate(paperId)])
     : [null, getBundledPaper(paperId)];
+  const paper = who?.role === "admin" ? await loadPaperLive(paperId) : cached;
 
   if (!paper) notFound();
   if (paper.questions.length === 0) {

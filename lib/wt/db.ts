@@ -1,3 +1,4 @@
+import { revalidateTag, unstable_cache } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -8,7 +9,32 @@ import type { WatchCell, WatchPaper, WatchQuestion } from "./types";
  * Loads Watch Table papers from Supabase, mapping them onto the same shape the
  * exam already renders. Candidates read `watch_questions_public`, a view that
  * omits the answer key; only the admin panel reads the key column.
+ *
+ * What every student sees is the same — the published papers and their
+ * questions — and it changes a few times a day, when the institute edits
+ * it. So those reads are served from a cache shared by every request and
+ * emptied the moment an admin saves; a thousand students opening a paper
+ * together cost the database one read, not a thousand. Anything about ONE
+ * student — their attempts, their sitting, who they are — is never cached.
  */
+
+/** Every cached read of published papers carries this tag. */
+const PAPERS_TAG = "papers";
+/** ...and each paper its own, so one edit empties one paper. */
+const paperTag = (slug: string) => `paper:${slug}`;
+
+/** Even without an edit, nothing cached outlives this many seconds. */
+const CACHE_SECONDS = 300;
+
+/**
+ * Called by every admin write that touches a paper or its questions, so the
+ * next student request reads the new version. The slug is the paper edited;
+ * without one, only the lists are emptied.
+ */
+export function paperChanged(slug?: string): void {
+  revalidateTag(PAPERS_TAG);
+  if (slug) revalidateTag(paperTag(slug));
+}
 
 interface PaperRow {
   id: string;
@@ -85,8 +111,50 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
   };
 }
 
-/** The paper a candidate sits. Never carries the answer key. */
+/** The columns of a question a candidate may see. The key is not among them. */
+const PUBLIC_QUESTION_COLUMNS = "id, position, prompt_en, prompt_hi, options, topic";
+
+/**
+ * The paper a candidate sits. Never carries the answer key.
+ *
+ * Served from the shared cache: a published paper is the same for everyone.
+ * Read with the service-role client because a cached read cannot depend on
+ * the caller's cookies — and filtered to published papers, since that client
+ * sees drafts too. Only the public columns are selected, so the key is not
+ * merely stripped from the cached copy: it is never read into it.
+ */
 export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | null> {
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminClient();
+
+      const { data: row } = await supabase
+        .from("watch_papers")
+        .select("*")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+      if (!row) return null;
+
+      const { data: questions, error } = await supabase
+        .from("watch_questions")
+        .select(PUBLIC_QUESTION_COLUMNS)
+        .eq("paper_id", (row as PaperRow).id)
+        .order("position");
+      if (error) throw new Error(`Could not read the questions for "${slug}": ${error.message}`);
+
+      return toPaper(row as PaperRow, (questions ?? []) as QuestionRow[]);
+    },
+    ["published-paper", slug],
+    { tags: [PAPERS_TAG, paperTag(slug)], revalidate: CACHE_SECONDS },
+  )();
+}
+
+/**
+ * The same paper, read live under the caller's own rights — for an admin
+ * previewing a draft, which the cache above deliberately does not hold.
+ */
+export async function loadPaperLive(slug: string): Promise<WatchPaper | null> {
   const supabase = await createClient();
 
   const { data: row } = await supabase
@@ -98,7 +166,7 @@ export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | 
 
   const { data: questions, error } = await supabase
     .from("watch_questions_public")
-    .select("id, position, prompt_en, prompt_hi, options, topic")
+    .select(PUBLIC_QUESTION_COLUMNS)
     .eq("paper_id", (row as PaperRow).id)
     .order("position");
 
@@ -180,28 +248,35 @@ export async function listPapersForAdmin(): Promise<PaperSummary[]> {
 }
 
 /**
- * The papers a signed-in student may open, optionally of one kind.
+ * The papers a signed-in student may open, optionally of one kind. The same
+ * list for everyone, so it is served from the shared cache.
  *
  * Counts come from a grouped view rather than one row per question: the
  * dashboard used to pull every question of every paper to count them.
  */
 export async function listPublishedPapers(category?: string): Promise<PaperSummary[]> {
-  const supabase = await createClient();
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminClient();
 
-  let query = supabase
-    .from("watch_papers")
-    .select(SUMMARY_COLUMNS)
-    .eq("is_published", true);
-  if (category) query = query.eq("category", category);
+      let query = supabase
+        .from("watch_papers")
+        .select(SUMMARY_COLUMNS)
+        .eq("is_published", true);
+      if (category) query = query.eq("category", category);
 
-  const { data: rows } = await query.order("sort_order").order("created_at");
-  if (!rows?.length) return [];
+      const { data: rows } = await query.order("sort_order").order("created_at");
+      if (!rows?.length) return [];
 
-  const { data: counts } = await supabase
-    .from("watch_question_counts")
-    .select("paper_id, question_count")
-    .in("paper_id", rows.map((r) => r.id));
-  return withCounts(rows, counts ?? []);
+      const { data: counts } = await supabase
+        .from("watch_question_counts")
+        .select("paper_id, question_count")
+        .in("paper_id", rows.map((r) => r.id));
+      return withCounts(rows, counts ?? []);
+    },
+    ["published-papers", category ?? "all"],
+    { tags: [PAPERS_TAG], revalidate: CACHE_SECONDS },
+  )();
 }
 
 interface PaperRowLite {
@@ -251,12 +326,29 @@ export interface PaperHeader {
  * with the key. This reads the five fields.
  */
 export async function loadPaperHeader(slug: string): Promise<PaperHeader | null> {
-  const supabase = await createClient();
-  const { data: row } = await supabase
+  return unstable_cache(
+    async () => readHeader(createAdminClient(), slug, true),
+    ["published-paper-header", slug],
+    { tags: [PAPERS_TAG, paperTag(slug)], revalidate: CACHE_SECONDS },
+  )();
+}
+
+/** The header read live, under the caller's rights — for an admin's draft. */
+export async function loadPaperHeaderLive(slug: string): Promise<PaperHeader | null> {
+  return readHeader(await createClient(), slug, false);
+}
+
+async function readHeader(
+  supabase: ReturnType<typeof createAdminClient> | Awaited<ReturnType<typeof createClient>>,
+  slug: string,
+  publishedOnly: boolean,
+): Promise<PaperHeader | null> {
+  let query = supabase
     .from("watch_papers")
     .select("display_name, time_limit_min, cells, image_url, image_width_pct")
-    .eq("slug", slug)
-    .maybeSingle();
+    .eq("slug", slug);
+  if (publishedOnly) query = query.eq("is_published", true);
+  const { data: row } = await query.maybeSingle();
   if (!row) return null;
 
   const cells = (row.cells as WatchCell[] | null)?.length
