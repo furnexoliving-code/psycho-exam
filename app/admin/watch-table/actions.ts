@@ -141,6 +141,9 @@ export async function createPaper(formData: FormData) {
   const displayName =
     String(formData.get("display_name") ?? "").trim() || "Watch Table Test - 1";
 
+  const wanted = String(formData.get("category") ?? "watch");
+  const category = CATEGORIES.some((c) => c.id === wanted) ? wanted : "watch";
+
   // A fresh paper starts with a generated diagram and a full set of questions,
   // so it is usable immediately rather than an empty shell.
   const { tables, questions } = generateQuestions({
@@ -161,6 +164,7 @@ export async function createPaper(formData: FormData) {
       example_cells: tables[0].cells,
       instructions: [],
       features: {},
+      category,
     })
     .select("id, slug")
     .single();
@@ -227,6 +231,11 @@ export async function saveSettings(
     const raw = String(formData.get("category") ?? "watch");
     const category = CATEGORIES.some((c) => c.id === raw) ? raw : "watch";
 
+    // Blank is 0, which is what every paper already had — so an admin who
+    // never touches this field leaves the order exactly as it was.
+    const orderRaw = String(formData.get("sort_order") ?? "").trim();
+    const sortOrder = orderRaw ? Math.trunc(Number(orderRaw) || 0) : 0;
+
     const resultView = Object.fromEntries(
       RESULT_VIEW_KEYS.map((k) => [k, formData.get(`rv_${k}`) === "on"]),
     );
@@ -250,6 +259,7 @@ export async function saveSettings(
         max_attempts: maxAttempts,
         result_view: resultView,
         category,
+        sort_order: sortOrder,
         features: {
           showInstructionsButton: formData.get("showInstructionsButton") === "on",
           showQuestionPaperButton: formData.get("showQuestionPaperButton") === "on",

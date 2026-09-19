@@ -26,7 +26,7 @@ export default async function EditWatchPaper({
   const { data: row } = await supabase
     .from("watch_papers")
     .select(
-      "is_published, image_url, image_width_pct, font_scale, max_attempts, result_view, category, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
+      "is_published, image_url, image_width_pct, font_scale, max_attempts, result_view, category, sort_order, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
     )
     .eq("slug", slug)
     .single();
@@ -112,6 +112,22 @@ export default async function EditWatchPaper({
             <span className="mt-1 block text-[11px] text-gray-500">
               The block it appears under on the student&rsquo;s page, inside
               Following Directions Test.
+            </span>
+          </label>
+
+          <label className="mt-3 block max-w-xs">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+              Order in the list
+            </span>
+            <input
+              name="sort_order"
+              type="number"
+              defaultValue={row?.sort_order ?? 0}
+              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+            />
+            <span className="mt-1 block text-[11px] text-gray-500">
+              Lower comes first — 1, 2, 3 and so on. Papers with the same number
+              fall back to the order they were created in.
             </span>
           </label>
 

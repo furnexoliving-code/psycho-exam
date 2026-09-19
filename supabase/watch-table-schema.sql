@@ -269,3 +269,16 @@ alter table public.watch_papers drop constraint if exists watch_papers_category_
 alter table public.watch_papers
   add constraint watch_papers_category_ck
   check (category in ('watch', 'letter', 'number'));
+
+-- ---------------------------------------------------------------------------
+-- The order papers are listed in (added later)
+--
+-- Without this the order was whatever the papers happened to be created in,
+-- which is rarely the order a student should meet them. Equal numbers fall
+-- back to creation order, so leaving every paper at 0 changes nothing.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers
+  add column if not exists sort_order integer not null default 0;
+
+create index if not exists watch_papers_order_idx
+  on public.watch_papers (category, sort_order, created_at);
