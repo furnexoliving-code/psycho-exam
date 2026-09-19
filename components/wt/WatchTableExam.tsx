@@ -27,10 +27,9 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
-  // The admin sets where the text starts; the candidate can still nudge it,
-  // which is what the real portal does. Kept in component state only — it is a
-  // display preference, not part of the attempt.
-  const [fontScale, setFontScale] = useState(paper.fontScale ?? 1);
+  // Fixed by the admin. Deliberately not adjustable by the candidate: every
+  // student then sits the same paper at the same size.
+  const fontScale = paper.fontScale ?? 1;
   // Bumped only by keyboard navigation, so a click never triggers a scroll.
   const [scrollToken, setScrollToken] = useState(0);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
@@ -121,14 +120,6 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
           if (document.fullscreenElement) void document.exitFullscreen();
           else void document.documentElement.requestFullscreen().catch(() => {});
         }}
-        onFontStep={
-          onTest
-            ? (d) =>
-                // Held between the same bounds the admin's list offers, so the
-                // text can never shrink to nothing or overflow the column.
-                setFontScale((f) => Math.min(2, Math.max(0.7, +(f + d * 0.15).toFixed(2))))
-            : undefined
-        }
         rollNo="—"
         name="Candidate"
       />

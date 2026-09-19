@@ -23,6 +23,11 @@ export default async function ResultPage({
       paperId={paperId}
       displayName={paper.displayName}
       allowedSec={paper.timeLimitMin * 60}
+      // The review shows the same diagram the candidate sat with, so a question
+      // can be re-read against it rather than from memory.
+      table={paper.tables[0]}
+      imageUrl={paper.imageUrl}
+      imageWidthPct={paper.imageWidthPct}
     />
   );
 }

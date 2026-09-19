@@ -31,9 +31,9 @@ export function QuestionsPanel({
   const [editing, setEditing] = useState<WatchQuestion | null>(null);
   const fileInput = useRef<HTMLInputElement | null>(null);
 
-  /** Exports what is saved, in exactly the format the box accepts back. */
-  const download = () => {
-    const lines = [
+  /** What is saved, written in exactly the format the box accepts back. */
+  const asText = () =>
+    [
       "# English question | Hindi question | options | answer | topic",
       "# One question per line. Lines starting with # are ignored.",
       ...questions.map((q) =>
@@ -43,7 +43,8 @@ export function QuestionsPanel({
       ),
     ].join("\n");
 
-    const url = URL.createObjectURL(new Blob([lines], { type: "text/plain" }));
+  const download = () => {
+    const url = URL.createObjectURL(new Blob([asText()], { type: "text/plain" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = `${slug}-questions.txt`;
@@ -65,7 +66,7 @@ export function QuestionsPanel({
 
         <div className="ml-auto flex gap-2">
           <TabButton active={tab === "upload"} onClick={() => setTab("upload")}>
-            Upload
+            Bulk upload / edit
           </TabButton>
           <TabButton active={tab === "list"} onClick={() => setTab("list")}>
             Saved questions
@@ -114,6 +115,14 @@ export function QuestionsPanel({
               />
               <button
                 type="button"
+                onClick={() => setBulk(asText())}
+                disabled={questions.length === 0}
+                className="rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100 disabled:opacity-50"
+              >
+                Edit all {questions.length} in the box below
+              </button>
+              <button
+                type="button"
                 onClick={download}
                 disabled={questions.length === 0}
                 className="rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100 disabled:opacity-50"
@@ -139,6 +148,10 @@ export function QuestionsPanel({
               <input type="checkbox" name="append" className="h-4 w-4" />
               <span className="text-[12px] text-gray-700">
                 Add to the existing questions instead of replacing them
+                <span className="block text-[11px] text-gray-500">
+                  Leave this off when you have loaded the saved questions above and
+                  edited them — the edited set then replaces the old one.
+                </span>
               </span>
             </label>
 

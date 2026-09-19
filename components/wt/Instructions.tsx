@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import type { WatchPaper } from "@/lib/wt/types";
+import type { InstructionBlock, WatchPaper } from "@/lib/wt/types";
 import { ScrollRail } from "./ScrollRail";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 
@@ -41,7 +41,7 @@ export function InstructionsBody({ paper }: { paper: WatchPaper }) {
           </h3>
           <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-[#494949]">
             {paper.instructions.map((line, i) => (
-              <p key={i}>{line[lang]}</p>
+              <Block key={i} block={line} lang={lang} />
             ))}
           </div>
 
@@ -51,9 +51,9 @@ export function InstructionsBody({ paper }: { paper: WatchPaper }) {
               : "अब नीचे दिए गए उदाहरण को देखें:-"}
           </h3>
           {paper.example.text.map((line, i) => (
-            <p key={i} className="mt-2 text-[15px] leading-relaxed text-[#494949]">
-              {line[lang]}
-            </p>
+            <div key={i} className="mt-2 text-[15px] leading-relaxed text-[#494949]">
+              <Block block={line} lang={lang} />
+            </div>
           ))}
 
           <div className="mt-3 flex justify-center">
@@ -120,6 +120,29 @@ export function InstructionsDialog({
           <ScrollRail target={body} axis="vertical" />
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * One instruction paragraph: its words, and its picture when it has one.
+ *
+ * The picture is capped rather than shown at whatever size it was uploaded, so
+ * one oversized upload cannot push the rest of the screen out of view.
+ */
+function Block({ block, lang }: { block: InstructionBlock; lang: "en" | "hi" }) {
+  return (
+    <div>
+      {block[lang] && <p>{block[lang]}</p>}
+      {block.image && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={block.image}
+          alt=""
+          className="mt-2 h-auto w-full max-w-[420px] rounded border border-gray-300"
+          draggable={false}
+        />
+      )}
     </div>
   );
 }

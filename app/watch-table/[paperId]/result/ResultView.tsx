@@ -24,7 +24,9 @@ import {
   type Outcome,
   type PastAttempt,
 } from "@/components/wt/ResultPanels";
+import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
 import type { AttemptState } from "@/lib/wt/state";
+import type { WatchTable } from "@/lib/wt/types";
 import { formatTScore, type TScore } from "@/lib/wt/tscore";
 
 interface Score {
@@ -62,11 +64,18 @@ export function ResultView({
   paperId,
   displayName,
   allowedSec,
+  table,
+  imageUrl,
+  imageWidthPct,
 }: {
   paperId: string;
   displayName: string;
   /** The paper's own time limit, for the time panel. */
   allowedSec: number;
+  /** The paper's diagram, shown beside the review. */
+  table: WatchTable;
+  imageUrl?: string;
+  imageWidthPct?: number;
 }) {
   const [marked, setMarked] = useState<MarkedQuestion[] | null>(null);
   const [score, setScore] = useState<Score | null>(null);
@@ -282,6 +291,10 @@ export function ResultView({
           >
             Review
           </h2>
+          <p className="mt-1 text-[13px]" style={{ color: "var(--text-secondary)" }}>
+            The diagram stays beside the questions, so each one can be worked
+            through again against it.
+          </p>
 
           <div className="mt-3 flex flex-wrap gap-2">
             {FILTERS.map((f) => {
@@ -329,7 +342,28 @@ export function ResultView({
             </Card>
           )}
 
-          <ol className="mt-4 space-y-3">
+          <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-start">
+            {/* Left half — the diagram. Sticky rather than repeated per question:
+                one paper has one diagram, and scrolling must not lose sight of it. */}
+            <aside className="lg:sticky lg:top-4 lg:w-1/2 lg:shrink-0">
+              <Card>
+                <div className="flex justify-center">
+                  {imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={imageUrl}
+                      alt="Watch table diagram"
+                      className="h-auto max-w-full"
+                      style={{ width: `${imageWidthPct ?? 100}%` }}
+                    />
+                  ) : (
+                    <WatchTableDiagram table={table} />
+                  )}
+                </div>
+              </Card>
+            </aside>
+
+            <ol className="min-w-0 flex-1 space-y-3">
             {visible.map(({ q, i }) => {
               const outcome = groupOf(q);
               return (
@@ -380,18 +414,11 @@ export function ResultView({
                     )}
                   </p>
 
-                  {q.workingEn && (
-                    <p
-                      className="mt-2 rounded px-3 py-2 text-[12px]"
-                      style={{ background: "var(--plane)", color: "var(--text-secondary)" }}
-                    >
-                      {q.workingEn}
-                    </p>
-                  )}
                 </li>
               );
             })}
-          </ol>
+            </ol>
+          </div>
         </div>
 
         <div className="mt-8 flex gap-3">

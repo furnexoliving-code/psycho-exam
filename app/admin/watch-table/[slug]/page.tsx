@@ -4,8 +4,10 @@ import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
 import { loadPaperForAdmin } from "@/lib/wt/db";
 import { createClient } from "@/lib/supabase/server";
 import { DIRECTIONS, DIRECTION_NAME, resolveFeatures } from "@/lib/wt/types";
-import { deletePaper, saveDiagram, saveInstructions, saveSettings } from "../actions";
+import { deletePaper, saveDiagram, saveSettings } from "../actions";
 import { formatInstructionLines } from "@/lib/wt/parse-instructions";
+import { DiagramImageField } from "./DiagramImageField";
+import { InstructionsEditor } from "./InstructionsEditor";
 import { QuestionsPanel } from "./QuestionsPanel";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS } from "./labels";
 
@@ -264,56 +266,11 @@ export default async function EditWatchPaper({
           line, English and Hindi separated by a bar.
         </p>
 
-        <form action={saveInstructions} className="mt-4">
-          <input type="hidden" name="slug" value={slug} />
-
-          <div className="rounded border border-gray-300 bg-gray-50 p-3">
-            <pre className="overflow-x-auto rounded bg-white p-3 text-[11px] leading-relaxed text-gray-700">
-{`Read every question carefully. | हर प्रश्न ध्यान से पढ़ें।
-You may not go back once you submit. | जमा करने के बाद वापस नहीं जा सकते।`}
-            </pre>
-            <p className="mt-2 text-[11px] text-gray-600">
-              Leave the Hindi side empty if you do not need it — but keep the bar,
-              so a forgotten translation cannot be mistaken for a forgotten bar.
-            </p>
-          </div>
-
-          <label className="mt-4 block">
-            <span className="mb-1 block text-[12px] font-semibold text-gray-700">
-              Instructions
-            </span>
-            <textarea
-              name="instructions"
-              rows={8}
-              required
-              defaultValue={formatInstructionLines(paper.instructions)}
-              className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
-            />
-          </label>
-
-          <label className="mt-4 block">
-            <span className="mb-1 block text-[12px] font-semibold text-gray-700">
-              The worked example, below the instructions
-            </span>
-            <textarea
-              name="example_text"
-              rows={5}
-              defaultValue={formatInstructionLines(paper.example.text)}
-              className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
-            />
-            <span className="mt-1 block text-[11px] text-gray-500">
-              The example diagram itself is the one you set below — this is only the
-              wording around it.
-            </span>
-          </label>
-
-          <button
-            type="submit"
-            className="mt-4 rounded bg-indigo-800 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-900"
-          >
-            Save the instructions
-          </button>
-        </form>
+        <InstructionsEditor
+          slug={slug}
+          instructions={formatInstructionLines(paper.instructions)}
+          exampleText={formatInstructionLines(paper.example.text)}
+        />
       </section>
 
       {/* ------------------------------ Diagram ------------------------------- */}
@@ -363,22 +320,7 @@ You may not go back once you submit. | जमा करने के बाद �
               a question shows five options, and they are these numbers.
             </p>
 
-            <label className="mt-4 block">
-              <span className="mb-1 block text-[12px] font-semibold text-gray-700">
-                Or show your own image instead (paste a link)
-              </span>
-              <input
-                name="image_url"
-                defaultValue={row?.image_url ?? ""}
-                placeholder="https://…/watch-table.png"
-                className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
-              />
-              <span className="mt-1 block text-[11px] text-gray-500">
-                When set, the exam shows this picture in place of the drawing. Keep
-                the eight positions above filled in anyway — they are what the
-                answers are checked against.
-              </span>
-            </label>
+            <DiagramImageField defaultUrl={row?.image_url ?? ""} />
 
             <label className="mt-4 block max-w-xs">
               <span className="mb-1 block text-[12px] font-semibold text-gray-700">

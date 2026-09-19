@@ -61,6 +61,19 @@ export interface Bilingual {
   hi: string;
 }
 
+/**
+ * One paragraph of the instruction screen.
+ *
+ * A paragraph may carry a picture as well as words — a worked example is often
+ * easier shown than described — and the picture belongs to the paragraph
+ * rather than sitting in a separate list, so the two can never fall out of
+ * order.
+ */
+export interface InstructionBlock extends Bilingual {
+  /** Public URL of a picture shown under this paragraph. */
+  image?: string;
+}
+
 export interface WatchQuestion {
   id: string;
   /** Index into the paper's tables — the diagram this question refers to. */
@@ -117,10 +130,10 @@ export interface WatchPaper {
    * test opens by itself, exactly as it does in the hall.
    */
   instructionTimeLimitMin: number;
-  instructions: Bilingual[];
+  instructions: InstructionBlock[];
   example: {
     table: WatchTable;
-    text: Bilingual[];
+    text: InstructionBlock[];
   };
   tables: WatchTable[];
   questions: WatchQuestion[];
