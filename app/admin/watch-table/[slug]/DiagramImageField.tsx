@@ -3,43 +3,59 @@
 import { useState } from "react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
-/** The exam's own diagram picture: upload it, or paste a link you already have. */
-export function DiagramImageField({ defaultUrl }: { defaultUrl: string }) {
+/**
+ * The picture shown beside the questions during the test.
+ *
+ * This is the main path: an institute draws its own diagram and uploads it,
+ * then writes questions whose answers it supplies. The eight positions below
+ * are only for the portal's own drawing and its sample questions — they take
+ * no part in marking, which compares against the answer stored with each
+ * uploaded question.
+ */
+export function DiagramImageField({
+  defaultUrl,
+  children,
+}: {
+  defaultUrl: string;
+  /** The width control, rendered by the server component. */
+  children?: React.ReactNode;
+}) {
   const [url, setUrl] = useState(defaultUrl);
 
   return (
-    <div className="mt-4">
-      <label className="block">
+    <div>
+      <div>
+        <ImageUpload label="Upload the question image…" hint="Fills the box below for you." onUploaded={setUrl} />
+      </div>
+
+      <label className="mt-3 block">
         <span className="mb-1 block text-[12px] font-semibold text-gray-700">
-          Or show your own image instead
+          Image link
         </span>
         <input
           name="image_url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://…/watch-table.png"
+          placeholder="https://…/question-image.png"
           className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
         />
       </label>
 
-      <div className="mt-2">
-        <ImageUpload onUploaded={setUrl} hint="Fills the box above for you." />
-      </div>
-
-      {url && (
+      {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={url}
-          alt="Diagram preview"
-          className="mt-3 h-auto w-full max-w-[280px] rounded border border-gray-300"
+          alt="Question image preview"
+          className="mt-3 h-auto w-full max-w-[320px] rounded border border-gray-300"
         />
+      ) : (
+        <p className="mt-3 rounded border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-[12px] text-gray-500">
+          No image set. The portal will draw the diagram from the eight
+          positions below instead.
+        </p>
       )}
 
-      <p className="mt-2 text-[11px] text-gray-500">
-        When set, the exam shows this picture in place of the drawing. Keep the
-        eight positions above filled in anyway — they are what the answers are
-        checked against.
-      </p>
+      {children}
     </div>
   );
 }

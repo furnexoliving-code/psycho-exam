@@ -355,88 +355,105 @@ export default async function EditWatchPaper({
         />
       </section>
 
-      {/* ------------------------------ Diagram ------------------------------- */}
+      {/* --------------------------- Question image --------------------------- */}
       <section className="mt-6 rounded border border-gray-300 bg-white p-5">
-        <h2 className="text-[15px] font-bold text-gray-900">The diagram</h2>
+        <h2 className="text-[15px] font-bold text-gray-900">Question Image</h2>
         <p className="mt-1 text-[12px] text-gray-600">
-          Eight positions round the circle, clockwise from the top. Each carries a
-          letter and the number inside its square.
+          The picture shown beside the questions during the test.
         </p>
 
-        <SaveForm
-          action={saveDiagram}
-          submitLabel="Save diagram"
-          className="mt-3 flex flex-col gap-6 lg:flex-row lg:flex-wrap"
-        >
+        <SaveForm action={saveDiagram} submitLabel="Save" className="mt-3">
           <input type="hidden" name="slug" value={slug} />
 
-          <div className="min-w-0 flex-1">
-            <div className="grid gap-2 sm:grid-cols-2">
-              {DIRECTIONS.map((direction) => {
-                const cell = cells.find((c) => c.direction === direction);
-                return (
-                  <div key={direction} className="flex items-center gap-2">
-                    <span className="w-[86px] shrink-0 text-[12px] font-semibold text-gray-700">
-                      {DIRECTION_NAME[direction].en}
-                    </span>
-                    <input
-                      name={`cell_${direction}_letter`}
-                      defaultValue={cell?.letter ?? ""}
-                      maxLength={2}
-                      required
-                      aria-label={`${DIRECTION_NAME[direction].en} letter`}
-                      className="w-[58px] rounded border border-gray-400 px-2 py-1.5 text-center text-[14px] font-bold uppercase"
-                    />
-                    <input
-                      name={`cell_${direction}_value`}
-                      type="number"
-                      min={0}
-                      defaultValue={cell?.value ?? 1}
-                      required
-                      aria-label={`${DIRECTION_NAME[direction].en} number`}
-                      className="w-[72px] rounded border border-gray-400 px-2 py-1.5 text-center text-[14px]"
-                    />
-                  </div>
-                );
-              })}
+          <div className="max-w-xl">
+            <DiagramImageField defaultUrl={row?.image_url ?? ""}>
+              <label className="mt-4 block max-w-xs">
+                <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+                  How wide the image is drawn
+                </span>
+                <select
+                  name="image_width_pct"
+                  defaultValue={String(row?.image_width_pct ?? 100)}
+                  className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+                >
+                  {IMAGE_WIDTHS.map((w) => (
+                    <option key={w.value} value={w.value}>
+                      {w.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1 block text-[11px] text-gray-500">
+                  Shrinks the picture inside its own column — it never spills over.
+                  Use this when your image is too big, instead of re-cropping it.
+                </span>
+              </label>
+            </DiagramImageField>
+          </div>
+
+          {/* The eight positions are secondary now, and folded away. They take
+              no part in marking: an uploaded question carries its own answer,
+              and that is what the submitted choice is compared against. They
+              matter only if you want the portal to DRAW the diagram, or to
+              build a sample set of questions from it. */}
+          <details className="mt-6 rounded border border-gray-200 bg-gray-50 p-4">
+            <summary className="cursor-pointer text-[13px] font-semibold text-gray-800">
+              Let the portal draw the diagram instead (optional)
+            </summary>
+
+            <p className="mt-2 text-[11px] text-gray-600">
+              Only needed if you do not upload an image above, or if you want to
+              build a sample set of questions. These positions are not used for
+              marking — every uploaded question is checked against the answer you
+              supplied with it.
+            </p>
+
+            <div className="mt-3 flex flex-col gap-6 lg:flex-row">
+              <div className="min-w-0 flex-1">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {DIRECTIONS.map((direction) => {
+                    const cell = cells.find((c) => c.direction === direction);
+                    return (
+                      <div key={direction} className="flex items-center gap-2">
+                        <span className="w-[86px] shrink-0 text-[12px] font-semibold text-gray-700">
+                          {DIRECTION_NAME[direction].en}
+                        </span>
+                        <input
+                          name={`cell_${direction}_letter`}
+                          defaultValue={cell?.letter ?? ""}
+                          maxLength={2}
+                          required
+                          aria-label={`${DIRECTION_NAME[direction].en} letter`}
+                          className="w-[58px] rounded border border-gray-400 px-2 py-1.5 text-center text-[14px] font-bold uppercase"
+                        />
+                        <input
+                          name={`cell_${direction}_value`}
+                          type="number"
+                          min={0}
+                          defaultValue={cell?.value ?? 1}
+                          required
+                          aria-label={`${DIRECTION_NAME[direction].en} number`}
+                          className="w-[72px] rounded border border-gray-400 px-2 py-1.5 text-center text-[14px]"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <p className="mt-3 text-[11px] text-gray-500">
+                  Letters must all differ. Use between two and five different
+                  numbers — a generated question shows five options, and they are
+                  these numbers.
+                </p>
+              </div>
+
+              <div className="shrink-0 lg:w-[260px]">
+                <p className="mb-2 text-[12px] font-semibold text-gray-700">
+                  What it would draw
+                </p>
+                <WatchTableDiagram table={paper.tables[0]} />
+              </div>
             </div>
-
-            <p className="mt-3 text-[11px] text-gray-500">
-              Letters must all differ. Use between two and five different numbers —
-              a question shows five options, and they are these numbers.
-            </p>
-
-            <DiagramImageField defaultUrl={row?.image_url ?? ""} />
-
-            <label className="mt-4 block max-w-xs">
-              <span className="mb-1 block text-[12px] font-semibold text-gray-700">
-                How wide the image is drawn
-              </span>
-              <select
-                name="image_width_pct"
-                defaultValue={String(row?.image_width_pct ?? 100)}
-                className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
-              >
-                {IMAGE_WIDTHS.map((w) => (
-                  <option key={w.value} value={w.value}>
-                    {w.label}
-                  </option>
-                ))}
-              </select>
-              <span className="mt-1 block text-[11px] text-gray-500">
-                Shrinks the picture inside its own column — it never spills over.
-                Use this when your image is too big, instead of re-cropping it.
-              </span>
-            </label>
-
-          </div>
-
-          <div className="shrink-0 lg:w-[300px]">
-            <p className="mb-2 text-[12px] font-semibold text-gray-700">
-              Saved diagram
-            </p>
-            <WatchTableDiagram table={paper.tables[0]} />
-          </div>
+          </details>
         </SaveForm>
       </section>
 
