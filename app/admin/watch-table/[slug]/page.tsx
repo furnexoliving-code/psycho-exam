@@ -13,10 +13,13 @@ import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS } from "./labels";
 
 export default async function EditWatchPaper({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   const { slug } = await params;
+  const { error: saveError, saved } = await searchParams;
   const paper = await loadPaperForAdmin(slug);
   if (!paper) notFound();
 
@@ -39,6 +42,20 @@ export default async function EditWatchPaper({
 
   return (
     <>
+      {saveError && (
+        <p
+          role="alert"
+          className="mb-4 rounded border border-red-400 bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-800"
+        >
+          Not saved — {saveError}
+        </p>
+      )}
+      {saved && (
+        <p className="mb-4 rounded border border-green-300 bg-green-50 px-4 py-3 text-[13px] font-semibold text-green-800">
+          {saved} saved.
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-bold text-gray-900">{paper.displayName}</h1>
         <Link
@@ -107,9 +124,7 @@ export default async function EditWatchPaper({
               ))}
             </select>
             <span className="mt-1 block text-[11px] text-gray-500">
-              The size the questions start at. The candidate can still change it
-              during the test with the A− / A+ buttons, so this is the starting
-              point, not a limit.
+              The size the questions are shown at for every candidate.
             </span>
           </label>
 

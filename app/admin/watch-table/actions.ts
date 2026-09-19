@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { run } from "@/lib/admin-result";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -141,80 +142,82 @@ export async function createPaper(formData: FormData) {
 }
 
 export async function saveSettings(formData: FormData) {
-  await requireAdmin();
-  const supabase = await createClient();
-
   const slug = String(formData.get("slug"));
-  const instruction = Number(formData.get("instruction_time_min"));
-  const test = Number(formData.get("time_limit_min"));
+  return run(`/admin/watch-table/${slug}`, "Settings", async () => {
+    await requireAdmin();
+    const supabase = await createClient();
 
-  if (!Number.isInteger(instruction) || instruction < 1 || instruction > 120) {
-    throw new Error("Instruction time must be between 1 and 120 minutes");
-  }
-  if (!Number.isInteger(test) || test < 1 || test > 300) {
-    throw new Error("Test time must be between 1 and 300 minutes");
-  }
+      const instruction = Number(formData.get("instruction_time_min"));
+    const test = Number(formData.get("time_limit_min"));
 
-  // Clamped rather than rejected: the control only offers valid steps, so a
-  // value outside them means a hand-edited form, not a mistake worth a page of
-  // error text.
-  const fontScale = Math.min(2, Math.max(0.7, Number(formData.get("font_scale") ?? 1) || 1));
+    if (!Number.isInteger(instruction) || instruction < 1 || instruction > 120) {
+      throw new Error("Instruction time must be between 1 and 120 minutes");
+    }
+    if (!Number.isInteger(test) || test < 1 || test > 300) {
+      throw new Error("Test time must be between 1 and 300 minutes");
+    }
 
-  const { error } = await supabase
-    .from("watch_papers")
-    .update({
-      title: String(formData.get("title") ?? "").trim(),
-      display_name: String(formData.get("display_name") ?? "").trim(),
-      instruction_time_min: instruction,
-      time_limit_min: test,
-      is_published: formData.get("is_published") === "on",
-      // Blank means "no reference" — the T-score then waits for a real cohort.
-      reference_mean: numberOrNull(formData.get("reference_mean")),
-      reference_sd: nonNegativeOrNull(formData.get("reference_sd")),
-      cut_off_marks: numberOrNull(formData.get("cut_off_marks")),
-      cut_off_tscore: numberOrNull(formData.get("cut_off_tscore")),
-      expert_comment: String(formData.get("expert_comment") ?? "").trim() || null,
-      stats_min_attempts: Math.max(1, Number(formData.get("stats_min_attempts") ?? 5)),
-      font_scale: fontScale,
-      features: {
-        showInstructionsButton: formData.get("showInstructionsButton") === "on",
-        showQuestionPaperButton: formData.get("showQuestionPaperButton") === "on",
-        allowPause: formData.get("allowPause") === "on",
-        allowFullscreen: formData.get("allowFullscreen") === "on",
-        lockScroll: formData.get("lockScroll") === "on",
-        overflowQuestions: formData.get("overflowQuestions") === "on",
-      },
-      updated_at: new Date().toISOString(),
-    })
-    .eq("slug", slug);
+    // Clamped rather than rejected: the control only offers valid steps, so a
+    // value outside them means a hand-edited form, not a mistake worth a page of
+    // error text.
+    const fontScale = Math.min(2, Math.max(0.7, Number(formData.get("font_scale") ?? 1) || 1));
 
-  if (error) throw new Error(error.message);
-  revalidatePath(`/admin/watch-table/${slug}`);
+    const { error } = await supabase
+      .from("watch_papers")
+      .update({
+        title: String(formData.get("title") ?? "").trim(),
+        display_name: String(formData.get("display_name") ?? "").trim(),
+        instruction_time_min: instruction,
+        time_limit_min: test,
+        is_published: formData.get("is_published") === "on",
+        // Blank means "no reference" — the T-score then waits for a real cohort.
+        reference_mean: numberOrNull(formData.get("reference_mean")),
+        reference_sd: nonNegativeOrNull(formData.get("reference_sd")),
+        cut_off_marks: numberOrNull(formData.get("cut_off_marks")),
+        cut_off_tscore: numberOrNull(formData.get("cut_off_tscore")),
+        expert_comment: String(formData.get("expert_comment") ?? "").trim() || null,
+        stats_min_attempts: Math.max(1, Number(formData.get("stats_min_attempts") ?? 5)),
+        font_scale: fontScale,
+        features: {
+          showInstructionsButton: formData.get("showInstructionsButton") === "on",
+          showQuestionPaperButton: formData.get("showQuestionPaperButton") === "on",
+          allowPause: formData.get("allowPause") === "on",
+          allowFullscreen: formData.get("allowFullscreen") === "on",
+          lockScroll: formData.get("lockScroll") === "on",
+          overflowQuestions: formData.get("overflowQuestions") === "on",
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq("slug", slug);
+
+    if (error) throw new Error(error.message);
+    revalidatePath(`/admin/watch-table/${slug}`);  });
 }
 
 export async function saveDiagram(formData: FormData) {
-  await requireAdmin();
-  const supabase = await createClient();
-
   const slug = String(formData.get("slug"));
-  const cells = readCells(formData);
+  return run(`/admin/watch-table/${slug}`, "Diagram", async () => {
+    await requireAdmin();
+    const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("watch_papers")
-    .update({
-      cells,
-      example_cells: cells,
-      image_url: String(formData.get("image_url") ?? "").trim() || null,
-      image_width_pct: Math.min(
-        100,
-        Math.max(30, Math.round(Number(formData.get("image_width_pct") ?? 100) || 100)),
-      ),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("slug", slug);
+      const cells = readCells(formData);
 
-  if (error) throw new Error(error.message);
-  revalidatePath(`/admin/watch-table/${slug}`);
+    const { error } = await supabase
+      .from("watch_papers")
+      .update({
+        cells,
+        example_cells: cells,
+        image_url: String(formData.get("image_url") ?? "").trim() || null,
+        image_width_pct: Math.min(
+          100,
+          Math.max(30, Math.round(Number(formData.get("image_width_pct") ?? 100) || 100)),
+        ),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("slug", slug);
+
+    if (error) throw new Error(error.message);
+    revalidatePath(`/admin/watch-table/${slug}`);  });
 }
 
 /**
@@ -329,49 +332,50 @@ export async function regenerateQuestions(formData: FormData) {
  * cannot leave the paper half-empty.
  */
 export async function importQuestions(formData: FormData) {
-  await requireAdmin();
-  const supabase = await createClient();
-
   const slug = String(formData.get("slug"));
-  const parsed = parseQuestionLines(String(formData.get("bulk") ?? ""));
+  return run(`/admin/watch-table/${slug}`, "Questions", async () => {
+    await requireAdmin();
+    const supabase = await createClient();
 
-  const { data: paper, error: readError } = await supabase
-    .from("watch_papers")
-    .select("id")
-    .eq("slug", slug)
-    .single();
-  if (readError) throw new Error(readError.message);
+      const parsed = parseQuestionLines(String(formData.get("bulk") ?? ""));
 
-  const append = formData.get("append") === "on";
-  let offset = 0;
+    const { data: paper, error: readError } = await supabase
+      .from("watch_papers")
+      .select("id")
+      .eq("slug", slug)
+      .single();
+    if (readError) throw new Error(readError.message);
 
-  if (append) {
-    const { count } = await supabase
-      .from("watch_questions")
-      .select("id", { count: "exact", head: true })
-      .eq("paper_id", paper.id);
-    offset = count ?? 0;
-  } else {
-    await supabase.from("watch_questions").delete().eq("paper_id", paper.id);
-  }
+    const append = formData.get("append") === "on";
+    let offset = 0;
 
-  const { error } = await supabase.from("watch_questions").insert(
-    parsed.map((q, i) => ({
-      paper_id: paper.id,
-      position: offset + i,
-      prompt_en: q.prompt_en,
-      prompt_hi: q.prompt_hi,
-      options: q.options,
-      answer: q.answer,
-      topic: q.topic,
-      // Uploaded questions carry no derivation; the review screen just omits it.
-      working_en: "",
-      working_hi: "",
-    })),
-  );
+    if (append) {
+      const { count } = await supabase
+        .from("watch_questions")
+        .select("id", { count: "exact", head: true })
+        .eq("paper_id", paper.id);
+      offset = count ?? 0;
+    } else {
+      await supabase.from("watch_questions").delete().eq("paper_id", paper.id);
+    }
 
-  if (error) throw new Error(error.message);
-  revalidatePath(`/admin/watch-table/${slug}`);
+    const { error } = await supabase.from("watch_questions").insert(
+      parsed.map((q, i) => ({
+        paper_id: paper.id,
+        position: offset + i,
+        prompt_en: q.prompt_en,
+        prompt_hi: q.prompt_hi,
+        options: q.options,
+        answer: q.answer,
+        topic: q.topic,
+        // Uploaded questions carry no derivation; the review screen just omits it.
+        working_en: "",
+        working_hi: "",
+      })),
+    );
+
+    if (error) throw new Error(error.message);
+    revalidatePath(`/admin/watch-table/${slug}`);  });
 }
 
 export async function deleteQuestion(formData: FormData) {
@@ -443,28 +447,29 @@ export async function deletePaper(formData: FormData) {
  * neither.
  */
 export async function saveInstructions(formData: FormData) {
-  await requireAdmin();
-  const supabase = await createClient();
-
   const slug = String(formData.get("slug"));
-  const instructions = parseInstructionLines(String(formData.get("instructions") ?? ""));
-  const exampleText = parseInstructionLines(String(formData.get("example_text") ?? ""));
+  return run(`/admin/watch-table/${slug}`, "Instructions", async () => {
+    await requireAdmin();
+    const supabase = await createClient();
 
-  if (instructions.length === 0) {
-    throw new Error("The instruction screen cannot be left blank");
-  }
+      const instructions = parseInstructionLines(String(formData.get("instructions") ?? ""));
+    const exampleText = parseInstructionLines(String(formData.get("example_text") ?? ""));
 
-  const { error } = await supabase
-    .from("watch_papers")
-    .update({
-      instructions,
-      example_text: exampleText,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("slug", slug);
+    if (instructions.length === 0) {
+      throw new Error("The instruction screen cannot be left blank");
+    }
 
-  if (error) throw new Error(error.message);
-  revalidatePath(`/admin/watch-table/${slug}`);
+    const { error } = await supabase
+      .from("watch_papers")
+      .update({
+        instructions,
+        example_text: exampleText,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("slug", slug);
+
+    if (error) throw new Error(error.message);
+    revalidatePath(`/admin/watch-table/${slug}`);  });
 }
 
 /**
@@ -475,65 +480,68 @@ export async function saveInstructions(formData: FormData) {
  * cannot appear on the students' dashboard while it is still being worked on.
  */
 export async function duplicatePaper(formData: FormData) {
-  await requireAdmin();
-  const supabase = await createClient();
-
   const slug = String(formData.get("slug"));
+  // The body redirects to the new paper on success; run() lets a
+  // redirect through and only catches real failures.
+  return run(`/admin/watch-table/${slug}`, "Copy", async () => {
+    await requireAdmin();
+    const supabase = await createClient();
 
-  const { data: source, error: readErr } = await supabase
-    .from("watch_papers")
-    .select("*")
-    .eq("slug", slug)
-    .single();
+  
+    const { data: source, error: readErr } = await supabase
+      .from("watch_papers")
+      .select("*")
+      .eq("slug", slug)
+      .single();
 
-  if (readErr || !source) throw new Error(readErr?.message ?? "Paper not found");
+    if (readErr || !source) throw new Error(readErr?.message ?? "Paper not found");
 
-  // Everything except the row's own identity and its published state.
-  const {
-    id: _id,
-    slug: _slug,
-    created_at: _createdAt,
-    updated_at: _updatedAt,
-    is_published: _published,
-    display_name: sourceName,
-    ...rest
-  } = source as Record<string, unknown> & { display_name: string };
+    // Everything except the row's own identity and its published state.
+    const {
+      id: _id,
+      slug: _slug,
+      created_at: _createdAt,
+      updated_at: _updatedAt,
+      is_published: _published,
+      display_name: sourceName,
+      ...rest
+    } = source as Record<string, unknown> & { display_name: string };
 
-  const displayName = String(formData.get("display_name") ?? "").trim() ||
-    `${sourceName} (copy)`;
+    const displayName = String(formData.get("display_name") ?? "").trim() ||
+      `${sourceName} (copy)`;
 
-  // A slug collides the moment you copy the same paper twice, so give it
-  // something unique rather than letting the insert fail.
-  const newSlug = `${slugify(displayName)}-${Date.now().toString(36).slice(-4)}`;
+    // A slug collides the moment you copy the same paper twice, so give it
+    // something unique rather than letting the insert fail.
+    const newSlug = `${slugify(displayName)}-${Date.now().toString(36).slice(-4)}`;
 
-  const { data: copy, error: insErr } = await supabase
-    .from("watch_papers")
-    .insert({ ...rest, slug: newSlug, display_name: displayName, is_published: false })
-    .select("id, slug")
-    .single();
+    const { data: copy, error: insErr } = await supabase
+      .from("watch_papers")
+      .insert({ ...rest, slug: newSlug, display_name: displayName, is_published: false })
+      .select("id, slug")
+      .single();
 
-  if (insErr || !copy) throw new Error(insErr?.message ?? "Could not create the copy");
+    if (insErr || !copy) throw new Error(insErr?.message ?? "Could not create the copy");
 
-  const { data: questions, error: qErr } = await supabase
-    .from("watch_questions")
-    .select("position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic")
-    .eq("paper_id", source.id)
-    .order("position");
-
-  if (qErr) throw new Error(qErr.message);
-
-  if (questions?.length) {
-    const { error: copyErr } = await supabase
+    const { data: questions, error: qErr } = await supabase
       .from("watch_questions")
-      .insert(questions.map((q) => ({ ...q, paper_id: copy.id })));
+      .select("position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic")
+      .eq("paper_id", source.id)
+      .order("position");
 
-    // A paper whose questions failed to copy is worse than no copy at all:
-    // it looks complete in the list and turns out empty when opened.
-    if (copyErr) {
-      await supabase.from("watch_papers").delete().eq("id", copy.id);
-      throw new Error(`The questions could not be copied: ${copyErr.message}`);
+    if (qErr) throw new Error(qErr.message);
+
+    if (questions?.length) {
+      const { error: copyErr } = await supabase
+        .from("watch_questions")
+        .insert(questions.map((q) => ({ ...q, paper_id: copy.id })));
+
+      // A paper whose questions failed to copy is worse than no copy at all:
+      // it looks complete in the list and turns out empty when opened.
+      if (copyErr) {
+        await supabase.from("watch_papers").delete().eq("id", copy.id);
+        throw new Error(`The questions could not be copied: ${copyErr.message}`);
+      }
     }
-  }
 
-  redirect(`/admin/watch-table/${copy.slug}`);
+    redirect(`/admin/watch-table/${copy.slug}`);  });
 }
