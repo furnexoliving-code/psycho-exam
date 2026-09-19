@@ -130,7 +130,13 @@ export interface ResultView {
   /** Your marks · Mean · Standard deviation · Papers compared. */
   tScoreStats?: boolean;
   cutOff?: boolean;
-  /** The marks half of the cut off; the T-score half can stand alone. */
+  /**
+   * Whether the marks bar counts towards the verdict.
+   *
+   * Off means the cut off is judged on the T-score alone. It is not a display
+   * switch: a bar that decides is always stated, so that a verdict can always
+   * be explained by what the candidate is shown.
+   */
   cutOffMarks?: boolean;
   rank?: boolean;
   percentile?: boolean;

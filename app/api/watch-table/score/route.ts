@@ -170,11 +170,19 @@ function decideCutOff(
   cutOff: { marks: number | null; tScore: number | null },
   marks: number,
   t: number | null,
-  showMarks: boolean,
+  /** Whether the marks bar counts at all — see below. */
+  useMarks: boolean,
 ): CutOff | null {
-  if (cutOff.marks === null && cutOff.tScore === null) return null;
+  if ((cutOff.marks === null || !useMarks) && cutOff.tScore === null) return null;
 
-  const byMarks = cutOff.marks === null ? null : marks >= cutOff.marks;
+  // The switch decides whether the marks bar APPLIES, not merely whether it is
+  // mentioned. Hiding a bar that still decides produced a verdict the
+  // candidate could not make sense of: "Not qualified · T-score 44.3 against
+  // 42 needed" — the only reason given was one the candidate had cleared,
+  // while the marks bar that actually failed them was never shown. A rule that
+  // counts is always stated; a rule that is not stated does not count.
+  const byMarks = cutOff.marks === null || !useMarks ? null : marks >= cutOff.marks;
+
   // A T-score bar cannot be judged before there is a T-score to judge it by.
   const byT = cutOff.tScore === null || t === null ? null : t >= cutOff.tScore;
 
@@ -191,11 +199,7 @@ function decideCutOff(
   // Both bars must be cleared when both are set.
   const qualified = checks.every(Boolean);
   const parts: string[] = [];
-  // The marks half is off by default: most institutes want the verdict judged
-  // and explained by the T-score alone.
-  if (byMarks !== null && showMarks) {
-    parts.push(`${marks} of ${cutOff.marks} marks needed`);
-  }
+  if (byMarks !== null) parts.push(`${marks} of ${cutOff.marks} marks needed`);
   if (byT !== null) parts.push(`T-score ${t!.toFixed(1)} against ${cutOff.tScore} needed`);
 
   return { marks: cutOff.marks, tScore: cutOff.tScore, qualified, reason: parts.join(" · ") };

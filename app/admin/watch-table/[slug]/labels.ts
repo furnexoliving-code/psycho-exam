@@ -67,7 +67,11 @@ export const RESULT_VIEW_LABELS: { name: string; label: string; hint: string }[]
   { name: "tScoreFormula", label: "…with the working", hint: "T = 50 + 10 × (marks − mean) ÷ sd" },
   { name: "tScoreStats", label: "…with mean and SD", hint: "Your marks · Mean · Standard deviation · Papers compared" },
   { name: "cutOff", label: "Qualified / Not qualified", hint: "The cut off verdict." },
-  { name: "cutOffMarks", label: "…naming the marks needed", hint: 'Adds "2 of 14 marks needed" to the verdict.' },
+  {
+    name: "cutOffMarks",
+    label: "…also require the marks",
+    hint: "Off: the verdict is decided by the T-score alone. On: the candidate must clear BOTH bars, and both are shown.",
+  },
   { name: "rank", label: "Rank", hint: "Position in the cohort." },
   { name: "percentile", label: "Percentile", hint: "How many scored below." },
   { name: "accuracy", label: "Accuracy", hint: "Correct as a share of attempted." },
