@@ -26,6 +26,7 @@ interface PaperRow {
   example_text: { en: string; hi: string }[];
   font_scale: number | null;
   image_width_pct: number | null;
+  result_view: WatchPaper["resultView"];
 }
 
 interface QuestionRow {
@@ -72,6 +73,7 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
     imageUrl: row.image_url ?? undefined,
     fontScale: row.font_scale ?? undefined,
     imageWidthPct: row.image_width_pct ?? undefined,
+    resultView: row.result_view ?? {},
   };
 }
 

@@ -20,7 +20,15 @@ import { ConfirmBox } from "./ConfirmBox";
  * The exam screen: the diagram fixed on the left, the questions scrolling on
  * the right, driven from the keyboard.
  */
-export function WatchTableExam({ paper }: { paper: WatchPaper }) {
+export function WatchTableExam({
+  paper,
+  candidateName = "Candidate",
+  rollNo = "—",
+}: {
+  paper: WatchPaper;
+  candidateName?: string;
+  rollNo?: string;
+}) {
   const router = useRouter();
   const { state, dispatch, answered, clearSaved } = useAttempt(paper);
   const questionColumn = useRef<HTMLElement | null>(null);
@@ -120,8 +128,8 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
           if (document.fullscreenElement) void document.exitFullscreen();
           else void document.documentElement.requestFullscreen().catch(() => {});
         }}
-        rollNo="—"
-        name="Candidate"
+        rollNo={rollNo}
+        name={candidateName}
       />
       <TestTabs
         activeId={state.phase}
@@ -135,8 +143,10 @@ export function WatchTableExam({ paper }: { paper: WatchPaper }) {
         <>
           <div className="flex min-h-0 flex-1">
             {/* Left portion — the fixed diagram. Never scrolls with questions. */}
+            {/* Scrolls in BOTH directions: a diagram wider or taller than its
+                half of the screen must stay reachable, not be cut off. */}
             <section
-              className="flex w-1/2 shrink-0 flex-col items-center overflow-y-auto px-4 py-4"
+              className="flex w-1/2 shrink-0 flex-col items-center overflow-auto px-4 py-4"
               aria-label="Watch table diagram"
             >
               <div className="w-full max-w-[520px] text-[13px] font-bold text-gray-800">

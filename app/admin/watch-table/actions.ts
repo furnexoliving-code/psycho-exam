@@ -37,6 +37,24 @@ const questionStore = createAdminClient;
  * raising an error, so this is indistinguishable from success unless the rows
  * are read back.
  */
+/** The result switches, named once so the form and the save cannot drift. */
+const RESULT_VIEW_KEYS = [
+  "tScore",
+  "tScoreFormula",
+  "tScoreStats",
+  "cutOff",
+  "cutOffMarks",
+  "rank",
+  "percentile",
+  "accuracy",
+  "expertComment",
+  "topicBreakdown",
+  "timeAnalysis",
+  "attemptHistory",
+  "review",
+  "correctAnswers",
+] as const;
+
 const NOTHING_CHANGED =
   "the database accepted the request but changed nothing. This usually means your " +
   "account is not an admin there — check the role on your row in the profiles table.";
@@ -197,6 +215,13 @@ export async function saveSettings(formData: FormData) {
       maxAttempts = n;
     }
 
+    // Read every switch by name. An unchecked box sends nothing at all, so
+    // each one has to be asked for explicitly rather than inferred from what
+    // arrived — otherwise turning a panel off would silently re-enable it.
+    const resultView = Object.fromEntries(
+      RESULT_VIEW_KEYS.map((k) => [k, formData.get(`rv_${k}`) === "on"]),
+    );
+
     const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
@@ -214,6 +239,7 @@ export async function saveSettings(formData: FormData) {
         stats_min_attempts: Math.max(1, Number(formData.get("stats_min_attempts") ?? 5)),
         font_scale: fontScale,
         max_attempts: maxAttempts,
+        result_view: resultView,
         features: {
           showInstructionsButton: formData.get("showInstructionsButton") === "on",
           showQuestionPaperButton: formData.get("showQuestionPaperButton") === "on",

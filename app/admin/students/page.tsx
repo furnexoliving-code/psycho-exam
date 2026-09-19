@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatClock } from "@/lib/scoring";
 import { createStudent, resetPassword, setActive } from "./actions";
+import { BulkStudents } from "./BulkStudents";
 
 interface AttemptScore {
   totalCorrect?: number;
@@ -185,6 +186,8 @@ export default async function StudentsPage({
           </p>
         )}
       </section>
+
+      <BulkStudents />
 
       <section className="mt-8">
         <h2 className="mb-2 text-[15px] font-bold text-gray-900">

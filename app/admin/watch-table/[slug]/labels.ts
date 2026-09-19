@@ -60,3 +60,21 @@ export const IMAGE_WIDTHS = [
   { value: "55", label: "Small (55%)" },
   { value: "40", label: "Very small (40%)" },
 ];
+
+/** What the candidate's result may show, and what each switch means. */
+export const RESULT_VIEW_LABELS: { name: string; label: string; hint: string }[] = [
+  { name: "tScore", label: "T-Score", hint: "The main figure." },
+  { name: "tScoreFormula", label: "…with the working", hint: "T = 50 + 10 × (marks − mean) ÷ sd" },
+  { name: "tScoreStats", label: "…with mean and SD", hint: "Your marks · Mean · Standard deviation · Papers compared" },
+  { name: "cutOff", label: "Qualified / Not qualified", hint: "The cut off verdict." },
+  { name: "cutOffMarks", label: "…naming the marks needed", hint: 'Adds "2 of 14 marks needed" to the verdict.' },
+  { name: "rank", label: "Rank", hint: "Position in the cohort." },
+  { name: "percentile", label: "Percentile", hint: "How many scored below." },
+  { name: "accuracy", label: "Accuracy", hint: "Correct as a share of attempted." },
+  { name: "expertComment", label: "Expert's comment", hint: "The note you wrote above." },
+  { name: "topicBreakdown", label: "Where the marks went", hint: "Accuracy per topic." },
+  { name: "timeAnalysis", label: "Time", hint: "Taken, allowed, per question." },
+  { name: "attemptHistory", label: "Your attempts", hint: "The trend across attempts." },
+  { name: "review", label: "Question review", hint: "Every question with the diagram beside it." },
+  { name: "correctAnswers", label: "…showing the correct answer", hint: "Off keeps the key out of the result entirely." },
+];

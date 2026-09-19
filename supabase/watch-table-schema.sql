@@ -244,3 +244,13 @@ create unique index if not exists profiles_phone_unique
 
 alter table public.profiles
   add column if not exists is_active boolean not null default true;
+
+-- ---------------------------------------------------------------------------
+-- What the candidate's result shows (added later)
+--
+-- Which panels appear is the institute's decision, not the code's. Stored as
+-- flags rather than columns so a new panel does not need a migration. An
+-- absent key means "show", so every existing paper keeps what it had.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers
+  add column if not exists result_view jsonb not null default '{}'::jsonb;

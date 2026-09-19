@@ -140,20 +140,28 @@ export function Stat({
   );
 }
 
-export function StandingCards({ standing }: { standing: Standing | null }) {
+export function StandingCards({
+  standing,
+  showRank = true,
+  showPercentile = true,
+}: {
+  standing: Standing | null;
+  showRank?: boolean;
+  showPercentile?: boolean;
+}) {
   if (!standing) return null;
   return (
     <>
-      <Stat
-        label="Rank"
-        value={String(standing.rank)}
-        foot={`of ${standing.outOf}`}
-      />
-      <Stat
-        label="Percentile"
-        value={standing.percentile.toFixed(1)}
-        foot="scored below you"
-      />
+      {showRank && (
+        <Stat label="Rank" value={String(standing.rank)} foot={`of ${standing.outOf}`} />
+      )}
+      {showPercentile && (
+        <Stat
+          label="Percentile"
+          value={standing.percentile.toFixed(1)}
+          foot="scored below you"
+        />
+      )}
     </>
   );
 }
@@ -171,11 +179,17 @@ export function TScoreHero({
   tScore,
   marks,
   total,
+  showFormula = false,
+  showStats = false,
 }: {
   tScore: TScore | null;
   marks: number;
   /** Marks available, so the fallback hero has a scale to sit on. */
   total: number;
+  /** The worked arithmetic. Off unless the institute turns it on. */
+  showFormula?: boolean;
+  /** Mean, standard deviation and the size of the cohort. */
+  showStats?: boolean;
 }) {
   // Until a cohort exists the T-score has no number, and an empty hero slot is
   // worse than none. Lead with the figure that always exists — the marks — and
@@ -253,10 +267,7 @@ export function TScoreHero({
             {value.toFixed(1)}
           </div>
         </div>
-        <p className="mb-1 max-w-sm text-[12px]" style={{ color: "var(--text-secondary)" }}>
-          50 is the average candidate. Every 10 points is one standard deviation
-          away from that average.
-        </p>
+
       </div>
 
       <div className="relative mt-5 h-2 rounded-full" style={{ background: "var(--series-1-track)" }}>
@@ -288,6 +299,7 @@ export function TScoreHero({
         />
       </div>
 
+      {showStats && (
       <dl
         className="mt-8 flex flex-wrap gap-x-8 gap-y-1 text-[12px]"
         style={{ color: "var(--text-secondary)" }}
@@ -300,14 +312,17 @@ export function TScoreHero({
           value={cohort.source === "cohort" ? String(cohort.count) : "institute reference"}
         />
       </dl>
+      )}
 
-      <p
-        className="mt-3 rounded px-3 py-2 text-[12px]"
-        style={{ background: "var(--plane)", color: "var(--text-secondary)" }}
-      >
-        T = 50 + 10 × ({marks} − {cohort.mean.toFixed(2)}) ÷ {cohort.sd.toFixed(2)} ={" "}
-        <strong style={{ color: "var(--text-primary)" }}>{value.toFixed(1)}</strong>
-      </p>
+      {showFormula && (
+        <p
+          className="mt-3 rounded px-3 py-2 text-[12px]"
+          style={{ background: "var(--plane)", color: "var(--text-secondary)" }}
+        >
+          T = 50 + 10 × ({marks} − {cohort.mean.toFixed(2)}) ÷ {cohort.sd.toFixed(2)} ={" "}
+          <strong style={{ color: "var(--text-primary)" }}>{value.toFixed(1)}</strong>
+        </p>
+      )}
 
       {tScore.note && (
         <p className="mt-2 text-[12px]" style={{ color: "var(--text-secondary)" }}>

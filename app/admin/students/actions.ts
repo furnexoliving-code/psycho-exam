@@ -5,6 +5,7 @@ import { run } from "@/lib/admin-result";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidPhone, normalisePhone, phoneToEmail } from "@/lib/phone";
+import { parseStudentLines } from "@/lib/parse-students";
 
 const BACK = "/admin/students";
 
@@ -112,5 +113,64 @@ export async function setActive(formData: FormData) {
 
     revalidatePath(BACK);
     return active ? "switched on" : "switched off";
+  });
+}
+
+/**
+ * Creates many accounts from a pasted list or an uploaded CSV.
+ *
+ * The whole list is validated first, so a bad line stops everything before a
+ * single account exists. After that the accounts are made one at a time and
+ * the result says exactly how many were created and which numbers were
+ * already taken — a partial run has to be legible, because the admin has to
+ * know who still needs an account.
+ */
+export async function importStudents(formData: FormData) {
+  return run(BACK, "Students", async () => {
+    await requireAdmin();
+    const supabase = createAdminClient();
+
+    const parsed = parseStudentLines(String(formData.get("bulk") ?? ""));
+
+    let made = 0;
+    const skipped: string[] = [];
+    const failed: string[] = [];
+
+    for (const student of parsed) {
+      const { data: created, error } = await supabase.auth.admin.createUser({
+        email: phoneToEmail(student.phone),
+        password: student.password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: student.fullName,
+          roll_no: student.rollNo,
+          phone: student.phone,
+        },
+      });
+
+      if (error) {
+        if (/already/i.test(error.message)) skipped.push(student.phone);
+        else failed.push(`${student.phone} (${error.message})`);
+        continue;
+      }
+
+      await supabase
+        .from("profiles")
+        .update({
+          full_name: student.fullName,
+          roll_no: student.rollNo,
+          phone: student.phone,
+        })
+        .eq("id", created.user.id);
+
+      made++;
+    }
+
+    revalidatePath(BACK);
+
+    const parts = [`${made} created`];
+    if (skipped.length) parts.push(`${skipped.length} already had accounts (${skipped.join(", ")})`);
+    if (failed.length) parts.push(`${failed.length} failed: ${failed.join("; ")}`);
+    return parts.join(" · ");
   });
 }

@@ -3,6 +3,7 @@ import { getProfile, isConfigured } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { meanAndSd, tScore, type Cohort } from "@/lib/wt/tscore";
+import { resolveResultView, type ResultView } from "@/lib/wt/types";
 
 /**
  * Scores an attempt on the server.
@@ -87,9 +88,9 @@ export async function POST(request: Request) {
     }
   }
 
-  const marked = isConfigured()
-    ? await markFromDatabase(paperId, given)
-    : markFromBundle(paperId, given);
+  const [marked, paperRow] = isConfigured()
+    ? await Promise.all([markFromDatabase(paperId, given), fetchPaperRow(paperId)])
+    : [markFromBundle(paperId, given), null];
 
   if (!marked) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
 
@@ -98,7 +99,6 @@ export async function POST(request: Request) {
 
   const stats = isConfigured()
     ? await statsFor({
-        slug: paperId,
         marks: correct,
         attempted,
         total: marked.length,
@@ -107,13 +107,23 @@ export async function POST(request: Request) {
         // `given` is a Map — Object.entries on one returns nothing, which
         // would have stored an empty breakdown without any error.
         responses: Object.fromEntries(given),
+        paper: paperRow,
       })
     : null;
 
-  const t = tScore(correct, stats?.cohort ?? null);
+  const tRaw = tScore(correct, stats?.cohort ?? null);
+
+  // Which panels this paper shows. Hidden ones are dropped HERE rather than in
+  // the page, so a figure the institute chose not to publish never reaches the
+  // browser at all — hiding it in the markup would leave it in the response
+  // for anyone who opened the network tab.
+  const view = resolveResultView(stats?.resultView);
+  const t = view.tScore ? tRaw : null;
 
   return NextResponse.json({
-    questions: marked,
+    questions: view.correctAnswers
+      ? marked
+      : marked.map(({ correct: _c, isCorrect: _i, ...rest }) => rest),
     score: {
       total: marked.length,
       attempted,
@@ -122,10 +132,14 @@ export async function POST(request: Request) {
       accuracy: attempted ? (correct / attempted) * 100 : 0,
     },
     tScore: t,
-    topics: topicBreakdown(marked),
-    standing: stats?.standing ?? null,
-    cutOff: stats ? decideCutOff(stats.cutOff, correct, t?.value ?? null) : null,
-    expertComment: stats?.expertComment ?? null,
+    topics: view.topicBreakdown ? topicBreakdown(marked) : [],
+    standing: view.rank || view.percentile ? stats?.standing ?? null : null,
+    cutOff:
+      view.cutOff && stats
+        ? decideCutOff(stats.cutOff, correct, tRaw?.value ?? null, view.cutOffMarks)
+        : null,
+    expertComment: view.expertComment ? stats?.expertComment ?? null : null,
+    view,
   });
 }
 
@@ -161,6 +175,7 @@ function decideCutOff(
   cutOff: { marks: number | null; tScore: number | null },
   marks: number,
   t: number | null,
+  showMarks: boolean,
 ): CutOff | null {
   if (cutOff.marks === null && cutOff.tScore === null) return null;
 
@@ -181,7 +196,11 @@ function decideCutOff(
   // Both bars must be cleared when both are set.
   const qualified = checks.every(Boolean);
   const parts: string[] = [];
-  if (byMarks !== null) parts.push(`${marks} of ${cutOff.marks} marks needed`);
+  // The marks half is off by default: most institutes want the verdict judged
+  // and explained by the T-score alone.
+  if (byMarks !== null && showMarks) {
+    parts.push(`${marks} of ${cutOff.marks} marks needed`);
+  }
   if (byT !== null) parts.push(`T-score ${t!.toFixed(1)} against ${cutOff.tScore} needed`);
 
   return { marks: cutOff.marks, tScore: cutOff.tScore, qualified, reason: parts.join(" · ") };
@@ -196,15 +215,14 @@ function decideCutOff(
  * mean taken from two attempts says nothing.
  */
 async function statsFor({
-  slug,
   marks,
   attempted,
   total,
   durationSec,
   record: recordRequested,
   responses,
+  paper,
 }: {
-  slug: string;
   marks: number;
   attempted: number;
   total: number;
@@ -212,21 +230,16 @@ async function statsFor({
   record: boolean;
   /** What was chosen per question, kept for the per-question breakdown. */
   responses: Record<string, number>;
+  /** Fetched alongside the marking, so it is not looked up a second time. */
+  paper: PaperRow | null;
 }): Promise<{
   cohort: Cohort | null;
   standing: Standing | null;
   cutOff: { marks: number | null; tScore: number | null };
   expertComment: string | null;
+  resultView: ResultView;
 } | null> {
   const supabase = createAdminClient();
-
-  const { data: paper } = await supabase
-    .from("watch_papers")
-    .select(
-      "id, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts",
-    )
-    .eq("slug", slug)
-    .maybeSingle();
   if (!paper) return null;
 
   const cutOff = {
@@ -234,32 +247,28 @@ async function statsFor({
     tScore: paper.cut_off_tscore === null ? null : Number(paper.cut_off_tscore),
   };
 
+  // Resolved once. Asking twice meant two round trips to the auth service on
+  // every submit, which the candidate waits through.
+  const profile = recordRequested ? await getProfile() : null;
   let record = recordRequested;
 
-  if (record) {
-    const profile = await getProfile();
-
+  if (record && paper.max_attempts !== null && paper.max_attempts !== undefined) {
     // The same limit the exam page applies, applied again here. That page can
     // be skipped — this route is reachable on its own — so the count must be
     // guarded where the row is actually written, not only where the paper is
     // handed out.
-    if (paper.max_attempts !== null && paper.max_attempts !== undefined) {
-      const { count } = await supabase
-        .from("watch_attempts")
-        .select("id", { count: "exact", head: true })
-        .eq("paper_id", paper.id)
-        .eq("user_id", profile?.id ?? "");
+    const { count } = await supabase
+      .from("watch_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("paper_id", paper.id)
+      .eq("user_id", profile?.id ?? "");
 
-      // A paper with a limit is not open to someone signed out: there is no
-      // account to count against.
-      if (!profile || (count ?? 0) >= Number(paper.max_attempts)) {
-        record = false;
-      }
-    }
+    // A paper with a limit is not open to someone signed out: there is no
+    // account to count against.
+    if (!profile || (count ?? 0) >= Number(paper.max_attempts)) record = false;
   }
 
   if (record) {
-    const profile = await getProfile();
     await supabase.from("watch_attempts").insert({
       paper_id: paper.id,
       user_id: profile?.id ?? null,
@@ -299,6 +308,7 @@ async function statsFor({
     standing: standingIn(all, marks),
     cutOff,
     expertComment: paper.expert_comment ?? null,
+    resultView: (paper.result_view ?? {}) as ResultView,
   };
 }
 
@@ -321,6 +331,31 @@ function standingIn(all: number[], marks: number): Standing | null {
     outOf: all.length,
     percentile: (worse / all.length) * 100,
   };
+}
+
+interface PaperRow {
+  id: string;
+  reference_mean: number | null;
+  reference_sd: number | null;
+  stats_min_attempts: number | null;
+  cut_off_marks: number | null;
+  cut_off_tscore: number | null;
+  expert_comment: string | null;
+  max_attempts: number | null;
+  result_view: ResultView | null;
+}
+
+/** The paper's scoring settings, in one query. */
+async function fetchPaperRow(slug: string): Promise<PaperRow | null> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("watch_papers")
+    .select(
+      "id, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view",
+    )
+    .eq("slug", slug)
+    .maybeSingle();
+  return (data as PaperRow) ?? null;
 }
 
 async function markFromDatabase(

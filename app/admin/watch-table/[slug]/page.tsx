@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
 import { loadPaperForAdmin } from "@/lib/wt/db";
 import { createClient } from "@/lib/supabase/server";
-import { DIRECTIONS, DIRECTION_NAME, resolveFeatures } from "@/lib/wt/types";
+import { DIRECTIONS, DIRECTION_NAME, resolveFeatures, resolveResultView } from "@/lib/wt/types";
 import { deletePaper, duplicatePaper, saveDiagram, saveSettings } from "../actions";
 import { formatInstructionLines } from "@/lib/wt/parse-instructions";
 import { DiagramImageField } from "./DiagramImageField";
 import { InstructionsEditor } from "./InstructionsEditor";
 import { QuestionsPanel } from "./QuestionsPanel";
-import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS } from "./labels";
+import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
 export default async function EditWatchPaper({
   params,
@@ -27,7 +27,7 @@ export default async function EditWatchPaper({
   const { data: row } = await supabase
     .from("watch_papers")
     .select(
-      "is_published, image_url, image_width_pct, font_scale, max_attempts, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
+      "is_published, image_url, image_width_pct, font_scale, max_attempts, result_view, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
     )
     .eq("slug", slug)
     .single();
@@ -39,6 +39,7 @@ export default async function EditWatchPaper({
 
   const cells = paper.tables[0].cells;
   const features = resolveFeatures(paper.features);
+  const resultView = resolveResultView(row?.result_view ?? undefined);
 
   return (
     <>
@@ -158,6 +159,30 @@ export default async function EditWatchPaper({
                   type="checkbox"
                   name={f.name}
                   defaultChecked={features[f.name]}
+                  className="mt-0.5 h-4 w-4"
+                />
+                <span className="text-[13px] text-gray-800">
+                  {f.label}
+                  <span className="block text-[11px] text-gray-500">{f.hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <h3 className="mt-6 text-[13px] font-bold text-gray-900">
+            What the result shows the candidate
+          </h3>
+          <p className="mt-1 text-[11px] text-gray-500">
+            Anything switched off is left out of the answer the server sends, not
+            just hidden on screen — so it cannot be read from the page either.
+          </p>
+          <div className="mt-2 grid gap-x-8 gap-y-2 sm:grid-cols-2">
+            {RESULT_VIEW_LABELS.map((f) => (
+              <label key={f.name} className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  name={`rv_${f.name}`}
+                  defaultChecked={resultView[f.name as keyof typeof resultView]}
                   className="mt-0.5 h-4 w-4"
                 />
                 <span className="text-[13px] text-gray-800">

@@ -117,6 +117,54 @@ export function resolveFeatures(features?: WatchFeatures): Required<WatchFeature
   return { ...DEFAULT_FEATURES, ...(features ?? {}) };
 }
 
+/**
+ * Which parts of the result a candidate sees.
+ *
+ * An absent flag means shown, so a paper saved before a panel existed keeps
+ * showing everything rather than silently losing sections.
+ */
+export interface ResultView {
+  tScore?: boolean;
+  /** The worked "T = 50 + 10 × …" line under the figure. */
+  tScoreFormula?: boolean;
+  /** Your marks · Mean · Standard deviation · Papers compared. */
+  tScoreStats?: boolean;
+  cutOff?: boolean;
+  /** The marks half of the cut off; the T-score half can stand alone. */
+  cutOffMarks?: boolean;
+  rank?: boolean;
+  percentile?: boolean;
+  accuracy?: boolean;
+  expertComment?: boolean;
+  topicBreakdown?: boolean;
+  timeAnalysis?: boolean;
+  attemptHistory?: boolean;
+  review?: boolean;
+  correctAnswers?: boolean;
+}
+
+const RESULT_VIEW_DEFAULTS: Required<ResultView> = {
+  tScore: true,
+  // Off by default: the candidate wants the figure, not its arithmetic.
+  tScoreFormula: false,
+  tScoreStats: false,
+  cutOff: true,
+  cutOffMarks: false,
+  rank: true,
+  percentile: true,
+  accuracy: true,
+  expertComment: true,
+  topicBreakdown: true,
+  timeAnalysis: true,
+  attemptHistory: true,
+  review: true,
+  correctAnswers: true,
+};
+
+export function resolveResultView(view?: ResultView): Required<ResultView> {
+  return { ...RESULT_VIEW_DEFAULTS, ...(view ?? {}) };
+}
+
 export interface WatchPaper {
   id: string;
   title: string;
@@ -150,4 +198,6 @@ export interface WatchPaper {
   fontScale?: number;
   /** How wide the uploaded diagram is drawn, as a percentage of its column. */
   imageWidthPct?: number;
+  /** Which parts of the result this paper shows. */
+  resultView?: ResultView;
 }

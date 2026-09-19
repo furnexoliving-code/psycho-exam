@@ -131,17 +131,32 @@ export default async function DashboardPage() {
                     </p>
                   )}
 
-                  {allowance.exhausted ? (
-                    <span className="mt-auto block cursor-not-allowed rounded bg-gray-300 px-4 py-2 pt-2 text-center text-[13px] font-semibold text-gray-600">
-                      Attempts finished
-                    </span>
-                  ) : (
-                    <Link href={`/watch-table/${paper.slug}`} className="mt-auto pt-4">
-                      <span className="block rounded bg-indigo-800 px-4 py-2 text-center text-[13px] font-semibold text-white hover:bg-indigo-900">
-                        Start test
+                  {/* Once a paper has been sat, the two things wanted next are a
+                      retry and the last result — so both are offered, side by
+                      side, instead of one button that only does the first. */}
+                  <div className="mt-auto flex gap-2 pt-4">
+                    {allowance.exhausted ? (
+                      <span className="flex-1 cursor-not-allowed rounded bg-gray-200 px-3 py-2 text-center text-[13px] font-semibold text-gray-500">
+                        Attempts finished
                       </span>
-                    </Link>
-                  )}
+                    ) : (
+                      <Link
+                        href={`/watch-table/${paper.slug}`}
+                        className="flex-1 rounded bg-indigo-800 px-3 py-2 text-center text-[13px] font-semibold text-white hover:bg-indigo-900"
+                      >
+                        {allowance.used > 0 ? "Re-attempt" : "Start test"}
+                      </Link>
+                    )}
+
+                    {allowance.used > 0 && (
+                      <Link
+                        href={`/watch-table/${paper.slug}/result`}
+                        className="flex-1 rounded border border-indigo-800 px-3 py-2 text-center text-[13px] font-semibold text-indigo-800 hover:bg-indigo-50"
+                      >
+                        Result
+                      </Link>
+                    )}
+                  </div>
                 </div>
                 );
               })}

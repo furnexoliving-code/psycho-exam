@@ -26,7 +26,7 @@ import {
 } from "@/components/wt/ResultPanels";
 import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
 import type { AttemptState } from "@/lib/wt/state";
-import type { WatchTable } from "@/lib/wt/types";
+import { resolveResultView, type ResultView as ResultFlags, type WatchTable } from "@/lib/wt/types";
 import { formatTScore, type TScore } from "@/lib/wt/tscore";
 
 interface Score {
@@ -87,6 +87,7 @@ export function ResultView({
   const [history, setHistory] = useState<PastAttempt[]>([]);
   const [takenSec, setTakenSec] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [view, setView] = useState<Required<ResultFlags>>(resolveResultView());
   const [state, setState] = useState<"loading" | "missing" | "ready" | "error">("loading");
 
   useEffect(() => {
@@ -136,6 +137,7 @@ export function ResultView({
           standing: Standing | null;
           cutOff: CutOff | null;
           expertComment: string | null;
+          view?: ResultFlags;
         };
         if (cancelled) return;
 
@@ -174,6 +176,7 @@ export function ResultView({
           }
         }
 
+        setView(resolveResultView(data.view));
         setHistory(past);
         setMarked(data.questions);
         setScore(data.score);
@@ -254,7 +257,13 @@ export function ResultView({
 
         {/* The one hero figure on this view. */}
         <div className="mt-5">
-          <TScoreHero tScore={tScore} marks={score.correct} total={score.total} />
+          <TScoreHero
+            tScore={tScore}
+            marks={score.correct}
+            total={score.total}
+            showFormula={view.tScoreFormula}
+            showStats={view.tScoreStats}
+          />
         </div>
 
         <div className="mt-4">
@@ -267,23 +276,28 @@ export function ResultView({
           )}
           <Stat label="Attempted" value={String(score.attempted)} foot={`of ${score.total}`} />
           <Stat label="Incorrect" value={String(score.wrong)} />
-          <Stat label="Accuracy" value={`${score.accuracy.toFixed(0)}%`} foot="of attempted" />
-          <StandingCards standing={standing} />
+          {view.accuracy && (
+            <Stat label="Accuracy" value={`${score.accuracy.toFixed(0)}%`} foot="of attempted" />
+          )}
+          <StandingCards standing={standing} showRank={view.rank} showPercentile={view.percentile} />
         </div>
 
         <div className="mt-4 space-y-4">
           <ExpertComment comment={comment} />
-          <TopicBreakdown topics={topics} />
+          {view.topicBreakdown && <TopicBreakdown topics={topics} />}
           <div className="grid gap-4 lg:grid-cols-2">
-            <TimeAnalysis
-              takenSec={takenSec}
-              allowedSec={allowedSec}
-              attempted={score.attempted}
-            />
-            <AttemptHistory attempts={history} />
+            {view.timeAnalysis && (
+              <TimeAnalysis
+                takenSec={takenSec}
+                allowedSec={allowedSec}
+                attempted={score.attempted}
+              />
+            )}
+            {view.attemptHistory && <AttemptHistory attempts={history} />}
           </div>
         </div>
 
+        {view.review && (
         <div className="mt-8">
           <h2
             className="text-[17px] font-semibold"
@@ -347,7 +361,9 @@ export function ResultView({
                 one paper has one diagram, and scrolling must not lose sight of it. */}
             <aside className="lg:sticky lg:top-4 lg:w-1/2 lg:shrink-0">
               <Card>
-                <div className="flex justify-center">
+                {/* Capped and scrollable: a tall diagram must not push the
+                    questions off the screen it is meant to sit beside. */}
+                <div className="flex max-h-[80vh] justify-center overflow-auto">
                   {imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -400,10 +416,12 @@ export function ResultView({
                         {q.given ?? "not attempted"}
                       </strong>
                     </span>
-                    <span style={{ color: "var(--text-secondary)" }}>
-                      Correct:{" "}
-                      <strong style={{ color: "var(--text-primary)" }}>{q.correct}</strong>
-                    </span>
+                    {view.correctAnswers && (
+                      <span style={{ color: "var(--text-secondary)" }}>
+                        Correct:{" "}
+                        <strong style={{ color: "var(--text-primary)" }}>{q.correct}</strong>
+                      </span>
+                    )}
                     {q.topic && (
                       <span
                         className="rounded px-2 py-0.5 text-[11px]"
@@ -420,6 +438,7 @@ export function ResultView({
             </ol>
           </div>
         </div>
+        )}
 
         <div className="mt-8 flex gap-3">
           <Link

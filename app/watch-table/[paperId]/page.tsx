@@ -62,5 +62,12 @@ export default async function WatchTablePage({
   }
 
   // The key never goes to the browser; /api/watch-table/score marks the paper.
-  return <WatchTableExam paper={withoutAnswerKey(paper)} />;
+  const who = isConfigured() ? await getProfile() : null;
+  return (
+    <WatchTableExam
+      paper={withoutAnswerKey(paper)}
+      candidateName={who?.full_name || "Candidate"}
+      rollNo={who?.roll_no || "—"}
+    />
+  );
 }
