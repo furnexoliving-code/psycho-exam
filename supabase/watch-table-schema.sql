@@ -254,3 +254,18 @@ alter table public.profiles
 -- ---------------------------------------------------------------------------
 alter table public.watch_papers
   add column if not exists result_view jsonb not null default '{}'::jsonb;
+
+-- ---------------------------------------------------------------------------
+-- Which Following Directions test a paper belongs to (added later)
+--
+-- The same engine serves three: a watch table, a letter table and a number
+-- table. Existing papers are watch tables, which is the default, so nothing
+-- moves when this arrives.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers
+  add column if not exists category text not null default 'watch';
+
+alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
+alter table public.watch_papers
+  add constraint watch_papers_category_ck
+  check (category in ('watch', 'letter', 'number'));

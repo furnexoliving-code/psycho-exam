@@ -10,6 +10,7 @@ import { generateQuestions, optionValues } from "@/lib/wt/generate";
 import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
 import { parseQuestionLines } from "@/lib/wt/parse-questions";
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
+import { CATEGORIES } from "@/lib/wt/categories";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -221,6 +222,11 @@ export async function saveSettings(
     // Read every switch by name. An unchecked box sends nothing at all, so
     // each one has to be asked for explicitly rather than inferred from what
     // arrived — otherwise turning a panel off would silently re-enable it.
+    // Anything unknown falls back to the watch table rather than being stored
+    // and then failing the database's own check.
+    const raw = String(formData.get("category") ?? "watch");
+    const category = CATEGORIES.some((c) => c.id === raw) ? raw : "watch";
+
     const resultView = Object.fromEntries(
       RESULT_VIEW_KEYS.map((k) => [k, formData.get(`rv_${k}`) === "on"]),
     );
@@ -243,6 +249,7 @@ export async function saveSettings(
         font_scale: fontScale,
         max_attempts: maxAttempts,
         result_view: resultView,
+        category,
         features: {
           showInstructionsButton: formData.get("showInstructionsButton") === "on",
           showQuestionPaperButton: formData.get("showQuestionPaperButton") === "on",

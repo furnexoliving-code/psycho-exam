@@ -10,6 +10,7 @@ import { SaveForm } from "@/components/admin/SaveForm";
 import { DiagramImageField } from "./DiagramImageField";
 import { InstructionsEditor } from "./InstructionsEditor";
 import { QuestionsPanel } from "./QuestionsPanel";
+import { CATEGORIES } from "@/lib/wt/categories";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
 export default async function EditWatchPaper({
@@ -25,7 +26,7 @@ export default async function EditWatchPaper({
   const { data: row } = await supabase
     .from("watch_papers")
     .select(
-      "is_published, image_url, image_width_pct, font_scale, max_attempts, result_view, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
+      "is_published, image_url, image_width_pct, font_scale, max_attempts, result_view, category, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
     )
     .eq("slug", slug)
     .single();
@@ -92,6 +93,27 @@ export default async function EditWatchPaper({
               hint="Minutes for the questions. The paper submits itself when this runs out."
             />
           </div>
+
+          <h3 className="mt-6 text-[13px] font-bold text-gray-900">
+            Which test this paper belongs to
+          </h3>
+          <label className="mt-2 block max-w-xs">
+            <select
+              name="category"
+              defaultValue={row?.category ?? "watch"}
+              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1 block text-[11px] text-gray-500">
+              The block it appears under on the student&rsquo;s page, inside
+              Following Directions Test.
+            </span>
+          </label>
 
           <h3 className="mt-6 text-[13px] font-bold text-gray-900">
             How many times a student may sit this paper

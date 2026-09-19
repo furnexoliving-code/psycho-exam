@@ -5,6 +5,7 @@ import { isConfigured, requireUser } from "@/lib/auth";
 import { listTests } from "@/lib/db";
 import { listPublishedPapers } from "@/lib/wt/db";
 import { allowanceFor } from "@/lib/wt/attempts";
+import { CATEGORIES } from "@/lib/wt/categories";
 import { createClient } from "@/lib/supabase/server";
 import { formatClock } from "@/lib/scoring";
 
@@ -48,6 +49,7 @@ export default async function DashboardPage() {
   const allowances = await Promise.all(
     watchPapers.map((p) => allowanceFor(p.slug, profile.id)),
   );
+  const allowanceOf = new Map(watchPapers.map((p, i) => [p.slug, allowances[i]]));
   const supabase = await createClient();
 
   const { data: attempts } = await supabase
@@ -74,195 +76,144 @@ export default async function DashboardPage() {
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              Welcome{profile.full_name ? `, ${profile.full_name}` : ""}
-            </h1>
-            {profile.roll_no && (
-              <p className="text-[12px] text-gray-500">Roll no. {profile.roll_no}</p>
-            )}
-          </div>
-          {profile.role === "admin" && (
-            <Link
-              href="/admin"
-              className="rounded border border-gray-400 bg-white px-4 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100"
-            >
-              Admin panel
-            </Link>
-          )}
+        <div className="rounded-xl bg-gradient-to-r from-rrb-banner to-rrb-tealDark px-6 py-5 text-white shadow">
+          <h1 className="text-[22px] font-bold">
+            Welcome{profile.full_name ? `, ${profile.full_name}` : ""}
+          </h1>
+          <p className="mt-0.5 text-[13px] text-white/85">
+            {profile.roll_no ? `Roll no. ${profile.roll_no} · ` : ""}
+            KAUTILYA CLASSES — RRB ALP psycho test practice
+          </p>
         </div>
 
-        {watchPapers.length > 0 && (
-          <section className="mt-6">
-            <h2 className="mb-3 text-[15px] font-bold text-gray-900">
-              Watch Table tests
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {watchPapers.map((paper, i) => {
-                const allowance = allowances[i];
-                return (
-                <div
-                  key={paper.id}
-                  className="flex flex-col rounded border border-gray-300 bg-white p-4"
-                >
-                  <h3 className="text-[14px] font-bold text-gray-900">
-                    {paper.displayName}
-                  </h3>
-                  <p className="mt-1 text-[12px] text-gray-500">
-                    {paper.questionCount} questions · {paper.timeLimitMin} min
-                    <span className="block">
-                      {paper.instructionTimeMin} min to read the instructions first
-                    </span>
+        <h2 className="mt-7 text-[17px] font-bold text-gray-900">
+          Following Directions Test
+        </h2>
+        <p className="mt-0.5 text-[13px] text-gray-600">
+          निर्देश पालन परीक्षण — choose a test to begin.
+        </p>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CATEGORIES.map((category) => {
+            const papers = watchPapers.filter((p) => p.category === category.id);
+
+            return (
+              <section
+                key={category.id}
+                className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+              >
+                <h3 className="text-[15px] font-bold text-gray-900">{category.title}</h3>
+                <p className="text-[12px] text-rrb-tealDark" lang="hi">
+                  {category.hindi}
+                </p>
+                <p className="mt-2 text-[12px] leading-relaxed text-gray-600">
+                  {category.blurb}
+                </p>
+
+                {papers.length === 0 ? (
+                  <p className="mt-4 rounded-lg bg-gray-50 px-3 py-6 text-center text-[12px] text-gray-500">
+                    No test published yet.
                   </p>
-                  {allowance.max !== null && (
-                    <p
-                      className={`mt-2 rounded px-2 py-1 text-[12px] font-semibold ${
-                        allowance.exhausted
-                          ? "bg-red-50 text-red-800"
-                          : "bg-green-50 text-green-800"
-                      }`}
-                    >
-                      {allowance.exhausted
-                        ? `No attempts left (${allowance.used} of ${allowance.max} used)`
-                        : `${allowance.remaining} of ${allowance.max} attempt${
-                            allowance.max === 1 ? "" : "s"
-                          } left`}
-                    </p>
-                  )}
+                ) : (
+                  <ul className="mt-4 space-y-3">
+                    {papers.map((paper) => {
+                      const allowance = allowanceOf.get(paper.slug)!;
+                      return (
+                        <li
+                          key={paper.id}
+                          className="rounded-lg border border-gray-200 bg-gray-50 p-3"
+                        >
+                          <p className="text-[13px] font-semibold text-gray-900">
+                            {paper.displayName}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-gray-500">
+                            {paper.questionCount} questions · {paper.timeLimitMin} min
+                          </p>
 
-                  {/* Once a paper has been sat, the two things wanted next are a
-                      retry and the last result — so both are offered, side by
-                      side, instead of one button that only does the first. */}
-                  <div className="mt-auto flex gap-2 pt-4">
-                    {allowance.exhausted ? (
-                      <span className="flex-1 cursor-not-allowed rounded bg-gray-200 px-3 py-2 text-center text-[13px] font-semibold text-gray-500">
-                        Attempts finished
-                      </span>
-                    ) : (
-                      <Link
-                        href={`/watch-table/${paper.slug}`}
-                        className="flex-1 rounded bg-indigo-800 px-3 py-2 text-center text-[13px] font-semibold text-white hover:bg-indigo-900"
-                      >
-                        {allowance.used > 0 ? "Re-attempt" : "Start test"}
-                      </Link>
-                    )}
+                          {allowance.max !== null && (
+                            <p
+                              className={`mt-2 inline-block rounded px-2 py-0.5 text-[11px] font-semibold ${
+                                allowance.exhausted
+                                  ? "bg-red-50 text-red-800"
+                                  : "bg-green-50 text-green-800"
+                              }`}
+                            >
+                              {allowance.exhausted
+                                ? `No attempts left (${allowance.used} of ${allowance.max})`
+                                : `${allowance.remaining} of ${allowance.max} left`}
+                            </p>
+                          )}
 
-                    {allowance.used > 0 && (
-                      <Link
-                        href={`/watch-table/${paper.slug}/result`}
-                        className="flex-1 rounded border border-indigo-800 px-3 py-2 text-center text-[13px] font-semibold text-indigo-800 hover:bg-indigo-50"
-                      >
-                        Result
-                      </Link>
-                    )}
-                  </div>
-                </div>
-                );
-              })}
-            </div>
-          </section>
+                          <div className="mt-3 flex gap-2">
+                            {allowance.exhausted ? (
+                              <span className="flex-1 cursor-not-allowed rounded bg-gray-200 px-3 py-2 text-center text-[12px] font-semibold text-gray-500">
+                                Attempts finished
+                              </span>
+                            ) : (
+                              <Link
+                                href={`/watch-table/${paper.slug}`}
+                                className="flex-1 rounded bg-indigo-800 px-3 py-2 text-center text-[12px] font-semibold text-white hover:bg-indigo-900"
+                              >
+                                {allowance.used > 0 ? "Re-attempt" : "Start test"}
+                              </Link>
+                            )}
+                            {allowance.used > 0 && (
+                              <Link
+                                href={`/watch-table/${paper.slug}/result`}
+                                className="flex-1 rounded border border-indigo-800 px-3 py-2 text-center text-[12px] font-semibold text-indigo-800 hover:bg-indigo-50"
+                              >
+                                Result
+                              </Link>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            );
+          })}
+        </div>
+
+        <h2 className="mt-9 text-[17px] font-bold text-gray-900">Your past results</h2>
+        {attempts?.length ? (
+          <div className="mt-3 overflow-x-auto rounded-xl border border-gray-200 bg-white">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr className="bg-gray-50 text-left text-gray-700">
+                  <th className="px-4 py-2 font-semibold">Test</th>
+                  <th className="px-4 py-2 font-semibold">Score</th>
+                  <th className="px-4 py-2 font-semibold">Taken</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attempts.map((a) => {
+                  const score = (a.score ?? {}) as AttemptScore;
+                  const seconds = a.submitted_at
+                    ? (new Date(a.submitted_at).getTime() -
+                        new Date(a.started_at).getTime()) / 1000
+                    : 0;
+                  return (
+                    <tr key={a.id} className="border-t border-gray-100">
+                      <td className="px-4 py-2">{testName.get(a.test_id) ?? "—"}</td>
+                      <td className="px-4 py-2">
+                        {score.totalCorrect ?? 0} / {score.scoredQuestions ?? 0}
+                      </td>
+                      <td className="px-4 py-2 font-mono tabular-nums">
+                        {formatClock(seconds)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="mt-3 rounded-xl border border-gray-200 bg-white p-6 text-center text-[13px] text-gray-500">
+            You have not completed any test yet.
+          </p>
         )}
-
-        <section className="mt-6">
-          <h2 className="mb-3 text-[15px] font-bold text-gray-900">Available tests</h2>
-          {tests.length === 0 ? (
-            <p className="rounded border border-gray-300 bg-white p-5 text-center text-[13px] text-gray-500">
-              {watchPapers.length > 0
-                ? "No other tests have been published yet."
-                : "No tests have been published yet. Please check back later."}
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {tests.map((test) => (
-                <div
-                  key={test.id}
-                  className="flex flex-col rounded border border-gray-300 bg-white p-4"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-[14px] font-bold text-gray-900">
-                      {test.display_name}
-                    </h3>
-                    <span
-                      className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                        test.is_free
-                          ? "bg-green-100 text-green-800"
-                          : "bg-amber-100 text-amber-800"
-                      }`}
-                    >
-                      {test.is_free ? "Free" : "Paid"}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[12px] text-gray-500">
-                    {test.question_count} questions · {test.total_minutes} min
-                  </p>
-                  <Link
-                    href={`/exam/${test.slug}/instructions`}
-                    className="mt-auto pt-4"
-                  >
-                    <span className="block rounded bg-indigo-800 px-4 py-2 text-center text-[13px] font-semibold text-white hover:bg-indigo-900">
-                      Start test
-                    </span>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="mt-8">
-          <h2 className="mb-3 text-[15px] font-bold text-gray-900">Your past results</h2>
-          {attempts?.length ? (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[13px]">
-                <thead>
-                  <tr className="bg-rrb-banner text-left text-white">
-                    <th className="border border-gray-300 px-3 py-2">Test</th>
-                    <th className="border border-gray-300 px-3 py-2">Score</th>
-                    <th className="border border-gray-300 px-3 py-2">Accuracy</th>
-                    <th className="border border-gray-300 px-3 py-2">Time taken</th>
-                    <th className="border border-gray-300 px-3 py-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attempts.map((a) => {
-                    const score = (a.score ?? {}) as AttemptScore;
-                    const seconds = a.submitted_at
-                      ? (new Date(a.submitted_at).getTime() -
-                          new Date(a.started_at).getTime()) /
-                        1000
-                      : 0;
-                    return (
-                      <tr key={a.id} className="bg-white even:bg-gray-50">
-                        <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">
-                          {testName.get(a.test_id) ?? "—"}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-2">
-                          {score.totalCorrect ?? 0} / {score.scoredQuestions ?? 0}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-2">
-                          {(score.overallAccuracy ?? 0).toFixed(1)}%
-                        </td>
-                        <td className="border border-gray-300 px-3 py-2 font-mono tabular-nums">
-                          {formatClock(seconds)}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-2">
-                          {a.submitted_at
-                            ? new Date(a.submitted_at).toLocaleDateString("en-IN")
-                            : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="rounded border border-gray-300 bg-white p-5 text-center text-[13px] text-gray-500">
-              You have not completed any test yet.
-            </p>
-          )}
-        </section>
       </main>
     </div>
   );

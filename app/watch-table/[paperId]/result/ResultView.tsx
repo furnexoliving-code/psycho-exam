@@ -448,8 +448,10 @@ export function ResultView({
           >
             Re-attempt
           </Link>
+          {/* The candidate's own page, not the public front door — after a
+              test, "home" means where their tests and results are. */}
           <Link
-            href="/"
+            href="/dashboard"
             className="rounded-lg px-6 py-2 text-sm font-semibold"
             style={{
               background: "var(--surface-1)",

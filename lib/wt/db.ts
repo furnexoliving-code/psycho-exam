@@ -134,6 +134,8 @@ export async function loadPaperForAdmin(slug: string): Promise<WatchPaper | null
 
 export interface PaperSummary {
   id: string;
+  /** watch | letter | number — which of the three this paper is. */
+  category: string;
   slug: string;
   displayName: string;
   isPublished: boolean;
@@ -149,7 +151,7 @@ export async function listPapersForAdmin(): Promise<PaperSummary[]> {
 
   const { data: rows } = await supabase
     .from("watch_papers")
-    .select("id, slug, display_name, is_published, instruction_time_min, time_limit_min")
+    .select("id, slug, display_name, is_published, instruction_time_min, time_limit_min, category")
     .order("created_at");
   if (!rows?.length) return [];
 
@@ -169,7 +171,7 @@ export async function listPublishedPapers(): Promise<PaperSummary[]> {
 
   const { data: rows } = await supabase
     .from("watch_papers")
-    .select("id, slug, display_name, is_published, instruction_time_min, time_limit_min")
+    .select("id, slug, display_name, is_published, instruction_time_min, time_limit_min, category")
     .eq("is_published", true)
     .order("created_at");
   if (!rows?.length) return [];
@@ -187,6 +189,7 @@ interface PaperRowLite {
   is_published: boolean;
   instruction_time_min: number;
   time_limit_min: number;
+  category: string | null;
 }
 
 function withCounts(
@@ -201,6 +204,7 @@ function withCounts(
     slug: r.slug,
     displayName: r.display_name,
     isPublished: r.is_published,
+    category: r.category ?? "watch",
     questionCount: perPaper.get(r.id) ?? 0,
     instructionTimeMin: r.instruction_time_min,
     timeLimitMin: r.time_limit_min,
