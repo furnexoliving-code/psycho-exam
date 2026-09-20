@@ -592,3 +592,11 @@ begin
       alter column answer type jsonb using to_jsonb(answer);
   end if;
 end $$;
+
+-- A paper made under the Letter or Number Table used to be given the Watch
+-- Table's name on its tabs and instruction heading. Papers still carrying
+-- that default take their own test's name; a name the admin wrote is kept.
+update public.watch_papers set title = 'Letter Table Test'
+  where category = 'letter' and title = 'Watch Table Test';
+update public.watch_papers set title = 'Number Table Test'
+  where category = 'number' and title = 'Watch Table Test';

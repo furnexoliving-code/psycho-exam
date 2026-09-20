@@ -11,7 +11,7 @@ import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
 import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-questions";
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
-import { CATEGORIES } from "@/lib/wt/categories";
+import { CATEGORIES, categoryTitle } from "@/lib/wt/categories";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -182,7 +182,9 @@ export async function createPaper(formData: FormData) {
     .from("watch_papers")
     .insert({
       slug: slugify(String(formData.get("slug") ?? "") || displayName),
-      title: String(formData.get("title") ?? "").trim() || "Watch Table Test",
+      // The name on the tabs and the instruction heading follows the test
+      // the paper belongs to, unless the admin writes their own.
+      title: String(formData.get("title") ?? "").trim() || categoryTitle(category),
       display_name: displayName,
       instruction_time_min: 5,
       time_limit_min: 10,
@@ -294,7 +296,7 @@ export async function saveSettings(
     const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
-        title: String(formData.get("title") ?? "").trim() || "Watch Table Test",
+        title: String(formData.get("title") ?? "").trim() || categoryTitle(category),
         display_name: displayName,
         instruction_time_min: instruction,
         time_limit_min: test,
