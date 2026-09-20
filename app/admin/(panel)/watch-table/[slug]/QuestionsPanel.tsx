@@ -229,10 +229,13 @@ export function QuestionsPanel({
                         </label>
                         <label className="text-[11px] font-semibold text-gray-700">
                           Answer
+                          {/* Plain text, not a number field: a Letter Table's
+                              answer is a letter, and a number field would
+                              refuse it before the save ever ran. */}
                           <input
                             name="answer"
-                            type="number"
-                            defaultValue={q.answer}
+                            defaultValue={String(q.answer)}
+                            autoCapitalize="characters"
                             className="ml-2 w-[70px] rounded border border-gray-400 px-2 py-1 text-[13px] font-normal"
                           />
                         </label>
