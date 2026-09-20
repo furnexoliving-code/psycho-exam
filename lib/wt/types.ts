@@ -72,6 +72,8 @@ export interface Bilingual {
 export interface InstructionBlock extends Bilingual {
   /** Public URL of a picture shown under this paragraph. */
   image?: string;
+  /** How wide that picture is drawn, as a share of its column (10–100). */
+  imageWidthPct?: number;
 }
 
 export interface WatchQuestion {

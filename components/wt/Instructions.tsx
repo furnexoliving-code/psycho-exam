@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import type { InstructionBlock, WatchPaper } from "@/lib/wt/types";
 import { ScrollRail } from "./ScrollRail";
-import { WatchTableDiagram } from "./WatchTableDiagram";
 
 /**
  * The instruction content, in the portal's two-column English | Hindi layout.
@@ -56,14 +55,6 @@ export function InstructionsBody({ paper }: { paper: WatchPaper }) {
             </div>
           ))}
 
-          {/* The drawn compass is the sample paper's own example. A paper
-              with its own uploaded picture shows that instead — the drawn
-              one would show letters and numbers the candidate never sees. */}
-          {!paper.imageUrl && (
-            <div className="mt-3 flex justify-center">
-              <WatchTableDiagram table={paper.example.table} boxedValues />
-            </div>
-          )}
         </div>
       ))}
     </div>
@@ -132,8 +123,9 @@ export function InstructionsDialog({
 /**
  * One instruction paragraph: its words, and its picture when it has one.
  *
- * The picture is capped rather than shown at whatever size it was uploaded, so
- * one oversized upload cannot push the rest of the screen out of view.
+ * The picture is drawn at the width the admin chose for it, as a share of
+ * its column, so it can never spill past the text beside it. No frame is
+ * drawn around it: the picture is shown exactly as it was uploaded.
  */
 function Block({ block, lang }: { block: InstructionBlock; lang: "en" | "hi" }) {
   return (
@@ -144,7 +136,8 @@ function Block({ block, lang }: { block: InstructionBlock; lang: "en" | "hi" }) 
         <img
           src={block.image}
           alt=""
-          className="mt-2 h-auto w-full max-w-[420px] rounded border border-gray-300"
+          className="mt-2 h-auto"
+          style={{ width: `${block.imageWidthPct ?? 100}%` }}
           draggable={false}
         />
       )}

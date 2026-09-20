@@ -4,15 +4,18 @@ import { useState } from "react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { saveInstructions } from "../actions";
+import { IMAGE_WIDTHS } from "./labels";
 
 const SAMPLE = `Read every question carefully. | हर प्रश्न ध्यान से पढ़ें।
-Look at the picture below. | नीचे दिया चित्र देखें। | https://…/example.png`;
+Look at the picture below. | नीचे दिया चित्र देखें। | https://…/example.png | 60`;
 
 /**
  * The instruction screen's wording and pictures.
  *
  * Words and picture live on the same line so a paragraph and its illustration
- * cannot drift apart — reordering the text reorders the pictures with it.
+ * cannot drift apart — reordering the text reorders the pictures with it. The
+ * picture's width rides on the same line too, as a fourth field, so it can be
+ * changed later by editing the number without uploading again.
  */
 export function InstructionsEditor({
   slug,
@@ -44,6 +47,11 @@ export function InstructionsEditor({
             For a picture on its own, leave both text sides empty and give only the
             link: <code>| | https://…</code>
           </li>
+          <li>
+            Picture size: a number after a fourth bar is the width in percent of the
+            column (10–100), e.g. <code>| 60</code>. Leave it out for full width. Change
+            the number any time to resize without uploading again.
+          </li>
           <li>Nothing is saved until every line is valid, so one typo cannot half-save.</li>
         </ul>
       </div>
@@ -61,15 +69,11 @@ export function InstructionsEditor({
           className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
         />
       </label>
-      <div className="mt-2">
-        <ImageUpload
-          label="Upload a picture into the instructions…"
-          hint="Adds a new paragraph at the end carrying the picture."
-          onUploaded={(url) =>
-            setBody((b) => `${b.replace(/\s*$/, "")}\n | | ${url}`.trimStart())
-          }
-        />
-      </div>
+      <PictureAdder
+        label="Upload a picture into the instructions…"
+        hint="Adds a new paragraph at the end carrying the picture."
+        onLine={(line) => setBody((b) => appendLine(b, line))}
+      />
 
       <label className="mt-6 block">
         <span className="mb-1 block text-[12px] font-semibold text-gray-700">
@@ -83,15 +87,58 @@ export function InstructionsEditor({
           className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
         />
       </label>
-      <div className="mt-2">
-        <ImageUpload
-          label="Upload a picture into the example…"
-          onUploaded={(url) =>
-            setExample((b) => `${b.replace(/\s*$/, "")}\n | | ${url}`.trimStart())
-          }
-        />
-      </div>
-
+      <PictureAdder
+        label="Upload a picture into the example…"
+        onLine={(line) => setExample((b) => appendLine(b, line))}
+      />
     </SaveForm>
+  );
+}
+
+/** Adds a picture-only line at the end of the text, keeping earlier lines. */
+function appendLine(text: string, line: string): string {
+  return `${text.replace(/\s*$/, "")}\n${line}`.trimStart();
+}
+
+/**
+ * The upload button with the size the new picture should be drawn at.
+ *
+ * The size is chosen before uploading and written into the new line, so the
+ * admin never has to know the fourth-field syntax to get a smaller picture —
+ * but it is plain text, so it can still be changed by hand later.
+ */
+function PictureAdder({
+  label,
+  hint,
+  onLine,
+}: {
+  label: string;
+  hint?: string;
+  onLine: (line: string) => void;
+}) {
+  const [width, setWidth] = useState("100");
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-3">
+      <ImageUpload
+        label={label}
+        hint={hint}
+        onUploaded={(url) => onLine(width === "100" ? ` | | ${url}` : ` | | ${url} | ${width}`)}
+      />
+      <label className="flex items-center gap-2 text-[12px] text-gray-700">
+        <span className="font-semibold">Picture size</span>
+        <select
+          value={width}
+          onChange={(e) => setWidth(e.target.value)}
+          className="rounded border border-gray-400 px-2 py-1 text-[12px]"
+        >
+          {IMAGE_WIDTHS.map((w) => (
+            <option key={w.value} value={w.value}>
+              {w.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
   );
 }
