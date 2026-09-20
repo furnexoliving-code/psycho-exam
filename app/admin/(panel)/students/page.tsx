@@ -2,10 +2,11 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { normalisePhone } from "@/lib/phone";
-import { createStaff, createStudent, removeStaff, resetPassword, setActive } from "./actions";
+import { createStaff, createStudent, deleteStudent, removeStaff, resetPassword, setActive } from "./actions";
 import { HELPER_ROLES, isHelperRole } from "./helpers";
 import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
+import { PendingButton } from "@/components/admin/PendingButton";
 import { BulkStudents } from "./BulkStudents";
 
 /** Students shown per page. Thousands on one page is a page nobody can use. */
@@ -157,6 +158,7 @@ export default async function StudentsPage({
                   <th className="border border-gray-300 px-3 py-2">Registered</th>
                   <th className="border border-gray-300 px-3 py-2">Account</th>
                   <th className="border border-gray-300 px-3 py-2">New password</th>
+                  <th className="border border-gray-300 px-3 py-2" />
                 </tr>
               </thead>
               <tbody>
@@ -201,6 +203,18 @@ export default async function StudentsPage({
                         >
                           Set
                         </button>
+                      </RowForm>
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">
+                      <RowForm action={deleteStudent}>
+                        <input type="hidden" name="id" value={s.id} />
+                        <PendingButton
+                          pendingLabel="Deleting…"
+                          confirm={`Delete ${s.full_name || s.phone}'s account?\n\nTheir results for every paper go with it. This cannot be undone.\n\nTo keep the results, switch the account off instead.`}
+                          className="text-[11px] font-semibold text-red-700 hover:underline disabled:opacity-60"
+                        >
+                          Delete
+                        </PendingButton>
                       </RowForm>
                     </td>
                   </tr>

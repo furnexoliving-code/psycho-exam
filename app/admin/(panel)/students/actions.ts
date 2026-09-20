@@ -138,6 +138,41 @@ export async function setActive(
 }
 
 /**
+ * Removes a student's account for good, and their results with it.
+ *
+ * Switching off is the usual way to part with a student, because it keeps
+ * their results; this is for an account made by mistake or one the
+ * institute must not keep. The attempts and sittings go first, on purpose:
+ * left behind they would sit in every paper's cohort as "Not signed in",
+ * still moving everyone else's mean and T-score. Admin only, by role in
+ * the section — a staff account never reaches this.
+ */
+export async function deleteStudent(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Account", async () => {
+    await requireAdmin();
+    const supabase = createAdminClient();
+
+    const id = String(formData.get("id"));
+    await studentOnly(supabase, id);
+
+    const { error: sittings } = await supabase.from("watch_sessions").delete().eq("user_id", id);
+    if (sittings) throw new Error(sittings.message);
+    const { error: attempts } = await supabase.from("watch_attempts").delete().eq("user_id", id);
+    if (attempts) throw new Error(attempts.message);
+
+    // The profile row goes with the auth user (on delete cascade).
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath(BACK);
+    return "deleted";
+  });
+}
+
+/**
  * These actions manage STUDENTS. The list never offers an admin's row, but an
  * action is a public endpoint: a posted admin id would switch off — or reset
  * the password of — the only account that can switch it back on.
