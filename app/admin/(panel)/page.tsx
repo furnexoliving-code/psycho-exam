@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { listPapersForAdmin } from "@/lib/wt/db";
 
 export default async function AdminHome() {
+  // On the page itself, not only in the layout, which a request can skip.
+  await requireAdmin("/admin");
   const papers = await listPapersForAdmin();
   const supabase = await createClient();
 

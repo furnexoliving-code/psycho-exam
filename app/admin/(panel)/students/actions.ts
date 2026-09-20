@@ -5,7 +5,8 @@ import { attempt, type SaveState } from "@/lib/admin-result";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidPhone, normalisePhone, phoneToEmail } from "@/lib/phone";
-import { parseStudentLines } from "@/lib/parse-students";
+import { IMPORT_BATCH, parseStudentLines } from "@/lib/parse-students";
+import { HELPER_ROLES, isHelperRole } from "./helpers";
 
 const BACK = "/admin/students";
 
@@ -152,35 +153,46 @@ async function studentOnly(
   }
 }
 
-/** How many accounts are created at once. */
+/** How many accounts are created at once within a batch. */
 const IMPORT_CHUNK = 8;
 
+/** What one batch of the import reports back. */
+export interface ImportOutcome {
+  made: number;
+  skipped: string[];
+  failed: string[];
+  error?: string;
+}
+
 /**
- * Creates many accounts from a pasted list or an uploaded CSV.
+ * Creates the accounts in one batch of a pasted list or an uploaded CSV.
  *
- * The whole list is validated first, so a bad line stops everything before a
- * single account exists. After that the accounts are made one at a time and
- * the result says exactly how many were created and which numbers were
- * already taken — a partial run has to be legible, because the admin has to
- * know who still needs an account.
+ * The browser has already checked the whole list, so a bad line stops
+ * everything before a single account exists, and sends it here a batch at a
+ * time (IMPORT_BATCH lines): one call that made five thousand accounts
+ * would outlive the hosting's limit on a request, and die with no word on
+ * which accounts existed. The batch is checked again here, since an action
+ * is a public endpoint. The outcome says exactly how many were created and
+ * which numbers were already taken — a partial run has to be legible,
+ * because the admin has to know who still needs an account.
  */
-export async function importStudents(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
-  return attempt("Students", async () => {
+export async function importStudentBatch(
+  lines: string,
+  /** The last batch of the run: only then is the page's list refreshed. */
+  final = true,
+): Promise<ImportOutcome> {
+  const outcome: ImportOutcome = { made: 0, skipped: [], failed: [] };
+  try {
     await requireAdmin();
     const supabase = createAdminClient();
 
-    const parsed = parseStudentLines(String(formData.get("bulk") ?? ""));
+    const parsed = parseStudentLines(lines);
+    if (parsed.length > IMPORT_BATCH) {
+      throw new Error(`At most ${IMPORT_BATCH} students in one batch`);
+    }
 
-    let made = 0;
-    const skipped: string[] = [];
-    const failed: string[] = [];
-
-    // A few at a time rather than one after another: a thousand accounts made
-    // serially took minutes, past the point the hosting cut the action off
-    // with no word on which accounts existed.
+    // A few at a time rather than one after another: accounts made serially
+    // took far longer than the request was allowed.
     for (let i = 0; i < parsed.length; i += IMPORT_CHUNK) {
       const chunk = parsed.slice(i, i + IMPORT_CHUNK);
       await Promise.all(
@@ -197,8 +209,8 @@ export async function importStudents(
           });
 
           if (error) {
-            if (/already/i.test(error.message)) skipped.push(student.phone);
-            else failed.push(`${student.phone} (${error.message})`);
+            if (/already/i.test(error.message)) outcome.skipped.push(student.phone);
+            else outcome.failed.push(`${student.phone} (${error.message})`);
             return;
           }
 
@@ -213,42 +225,45 @@ export async function importStudents(
             })
             .eq("id", created.user.id);
 
-          made++;
+          outcome.made++;
         }),
       );
     }
 
-    revalidatePath(BACK);
-
-    const parts = [`${made} created`];
-    if (skipped.length) parts.push(`${skipped.length} already had accounts (${skipped.join(", ")})`);
-    if (failed.length) parts.push(`${failed.length} failed: ${failed.join("; ")}`);
-    return parts.join(" · ");
-  });
+    if (final) revalidatePath(BACK);
+  } catch (error) {
+    // A redirect (to the second-factor page) is not a failure to report.
+    if (typeof (error as { digest?: unknown })?.digest === "string") throw error;
+    outcome.error = error instanceof Error ? error.message : String(error);
+  }
+  return outcome;
 }
 
 /**
- * Issues a staff account: an office member who may reset students'
- * passwords at /staff and do nothing else. Made exactly like a student —
- * mobile number and password — with the role set once the account exists.
+ * Issues a helper account: staff, who may reset students' passwords, or an
+ * editor, who may write papers — and nothing else in either case. Made
+ * exactly like a student — mobile number and password — with the role set
+ * once the account exists.
  */
 export async function createStaff(
   _prev: SaveState | null,
   formData: FormData,
 ): Promise<SaveState> {
-  return attempt("Staff account", async () => {
+  return attempt("Helper account", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
 
     const fullName = String(formData.get("full_name") ?? "").trim();
     const phoneRaw = String(formData.get("phone") ?? "");
     const password = String(formData.get("password") ?? "");
+    const role = String(formData.get("role") ?? "");
 
     if (!fullName) throw new Error("The name is required");
+    if (!isHelperRole(role)) throw new Error("Choose what the account is for");
     if (!isValidPhone(phoneRaw)) {
       throw new Error(`"${phoneRaw}" is not a 10-digit Indian mobile number`);
     }
-    if (password.length < 8) throw new Error("A staff password must be at least 8 characters");
+    if (password.length < 8) throw new Error("A helper's password must be at least 8 characters");
 
     const phone = normalisePhone(phoneRaw);
     const { data: created, error } = await supabase.auth.admin.createUser({
@@ -267,36 +282,39 @@ export async function createStaff(
 
     const { data: updated, error: roleError } = await supabase
       .from("profiles")
-      .update({ full_name: fullName, phone, role: "staff", is_active: true })
+      .update({ full_name: fullName, phone, role, is_active: true })
       .eq("id", created.user.id)
       .select("id");
     if (roleError) {
+      // The account exists with no role but student's; it must not stay as
+      // a student who can sit papers, so it is removed again.
+      await supabase.auth.admin.deleteUser(created.user.id);
       throw new Error(
         /role_check|violates check/i.test(roleError.message)
-          ? "The database does not know the staff role yet — run the latest watch-table-schema.sql, then try again."
+          ? `The database does not know the ${role} role yet — run the latest watch-table-schema.sql, then try again.`
           : roleError.message,
       );
     }
     if (!updated?.length) throw new Error("The account was made but its role could not be set");
 
     revalidatePath(BACK);
-    return `${fullName} — ${phone}. They sign in at /staff.`;
+    return `${fullName} — ${phone}. They sign in at ${HELPER_ROLES[role].home}.`;
   });
 }
 
-/** Removes a staff account entirely. Their sign-in stops at once. */
+/** Removes a helper account entirely. Their sign-in stops at once. */
 export async function removeStaff(
   _prev: SaveState | null,
   formData: FormData,
 ): Promise<SaveState> {
-  return attempt("Staff account", async () => {
+  return attempt("Helper account", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
 
     const id = String(formData.get("id"));
     const { data } = await supabase.from("profiles").select("role").eq("id", id).maybeSingle();
     if (!data) throw new Error("That account no longer exists");
-    if (data.role !== "staff") throw new Error("Only a staff account can be removed here");
+    if (!isHelperRole(data.role)) throw new Error("Only a staff or test-setter account can be removed here");
 
     const { error } = await supabase.auth.admin.deleteUser(id);
     if (error) throw new Error(error.message);

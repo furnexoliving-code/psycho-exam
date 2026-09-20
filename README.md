@@ -101,10 +101,29 @@ where email = '<mobile>@students.kautilya.local');` in the SQL editor, after
 which the panel asks for a new set-up. The database enforces the second lock
 too: `is_admin()` is true only for a session that has passed it.
 
-A **staff** account (made from the students page) signs in at `/staff` and
-can only set a student's new password — behind the same two locks as the
-admin. The database knows the role but grants it nothing; the page and its
-one action check the role and work through the service role.
+Two kinds of **helper** account are made from the students page, each
+opening one part of the panel at `/admin` behind the same two locks as the
+admin. A **staff** account can only set a student's new password (the
+"Reset a password" tab, also at the old `/staff` address, which forwards
+there); the database grants the role nothing, and the page and its one
+action work through the service role. An **editor** (test setter) can
+create, write, illustrate and publish papers but sees no results, no
+attempts and no accounts, and cannot delete a paper: the paper, question
+and picture-bucket policies ask `can_edit_papers()`, true for the admin and
+the editor alike and, like `is_admin()`, only for a session past the second
+factor. Every page and action names its section, so a helper who types the
+address of another section gets the same "not found" a student would.
+
+### Thousands of students
+
+The student list is searched and paged in the database (fifty a page, by
+name or mobile, with trigram indexes), never read whole. The bulk import
+checks the whole pasted list in the browser, then sends it fifty accounts a
+call with a running count, so five thousand accounts neither outlive one
+request nor leave the admin guessing which were made. A paper's results
+page reads every attempt (in pages of a thousand), looks names up a few
+hundred at a time, and filters, sorts and pages in the browser; the CSV is
+exactly what the filters leave.
 
 ### What is cached
 

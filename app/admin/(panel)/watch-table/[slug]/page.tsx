@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
+import { requireEditor } from "@/lib/auth";
 import { loadPaperForAdmin } from "@/lib/wt/db";
 import { createClient } from "@/lib/supabase/server";
 import { DIRECTIONS, DIRECTION_NAME, resolveFeatures, resolveResultView } from "@/lib/wt/types";
@@ -23,6 +24,10 @@ export default async function EditWatchPaper({
   searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   const { slug } = await params;
+  // On the page itself, not only in the layout, which a request can skip.
+  // An editor writes the paper; only the admin sees its results or deletes it.
+  const who = await requireEditor(`/admin/watch-table/${slug}`);
+  const isAdmin = who.role === "admin";
   const { error: noticeError, saved: noticeSaved } = await searchParams;
   const paper = await loadPaperForAdmin(slug);
   if (!paper) notFound();
@@ -36,10 +41,13 @@ export default async function EditWatchPaper({
     .eq("slug", slug)
     .single();
 
-  const { count: attemptCount } = await supabase
-    .from("watch_attempts")
-    .select("id", { count: "exact", head: true })
-    .eq("paper_id", (await supabase.from("watch_papers").select("id").eq("slug", slug).single()).data?.id ?? "");
+  // Only the admin may read attempts; the count is only shown to them.
+  const { count: attemptCount } = isAdmin
+    ? await supabase
+        .from("watch_attempts")
+        .select("id", { count: "exact", head: true })
+        .eq("paper_id", (await supabase.from("watch_papers").select("id").eq("slug", slug).single()).data?.id ?? "")
+    : { count: null };
 
   const cells = paper.tables[0].cells;
   const features = resolveFeatures(paper.features);
@@ -56,18 +64,22 @@ export default async function EditWatchPaper({
         >
           Preview the exam ↗
         </Link>
-        <Link
-          href={`/admin/watch-table/${slug}/results`}
-          className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
-        >
-          Results{typeof attemptCount === "number" ? ` (${attemptCount})` : ""}
-        </Link>
-        <Link
-          href={`/admin/watch-table/${slug}/analysis`}
-          className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
-        >
-          Question analysis
-        </Link>
+        {isAdmin && (
+          <>
+            <Link
+              href={`/admin/watch-table/${slug}/results`}
+              className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
+            >
+              Results{typeof attemptCount === "number" ? ` (${attemptCount})` : ""}
+            </Link>
+            <Link
+              href={`/admin/watch-table/${slug}/analysis`}
+              className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
+            >
+              Question analysis
+            </Link>
+          </>
+        )}
       </div>
 
       <AdminNotice error={noticeError} saved={noticeSaved} />
@@ -497,16 +509,18 @@ export default async function EditWatchPaper({
         </form>
       </section>
 
-      <form action={deletePaper} className="mt-10 border-t border-gray-300 pt-4">
-        <input type="hidden" name="slug" value={slug} />
-        <PendingButton
-          pendingLabel="Deleting…"
-          confirm={`Delete "${paper.displayName}"?\n\nIts questions, every student's results for it, and any sitting in progress go with it. This cannot be undone.`}
-          className="text-[12px] font-semibold text-red-700 hover:underline disabled:opacity-60"
-        >
-          Delete this paper, its questions and all its results
-        </PendingButton>
-      </form>
+      {isAdmin && (
+        <form action={deletePaper} className="mt-10 border-t border-gray-300 pt-4">
+          <input type="hidden" name="slug" value={slug} />
+          <PendingButton
+            pendingLabel="Deleting…"
+            confirm={`Delete "${paper.displayName}"?\n\nIts questions, every student's results for it, and any sitting in progress go with it. This cannot be undone.`}
+            className="text-[12px] font-semibold text-red-700 hover:underline disabled:opacity-60"
+          >
+            Delete this paper, its questions and all its results
+          </PendingButton>
+        </form>
+      )}
     </>
   );
 }

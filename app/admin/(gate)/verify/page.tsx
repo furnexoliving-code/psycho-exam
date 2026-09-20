@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { TotpVerify } from "@/components/admin/TotpVerify";
-import { requireStaffRole, secondFactor } from "@/lib/auth";
+import { panelHome, requirePanelRole, secondFactor } from "@/lib/auth";
 
 /**
  * Only a path inside the panel is honoured as the place to return to — and
@@ -11,7 +11,7 @@ function safeNext(next: string | undefined, fallback: string): string {
   try {
     const url = new URL(next, "http://x");
     if (url.origin !== "http://x") return fallback;
-    if (!/^\/(admin|staff)(\/|$)/.test(url.pathname)) return fallback;
+    if (!/^\/admin(\/|$)/.test(url.pathname)) return fallback;
     if (/^\/admin\/(verify|setup-2fa)(\/|$)/.test(url.pathname)) return fallback;
     return url.pathname + url.search;
   } catch {
@@ -26,10 +26,10 @@ export default async function VerifyPage({
 }) {
   const { next } = await searchParams;
 
-  // The role check belongs here as well as in the layout. Staff return to
-  // their own page, an admin to the panel.
-  const profile = await requireStaffRole("/admin");
-  const target = safeNext(next, profile.role === "staff" ? "/staff" : "/admin");
+  // The role check belongs here as well as in the layout. Each kind of
+  // account returns to its own part of the panel.
+  const profile = await requirePanelRole("/admin");
+  const target = safeNext(next, panelHome(profile.role));
 
   const { enrolled, passed } = await secondFactor();
   if (!enrolled) redirect(`/admin/setup-2fa?next=${encodeURIComponent(target)}`);
@@ -37,7 +37,7 @@ export default async function VerifyPage({
 
   return (
     <>
-      <h1 className="text-center text-2xl font-bold text-gray-900">Admin verification</h1>
+      <h1 className="text-center text-2xl font-bold text-gray-900">Verification</h1>
       <p className="mt-1 text-center text-[13px] text-gray-600">
         Open your authenticator app and enter the six-digit code it shows for this
         portal.

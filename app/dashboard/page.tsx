@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { ChangePassword } from "@/components/ChangePassword";
-import { isConfigured, requireUser } from "@/lib/auth";
+import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { listPublishedPapers } from "@/lib/wt/db";
 import { attemptsFor } from "@/lib/wt/history";
@@ -30,8 +30,8 @@ export default async function DashboardPage() {
   }
 
   const [profile, papers] = await Promise.all([requireUser(), listPublishedPapers()]);
-  // A staff account has one job, and its page is elsewhere.
-  if (profile.role === "staff") redirect("/staff");
+  // A helper account has one job, and its page is in the panel.
+  if (profile.role === "staff" || profile.role === "editor") redirect(panelHome(profile.role));
   const history = await attemptsFor(profile.id);
 
   const best = history.length

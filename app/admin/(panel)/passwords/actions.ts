@@ -35,7 +35,7 @@ export async function resetStudentPassword(
     const { error } = await supabase.auth.admin.updateUserById(id, { password });
     if (error) throw new Error(error.message);
 
-    revalidatePath("/staff");
+    revalidatePath("/admin/passwords");
     return `changed for ${target.full_name || target.phone}`;
   });
 }

@@ -518,3 +518,56 @@ end $$;
 alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles
   add constraint profiles_role_check check (role in ('student', 'admin', 'staff'));
+
+-- ---------------------------------------------------------------------------
+-- A fourth role: editor (added later)
+--
+-- A test setter: writes, illustrates and publishes papers, and nothing
+-- else. Not an admin — is_admin() stays false, so students, results and
+-- attempts stay closed — but the paper and question policies, and the
+-- picture bucket, now ask can_edit_papers(), which is true for the admin
+-- and the editor alike. Like is_admin(), only for a session that has passed
+-- the second factor.
+-- ---------------------------------------------------------------------------
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles
+  add constraint profiles_role_check check (role in ('student', 'admin', 'staff', 'editor'));
+
+create or replace function public.can_edit_papers()
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role in ('admin', 'editor')
+  )
+  and coalesce(auth.jwt() ->> 'aal', 'aal1') = 'aal2';
+$$;
+
+drop policy if exists watch_papers_read on public.watch_papers;
+create policy watch_papers_read on public.watch_papers
+  for select using (is_published or public.can_edit_papers());
+
+drop policy if exists watch_papers_admin on public.watch_papers;
+create policy watch_papers_admin on public.watch_papers
+  for all using (public.can_edit_papers()) with check (public.can_edit_papers());
+
+drop policy if exists watch_questions_admin on public.watch_questions;
+create policy watch_questions_admin on public.watch_questions
+  for all using (public.can_edit_papers()) with check (public.can_edit_papers());
+
+drop policy if exists watch_diagrams_write on storage.objects;
+create policy watch_diagrams_write on storage.objects
+  for all using (bucket_id = 'watch-diagrams' and public.can_edit_papers())
+  with check (bucket_id = 'watch-diagrams' and public.can_edit_papers());
+
+-- Finding a student by part of a name or number, out of thousands, without
+-- reading every row each time. Trigram indexes are what serve a "contains"
+-- search; a plain index cannot.
+create extension if not exists pg_trgm;
+create index if not exists profiles_name_trgm_idx
+  on public.profiles using gin (full_name gin_trgm_ops);
+create index if not exists profiles_phone_trgm_idx
+  on public.profiles using gin (phone gin_trgm_ops);

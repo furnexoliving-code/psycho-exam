@@ -1,5 +1,5 @@
 import { revalidateTag, unstable_cache } from "next/cache";
-import { requireAdmin } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { SAMPLE_PAPER, defaultInstructions } from "./paper";
@@ -197,11 +197,11 @@ export async function loadPaperLive(slug: string): Promise<WatchPaper | null> {
 
 /** The paper as the admin edits it, answer key included. */
 export async function loadPaperForAdmin(slug: string): Promise<WatchPaper | null> {
-  await requireAdmin();
+  await requireEditor();
   // SELECT on watch_questions is revoked from `authenticated` so a candidate
   // cannot read the answer column straight off the table. That revoke applies
   // to the admin's own session too, since an admin is an authenticated user —
-  // so the panel reads through the service-role client, behind requireAdmin().
+  // so the panel reads through the service-role client, behind requireEditor().
   const supabase = createAdminClient();
 
   const { data: row } = await supabase
@@ -241,9 +241,9 @@ export interface PaperSummary {
 const SUMMARY_COLUMNS =
   "id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order, max_attempts";
 
-/** Every paper, published or not, with its real question count. Admins only. */
+/** Every paper, published or not, with its real question count. Admin and editor only. */
 export async function listPapersForAdmin(): Promise<PaperSummary[]> {
-  await requireAdmin();
+  await requireEditor();
   const supabase = createAdminClient();
 
   const { data: rows } = await supabase

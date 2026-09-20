@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { WatchTableExam } from "@/components/wt/WatchTableExam";
-import { isConfigured, isVerifiedAdmin, requireUser } from "@/lib/auth";
+import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
 import { openSitting } from "@/lib/wt/session";
 import { loadPaperForCandidate, loadPaperLive } from "@/lib/wt/db";
@@ -29,7 +29,7 @@ export default async function WatchTablePage({
     ? await Promise.all([requireUser(`/watch-table/${paperId}`), loadPaperForCandidate(paperId)])
     : [null, getBundledPaper(paperId)];
   const paper =
-    who?.role === "admin" && (await isVerifiedAdmin()) ? await loadPaperLive(paperId) : cached;
+    (await isVerifiedEditor()) ? await loadPaperLive(paperId) : cached;
 
   if (!paper) notFound();
   if (paper.questions.length === 0) {

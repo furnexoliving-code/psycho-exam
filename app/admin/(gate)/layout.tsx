@@ -1,7 +1,7 @@
 import { AdminSetupGuide } from "@/components/AdminSetupGuide";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
-import { isConfigured, missingConfig, requireStaffRole } from "@/lib/auth";
+import { isConfigured, missingConfig, requirePanelRole } from "@/lib/auth";
 
 /**
  * The two pages that stand between the admin's password and the panel:
@@ -19,7 +19,7 @@ export default async function GateLayout({ children }: { children: React.ReactNo
     );
   }
 
-  const profile = await requireStaffRole();
+  const profile = await requirePanelRole();
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">

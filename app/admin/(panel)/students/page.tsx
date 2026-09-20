@@ -1,41 +1,75 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { normalisePhone } from "@/lib/phone";
 import { createStaff, createStudent, removeStaff, resetPassword, setActive } from "./actions";
+import { HELPER_ROLES, isHelperRole } from "./helpers";
 import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { BulkStudents } from "./BulkStudents";
 
-export default async function StudentsPage() {
+/** Students shown per page. Thousands on one page is a page nobody can use. */
+const PAGE_SIZE = 50;
+
+export default async function StudentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   // On the page itself, not only in the layout: a request can ask for the
   // page segment alone, and the layout then never runs.
   await requireAdmin("/admin/students");
   const supabase = await createClient();
 
-  const { data: students } = await supabase
-    .from("profiles")
-    .select("id, full_name, phone, created_at, is_active")
-    .eq("role", "student")
-    .order("created_at", { ascending: false });
+  const { q = "", page: pageRaw = "1" } = await searchParams;
+  const query = q.trim();
+  const page = Math.max(1, Math.floor(Number(pageRaw)) || 1);
+  const from = (page - 1) * PAGE_SIZE;
 
-  const { data: staff } = await supabase
+  // The list is searched and paged in the database, never read whole: with
+  // thousands of accounts a full read is slow for the admin and a strain on
+  // everyone sitting a paper at that moment.
+  let request = supabase
     .from("profiles")
-    .select("id, full_name, phone, created_at")
-    .eq("role", "staff")
+    .select("id, full_name, phone, created_at, is_active", { count: "exact" })
+    .eq("role", "student");
+  if (query) {
+    const digits = normalisePhone(query);
+    request = /^\d{4,}$/.test(digits)
+      ? request.like("phone", `%${digits}%`)
+      : request.ilike("full_name", `%${query.replace(/[%_]/g, "")}%`);
+  }
+  const { data: students, count: studentCount } = await request
+    .order("created_at", { ascending: false })
+    .order("id")
+    .range(from, from + PAGE_SIZE - 1);
+  const total = studentCount ?? 0;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const { data: helpers } = await supabase
+    .from("profiles")
+    .select("id, full_name, phone, role, created_at")
+    .in("role", Object.keys(HELPER_ROLES))
     .order("created_at", { ascending: false });
 
   const { data: watchAttempts } = await supabase
     .from("watch_attempts")
     .select("id, paper_id, user_id, marks, total, attempted, submitted_at")
     .order("submitted_at", { ascending: false })
-    .limit(100);
+    .limit(50);
 
-  const { data: papers } = await supabase
-    .from("watch_papers")
-    .select("id, display_name");
+  const { data: papers } = await supabase.from("watch_papers").select("id, display_name");
   const paperName = new Map((papers ?? []).map((p) => [p.id, p.display_name]));
-  const studentName = new Map(
-    (students ?? []).map((s) => [s.id, s.full_name || "Unnamed"]),
-  );
+
+  // Names for the recent attempts only — never the whole student table.
+  const recentIds = [...new Set((watchAttempts ?? []).map((a) => a.user_id).filter(Boolean))] as string[];
+  const { data: recentProfiles } = recentIds.length
+    ? await supabase.from("profiles").select("id, full_name").in("id", recentIds)
+    : { data: [] };
+  const studentName = new Map((recentProfiles ?? []).map((s) => [s.id, s.full_name || "Unnamed"]));
+
+  const pageLink = (n: number) =>
+    `/admin/students?${new URLSearchParams({ ...(query ? { q: query } : {}), page: String(n) })}`;
 
   return (
     <>
@@ -82,12 +116,39 @@ export default async function StudentsPage() {
         </SaveForm>
       </section>
 
-      <section className="mt-5">
-        <h2 className="mb-2 text-[15px] font-bold text-gray-900">
-          Registered students ({students?.length ?? 0})
-        </h2>
+      <BulkStudents />
+
+      <section className="mt-6" id="list">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="text-[15px] font-bold text-gray-900">
+            Registered students ({total.toLocaleString("en-IN")})
+          </h2>
+          <form method="get" action="/admin/students#list" className="ml-auto flex gap-2">
+            <input
+              name="q"
+              defaultValue={query}
+              placeholder="Search by mobile number or name"
+              className="w-[260px] max-w-full rounded border border-gray-400 px-3 py-1.5 text-[13px]"
+            />
+            <button
+              type="submit"
+              className="rounded bg-indigo-800 px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-900"
+            >
+              Search
+            </button>
+            {query && (
+              <Link
+                href="/admin/students#list"
+                className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
+              >
+                Clear
+              </Link>
+            )}
+          </form>
+        </div>
+
         {students?.length ? (
-          <div className="overflow-x-auto">
+          <div className="mt-2 overflow-x-auto">
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr className="bg-rrb-banner text-left text-white">
@@ -146,27 +207,55 @@ export default async function StudentsPage() {
                 ))}
               </tbody>
             </table>
+
+            {pages > 1 && (
+              <nav className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-gray-700" aria-label="Pages">
+                {page > 1 && (
+                  <Link href={pageLink(page - 1)} className="rounded border border-gray-400 bg-white px-3 py-1 font-semibold hover:bg-gray-100">
+                    ← Previous
+                  </Link>
+                )}
+                <span>
+                  Page {page} of {pages} · showing {from + 1}–{Math.min(total, from + PAGE_SIZE)} of {total.toLocaleString("en-IN")}
+                </span>
+                {page < pages && (
+                  <Link href={pageLink(page + 1)} className="rounded border border-gray-400 bg-white px-3 py-1 font-semibold hover:bg-gray-100">
+                    Next →
+                  </Link>
+                )}
+              </nav>
+            )}
           </div>
         ) : (
-          <p className="rounded border border-gray-300 bg-white p-5 text-center text-[13px] text-gray-500">
-            No students have registered yet.
+          <p className="mt-2 rounded border border-gray-300 bg-white p-5 text-center text-[13px] text-gray-500">
+            {query ? <>No student matches &ldquo;{query}&rdquo;.</> : "No students have registered yet."}
           </p>
         )}
       </section>
 
-      <BulkStudents />
-
-      {/* ------------------------------ Staff ------------------------------- */}
+      {/* --------------------------- Helper accounts --------------------------- */}
       <section className="mt-8 rounded border border-gray-300 bg-white p-5">
-        <h2 className="text-[15px] font-bold text-gray-900">Staff — password help only</h2>
+        <h2 className="text-[15px] font-bold text-gray-900">Helper accounts</h2>
         <p className="mt-1 text-[12px] text-gray-600">
-          A staff account signs in at <code className="rounded bg-gray-200 px-1">/staff</code> and
-          can do one thing: set a new password for a student. No papers, no results, no
-          accounts. It uses an authenticator app like the admin does.
+          Each kind of helper opens one part of this panel and nothing else. Staff can
+          reset a student&apos;s password. A test setter can create, write and publish
+          papers, but sees no results and no student accounts. Both sign in at{" "}
+          <code className="rounded bg-gray-200 px-1">/admin</code> and use an
+          authenticator app like the admin does.
         </p>
 
-        <SaveForm action={createStaff} submitLabel="Create the staff account" className="mt-3">
-          <div className="grid gap-3 sm:grid-cols-3">
+        <SaveForm action={createStaff} submitLabel="Create the helper account" className="mt-3">
+          <div className="grid gap-3 sm:grid-cols-4">
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">What for</span>
+              <select name="role" defaultValue="staff" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]">
+                {Object.entries(HELPER_ROLES).map(([role, r]) => (
+                  <option key={role} value={role}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="block">
               <span className="mb-1 block text-[12px] font-semibold text-gray-700">Name</span>
               <input name="full_name" required className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
@@ -182,21 +271,25 @@ export default async function StudentsPage() {
           </div>
         </SaveForm>
 
-        {staff?.length ? (
+        {helpers?.length ? (
           <table className="mt-4 w-full border-collapse text-[13px]">
             <thead>
               <tr className="bg-rrb-banner text-left text-white">
                 <th className="border border-gray-300 px-3 py-2">Name</th>
                 <th className="border border-gray-300 px-3 py-2">Mobile</th>
+                <th className="border border-gray-300 px-3 py-2">Can</th>
                 <th className="border border-gray-300 px-3 py-2">Since</th>
                 <th className="border border-gray-300 px-3 py-2" />
               </tr>
             </thead>
             <tbody>
-              {staff.map((m) => (
+              {helpers.map((m) => (
                 <tr key={m.id} className="bg-white even:bg-gray-50">
                   <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">{m.full_name || "—"}</td>
                   <td className="border border-gray-300 px-3 py-2">{m.phone || "—"}</td>
+                  <td className="border border-gray-300 px-3 py-2">
+                    {isHelperRole(m.role) ? HELPER_ROLES[m.role].label : m.role}
+                  </td>
                   <td className="border border-gray-300 px-3 py-2">{new Date(m.created_at).toLocaleDateString("en-IN")}</td>
                   <td className="border border-gray-300 px-3 py-2">
                     <RowForm action={removeStaff}>
@@ -211,14 +304,21 @@ export default async function StudentsPage() {
             </tbody>
           </table>
         ) : (
-          <p className="mt-3 text-[12px] text-gray-500">No staff account yet.</p>
+          <p className="mt-3 text-[12px] text-gray-500">No helper account yet.</p>
         )}
       </section>
 
       <section className="mt-8">
         <h2 className="mb-2 text-[15px] font-bold text-gray-900">
-          Recent attempts ({watchAttempts?.length ?? 0})
+          Recent attempts (latest {watchAttempts?.length ?? 0})
         </h2>
+        <p className="mb-2 text-[12px] text-gray-600">
+          Every attempt of a paper, with search and filters, is under that paper&apos;s{" "}
+          <Link href="/admin/watch-table" className="font-semibold text-rrb-banner hover:underline">
+            Results
+          </Link>{" "}
+          button.
+        </p>
         {watchAttempts?.length ? (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-[13px]">
@@ -265,7 +365,6 @@ export default async function StudentsPage() {
           </p>
         )}
       </section>
-
     </>
   );
 }

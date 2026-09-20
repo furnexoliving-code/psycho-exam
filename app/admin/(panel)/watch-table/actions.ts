@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { attempt, run, type SaveState } from "@/lib/admin-result";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { generateQuestions, optionValues } from "@/lib/wt/generate";
@@ -28,7 +28,7 @@ import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
  * cannot read the answer column off the table directly. An admin's session is
  * also `authenticated`, so the panel would be locked out of its own questions
  * — it uses the service-role client instead. Every caller has already passed
- * requireAdmin(), which is the real boundary.
+ * requireEditor(), which is the real boundary.
  */
 const questionStore = createAdminClient;
 
@@ -161,7 +161,7 @@ export async function createPaper(formData: FormData) {
   // A failure — a web address already taken, most often — lands back on the
   // list with its reason, rather than on the generic error page.
   return run("/admin/watch-table", "New paper", async () => {
-  await requireAdmin();
+  await requireEditor();
   const supabase = await createClient();
 
   const displayName =
@@ -228,7 +228,7 @@ export async function saveSettings(
 ): Promise<SaveState> {
   const slug = String(formData.get("slug"));
   return attempt("Settings", async () => {
-    await requireAdmin();
+    await requireEditor();
     const supabase = await createClient();
 
       const instruction = Number(formData.get("instruction_time_min"));
@@ -336,7 +336,7 @@ export async function saveDiagram(
 ): Promise<SaveState> {
   const slug = String(formData.get("slug"));
   return attempt("Diagram", async () => {
-    await requireAdmin();
+    await requireEditor();
     const supabase = await createClient();
 
       const cells = readCells(formData);
@@ -374,7 +374,7 @@ export async function regenerateQuestions(
   formData: FormData,
 ): Promise<SaveState> {
   return attempt("Sample questions", async () => {
-  await requireAdmin();
+  await requireEditor();
   const supabase = await createClient();
 
   const slug = String(formData.get("slug"));
@@ -538,7 +538,7 @@ export async function importQuestions(
 ): Promise<SaveState> {
   const slug = String(formData.get("slug"));
   return attempt("Questions", async () => {
-    await requireAdmin();
+    await requireEditor();
     const supabase = await createClient();
 
       const parsed = parseQuestionLines(String(formData.get("bulk") ?? ""));
@@ -613,7 +613,7 @@ export async function deleteQuestion(
 ): Promise<SaveState> {
   const slug = String(formData.get("slug"));
   return attempt("Question", async () => {
-    await requireAdmin();
+    await requireEditor();
 
     const { data: gone, error } = await questionStore()
       .from("watch_questions")
@@ -635,7 +635,7 @@ export async function saveQuestion(
 ): Promise<SaveState> {
   const slug = String(formData.get("slug"));
   return attempt("Question", async () => {
-    await requireAdmin();
+    await requireEditor();
 
     const topic = String(formData.get("topic") ?? "").trim().slice(0, 60);
     const promptEn = String(formData.get("prompt_en") ?? "").trim();
@@ -716,7 +716,7 @@ export async function saveInstructions(
 ): Promise<SaveState> {
   const slug = String(formData.get("slug"));
   return attempt("Instructions", async () => {
-    await requireAdmin();
+    await requireEditor();
     const supabase = await createClient();
 
       const instructions = parseInstructionLines(String(formData.get("instructions") ?? ""));
@@ -754,7 +754,7 @@ export async function duplicatePaper(formData: FormData) {
   // The body redirects to the new paper on success; run() lets a
   // redirect through and only catches real failures.
   return run(`/admin/watch-table/${slug}`, "Copy", async () => {
-    await requireAdmin();
+    await requireEditor();
     const supabase = await createClient();
 
   

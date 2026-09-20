@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireEditor } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { listPapersForAdmin, type PaperSummary } from "@/lib/wt/db";
 import { createPaper } from "./actions";
@@ -16,6 +17,8 @@ export default async function FollowingDirectionsPage({
 }: {
   searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
+  // On the page itself, not only in the layout, which a request can skip.
+  await requireEditor("/admin/watch-table");
   const [papers, { error, saved }] = await Promise.all([listPapersForAdmin(), searchParams]);
 
   return (

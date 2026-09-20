@@ -1,5 +1,12 @@
 import { isValidPhone, normalisePhone } from "./phone";
 
+/**
+ * How many students the import sends the server in one call. A long list
+ * goes in batches of this size, each its own request, so no single request
+ * runs past what the hosting allows.
+ */
+export const IMPORT_BATCH = 50;
+
 export interface ParsedStudent {
   fullName: string;
   phone: string;

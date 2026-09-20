@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { TotpSetup } from "@/components/admin/TotpSetup";
-import { requireStaffRole, secondFactor } from "@/lib/auth";
+import { panelHome, requirePanelRole, secondFactor } from "@/lib/auth";
 
 export default async function SetupTwoFactorPage({
   searchParams,
@@ -8,10 +8,10 @@ export default async function SetupTwoFactorPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
-  const profile = await requireStaffRole("/admin");
-  const home = profile.role === "staff" ? "/staff" : "/admin";
-  // Only a path of this site's own two areas is honoured as the way back.
-  const target = next && /^\/(admin|staff)(\/|$)/.test(next) && !next.includes("\\") ? next : home;
+  const profile = await requirePanelRole("/admin");
+  const home = panelHome(profile.role);
+  // Only a path inside the panel is honoured as the way back.
+  const target = next && /^\/admin(\/|$)/.test(next) && !next.includes("\\") ? next : home;
 
   const { enrolled } = await secondFactor();
   // Already set up: the code page is the one to be on.
@@ -20,7 +20,7 @@ export default async function SetupTwoFactorPage({
   return (
     <>
       <h1 className="text-center text-2xl font-bold text-gray-900">
-        {profile.role === "staff" ? "Protect your staff sign-in" : "Protect the admin panel"}
+        {profile.role === "admin" ? "Protect the admin panel" : "Protect your sign-in"}
       </h1>
       <p className="mt-1 text-center text-[13px] text-gray-600">
         From now on this opens with your password AND a code from your phone.

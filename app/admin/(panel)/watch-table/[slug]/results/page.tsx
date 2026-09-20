@@ -79,31 +79,49 @@ export default async function PaperResultsPage({
   const marks = cohortMarks(rows, total);
 
   // Names come from profiles; an attempt taken without signing in has none.
+  // Looked up a few hundred at a time: the ids travel in the request's
+  // address, and thousands of them at once make one too long to send.
   const userIds = [...new Set(rows.map((a) => a.user_id).filter(Boolean))] as string[];
-  const { data: profiles } = userIds.length
-    ? await supabase
+  const LOOKUP = 300;
+  const lookups = [];
+  for (let i = 0; i < userIds.length; i += LOOKUP) {
+    lookups.push(
+      supabase
         .from("profiles")
-        .select("id, full_name, roll_no")
-        .in("id", userIds)
-    : { data: [] };
+        .select("id, full_name, phone")
+        .in("id", userIds.slice(i, i + LOOKUP)),
+    );
+  }
+  const profiles = (await Promise.all(lookups)).flatMap((r) => r.data ?? []);
+  const byId = new Map(profiles.map((p) => [p.id, p]));
 
-  const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+  // Rank by marks, ties sharing a rank: one pass over the sorted marks
+  // rather than a count per row, which grew with the square of the cohort.
+  const rankOf = new Map<number, number>();
+  [...marks].sort((a, b) => b - a).forEach((m, i) => {
+    if (!rankOf.has(m)) rankOf.set(m, i + 1);
+  });
+  const rankFor = (m: number) => rankOf.get(m) ?? [...rankOf.keys()].filter((k) => k > m).length + 1;
 
-  const sortedMarks = [...marks].sort((a, b) => b - a);
+  // The rows arrive newest first, so a candidate's first row is their latest.
+  const seen = new Set<string>();
   const result: ResultRow[] = rows.map((a) => {
     const t = tScore(a.marks as number, cohort);
     const profile = a.user_id ? byId.get(a.user_id) : undefined;
+    const latest = a.user_id ? !seen.has(a.user_id) : true;
+    if (a.user_id) seen.add(a.user_id);
 
     return {
       id: a.id,
       name: profile?.full_name || "Not signed in",
-      rollNo: profile?.roll_no || "—",
+      phone: profile?.phone || "",
       marks: a.marks,
       total: a.total,
       attempted: a.attempted,
       durationSec: a.duration_sec,
       tScore: t ? Number(t.value.toFixed(1)) : null,
-      rank: sortedMarks.filter((m) => m > a.marks).length + 1,
+      rank: rankFor(a.marks),
+      latest,
       // The same decision the candidate saw — same module, same switches — so
       // staff and student can never be shown opposite verdicts.
       qualified:
