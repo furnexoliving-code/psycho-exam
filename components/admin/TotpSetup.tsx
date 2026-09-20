@@ -19,7 +19,7 @@ interface Enrolment {
  * produces proves the enrolment worked. Nothing counts until that first code
  * is accepted, so an abandoned attempt leaves the account exactly as it was.
  */
-export function TotpSetup() {
+export function TotpSetup({ next = "/admin" }: { next?: string }) {
   const router = useRouter();
   const [enrolment, setEnrolment] = useState<Enrolment | null>(null);
   const [code, setCode] = useState("");
@@ -87,7 +87,7 @@ export function TotpSetup() {
       return;
     }
 
-    router.replace("/admin");
+    router.replace(next);
     router.refresh();
   };
 

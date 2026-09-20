@@ -1,12 +1,12 @@
 import { AdminSetupGuide } from "@/components/AdminSetupGuide";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
-import { isConfigured, missingConfig, requireAdminRole } from "@/lib/auth";
+import { isConfigured, missingConfig, requireStaffRole } from "@/lib/auth";
 
 /**
  * The two pages that stand between the admin's password and the panel:
  * setting up the authenticator, and entering its code. They need the admin
- * ROLE but not the second factor — that is what they exist to establish —
+ * ROLE (admin or staff) but not the second factor — that is what they exist to establish —
  * so they live outside the panel's own layout, which demands both.
  */
 export default async function GateLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,7 @@ export default async function GateLayout({ children }: { children: React.ReactNo
     );
   }
 
-  const profile = await requireAdminRole();
+  const profile = await requireStaffRole();
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">

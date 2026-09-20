@@ -101,6 +101,11 @@ where email = '<mobile>@students.kautilya.local');` in the SQL editor, after
 which the panel asks for a new set-up. The database enforces the second lock
 too: `is_admin()` is true only for a session that has passed it.
 
+A **staff** account (made from the students page) signs in at `/staff` and
+can only set a student's new password — behind the same two locks as the
+admin. The database knows the role but grants it nothing; the page and its
+one action check the role and work through the service role.
+
 ### What is cached
 
 Published papers, their questions (never the key — the cached read selects

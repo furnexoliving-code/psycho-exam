@@ -506,3 +506,15 @@ begin
     insert into public.portal_migrations (name) values ('pause-off');
   end if;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- A third role: staff (added later)
+--
+-- An office member who resets students' passwords and nothing else. Not an
+-- admin: is_admin() stays false for them, so every admin policy and page
+-- stays closed; their one page checks the role itself and works through the
+-- service role on the server.
+-- ---------------------------------------------------------------------------
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles
+  add constraint profiles_role_check check (role in ('student', 'admin', 'staff'));

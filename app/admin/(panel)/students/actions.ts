@@ -226,3 +226,82 @@ export async function importStudents(
     return parts.join(" · ");
   });
 }
+
+/**
+ * Issues a staff account: an office member who may reset students'
+ * passwords at /staff and do nothing else. Made exactly like a student —
+ * mobile number and password — with the role set once the account exists.
+ */
+export async function createStaff(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Staff account", async () => {
+    await requireAdmin();
+    const supabase = createAdminClient();
+
+    const fullName = String(formData.get("full_name") ?? "").trim();
+    const phoneRaw = String(formData.get("phone") ?? "");
+    const password = String(formData.get("password") ?? "");
+
+    if (!fullName) throw new Error("The name is required");
+    if (!isValidPhone(phoneRaw)) {
+      throw new Error(`"${phoneRaw}" is not a 10-digit Indian mobile number`);
+    }
+    if (password.length < 8) throw new Error("A staff password must be at least 8 characters");
+
+    const phone = normalisePhone(phoneRaw);
+    const { data: created, error } = await supabase.auth.admin.createUser({
+      email: phoneToEmail(phone),
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName, phone },
+      app_metadata: { issued: true },
+    });
+    if (error) {
+      if (/already/i.test(error.message)) {
+        throw new Error(`${phone} already has an account.`);
+      }
+      throw new Error(error.message);
+    }
+
+    const { data: updated, error: roleError } = await supabase
+      .from("profiles")
+      .update({ full_name: fullName, phone, role: "staff", is_active: true })
+      .eq("id", created.user.id)
+      .select("id");
+    if (roleError) {
+      throw new Error(
+        /role_check|violates check/i.test(roleError.message)
+          ? "The database does not know the staff role yet — run the latest watch-table-schema.sql, then try again."
+          : roleError.message,
+      );
+    }
+    if (!updated?.length) throw new Error("The account was made but its role could not be set");
+
+    revalidatePath(BACK);
+    return `${fullName} — ${phone}. They sign in at /staff.`;
+  });
+}
+
+/** Removes a staff account entirely. Their sign-in stops at once. */
+export async function removeStaff(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Staff account", async () => {
+    await requireAdmin();
+    const supabase = createAdminClient();
+
+    const id = String(formData.get("id"));
+    const { data } = await supabase.from("profiles").select("role").eq("id", id).maybeSingle();
+    if (!data) throw new Error("That account no longer exists");
+    if (data.role !== "staff") throw new Error("Only a staff account can be removed here");
+
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath(BACK);
+    return "removed";
+  });
+}

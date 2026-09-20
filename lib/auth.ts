@@ -7,7 +7,7 @@ export interface Profile {
   full_name: string;
   roll_no: string;
   phone: string;
-  role: "student" | "admin";
+  role: "student" | "admin" | "staff";
   is_active: boolean;
 }
 
@@ -103,6 +103,30 @@ export async function requireUser(next = "/dashboard"): Promise<Profile> {
 export async function requireAdminRole(next = "/admin"): Promise<Profile> {
   const profile = await requireUser(next);
   if (profile.role !== "admin") notFound();
+  return profile;
+}
+
+/**
+ * Staff or admin, by role alone — what the second-factor gate pages check,
+ * since both kinds of account pass through them.
+ */
+export async function requireStaffRole(next = "/staff"): Promise<Profile> {
+  const profile = await requireUser(next);
+  if (profile.role !== "admin" && profile.role !== "staff") notFound();
+  return profile;
+}
+
+/**
+ * Guards the staff page: the staff (or admin) role AND a second factor
+ * passed in this session. Resetting any student's password is enough power
+ * to warrant the same two locks as the panel.
+ */
+export async function requireStaff(next = "/staff"): Promise<Profile> {
+  const profile = await requireStaffRole(next);
+  const { enrolled, passed } = await secondFactor();
+
+  if (!enrolled) redirect(`/admin/setup-2fa?next=${encodeURIComponent(next)}`);
+  if (!passed) redirect(`/admin/verify?next=${encodeURIComponent(next)}`);
   return profile;
 }
 

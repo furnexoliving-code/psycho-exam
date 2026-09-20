@@ -58,6 +58,7 @@ export async function middleware(request: NextRequest) {
   // The pages check again on the server; this only saves the round trip.
   const isPrivate =
     path.startsWith("/admin") ||
+    path.startsWith("/staff") ||
     path.startsWith("/dashboard") ||
     path.startsWith("/tests") ||
     path.startsWith("/watch-table");

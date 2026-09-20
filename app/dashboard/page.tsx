@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { ChangePassword } from "@/components/ChangePassword";
@@ -29,6 +30,8 @@ export default async function DashboardPage() {
   }
 
   const [profile, papers] = await Promise.all([requireUser(), listPublishedPapers()]);
+  // A staff account has one job, and its page is elsewhere.
+  if (profile.role === "staff") redirect("/staff");
   const history = await attemptsFor(profile.id);
 
   const best = history.length
