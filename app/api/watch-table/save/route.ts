@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getProfile, isConfigured } from "@/lib/auth";
 import { saveSnapshot } from "@/lib/wt/session";
-import { MAX_OPTION } from "@/lib/wt/parse-questions";
+import { isOptionValue } from "@/lib/wt/parse-questions";
+import type { OptionValue } from "@/lib/wt/types";
 
 /** No paper has this many questions; anything past it is not an answer sheet. */
 const MAX_ANSWERS = 500;
@@ -27,12 +28,12 @@ export async function POST(request: Request) {
   const profile = await getProfile();
   if (!profile) return NextResponse.json({ error: "Sign in first" }, { status: 401 });
 
-  const responses: Record<string, number> = {};
+  const responses: Record<string, OptionValue> = {};
   if (body.answers && typeof body.answers === "object") {
     for (const [key, value] of Object.entries(body.answers as Record<string, unknown>)) {
       if (Object.keys(responses).length >= MAX_ANSWERS) break;
       if (key.length > 64) continue;
-      if (typeof value === "number" && Number.isInteger(value) && Math.abs(value) < MAX_OPTION) {
+      if (isOptionValue(value)) {
         responses[key] = value;
       }
     }

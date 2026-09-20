@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import type { WatchPaper } from "@/lib/wt/types";
+import type { OptionValue, WatchPaper } from "@/lib/wt/types";
 import { ScrollRail } from "./ScrollRail";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 
@@ -19,7 +19,7 @@ export function QuestionPaperView({
   onClose,
 }: {
   paper: WatchPaper;
-  answers: Record<string, number | null>;
+  answers: Record<string, OptionValue | null>;
   open: boolean;
   onClose: () => void;
 }) {

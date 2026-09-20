@@ -76,15 +76,24 @@ export interface InstructionBlock extends Bilingual {
   imageWidthPct?: number;
 }
 
+/**
+ * What a question offers and what a candidate picks: a whole number (the
+ * Watch and Number Tables) or a short letter label such as "A" or "AB" (the
+ * Letter Table). A value is compared exactly, so the two kinds never mix:
+ * the number 5 and the label "5" cannot both exist — a token that reads as
+ * a number IS a number.
+ */
+export type OptionValue = number | string;
+
 export interface WatchQuestion {
   id: string;
   /** Index into the paper's tables — the diagram this question refers to. */
   tableIndex: number;
   prompt: Bilingual;
-  /** Always the five distinct numbers on the circle, in a shuffled order. */
-  options: number[];
-  /** The correct number. Derived, never hand-written. */
-  answer: number;
+  /** The distinct values on offer, in the order shown. */
+  options: OptionValue[];
+  /** The correct one; always among the options. */
+  answer: OptionValue;
   /** How the answer was reached, shown in the review screen. */
   working: Bilingual;
   /** What the question tests, used for the topic breakdown on the result. */

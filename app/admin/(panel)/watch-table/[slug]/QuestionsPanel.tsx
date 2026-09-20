@@ -12,7 +12,8 @@ import {
 } from "../actions";
 
 const FORMAT_HELP = `# English question | Hindi question | options | answer | topic
-Starting from West travel right-handedly up to South-West. Which number appears most? | पश्चिम से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। कौन सी संख्या सबसे अधिक बार आती है? | 1,2,3,4,5 | 3 | Most frequent number`;
+Starting from West travel right-handedly up to South-West. Which number appears most? | पश्चिम से शुरू करके दाएं हाथ से दक्षिण-पश्चिम तक जाएँ। कौन सी संख्या सबसे अधिक बार आती है? | 1,2,3,4,5 | 3 | Most frequent number
+Which letter is directly above the letter in row 2, column 3? | पंक्ति 2, स्तम्भ 3 के अक्षर के ठीक ऊपर कौनसा अक्षर है? | D,E,C,A,B | A | Above`;
 
 /**
  * The questions half of the panel.
@@ -87,6 +88,10 @@ export function QuestionsPanel({
             </pre>
             <ul className="mt-2 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
               <li>Leave the Hindi field empty if you do not need it — keep the two bars.</li>
+              <li>
+                Options are numbers (Watch and Number Table) or letters (Letter Table),
+                separated by commas. Letters are saved in capitals.
+              </li>
               <li>The options are shown in the order you write them.</li>
               <li>The answer must be one of the options, or the upload is refused.</li>
               <li>

@@ -11,7 +11,8 @@ import {
 } from "@/lib/wt/types";
 import { closeExpiredSitting, closeSitting, lastSubmission } from "@/lib/wt/session";
 import { decideCutOff, type CutOffVerdict } from "@/lib/wt/cutoff";
-import { MAX_OPTION } from "@/lib/wt/parse-questions";
+import { isOptionValue } from "@/lib/wt/parse-questions";
+import type { OptionValue } from "@/lib/wt/types";
 import {
   aggregateFromRows,
   cohortFromMoments,
@@ -58,10 +59,10 @@ export interface MarkedQuestion {
   position: number;
   promptEn: string;
   promptHi: string;
-  options: number[];
-  given: number | null;
+  options: OptionValue[];
+  given: OptionValue | null;
   /** The answer key. Absent on the wire unless the paper publishes it. */
-  correct?: number;
+  correct?: OptionValue;
   /** The verdict on this question. Stays even when the key is withheld. */
   isCorrect: boolean;
   /** The worked solution spells the answer out, so it travels with the key. */
@@ -232,7 +233,7 @@ export async function POST(request: Request) {
     record,
     // The sheet as marked: known questions, offered numbers, nothing else.
     responses: Object.fromEntries(
-      marked.filter((q) => q.given !== null).map((q) => [q.id, q.given as number]),
+      marked.filter((q) => q.given !== null).map((q) => [q.id, q.given as OptionValue]),
     ),
     paper,
     userId: profile.id,
@@ -252,13 +253,13 @@ const MAX_KEY_LENGTH = 64;
  * sheet is cut off at a size no real paper reaches, so a post cannot park a
  * multi-megabyte object in the sitting for every admin page to load later.
  */
-function toAnswers(raw: unknown): Map<string, number> {
-  const given = new Map<string, number>();
+function toAnswers(raw: unknown): Map<string, OptionValue> {
+  const given = new Map<string, OptionValue>();
   if (raw && typeof raw === "object") {
     for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
       if (given.size >= MAX_ANSWERS) break;
       if (key.length > MAX_KEY_LENGTH) continue;
-      if (typeof value === "number" && Number.isInteger(value) && Math.abs(value) < MAX_OPTION) {
+      if (isOptionValue(value)) {
         given.set(key, value);
       }
     }
@@ -397,7 +398,7 @@ async function statsFor({
   total: number;
   record: boolean;
   /** What was chosen per question, kept for the per-question breakdown. */
-  responses: Record<string, number>;
+  responses: Record<string, OptionValue>;
   paper: PaperRow;
   userId: string;
   /** Measured by the server from the sitting. */
@@ -547,8 +548,8 @@ interface QuestionRow {
   position: number;
   prompt_en: string;
   prompt_hi: string;
-  options: number[];
-  answer: number;
+  options: OptionValue[];
+  answer: OptionValue;
   working_en: string | null;
   working_hi: string | null;
   topic: string | null;
@@ -565,10 +566,11 @@ async function fetchQuestions(paperId: string): Promise<QuestionRow[]> {
   return (data ?? []) as QuestionRow[];
 }
 
-function mark(rows: QuestionRow[], given: Map<string, number>): MarkedQuestion[] {
+function mark(rows: QuestionRow[], given: Map<string, OptionValue>): MarkedQuestion[] {
   return rows.map((q) => {
-    // Only one of the numbers on offer is an answer. Anything else — a value
-    // no button produces — is not "wrong", it is not an answer at all.
+    // Only one of the values on offer is an answer. Anything else — a value
+    // no button produces — is not "wrong", it is not an answer at all. The
+    // comparison is exact: a number and a letter label never match.
     const raw = given.get(q.id);
     const chosen = raw !== undefined && q.options.includes(raw) ? raw : null;
     return {
@@ -593,7 +595,7 @@ function mark(rows: QuestionRow[], given: Map<string, number>): MarkedQuestion[]
  */
 function markFromBundle(
   paperId: string,
-  given: Map<string, number>,
+  given: Map<string, OptionValue>,
 ): MarkedQuestion[] | null {
   const paper = getBundledPaper(paperId);
   if (!paper) return null;

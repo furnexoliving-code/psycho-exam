@@ -3,7 +3,7 @@ import { requireEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { SAMPLE_PAPER, defaultInstructions } from "./paper";
-import type { WatchCell, WatchPaper, WatchQuestion } from "./types";
+import type { OptionValue, WatchCell, WatchPaper, WatchQuestion } from "./types";
 
 /**
  * Loads Watch Table papers from Supabase, mapping them onto the same shape the
@@ -61,8 +61,8 @@ interface QuestionRow {
   position: number;
   prompt_en: string;
   prompt_hi: string;
-  options: number[];
-  answer?: number;
+  options: OptionValue[];
+  answer?: OptionValue;
   working_en?: string;
   working_hi?: string;
   topic?: string;

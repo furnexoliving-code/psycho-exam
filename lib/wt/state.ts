@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useReducer } from "react";
-import { resolveFeatures, type WatchPaper } from "./types";
+import { resolveFeatures, type OptionValue, type WatchPaper } from "./types";
 
 const STORAGE_PREFIX = "wt-attempt:";
 
@@ -38,7 +38,7 @@ export interface AttemptState {
    */
   phase: "instructions" | "test";
   /** questionId -> chosen number, or null when cleared. */
-  answers: Record<string, number | null>;
+  answers: Record<string, OptionValue | null>;
   currentIndex: number;
   /** The instruction screen's own countdown. */
   instructionRemainingSec: number;
@@ -69,7 +69,7 @@ export interface AttemptState {
 
 type Action =
   | { type: "tick"; now: number }
-  | { type: "answer"; questionId: string; value: number }
+  | { type: "answer"; questionId: string; value: OptionValue }
   | { type: "clear"; questionId: string }
   | { type: "goto"; index: number }
   | { type: "begin-test" }
@@ -79,7 +79,7 @@ type Action =
   | { type: "restore"; state: AttemptState };
 
 function initial(paper: WatchPaper, now: number): AttemptState {
-  const answers: Record<string, number | null> = {};
+  const answers: Record<string, OptionValue | null> = {};
   for (const q of paper.questions) answers[q.id] = null;
 
   return {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { WatchQuestion } from "@/lib/wt/types";
+import type { OptionValue, WatchQuestion } from "@/lib/wt/types";
 
 /**
  * The right-hand column: every question stacked, laid out to match the
@@ -53,7 +53,7 @@ export function QuestionList({
   onSelect,
 }: {
   questions: WatchQuestion[];
-  answers: Record<string, number | null>;
+  answers: Record<string, OptionValue | null>;
   currentIndex: number;
   locked: boolean;
   /** The scrolling panel, so navigation can move one axis only. */

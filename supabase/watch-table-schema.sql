@@ -571,3 +571,24 @@ create index if not exists profiles_name_trgm_idx
   on public.profiles using gin (full_name gin_trgm_ops);
 create index if not exists profiles_phone_trgm_idx
   on public.profiles using gin (phone gin_trgm_ops);
+
+-- ---------------------------------------------------------------------------
+-- Letter answers (added later)
+--
+-- The Letter Table offers letters, not numbers, so an option or answer is
+-- now either a whole number or a short letter label. The options column was
+-- always JSON and takes both; the answer column was an integer and becomes
+-- JSON too, keeping every existing number as a number. Guarded so that a
+-- re-run on a database already converted changes nothing.
+-- ---------------------------------------------------------------------------
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'watch_questions'
+      and column_name = 'answer' and data_type <> 'jsonb'
+  ) then
+    alter table public.watch_questions
+      alter column answer type jsonb using to_jsonb(answer);
+  end if;
+end $$;

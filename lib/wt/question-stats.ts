@@ -1,10 +1,12 @@
+import type { OptionValue } from "./types";
+
 /** How a batch fared on one question. */
 export interface QuestionStat {
   id: string;
   position: number;
   promptEn: string;
   topic: string;
-  answer: number;
+  answer: OptionValue;
   /** Attempts that answered this question at all. */
   attempted: number;
   correct: number;
@@ -13,7 +15,7 @@ export interface QuestionStat {
   /** Attempts that left it blank. */
   skipped: number;
   /** The wrong option chosen most often, and how often — the telling mistake. */
-  topWrong: { option: number; count: number } | null;
+  topWrong: { option: OptionValue; count: number } | null;
 }
 
 /**
@@ -25,18 +27,18 @@ export interface QuestionStat {
  * the difference stays visible.
  */
 export function questionStats(
-  questions: { id: string; position: number; promptEn: string; topic: string; answer: number }[],
-  responses: Record<string, number>[],
+  questions: { id: string; position: number; promptEn: string; topic: string; answer: OptionValue }[],
+  responses: Record<string, OptionValue>[],
 ): QuestionStat[] {
   return questions
     .map((q) => {
       let attempted = 0;
       let correct = 0;
-      const wrongTally = new Map<number, number>();
+      const wrongTally = new Map<OptionValue, number>();
 
       for (const sheet of responses) {
         const chosen = sheet[q.id];
-        if (typeof chosen !== "number") continue;
+        if (typeof chosen !== "number" && typeof chosen !== "string") continue;
 
         attempted++;
         if (chosen === q.answer) correct++;

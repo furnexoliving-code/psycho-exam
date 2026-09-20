@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { generateQuestions, optionValues } from "@/lib/wt/generate";
 import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
-import { MAX_OPTION, parseQuestionLines } from "@/lib/wt/parse-questions";
+import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-questions";
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
 import { CATEGORIES } from "@/lib/wt/categories";
@@ -642,22 +642,19 @@ export async function saveQuestion(
     if (!promptEn) throw new Error("The English question cannot be blank");
 
     // The same rules the upload applies, so the two ways of editing agree:
-    // every option a whole number, no two the same, between two and ten.
+    // every option a whole number or a letter label, no two the same,
+    // between two and ten.
     const tokens = String(formData.get("options") ?? "")
       .split(/[,\s]+/)
       .filter(Boolean);
-    const options = tokens.map((v) => Number(v));
-    const bad = tokens.find(
-      (v, i) => !Number.isInteger(options[i]) || Math.abs(options[i]) >= MAX_OPTION,
-    );
-    if (bad !== undefined) throw new Error(`"${bad}" is not a whole number below a million`);
+    const options = tokens.map(parseOption);
     if (options.length < 2) throw new Error("A question needs at least two options");
     if (options.length > 10) throw new Error("A question can offer at most ten options");
     if (new Set(options).size !== options.length) {
-      throw new Error("The same number appears twice among the options");
+      throw new Error("The same option appears twice");
     }
 
-    const answer = Number(formData.get("answer"));
+    const answer = parseOption(String(formData.get("answer") ?? ""));
     if (!options.includes(answer)) {
       throw new Error(`The answer ${answer} is not one of the options ${options.join(", ")}`);
     }

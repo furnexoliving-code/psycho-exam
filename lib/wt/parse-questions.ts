@@ -2,6 +2,7 @@
  * The format questions are written in, one per line:
  *
  *   English question | Hindi question | 1,5,4,3,2 | 4 | Opposite
+ *   English question | Hindi question | D,E,C,A,B | A | Above
  *
  * Fields are separated by "|". The third field is the options in the order
  * they should appear; the fourth is the correct one. The fifth is an optional
@@ -13,11 +14,13 @@
  * from a "use server" module to be an async function.
  */
 
+import type { OptionValue } from "./types";
+
 export interface ParsedQuestion {
   prompt_en: string;
   prompt_hi: string;
-  options: number[];
-  answer: number;
+  options: OptionValue[];
+  answer: OptionValue;
   topic: string;
 }
 
@@ -28,6 +31,37 @@ export interface ParsedQuestion {
  * there.
  */
 export const MAX_OPTION = 1_000_000;
+
+/** A letter label: one to three letters, as the Letter Table offers. */
+const LABEL = /^[A-Za-z]{1,3}$/;
+
+/**
+ * Reads one option or answer as it was typed. A whole number stays a
+ * number; a short run of letters becomes an upper-case label; anything
+ * else is refused with the reason.
+ */
+export function parseOption(token: string): OptionValue {
+  const text = token.trim();
+  if (/^-?\d+$/.test(text)) {
+    const n = Number(text);
+    if (!Number.isInteger(n) || Math.abs(n) >= MAX_OPTION) {
+      throw new Error(`"${text}" is not a whole number below a million`);
+    }
+    return n;
+  }
+  if (LABEL.test(text)) return text.toUpperCase();
+  throw new Error(`"${text}" is neither a whole number nor a letter label like A or AB`);
+}
+
+/**
+ * True for a value that could be an option: what the marking accepts from
+ * a browser. The same rule as parseOption, applied to a value that has
+ * already travelled as JSON.
+ */
+export function isOptionValue(value: unknown): value is OptionValue {
+  if (typeof value === "number") return Number.isInteger(value) && Math.abs(value) < MAX_OPTION;
+  return typeof value === "string" && LABEL.test(value) && value === value.toUpperCase();
+}
 
 export function parseQuestionLines(text: string): ParsedQuestion[] {
   const out: ParsedQuestion[] = [];
@@ -46,13 +80,11 @@ export function parseQuestionLines(text: string): ParsedQuestion[] {
     const [promptEn, promptHi, optionsRaw, answerRaw, topicRaw] = parts;
     if (!promptEn) throw new Error(`Line ${i + 1}: the English question is empty`);
 
-    const options = optionsRaw
-      .split(/[,\s]+/)
-      .filter(Boolean)
-      .map((v) => Number(v));
-
-    if (options.some((v) => !Number.isInteger(v) || Math.abs(v) >= MAX_OPTION)) {
-      throw new Error(`Line ${i + 1}: options must be whole numbers below a million, found "${optionsRaw}"`);
+    let options: OptionValue[];
+    try {
+      options = optionsRaw.split(/[,\s]+/).filter(Boolean).map(parseOption);
+    } catch (e) {
+      throw new Error(`Line ${i + 1}: ${e instanceof Error ? e.message : String(e)} — options are whole numbers (1,5,4,3,2) or letters (D,E,C,A,B)`);
     }
     if (options.length < 2) {
       throw new Error(`Line ${i + 1}: needs at least two options`);
@@ -62,9 +94,11 @@ export function parseQuestionLines(text: string): ParsedQuestion[] {
     }
 
     if (!answerRaw) throw new Error(`Line ${i + 1}: the answer is missing`);
-    const answer = Number(answerRaw);
-    if (!Number.isInteger(answer)) {
-      throw new Error(`Line ${i + 1}: the answer "${answerRaw}" is not a number`);
+    let answer: OptionValue;
+    try {
+      answer = parseOption(answerRaw);
+    } catch (e) {
+      throw new Error(`Line ${i + 1}: the answer ${e instanceof Error ? e.message : String(e)}`);
     }
     if (!options.includes(answer)) {
       throw new Error(

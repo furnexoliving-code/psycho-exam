@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { OptionValue } from "./types";
 
 export interface Sitting {
   id: string;
@@ -27,7 +28,7 @@ export interface Closed {
    * what the hall would have collected at the bell. Null when nothing was
    * ever saved.
    */
-  snapshot: Record<string, number> | null;
+  snapshot: Record<string, OptionValue> | null;
 }
 
 /** How long past the limit a submit may still arrive and count. Covers a slow
@@ -37,7 +38,7 @@ const LATE_GRACE_SEC = 180;
 /** What a closed sitting holds, for marking it again on a later visit. */
 export interface Submission {
   /** questionId -> chosen number. Null on rows written before it was kept. */
-  responses: Record<string, number> | null;
+  responses: Record<string, OptionValue> | null;
   /** How long the questions took, by the server's clock. */
   durationSec: number | null;
 }
@@ -149,7 +150,7 @@ export async function closeSitting(
   userId: string,
   instructionSec: number,
   limitSec: number,
-  responses: Record<string, number>,
+  responses: Record<string, OptionValue>,
   /** Whether a late submit is held to the bell (pause off) or taken as sent (pause on). */
   honourLate: boolean,
 ): Promise<Closed | null> {
@@ -164,7 +165,7 @@ export async function closeSitting(
     .maybeSingle();
 
   if (!open) return null;
-  const row = open as SittingRow & { responses: Record<string, number> | null };
+  const row = open as SittingRow & { responses: Record<string, OptionValue> | null };
   const now = new Date().toISOString();
   const late = overrun(row, instructionSec, limitSec) > LATE_GRACE_SEC;
 
@@ -201,7 +202,7 @@ export async function closeSitting(
 export async function saveSnapshot(
   paperSlug: string,
   userId: string,
-  responses: Record<string, number>,
+  responses: Record<string, OptionValue>,
 ): Promise<boolean> {
   const supabase = createAdminClient();
 
@@ -282,7 +283,7 @@ export async function closeExpiredSitting(
     durationSec: duration(row, now, limitSec),
     questionsOpened: row.questions_started_at !== null,
     late: false,
-    snapshot: (closed[0].responses as Record<string, number> | null) ?? null,
+    snapshot: (closed[0].responses as Record<string, OptionValue> | null) ?? null,
   };
 }
 
@@ -322,7 +323,7 @@ export async function lastSubmission(
     .maybeSingle();
 
   const sittingResponses = sitting
-    ? ((sitting.responses as Record<string, number> | null) ?? null)
+    ? ((sitting.responses as Record<string, OptionValue> | null) ?? null)
     : null;
   const sittingDuration = sitting
     ? duration(sitting as SittingRow, sitting.submitted_at as string, limitSec)
@@ -349,7 +350,7 @@ export async function lastSubmission(
     return sitting ? { responses: {}, durationSec: sittingDuration } : null;
   }
   return {
-    responses: (attempt.responses as Record<string, number> | null) ?? {},
+    responses: (attempt.responses as Record<string, OptionValue> | null) ?? {},
     durationSec: sittingDuration ?? attempt.duration_sec ?? null,
   };
 }

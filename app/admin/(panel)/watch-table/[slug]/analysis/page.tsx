@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll } from "@/lib/wt/cohort";
 import { questionStats } from "@/lib/wt/question-stats";
+import type { OptionValue } from "@/lib/wt/types";
 
 /**
  * Question by question, how the batch did.
@@ -51,7 +52,7 @@ export default async function PaperAnalysisPage({
 
   const ids = new Set((questions ?? []).map((q) => q.id));
   const sheets = attempts
-    .map((a) => (a.responses ?? {}) as Record<string, number>)
+    .map((a) => (a.responses ?? {}) as Record<string, OptionValue>)
     // Attempts recorded before responses were kept arrive empty, and attempts
     // of an earlier question set answer ids that no longer exist; counting
     // either would report every question as skipped.
