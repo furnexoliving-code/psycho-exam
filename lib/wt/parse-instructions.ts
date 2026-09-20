@@ -42,8 +42,10 @@ export function parseInstructionLines(raw: string): InstructionBlock[] {
     const image = (parts[2] ?? "").trim();
 
     if (image && !/^https?:\/\//i.test(image)) {
+      // Nearly always two paragraphs run together on one line: the third
+      // field is then a paragraph's Hindi, not a picture. Say what to do.
       throw new Error(
-        `Line ${i + 1}: the picture must be a link starting with http:// or https:// — got "${image}"`,
+        `Line ${i + 1} has a third part that is not a picture link. Each paragraph goes on its own line — English | Hindi — so press Enter before the next paragraph. Only a picture link may follow a third bar. Found: "${image.slice(0, 60)}${image.length > 60 ? "…" : ""}"`,
       );
     }
     // Without this a typo that drops the text leaves an invisible paragraph
