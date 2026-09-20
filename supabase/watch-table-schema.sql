@@ -515,9 +515,9 @@ end $$;
 -- stays closed; their one page checks the role itself and works through the
 -- service role on the server.
 -- ---------------------------------------------------------------------------
-alter table public.profiles drop constraint if exists profiles_role_check;
-alter table public.profiles
-  add constraint profiles_role_check check (role in ('student', 'admin', 'staff'));
+-- The constraint itself is set once, below, where the editor role is added:
+-- a re-run of this file must never re-add a narrower one over rows that
+-- already carry a role it does not list.
 
 -- ---------------------------------------------------------------------------
 -- A fourth role: editor (added later)
