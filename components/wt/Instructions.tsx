@@ -56,9 +56,14 @@ export function InstructionsBody({ paper }: { paper: WatchPaper }) {
             </div>
           ))}
 
-          <div className="mt-3 flex justify-center">
-            <WatchTableDiagram table={paper.example.table} boxedValues />
-          </div>
+          {/* The drawn compass is the sample paper's own example. A paper
+              with its own uploaded picture shows that instead — the drawn
+              one would show letters and numbers the candidate never sees. */}
+          {!paper.imageUrl && (
+            <div className="mt-3 flex justify-center">
+              <WatchTableDiagram table={paper.example.table} boxedValues />
+            </div>
+          )}
         </div>
       ))}
     </div>
