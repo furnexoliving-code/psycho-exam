@@ -69,11 +69,14 @@ export function InstructionsEditor({
           className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
         />
       </label>
-      <PictureAdder
-        label="Upload a picture into the instructions…"
-        hint="Adds a new paragraph at the end carrying the picture."
-        onLine={(line) => setBody((b) => appendLine(b, line))}
-      />
+      <div className="mt-2">
+        <ImageUpload
+          label="Upload a picture into the instructions…"
+          hint="Adds a new paragraph at the end carrying the picture."
+          onUploaded={(url) => setBody((b) => appendLine(b, ` | | ${url}`))}
+        />
+      </div>
+      <PictureSizes text={body} onChange={setBody} />
 
       <label className="mt-6 block">
         <span className="mb-1 block text-[12px] font-semibold text-gray-700">
@@ -87,10 +90,13 @@ export function InstructionsEditor({
           className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"
         />
       </label>
-      <PictureAdder
-        label="Upload a picture into the example…"
-        onLine={(line) => setExample((b) => appendLine(b, line))}
-      />
+      <div className="mt-2">
+        <ImageUpload
+          label="Upload a picture into the example…"
+          onUploaded={(url) => setExample((b) => appendLine(b, ` | | ${url}`))}
+        />
+      </div>
+      <PictureSizes text={example} onChange={setExample} />
     </SaveForm>
   );
 }
@@ -100,45 +106,77 @@ function appendLine(text: string, line: string): string {
   return `${text.replace(/\s*$/, "")}\n${line}`.trimStart();
 }
 
+/** The pictures in the text: which line each is on and its chosen width. */
+function picturesIn(text: string): { line: number; url: string; width: string }[] {
+  return text.split(/\r?\n/).flatMap((raw, line) => {
+    const parts = raw.split("|");
+    const url = (parts[2] ?? "").trim();
+    if (!/^https?:\/\//i.test(url)) return [];
+    const width = (parts[3] ?? "").trim().replace(/%$/, "") || "100";
+    return [{ line, url, width }];
+  });
+}
+
+/** Rewrites one line's width field, leaving every other line untouched. */
+function withWidth(text: string, line: number, width: string): string {
+  const lines = text.split(/\r?\n/);
+  const parts = lines[line].split("|").map((p) => p.trim());
+  const kept = parts.slice(0, 3);
+  lines[line] = (width === "100" ? kept : [...kept, width]).join(" | ");
+  return lines.join("\n");
+}
+
 /**
- * The upload button with the size the new picture should be drawn at.
+ * A size picker for every picture already in the text.
  *
- * The size is chosen before uploading and written into the new line, so the
- * admin never has to know the fourth-field syntax to get a smaller picture —
- * but it is plain text, so it can still be changed by hand later.
+ * Choosing a size rewrites that picture's line, so the size is part of the
+ * text that gets saved — the picker is a friendlier way to type the fourth
+ * field, not a separate setting that could disagree with it.
  */
-function PictureAdder({
-  label,
-  hint,
-  onLine,
+function PictureSizes({
+  text,
+  onChange,
 }: {
-  label: string;
-  hint?: string;
-  onLine: (line: string) => void;
+  text: string;
+  onChange: (next: string) => void;
 }) {
-  const [width, setWidth] = useState("100");
+  const pictures = picturesIn(text);
+  if (pictures.length === 0) return null;
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-3">
-      <ImageUpload
-        label={label}
-        hint={hint}
-        onUploaded={(url) => onLine(width === "100" ? ` | | ${url}` : ` | | ${url} | ${width}`)}
-      />
-      <label className="flex items-center gap-2 text-[12px] text-gray-700">
-        <span className="font-semibold">Picture size</span>
-        <select
-          value={width}
-          onChange={(e) => setWidth(e.target.value)}
-          className="rounded border border-gray-400 px-2 py-1 text-[12px]"
-        >
-          {IMAGE_WIDTHS.map((w) => (
-            <option key={w.value} value={w.value}>
-              {w.label}
-            </option>
-          ))}
-        </select>
-      </label>
+    <div className="mt-3 rounded border border-gray-300 bg-white p-3">
+      <p className="text-[12px] font-semibold text-gray-700">
+        Picture size — how wide each picture is drawn in its column. Save to apply.
+      </p>
+      <ul className="mt-2 space-y-2">
+        {pictures.map((pic) => {
+          const known = IMAGE_WIDTHS.some((w) => w.value === pic.width);
+          return (
+            <li key={pic.line} className="flex flex-wrap items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={pic.url}
+                alt=""
+                className="h-12 w-12 rounded border border-gray-200 object-contain"
+                draggable={false}
+              />
+              <span className="text-[11px] text-gray-500">Line {pic.line + 1}</span>
+              <select
+                value={pic.width}
+                onChange={(e) => onChange(withWidth(text, pic.line, e.target.value))}
+                className="rounded border border-gray-400 px-2 py-1 text-[12px]"
+              >
+                {!known && <option value={pic.width}>{pic.width}%</option>}
+                {IMAGE_WIDTHS.map((w) => (
+                  <option key={w.value} value={w.value}>
+                    {w.label}
+                  </option>
+                ))}
+              </select>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
