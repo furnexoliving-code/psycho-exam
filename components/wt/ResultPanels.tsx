@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDayMonth } from "@/lib/format-time";
 import type { CutOff, StandingWire, TopicRow } from "@/app/api/watch-table/score/route";
 import type { TScore } from "@/lib/wt/tscore";
 
@@ -779,10 +780,7 @@ export function AttemptHistory({ attempts }: { attempts: PastAttempt[] }) {
                     )}
                   </td>
                   <td className="px-2 py-1.5" style={{ color: "var(--text-secondary)" }}>
-                    {new Date(a.at).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                    })}
+                    {formatDayMonth(a.at)}
                   </td>
                 </tr>
               );

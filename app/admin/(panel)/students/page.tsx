@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDate, formatDateTime } from "@/lib/format-time";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { normalisePhone } from "@/lib/phone";
@@ -169,7 +170,7 @@ export default async function StudentsPage({
                     </td>
                     <td className="border border-gray-300 px-3 py-2">{s.phone || "—"}</td>
                     <td className="border border-gray-300 px-3 py-2">
-                      {new Date(s.created_at).toLocaleDateString("en-IN")}
+                      {formatDate(s.created_at)}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <RowForm action={setActive}>
@@ -304,7 +305,7 @@ export default async function StudentsPage({
                   <td className="border border-gray-300 px-3 py-2">
                     {isHelperRole(m.role) ? HELPER_ROLES[m.role].label : m.role}
                   </td>
-                  <td className="border border-gray-300 px-3 py-2">{new Date(m.created_at).toLocaleDateString("en-IN")}</td>
+                  <td className="border border-gray-300 px-3 py-2">{formatDate(m.created_at)}</td>
                   <td className="border border-gray-300 px-3 py-2">
                     <RowForm action={removeStaff}>
                       <input type="hidden" name="id" value={m.id} />
@@ -366,7 +367,7 @@ export default async function StudentsPage({
                         : "—"}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      {new Date(a.submitted_at).toLocaleString("en-IN")}
+                      {formatDateTime(a.submitted_at)}
                     </td>
                   </tr>
                 ))}

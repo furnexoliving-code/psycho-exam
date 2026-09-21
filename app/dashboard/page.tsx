@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDate } from "@/lib/format-time";
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
@@ -160,11 +161,7 @@ export default async function DashboardPage() {
                     </td>
                     <td className="px-4 py-2.5 tabular-nums">{row.attempted}</td>
                     <td className="px-4 py-2.5 text-gray-600">
-                      {new Date(row.submittedAt).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {formatDate(row.submittedAt)}
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       {row.paperSlug && (

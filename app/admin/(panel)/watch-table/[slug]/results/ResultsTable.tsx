@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateTime, indianDay } from "@/lib/format-time";
 import { useMemo, useState } from "react";
 import { duration } from "@/components/wt/ResultPanels";
 
@@ -40,11 +41,8 @@ function csvCell(value: string | number | null): string {
   return `"${text.replace(/"/g, '""')}"`;
 }
 
-/** The day an attempt was submitted, in the viewer's own calendar. */
-function dayOf(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+/** The day an attempt was submitted, by India's calendar. */
+const dayOf = indianDay;
 
 /**
  * Every attempt of the paper, with the filters a big batch needs.
@@ -135,7 +133,7 @@ export function ResultsTable({ rows, slug }: { rows: ResultRow[]; slug: string }
           r.qualified === null ? "" : r.qualified ? "Yes" : "No",
           r.latest ? "Yes" : "No",
           r.durationSec === null ? "" : duration(r.durationSec),
-          new Date(r.submittedAt).toLocaleString("en-IN"),
+          formatDateTime(r.submittedAt),
         ]
           .map(csvCell)
           .join(","),
@@ -287,10 +285,7 @@ export function ResultsTable({ rows, slug }: { rows: ResultRow[]; slug: string }
                     {r.durationSec === null ? "—" : duration(r.durationSec)}
                   </td>
                   <td className="border border-gray-300 px-3 py-2">
-                    {new Date(r.submittedAt).toLocaleString("en-IN", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
+                    {formatDateTime(r.submittedAt)}
                   </td>
                 </tr>
               ))}
