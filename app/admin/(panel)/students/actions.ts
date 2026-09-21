@@ -61,9 +61,12 @@ export async function createStudent(
     // The signup trigger fills the profile from user_metadata, but it runs
     // before this returns; writing the fields again makes the row correct even
     // if that trigger is missing on an older database.
+    // Switched on explicitly as well: an account the institute issues is
+    // on from the first moment, whatever version of the trigger the
+    // database runs.
     await supabase
       .from("profiles")
-      .update({ full_name: fullName, phone })
+      .update({ full_name: fullName, phone, is_active: true })
       .eq("id", created.user.id);
 
     revalidatePath(BACK);
@@ -251,12 +254,15 @@ export async function importStudentBatch(
 
           // The signup trigger fills the profile from user_metadata; writing
           // the fields again makes the row correct even if that trigger is
-          // missing on an older database.
+          // missing on an older database. Switched on explicitly too: every
+          // imported account is ready to sign in, with nothing to flip one
+          // by one afterwards.
           await supabase
             .from("profiles")
             .update({
               full_name: student.fullName,
               phone: student.phone,
+              is_active: true,
             })
             .eq("id", created.user.id);
 
