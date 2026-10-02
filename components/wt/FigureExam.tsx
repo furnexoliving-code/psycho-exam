@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
+import { useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { PortalBanner } from "./PortalBanner";
 import { PortalToolbar } from "./PortalToolbar";
 import { TestTabs } from "./TestTabs";
@@ -50,6 +51,11 @@ export function FigureExam({
   const onTest = state.phase === "test";
   const features = resolveFeatures(paper.features);
   const fontScale = paper.fontScale ?? 1;
+
+  // The same switch as the Following Directions paper: with the wheel off,
+  // the scrollbar still drags and the Part tabs still move; only the wheel
+  // and the Space/PageDown keys are refused, as in the hall.
+  useScrollLock(features.lockScroll && onTest && !state.submitted);
 
   // The parts: a fixed number of questions each. Which part is open is kept
   // as the attempt's current question, so a reload lands on the same part.

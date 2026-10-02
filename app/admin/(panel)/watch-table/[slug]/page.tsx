@@ -202,6 +202,7 @@ export default async function EditWatchPaper({
                 defaultValue={features.questionsPerPart}
                 min={1}
                 max={100}
+                unit="questions"
                 hint="The paper is shown in parts, as in the real test; Save & Next moves to the next part."
               />
             </div>
@@ -577,6 +578,7 @@ function Number({
   min,
   max,
   hint,
+  unit = "minutes",
 }: {
   label: string;
   name: string;
@@ -584,6 +586,8 @@ function Number({
   min: number;
   max: number;
   hint: string;
+  /** What the number counts; most fields here are minutes. */
+  unit?: string;
 }) {
   return (
     <label className="block">
@@ -597,7 +601,7 @@ function Number({
           defaultValue={defaultValue}
           className="w-[110px] rounded border border-gray-400 px-3 py-2 text-[14px]"
         />
-        <span className="text-[13px] text-gray-600">minutes</span>
+        <span className="text-[13px] text-gray-600">{unit}</span>
       </div>
       <span className="mt-1 block text-[11px] text-gray-500">{hint}</span>
     </label>
