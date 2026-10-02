@@ -55,18 +55,29 @@ async function questionOf(id: string, paperId: string) {
  */
 export async function addFigureQuestions(
   slug: string,
-  urls: string[],
+  /** One entry per question: its figure, and a picture per option when the options are pictures. */
+  items: (string | { image: string; options?: string[] })[],
   optionCount: number,
 ): Promise<{ added: number; error?: string }> {
   try {
     await requireEditor();
-    if (!Array.isArray(urls) || urls.length === 0) throw new Error("No pictures were given");
-    if (urls.length > FIGURE_BATCH) throw new Error(`At most ${FIGURE_BATCH} pictures in one batch`);
+    if (!Array.isArray(items) || items.length === 0) throw new Error("No pictures were given");
+    if (items.length > FIGURE_BATCH) throw new Error(`At most ${FIGURE_BATCH} questions in one batch`);
     const count = Math.floor(Number(optionCount));
     if (!Number.isInteger(count) || count < 2 || count > MAX_OPTION_COUNT) {
       throw new Error(`Options per question must be from 2 to ${MAX_OPTION_COUNT}`);
     }
-    const links = urls.map(pictureLink);
+    const links = items.map((item, i) => {
+      const image = pictureLink(typeof item === "string" ? item : item.image);
+      const options = typeof item === "string" ? undefined : item.options;
+      if (options !== undefined) {
+        if (!Array.isArray(options) || options.length !== count) {
+          throw new Error(`Question ${i + 1}: needs exactly ${count} option pictures`);
+        }
+        return { image, options: options.map(pictureLink) };
+      }
+      return { image, options: null };
+    });
     const paperId = await paperIdOf(slug);
 
     const { data: last } = await questionStore()
@@ -79,14 +90,15 @@ export async function addFigureQuestions(
     const start = ((last?.position as number | undefined) ?? -1) + 1;
 
     const { error } = await questionStore().from("watch_questions").insert(
-      links.map((url, i) => ({
+      links.map((q, i) => ({
         paper_id: paperId,
         position: start + i,
         prompt_en: "",
         prompt_hi: "",
         options: OPTION_LETTERS.slice(0, count),
         answer: "",
-        image_url: url,
+        image_url: q.image,
+        option_images: q.options,
       })),
     );
     if (error) throw new Error(error.message);

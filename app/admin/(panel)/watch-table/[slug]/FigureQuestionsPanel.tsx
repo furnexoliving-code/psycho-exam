@@ -5,6 +5,7 @@ import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { PendingButton } from "@/components/admin/PendingButton";
 import { sortByName, uploadPicture } from "@/components/admin/upload";
+import { groupFigureFiles } from "@/lib/wt/figure-files";
 import type { WatchQuestion } from "@/lib/wt/types";
 import {
   DEFAULT_OPTION_COUNT,
@@ -59,19 +60,44 @@ export function FigureQuestionsPanel({
     setRun({ ...state });
 
     try {
+      // The files are sorted into questions by name first, and a pile that
+      // does not add up is refused before a single upload: half a paper's
+      // pictures in storage with no questions would be worse than none.
+      const { groups, problems } = groupFigureFiles(files, optionCount);
+      if (problems.length) throw new Error(problems.slice(0, 5).join(" · "));
+      const withOptions = groups.filter((g) => g.options.every(Boolean)).length;
+      if (withOptions > 0 && withOptions < groups.length) {
+        throw new Error(
+          `${withOptions} question${withOptions === 1 ? " has" : "s have"} option pictures and ${groups.length - withOptions} do${groups.length - withOptions === 1 ? "es" : ""} not. Give every question its ${optionCount} option pictures, or none.`,
+        );
+      }
+
       // Uploaded one after another, then written in batches: a run of sixty
-      // pictures is sixty uploads from the browser and two short calls to
-      // the server, with the count moving the whole way.
-      const urls: string[] = [];
-      for (const file of files) {
-        urls.push(await uploadPicture(file));
+      // questions is one upload per file from the browser and two short
+      // calls to the server, with the count moving the whole way.
+      const upload = async (file: File) => {
+        const url = await uploadPicture(file);
         state.done++;
         setRun({ ...state });
+        return url;
+      };
+      const items: { image: string; options?: string[] }[] = [];
+      for (const g of groups) {
+        const image = await upload(g.figure!);
+        if (g.options.every(Boolean)) {
+          const options: string[] = [];
+          for (const f of g.options) options.push(await upload(f!));
+          items.push({ image, options });
+        } else {
+          items.push({ image });
+        }
       }
-      for (let i = 0; i < urls.length; i += FIGURE_BATCH) {
-        const outcome = await addFigureQuestions(slug, urls.slice(i, i + FIGURE_BATCH), optionCount);
+      for (let i = 0; i < items.length; i += FIGURE_BATCH) {
+        const outcome = await addFigureQuestions(slug, items.slice(i, i + FIGURE_BATCH), optionCount);
         if (outcome.error) throw new Error(outcome.error);
       }
+      state.total = groups.length;
+      state.done = groups.length;
     } catch (e) {
       state.error = e instanceof Error ? e.message : String(e);
     } finally {
@@ -97,19 +123,23 @@ export function FigureQuestionsPanel({
         <p className="text-[13px] font-semibold text-gray-800">Add questions from pictures</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
           <li>
-            One picture per question, showing the figure and its options as the
-            candidate should see them. Name the files in order (q01.png, q02.png …):
-            they become questions in that order.
+            <strong>One picture per question</strong>, showing the figure and its options
+            as the candidate should see them: name the files in order (q01.png,
+            q02.png …). They become questions in that order, each offering the letters
+            A, B, C… set below.
           </li>
-          <li>Each question offers letters A, B, C… as its options. Set how many below.</li>
+          <li>
+            <strong>A figure plus a picture per option:</strong> name the figure q01.png
+            and its options q01-A.png, q01-B.png … q01-E.png (q01_A, q01 A and q01A
+            work too). Choose all the files at once; they are sorted by name. Every
+            question must then have all its option pictures, and the count below must
+            match.
+          </li>
           <li>
             Afterwards type the answer key in one line, or set each question&apos;s
             answer by hand.
           </li>
-          <li>
-            Options can be pictures instead of letters: open a question below and
-            give it one picture per option.
-          </li>
+          <li>Nothing is uploaded until the whole set of names adds up, so a missing file cannot leave half a paper behind.</li>
         </ul>
 
         <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -134,7 +164,7 @@ export function FigureQuestionsPanel({
             onClick={() => picker.current?.click()}
             className="rounded bg-indigo-800 px-5 py-2 text-[13px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60"
           >
-            {run?.running ? `Uploading ${run.done} of ${run.total}…` : "Choose the pictures…"}
+            {run?.running ? `Uploading ${run.done} of ${run.total} files…` : "Choose the pictures…"}
           </button>
           <input
             ref={picker}
