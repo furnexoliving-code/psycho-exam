@@ -426,9 +426,41 @@ export function ResultView({
                     <img
                       src={q.image}
                       alt=""
-                      className="mt-2 h-auto max-h-[260px] max-w-full rounded"
+                      className="mt-2 h-[72px] w-auto max-w-full"
                       draggable={false}
                     />
+                  )}
+                  {q.optionImages && q.optionImages.length > 0 && (
+                    // The options as the candidate saw them, with their own
+                    // choice and (when the key is shown) the right one marked.
+                    <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-2">
+                      {q.options.map((option, oi) => {
+                        const mine = q.given === option;
+                        const right = view.correctAnswers && q.correct === option;
+                        const ring = right
+                          ? "var(--good)"
+                          : mine
+                            ? "var(--critical)"
+                            : "transparent";
+                        return (
+                          <span key={String(option)} className="flex flex-col items-center gap-1 text-[12px]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={q.optionImages![oi]}
+                              alt={`Option ${String(option)}`}
+                              className="h-[64px] w-auto rounded"
+                              style={{ outline: `3px solid ${ring}`, outlineOffset: 2 }}
+                              draggable={false}
+                            />
+                            <span style={{ color: "var(--text-secondary)" }}>
+                              {String(option)}
+                              {mine && <span className="ml-1 font-semibold" style={{ color: right ? "var(--good)" : "var(--critical)" }}>{right ? "✓ you" : "✕ you"}</span>}
+                              {right && !mine && <span className="ml-1 font-semibold" style={{ color: "var(--good)" }}>✓</span>}
+                            </span>
+                          </span>
+                        );
+                      })}
+                    </div>
                   )}
                   {q.promptEn && (
                   <p className="mt-1.5 text-[15px]" style={{ color: "var(--text-primary)" }}>
