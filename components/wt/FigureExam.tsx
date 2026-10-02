@@ -213,10 +213,13 @@ export function FigureExam({
                     <p className="text-[0.95em] font-bold text-[#222]">Question No : {number}</p>
                     {q.image && (
                       // eslint-disable-next-line @next/next/no-img-element
+                      // The figure is drawn small, as the real test draws it:
+                      // a fixed height, so every question's figure and its
+                      // options sit at one size whatever was uploaded.
                       <img
                         src={q.image}
                         alt={`Question ${number}`}
-                        className="mt-2 h-auto max-h-[60vh] max-w-full"
+                        className="mt-2 h-[72px] w-auto max-w-full"
                         draggable={false}
                       />
                     )}
@@ -227,7 +230,7 @@ export function FigureExam({
                       </div>
                     )}
 
-                    <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
                       {q.options.map((option, oi) => {
                         const id = `${q.id}-opt-${oi}`;
                         const selected = chosen === option;
@@ -236,9 +239,7 @@ export function FigureExam({
                           <label
                             key={id}
                             htmlFor={id}
-                            className={`flex cursor-pointer items-center gap-1.5 rounded px-1 ${
-                              selected ? "bg-wt-bar font-semibold" : ""
-                            }`}
+                            className="flex cursor-pointer items-center gap-1.5"
                           >
                             <input
                               id={id}
@@ -256,7 +257,7 @@ export function FigureExam({
                               <img
                                 src={picture}
                                 alt={`Option ${String(option)}`}
-                                className="h-auto max-h-[120px] max-w-[160px]"
+                                className="h-[64px] w-auto"
                                 draggable={false}
                               />
                             )}
