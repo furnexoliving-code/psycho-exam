@@ -10,6 +10,7 @@ import { PortalToolbar } from "./PortalToolbar";
 import { TestTabs } from "./TestTabs";
 import { Instructions, InstructionsDialog } from "./Instructions";
 import { ConfirmBox } from "./ConfirmBox";
+import { ScrollRail } from "./ScrollRail";
 
 /**
  * The Perceptual Speed Test screen: the paper in parts, each question a
@@ -200,9 +201,13 @@ export function FigureExam({
             </div>
           </div>
 
+          {/* The rail is always drawn, as on the Following Directions paper:
+              a browser that hides its scrollbar until the wheel moves would
+              otherwise show no way down a paper whose wheel is off. */}
+          <div className="relative min-h-0 flex-1">
           <div
             ref={column}
-            className="min-h-0 flex-1 overflow-y-auto px-5 py-4"
+            className="wt-scroll-host h-full px-5 py-4 pr-[14px]"
             style={{ fontSize: `${16 * fontScale}px` }}
           >
             <p className="text-[0.9em] text-[#494949]">
@@ -275,6 +280,8 @@ export function FigureExam({
                 );
               })}
             </ol>
+          </div>
+          <ScrollRail target={column} axis="vertical" />
           </div>
         </div>
       ) : (
