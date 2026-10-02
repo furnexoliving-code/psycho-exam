@@ -3,6 +3,7 @@ import { requireEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { SAMPLE_PAPER, defaultInstructions } from "./paper";
+import { categoryKind } from "./categories";
 import type { OptionValue, WatchCell, WatchPaper, WatchQuestion } from "./types";
 
 /**
@@ -54,6 +55,7 @@ interface PaperRow {
   image_width_pct: number | null;
   result_view: WatchPaper["resultView"];
   max_attempts: number | null;
+  category?: string | null;
 }
 
 interface QuestionRow {
@@ -66,6 +68,8 @@ interface QuestionRow {
   working_en?: string;
   working_hi?: string;
   topic?: string;
+  image_url?: string | null;
+  option_images?: string[] | null;
 }
 
 function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
@@ -81,10 +85,14 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
     answer: q.answer ?? -1,
     working: { en: q.working_en ?? "", hi: q.working_hi ?? "" },
     topic: q.topic ?? "",
+    ...(q.image_url ? { image: q.image_url } : {}),
+    ...(q.option_images?.length ? { optionImages: q.option_images } : {}),
   }));
 
   return {
     id: row.slug,
+    kind: categoryKind(row.category),
+    category: row.category ?? "watch",
     dbId: row.id,
     maxAttempts: row.max_attempts ?? null,
     title: row.title,
@@ -112,7 +120,8 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
 }
 
 /** The columns of a question a candidate may see. The key is not among them. */
-const PUBLIC_QUESTION_COLUMNS = "id, position, prompt_en, prompt_hi, options, topic";
+const PUBLIC_QUESTION_COLUMNS =
+  "id, position, prompt_en, prompt_hi, options, topic, image_url, option_images";
 
 /**
  * The paper a candidate sits. Never carries the answer key.
@@ -214,7 +223,7 @@ export async function loadPaperForAdmin(slug: string): Promise<WatchPaper | null
   const { data: questions } = await supabase
     .from("watch_questions")
     .select(
-      "id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic",
+      "id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic, image_url, option_images",
     )
     .eq("paper_id", (row as PaperRow).id)
     .order("position");
@@ -333,6 +342,8 @@ function withCounts(
 export interface PaperHeader {
   displayName: string;
   timeLimitMin: number;
+  /** A Perceptual Speed paper's review has no diagram to show beside it. */
+  kind: WatchPaper["kind"];
   table: WatchPaper["tables"][number];
   imageUrl?: string;
   imageWidthPct?: number;
@@ -372,7 +383,7 @@ async function readHeader(
 ): Promise<PaperHeader | null> {
   let query = supabase
     .from("watch_papers")
-    .select("display_name, time_limit_min, cells, image_url, image_width_pct")
+    .select("display_name, time_limit_min, cells, image_url, image_width_pct, category")
     .eq("slug", slug);
   if (publishedOnly) query = query.eq("is_published", true);
   const { data: row, error } = await query.maybeSingle();
@@ -386,6 +397,7 @@ async function readHeader(
   return {
     displayName: row.display_name,
     timeLimitMin: row.time_limit_min,
+    kind: categoryKind(row.category as string | null),
     table: { label: "No. 1", cells },
     imageUrl: row.image_url ?? undefined,
     imageWidthPct: row.image_width_pct ?? undefined,
@@ -396,6 +408,7 @@ export function headerOf(paper: WatchPaper): PaperHeader {
   return {
     displayName: paper.displayName,
     timeLimitMin: paper.timeLimitMin,
+    kind: paper.kind ?? "directions",
     table: paper.tables[0],
     imageUrl: paper.imageUrl,
     imageWidthPct: paper.imageWidthPct,

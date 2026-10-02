@@ -114,6 +114,21 @@ the editor alike and, like `is_admin()`, only for a session past the second
 factor. Every page and action names its section, so a helper who types the
 address of another section gets the same "not found" a student would.
 
+### Battery 5: the Perceptual Speed Test
+
+A fourth category, `figure`, on the same table, sittings, cohort and
+result. Each question is a picture (`watch_questions.image_url`) answered
+by a letter; options may also be pictures (`option_images`, one per
+option, in order). The admin adds a paper's questions by choosing every
+picture at once (files are taken in filename order), then types the answer
+key as one line of letters; a question is saved with an empty answer until
+one is set, and the paper cannot be published while any is empty. The exam
+screen (`components/wt/FigureExam.tsx`) shows the paper in parts of
+`features.questionsPerPart`, answered with the mouse, with Save & Next
+moving between parts. The Following Directions engine is untouched: its
+screen, questions and admin sections are the same code as before, and a
+paper whose category is not `figure` never reaches the new ones.
+
 ### Thousands of students
 
 The student list is searched and paged in the database (fifty a page, by

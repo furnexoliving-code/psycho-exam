@@ -34,6 +34,7 @@ export default async function ResultPage({
       // The review shows the same diagram the candidate sat with, so a question
       // can be re-read against it rather than from memory.
       table={paper.table}
+      kind={paper.kind}
       imageUrl={paper.imageUrl}
       imageWidthPct={paper.imageWidthPct}
       storageOwner={who?.id ?? "guest"}

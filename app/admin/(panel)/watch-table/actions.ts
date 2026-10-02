@@ -11,7 +11,8 @@ import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
 import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-questions";
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
-import { CATEGORIES, categoryTitle } from "@/lib/wt/categories";
+import { CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
+import { FIGURE_EXAMPLE_TEXT, figureInstructions } from "@/lib/wt/figure-sample";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -169,9 +170,13 @@ export async function createPaper(formData: FormData) {
 
   const wanted = String(formData.get("category") ?? "watch");
   const category = CATEGORIES.some((c) => c.id === wanted) ? wanted : "watch";
+  const figure = categoryKind(category) === "figure";
 
-  // A fresh paper starts with a generated diagram and a full set of questions,
-  // so it is usable immediately rather than an empty shell.
+  // A fresh Following Directions paper starts with a generated diagram and a
+  // full set of questions, so it is usable immediately rather than an empty
+  // shell. A Perceptual Speed paper has no diagram and its questions are
+  // pictures the institute uploads, so it starts with the real test's
+  // instructions and nothing else.
   const { tables, questions } = generateQuestions({
     seed: Math.floor(Date.now() / 1000),
     count: 20,
@@ -187,11 +192,17 @@ export async function createPaper(formData: FormData) {
       title: String(formData.get("title") ?? "").trim() || categoryTitle(category),
       display_name: displayName,
       instruction_time_min: 5,
-      time_limit_min: 10,
-      cells: tables[0].cells,
-      example_cells: tables[0].cells,
-      instructions: [],
-      features: {},
+      time_limit_min: figure ? 5 : 10,
+      cells: figure ? [] : tables[0].cells,
+      example_cells: figure ? [] : tables[0].cells,
+      instructions: figure ? figureInstructions(5, 5) : [],
+      example_text: figure ? FIGURE_EXAMPLE_TEXT : undefined,
+      // The real Perceptual Speed test is answered with the mouse, in parts,
+      // and has no question-paper page; the keyboard-only rules of the
+      // Following Directions engine do not apply to it.
+      features: figure
+        ? { showQuestionPaperButton: false, lockScroll: false, overflowQuestions: false, questionsPerPart: 10 }
+        : {},
       category,
     })
     .select("id, slug")
@@ -205,7 +216,9 @@ export async function createPaper(formData: FormData) {
     );
   }
 
-  const { error: questionError } = await questionStore().from("watch_questions").insert(
+  const { error: questionError } = figure
+    ? { error: null }
+    : await questionStore().from("watch_questions").insert(
     questions.map((q, i) => ({
       paper_id: data.id,
       position: i,
@@ -293,6 +306,36 @@ export async function saveSettings(
       RESULT_VIEW_KEYS.map((k) => [k, formData.get(`rv_${k}`) === "on"]),
     );
 
+    // Only a Perceptual Speed paper's form carries this field. When it does,
+    // the value is kept with the other features; when it does not, the
+    // features are exactly the six switches, as they always were.
+    const partsRaw = formData.get("questions_per_part");
+    const partsField =
+      partsRaw === null
+        ? {}
+        : { questionsPerPart: wholeNumber(partsRaw, 10) };
+    if ("questionsPerPart" in partsField) {
+      const n = partsField.questionsPerPart as number;
+      if (n < 1 || n > 100) throw new Error("Questions per part must be a whole number from 1 to 100");
+    }
+
+    const publish = formData.get("is_published") === "on";
+    if (publish && categoryKind(category) === "figure") {
+      // A picture question is saved before its answer is known; a paper
+      // with one still unanswered must not reach a student, since every
+      // candidate would then be marked wrong on it.
+      const { count } = await questionStore()
+        .from("watch_questions")
+        .select("id", { count: "exact", head: true })
+        .eq("paper_id", (await supabase.from("watch_papers").select("id").eq("slug", slug).single()).data?.id ?? "")
+        .eq("answer", '""');
+      if (count) {
+        throw new Error(
+          `${count} question${count === 1 ? " has" : "s have"} no answer yet. Set every answer in the Questions section, then publish.`,
+        );
+      }
+    }
+
     const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
@@ -300,7 +343,7 @@ export async function saveSettings(
         display_name: displayName,
         instruction_time_min: instruction,
         time_limit_min: test,
-        is_published: formData.get("is_published") === "on",
+        is_published: publish,
         // Blank means "no reference" — the T-score then waits for a real cohort.
         reference_mean: numberOrNull(formData.get("reference_mean")),
         reference_sd: positiveOrNull(formData.get("reference_sd")),
@@ -320,6 +363,7 @@ export async function saveSettings(
           allowFullscreen: formData.get("allowFullscreen") === "on",
           lockScroll: formData.get("lockScroll") === "on",
           overflowQuestions: formData.get("overflowQuestions") === "on",
+          ...partsField,
         },
         updated_at: new Date().toISOString(),
       })

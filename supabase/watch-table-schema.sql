@@ -600,3 +600,37 @@ update public.watch_papers set title = 'Letter Table Test'
   where category = 'letter' and title = 'Watch Table Test';
 update public.watch_papers set title = 'Number Table Test'
   where category = 'number' and title = 'Watch Table Test';
+
+-- ---------------------------------------------------------------------------
+-- Battery 5: the Perceptual Speed Test (added later)
+--
+-- A fourth kind of paper on the same engine: each question is a picture,
+-- and the candidate picks which of five pictures below it is identical.
+-- Papers keep their table, sittings, attempts, cohort and result; only what
+-- a question holds grows — a picture, and optionally a picture per option.
+-- The Following Directions papers are untouched: their questions have no
+-- picture, and nothing about them changes.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
+alter table public.watch_papers
+  add constraint watch_papers_category_ck
+  check (category in ('watch', 'letter', 'number', 'figure'));
+
+alter table public.watch_questions
+  /* The figure the candidate must match, for a Perceptual Speed question. */
+  add column if not exists image_url text,
+  /* A picture per option, in option order; null when the options are plain letters. */
+  add column if not exists option_images jsonb;
+
+-- The key-free view and its grant carry the two picture columns too; the
+-- answer stays out of both, as before.
+drop view if exists public.watch_questions_public;
+create view public.watch_questions_public
+with (security_invoker = true) as
+  select id, paper_id, position, prompt_en, prompt_hi, options, topic, image_url, option_images
+  from public.watch_questions;
+
+revoke select on public.watch_questions from anon, authenticated;
+grant select (id, paper_id, position, prompt_en, prompt_hi, options, topic, image_url, option_images)
+  on public.watch_questions to anon, authenticated;
+grant select on public.watch_questions_public to anon, authenticated;

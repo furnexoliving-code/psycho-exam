@@ -1,8 +1,13 @@
 import type { WatchFeatures } from "@/lib/wt/types";
 
+/** The on/off switches among the features; the numeric one has its own field. */
+type FeatureSwitch = {
+  [K in keyof WatchFeatures]-?: WatchFeatures[K] extends boolean | undefined ? K : never;
+}[keyof WatchFeatures];
+
 /** The switches shown in the admin panel, with what each one actually does. */
 export const FEATURE_LABELS: {
-  name: keyof WatchFeatures;
+  name: FeatureSwitch;
   label: string;
   hint: string;
 }[] = [

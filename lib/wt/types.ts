@@ -98,6 +98,10 @@ export interface WatchQuestion {
   working: Bilingual;
   /** What the question tests, used for the topic breakdown on the result. */
   topic?: string;
+  /** A Perceptual Speed question: the figure to match. Absent on a Following Directions question. */
+  image?: string;
+  /** A picture per option, in option order, when the options are pictures rather than letters. */
+  optionImages?: string[];
 }
 
 /**
@@ -113,6 +117,12 @@ export interface WatchFeatures {
   lockScroll?: boolean;
   /** Runs the question column wider than its panel, as the real portal does. */
   overflowQuestions?: boolean;
+  /**
+   * Perceptual Speed papers only: how many questions each part shows. The
+   * real portal shows the paper in parts, with Save & Next moving between
+   * them. Ignored by a Following Directions paper.
+   */
+  questionsPerPart?: number;
 }
 
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
@@ -124,6 +134,7 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   allowFullscreen: true,
   lockScroll: true,
   overflowQuestions: true,
+  questionsPerPart: 10,
 };
 
 export function resolveFeatures(features?: WatchFeatures): Required<WatchFeatures> {
@@ -187,6 +198,14 @@ export function resolveResultView(view?: ResultView): Required<ResultView> {
 export interface WatchPaper {
   /** The slug — what the URL and the browser's storage know the paper by. */
   id: string;
+  /**
+   * How the paper is shown and answered. "directions" (the default, and
+   * every paper that existed before) is the Following Directions engine;
+   * "figure" is the Perceptual Speed Test, a picture matched against five.
+   */
+  kind?: "directions" | "figure";
+  /** Which category the paper is listed under: watch, letter, number, figure. */
+  category?: string;
   /** The database row's own id, so the server never re-resolves the slug. */
   dbId?: string;
   /** How many sittings the paper allows; null or absent for no limit. */

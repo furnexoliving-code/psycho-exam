@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { WatchTableExam } from "@/components/wt/WatchTableExam";
+import { FigureExam } from "@/components/wt/FigureExam";
 import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
 import { openSitting } from "@/lib/wt/session";
@@ -73,8 +74,11 @@ export default async function WatchTablePage({
   const sitting = who && paper.dbId ? await openSitting(paper.dbId, who.id) : null;
 
   // The key never goes to the browser; /api/watch-table/score marks the paper.
+  // A Perceptual Speed paper has its own screen; everything else is the
+  // Following Directions engine, unchanged.
+  const Screen = paper.kind === "figure" ? FigureExam : WatchTableExam;
   return (
-    <WatchTableExam
+    <Screen
       paper={withoutAnswerKey(paper)}
       candidateName={who?.full_name || "Candidate"}
       rollNo={who?.roll_no || ""}

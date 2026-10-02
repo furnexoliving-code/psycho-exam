@@ -13,6 +13,7 @@ import { PendingButton } from "@/components/admin/PendingButton";
 import { DiagramImageField } from "./DiagramImageField";
 import { InstructionsEditor } from "./InstructionsEditor";
 import { QuestionsPanel } from "./QuestionsPanel";
+import { FigureQuestionsPanel } from "./FigureQuestionsPanel";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
@@ -51,6 +52,9 @@ export default async function EditWatchPaper({
 
   const cells = paper.tables[0].cells;
   const features = resolveFeatures(paper.features);
+  // A Perceptual Speed paper has no diagram and its questions are pictures;
+  // the Following Directions sections are simply not shown for it.
+  const figure = paper.kind === "figure";
   const resultView = resolveResultView(row?.result_view ?? undefined);
 
   return (
@@ -189,6 +193,19 @@ export default async function EditWatchPaper({
               The size the questions are shown at for every candidate.
             </span>
           </label>
+
+          {figure && (
+            <div className="mt-6 max-w-xs">
+              <Number
+                label="Questions per part"
+                name="questions_per_part"
+                defaultValue={features.questionsPerPart}
+                min={1}
+                max={100}
+                hint="The paper is shown in parts, as in the real test; Save & Next moves to the next part."
+              />
+            </div>
+          )}
 
           <h3 className="mt-6 text-[13px] font-bold text-gray-900">
             What the candidate can use
@@ -375,6 +392,7 @@ export default async function EditWatchPaper({
       </section>
 
       {/* --------------------------- Question image --------------------------- */}
+      {!figure && (
       <section className="mt-6 rounded border border-gray-300 bg-white p-5">
         <h2 className="text-[15px] font-bold text-gray-900">Question Image</h2>
         <p className="mt-1 text-[12px] text-gray-600">
@@ -476,8 +494,14 @@ export default async function EditWatchPaper({
         </SaveForm>
       </section>
 
+      )}
+
       {/* ----------------------------- Questions ------------------------------ */}
-      <QuestionsPanel slug={slug} questions={paper.questions} />
+      {figure ? (
+        <FigureQuestionsPanel slug={slug} questions={paper.questions} />
+      ) : (
+        <QuestionsPanel slug={slug} questions={paper.questions} />
+      )}
 
       {/* ------------------------------- Copy -------------------------------- */}
       <section className="mt-6 rounded border border-gray-300 bg-white p-5">

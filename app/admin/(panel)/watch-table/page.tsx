@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireEditor } from "@/lib/auth";
-import { CATEGORIES } from "@/lib/wt/categories";
+import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
 import { listPapersForAdmin, type PaperSummary } from "@/lib/wt/db";
 import { createPaper } from "./actions";
 import { AdminNotice } from "@/components/admin/AdminNotice";
@@ -23,19 +23,25 @@ export default async function FollowingDirectionsPage({
 
   return (
     <>
-      <h1 className="text-xl font-bold text-gray-900">Following Directions Test</h1>
+      <h1 className="text-xl font-bold text-gray-900">Tests</h1>
       <p className="mt-1 text-[13px] text-gray-600">
-        Three tests share this engine. Set the timers, upload your questions,
-        and choose the order students meet them in.
+        Battery 2, Following Directions: three tests on one engine. Battery 5, Perceptual
+        Speed: picture questions. Set the timers, upload your questions, and choose the
+        order students meet them in.
       </p>
 
       <AdminNotice error={error} saved={saved} />
 
-      {CATEGORIES.map((category) => {
+      {BATTERIES.map((battery) => (
+        <div key={battery.id} className="mt-8">
+          <h2 className="border-b border-gray-300 pb-1 text-[13px] font-bold uppercase tracking-wide text-gray-500">
+            Battery {battery.id} · {battery.title}
+          </h2>
+      {CATEGORIES.filter((c) => c.battery === battery.id).map((category) => {
         const mine = papers.filter((p) => p.category === category.id);
 
         return (
-          <section key={category.id} className="mt-6">
+          <section key={category.id} className="mt-5">
             <div className="flex flex-wrap items-baseline gap-2">
               <h2 className="text-[15px] font-bold text-gray-900">{category.title}</h2>
               <span className="text-[12px] text-gray-500" lang="hi">
@@ -56,6 +62,8 @@ export default async function FollowingDirectionsPage({
           </section>
         );
       })}
+        </div>
+      ))}
 
       <form
         action={createPaper}
@@ -63,8 +71,10 @@ export default async function FollowingDirectionsPage({
       >
         <h2 className="text-[15px] font-bold text-gray-900">New paper</h2>
         <p className="text-[12px] text-gray-600">
-          It starts with a sample diagram and twenty sample questions so you can
-          see the format straight away. Replace them with your own.
+          A Following Directions paper starts with a sample diagram and twenty sample
+          questions so you can see the format straight away; replace them with your own.
+          A Perceptual Speed paper starts with the real test&apos;s instructions and no
+          questions: add its pictures on the next page.
         </p>
 
         <label className="block">
@@ -78,7 +88,7 @@ export default async function FollowingDirectionsPage({
           >
             {CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.title}
+                Battery {c.battery} · {c.title}
               </option>
             ))}
           </select>

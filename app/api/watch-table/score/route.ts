@@ -69,6 +69,9 @@ export interface MarkedQuestion {
   workingEn?: string;
   workingHi?: string;
   topic: string;
+  /** A Perceptual Speed question's figure, and its option pictures when it has them. */
+  image?: string;
+  optionImages?: string[];
 }
 
 export interface TopicRow {
@@ -553,6 +556,8 @@ interface QuestionRow {
   working_en: string | null;
   working_hi: string | null;
   topic: string | null;
+  image_url?: string | null;
+  option_images?: string[] | null;
 }
 
 /** The paper's questions with their key, in order. Service role: the key column is revoked from everyone else. */
@@ -560,7 +565,7 @@ async function fetchQuestions(paperId: string): Promise<QuestionRow[]> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("watch_questions")
-    .select("id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic")
+    .select("id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic, image_url, option_images")
     .eq("paper_id", paperId)
     .order("position");
   return (data ?? []) as QuestionRow[];
@@ -585,6 +590,8 @@ function mark(rows: QuestionRow[], given: Map<string, OptionValue>): MarkedQuest
       workingEn: q.working_en ?? "",
       workingHi: q.working_hi ?? "",
       topic: q.topic ?? "",
+      ...(q.image_url ? { image: q.image_url } : {}),
+      ...(q.option_images?.length ? { optionImages: q.option_images } : {}),
     };
   });
 }
@@ -614,6 +621,8 @@ function markFromBundle(
       workingEn: q.working.en,
       workingHi: q.working.hi,
       topic: q.topic ?? "",
+      ...(q.image ? { image: q.image } : {}),
+      ...(q.optionImages?.length ? { optionImages: q.optionImages } : {}),
     };
   });
 }

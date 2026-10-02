@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { ChangePassword } from "@/components/ChangePassword";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
-import { CATEGORIES } from "@/lib/wt/categories";
+import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
 import { listPublishedPapers } from "@/lib/wt/db";
 import { attemptsFor } from "@/lib/wt/history";
 
@@ -14,6 +14,7 @@ const TONES: Record<string, { ring: string; chip: string; icon: string }> = {
   watch: { ring: "from-sky-500 to-indigo-600", chip: "bg-sky-50 text-sky-700", icon: "🧭" },
   letter: { ring: "from-emerald-500 to-teal-600", chip: "bg-emerald-50 text-emerald-700", icon: "🔤" },
   number: { ring: "from-amber-500 to-orange-600", chip: "bg-amber-50 text-amber-700", icon: "🔢" },
+  figure: { ring: "from-rose-500 to-pink-600", chip: "bg-rose-50 text-rose-700", icon: "🔍" },
 };
 
 export default async function DashboardPage() {
@@ -76,16 +77,21 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* ---------------------------- The three ----------------------------- */}
+        {/* ------------------------- The batteries -------------------------- */}
+        {BATTERIES.map((battery) => (
+        <section key={battery.id}>
         <h2 className="mt-8 text-[18px] font-bold text-gray-900">
-          Following Directions Test
+          <span className="mr-2 rounded bg-rrb-banner/10 px-2 py-0.5 text-[12px] font-semibold text-rrb-banner">
+            Battery {battery.id}
+          </span>
+          {battery.title}
         </h2>
         <p className="mt-0.5 text-[13px] text-gray-600" lang="hi">
-          निर्देश पालन परीक्षण
+          {battery.hindi}
         </p>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORIES.map((category) => {
+          {CATEGORIES.filter((c) => c.battery === battery.id).map((category) => {
             const count = papers.filter((p) => p.category === category.id).length;
             const tone = TONES[category.id];
 
@@ -130,6 +136,8 @@ export default async function DashboardPage() {
             );
           })}
         </div>
+        </section>
+        ))}
 
         {/* --------------------------- Past results --------------------------- */}
         <h2 className="mt-9 text-[18px] font-bold text-gray-900">Your past results</h2>

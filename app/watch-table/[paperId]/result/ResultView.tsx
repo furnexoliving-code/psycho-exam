@@ -68,6 +68,7 @@ export function ResultView({
   table,
   imageUrl,
   imageWidthPct,
+  kind = "directions",
   storageOwner = "guest",
 }: {
   paperId: string;
@@ -78,6 +79,8 @@ export function ResultView({
   table: WatchTable;
   imageUrl?: string;
   imageWidthPct?: number;
+  /** A Perceptual Speed paper's review has no diagram beside it: each question carries its own picture. */
+  kind?: "directions" | "figure";
   /** Whose attempt to look for in this browser. */
   storageOwner?: string;
 }) {
@@ -320,8 +323,9 @@ export function ResultView({
             Review
           </h2>
           <p className="mt-1 text-[13px]" style={{ color: "var(--text-secondary)" }}>
-            The diagram stays beside the questions, so each one can be worked
-            through again against it.
+            {kind === "figure"
+              ? "Each question is shown with its figure, your answer and the correct one."
+              : "The diagram stays beside the questions, so each one can be worked through again against it."}
           </p>
 
           <div className="mt-3 flex flex-wrap gap-2">
@@ -372,7 +376,9 @@ export function ResultView({
 
           <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-start">
             {/* Left half — the diagram. Sticky rather than repeated per question:
-                one paper has one diagram, and scrolling must not lose sight of it. */}
+                one paper has one diagram, and scrolling must not lose sight of it.
+                A picture paper has none: each question shows its own. */}
+            {kind !== "figure" && (
             <aside className="lg:sticky lg:top-4 lg:w-1/2 lg:shrink-0">
               <Card>
                 {/* Capped and scrollable: a tall diagram must not push the
@@ -392,6 +398,7 @@ export function ResultView({
                 </div>
               </Card>
             </aside>
+            )}
 
             <ol className="min-w-0 flex-1 space-y-3">
             {visible.map(({ q, i }) => {
@@ -414,9 +421,20 @@ export function ResultView({
                     <OutcomeTag outcome={outcome} />
                   </div>
 
+                  {q.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={q.image}
+                      alt=""
+                      className="mt-2 h-auto max-h-[260px] max-w-full rounded"
+                      draggable={false}
+                    />
+                  )}
+                  {q.promptEn && (
                   <p className="mt-1.5 text-[15px]" style={{ color: "var(--text-primary)" }}>
                     {q.promptEn}
                   </p>
+                  )}
                   {q.promptHi && (
                     <p className="text-[15px]" style={{ color: "var(--text-secondary)" }} lang="hi">
                       {q.promptHi}

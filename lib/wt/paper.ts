@@ -1,6 +1,7 @@
 import type { WatchPaper } from "./types";
 import { retime } from "./retime";
 import bundled from "@/data/watch-table-1.json";
+import { FIGURE_SAMPLE_ID, figureSamplePaper } from "./figure-sample";
 
 /**
  * The bundled sample paper. Admin-created papers come from Supabase; this one
@@ -11,7 +12,9 @@ export const SAMPLE_PAPER = bundled as unknown as WatchPaper;
 export const DEFAULT_PAPER_ID = SAMPLE_PAPER.id;
 
 export function getBundledPaper(paperId: string): WatchPaper | undefined {
-  return paperId === SAMPLE_PAPER.id ? SAMPLE_PAPER : undefined;
+  if (paperId === SAMPLE_PAPER.id) return SAMPLE_PAPER;
+  if (paperId === FIGURE_SAMPLE_ID) return figureSamplePaper() as WatchPaper;
+  return undefined;
 }
 
 /**
