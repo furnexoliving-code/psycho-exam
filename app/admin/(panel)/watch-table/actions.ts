@@ -13,6 +13,7 @@ import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
 import { CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
 import { FIGURE_EXAMPLE_TEXT, pictureInstructions } from "@/lib/wt/figure-sample";
+import { syncScheduleClock } from "./figure-actions";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -718,6 +719,8 @@ export async function deleteQuestion(
 
     if (error) throw new Error(error.message);
     if (!gone?.length) throw new Error("That question is already gone");
+    // A scheduled picture paper's clock follows its number of parts.
+    await syncScheduleClock(slug);
     revalidatePath(`/admin/watch-table/${slug}`);
     paperChanged(slug);
     return "deleted";

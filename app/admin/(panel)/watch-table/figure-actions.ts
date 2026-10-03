@@ -119,6 +119,7 @@ export async function addFigureQuestions(
     );
     if (error) throw new Error(error.message);
 
+    await syncScheduleClock(slug);
     revalidatePath(`/admin/watch-table/${slug}`);
     paperChanged(slug);
     return { added: links.length };
@@ -306,4 +307,39 @@ export async function setStudyImages(
     if (typeof (error as { digest?: unknown })?.digest === "string") throw error;
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
+}
+
+/**
+ * Keeps a scheduled paper's clock equal to its schedule: parts × (study +
+ * questions). Called whenever the number of questions changes, since the
+ * number of parts follows from it; a paper with no study time is left
+ * alone. The settings form does the same sum when it is saved.
+ */
+export async function syncScheduleClock(slug: string): Promise<void> {
+  await requireEditor();
+  const supabase = await createClient();
+  const { data: row } = await supabase
+    .from("watch_papers")
+    .select("id, features, time_limit_min")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!row) return;
+  const f = (row.features ?? {}) as { studyTimeMin?: number; partTimeMin?: number; questionsPerPart?: number };
+  const study = Number(f.studyTimeMin ?? 0);
+  if (!(study > 0)) return;
+
+  const { count } = await questionStore()
+    .from("watch_questions")
+    .select("id", { count: "exact", head: true })
+    .eq("paper_id", row.id);
+  const perPart = Math.max(1, Math.floor(Number(f.questionsPerPart ?? 10)) || 10);
+  const parts = Math.max(1, Math.ceil((count ?? 0) / perPart));
+  const total = Math.max(1, Math.ceil(parts * (study + Number(f.partTimeMin ?? 0))));
+  if (total === row.time_limit_min) return;
+
+  await supabase
+    .from("watch_papers")
+    .update({ time_limit_min: total, updated_at: new Date().toISOString() })
+    .eq("id", row.id);
+  paperChanged(slug);
 }

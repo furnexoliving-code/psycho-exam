@@ -104,7 +104,7 @@ export function FigureQuestionsPanel({
       const items: { image?: string; options?: string[] }[] = [];
       for (const g of groups) {
         const image = g.figure ? await upload(g.figure) : undefined;
-        if (g.options.every(Boolean)) {
+        if (g.options.length > 0 && g.options.every(Boolean)) {
           const options: string[] = [];
           for (const f of g.options) options.push(await upload(f!));
           items.push({ image, options });

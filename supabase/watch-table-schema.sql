@@ -271,10 +271,9 @@ alter table public.watch_papers
 alter table public.watch_papers
   add column if not exists category text not null default 'watch';
 
-alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
-alter table public.watch_papers
-  add constraint watch_papers_category_ck
-  check (category in ('watch', 'letter', 'number'));
+-- The category constraint itself is set once, at the end of this file, where
+-- the last category is added: a re-run must never re-add a narrower one
+-- over papers that already carry a category it does not list.
 
 -- ---------------------------------------------------------------------------
 -- The order papers are listed in (added later)
@@ -611,10 +610,7 @@ update public.watch_papers set title = 'Number Table Test'
 -- The Following Directions papers are untouched: their questions have no
 -- picture, and nothing about them changes.
 -- ---------------------------------------------------------------------------
-alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
-alter table public.watch_papers
-  add constraint watch_papers_category_ck
-  check (category in ('watch', 'letter', 'number', 'figure'));
+-- (The category constraint is set once, at the end of this file.)
 
 alter table public.watch_questions
   /* The figure the candidate must match, for a Perceptual Speed question. */

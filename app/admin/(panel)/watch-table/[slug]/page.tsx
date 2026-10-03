@@ -224,6 +224,18 @@ export default async function EditWatchPaper({
                 step="any"
                 hint="With a study time: minutes each part's questions stay open, then the next part's study screen opens by itself. The test time becomes parts × (study + questions)."
               />
+              {features.studyTimeMin > 0 && (
+                <p className="text-[12px] text-gray-700 sm:col-span-3">
+                  On this schedule the test time is set for you:{" "}
+                  {Math.max(1, Math.ceil(paper.questions.length / features.questionsPerPart))} part
+                  {Math.max(1, Math.ceil(paper.questions.length / features.questionsPerPart)) === 1 ? "" : "s"} × (
+                  {features.studyTimeMin} + {features.partTimeMin}) ={" "}
+                  <strong>
+                    {Math.max(1, Math.ceil(Math.max(1, Math.ceil(paper.questions.length / features.questionsPerPart)) * (features.studyTimeMin + features.partTimeMin)))} minutes
+                  </strong>
+                  . It is kept up to date as questions are added or removed.
+                </p>
+              )}
             </div>
           )}
 
