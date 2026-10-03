@@ -5,7 +5,9 @@
  *
  *  - one picture per question: q01.png, q02.png … (nothing to group);
  *  - a figure plus a picture per option: q01.png with q01-A.png … q01-E.png
- *    (or q01_A.png, q01 A.png, q01A.png — any separator or none, any case).
+ *    (or q01_A.png, q01 A.png, q01A.png — any separator or none, any case);
+ *  - option pictures alone, q01-A.png … q01-E.png, for a question whose
+ *    figure is not shown (the Memory Test).
  *
  * Everything before the option letter is the question's key; files with the
  * same key belong together, and the keys are taken in natural order, so q2
@@ -62,10 +64,11 @@ export function groupFigureFiles<T extends { name: string }>(
     a.key.localeCompare(b.key, undefined, { numeric: true, sensitivity: "base" }),
   );
   for (const g of groups) {
-    if (!g.figure) problems.push(`"${g.key}" has option pictures but no figure picture (expected ${g.key}.png)`);
     const missing = g.options
       .map((f, i) => (f ? null : String.fromCharCode(65 + i)))
       .filter((x): x is string => x !== null);
+    // A question is a figure, a figure with all its options, or — as in the
+    // Memory Test, where the figure was memorised — all its options alone.
     if (missing.length > 0 && missing.length < optionCount) {
       problems.push(`"${g.key}" is missing option picture${missing.length === 1 ? "" : "s"} ${missing.join(", ")}`);
     }

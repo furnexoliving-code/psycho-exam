@@ -12,7 +12,7 @@ import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-ques
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
 import { CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
-import { FIGURE_EXAMPLE_TEXT, figureInstructions } from "@/lib/wt/figure-sample";
+import { FIGURE_EXAMPLE_TEXT, pictureInstructions } from "@/lib/wt/figure-sample";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -195,13 +195,20 @@ export async function createPaper(formData: FormData) {
       time_limit_min: figure ? 5 : 10,
       cells: figure ? [] : tables[0].cells,
       example_cells: figure ? [] : tables[0].cells,
-      instructions: figure ? figureInstructions(5, 5) : [],
-      example_text: figure ? FIGURE_EXAMPLE_TEXT : undefined,
-      // The real Perceptual Speed test is answered with the mouse, in parts,
-      // and has no question-paper page; the keyboard-only rules of the
-      // Following Directions engine do not apply to it.
+      instructions: figure ? pictureInstructions(category, figure ? 5 : 10, 5, 1) : [],
+      example_text: figure ? (category === "figure" ? FIGURE_EXAMPLE_TEXT : []) : undefined,
+      // The picture tests are answered with the mouse, in parts, and have
+      // no question-paper page; the keyboard-only rules of the Following
+      // Directions engine do not apply to them. The Memory Test runs on a
+      // schedule: a study screen, then that part's questions, part by part.
       features: figure
-        ? { showQuestionPaperButton: false, lockScroll: false, overflowQuestions: false, questionsPerPart: 10 }
+        ? {
+            showQuestionPaperButton: false,
+            lockScroll: true,
+            overflowQuestions: false,
+            questionsPerPart: category === "figure" ? 10 : category === "memory" ? 3 : 2,
+            ...(category === "memory" ? { studyTimeMin: 1, partTimeMin: 1 } : {}),
+          }
         : {},
       category,
     })
@@ -319,6 +326,24 @@ export async function saveSettings(
       if (n < 1 || n > 100) throw new Error("Questions per part must be a whole number from 1 to 100");
     }
 
+    // The Memory Test's schedule, present only on a picture paper's form:
+    // minutes to study each part's picture, and minutes its questions then
+    // stay open. With a study time set, the test's clock is the sum over
+    // the parts, so the two can never disagree.
+    const studyRaw = formData.get("study_time_min");
+    const partRaw = formData.get("part_time_min");
+    const schedule: { studyTimeMin?: number; partTimeMin?: number } = {};
+    if (studyRaw !== null) {
+      const n = numberOrNull(studyRaw) ?? 0;
+      if (n < 0 || n > 60) throw new Error("Study time must be from 0 to 60 minutes");
+      schedule.studyTimeMin = n;
+    }
+    if (partRaw !== null) {
+      const n = numberOrNull(partRaw) ?? 0;
+      if (n < 0 || n > 120) throw new Error("Time per part must be from 0 to 120 minutes");
+      schedule.partTimeMin = n;
+    }
+
     const publish = formData.get("is_published") === "on";
     if (publish && categoryKind(category) === "figure") {
       // A picture question is saved before its answer is known; a paper
@@ -336,13 +361,34 @@ export async function saveSettings(
       }
     }
 
+    const { data: before } = await supabase
+      .from("watch_papers")
+      .select("id, features")
+      .eq("slug", slug)
+      .maybeSingle();
+    const current = (before?.features ?? null) as { studyImages?: string[] } | null;
+
+    // On a schedule, the test clock is parts × (study + questions): the
+    // admin sets the parts' times, and the clock follows.
+    let timeLimit = test;
+    if (schedule.studyTimeMin && schedule.studyTimeMin > 0 && before) {
+      const perPart = "questionsPerPart" in partsField ? (partsField.questionsPerPart as number) : 10;
+      const { count } = await questionStore()
+        .from("watch_questions")
+        .select("id", { count: "exact", head: true })
+        .eq("paper_id", before.id);
+      const parts = Math.max(1, Math.ceil((count ?? 0) / perPart));
+      const total = parts * (schedule.studyTimeMin + (schedule.partTimeMin ?? 0));
+      if (total > 0) timeLimit = Math.max(1, Math.ceil(total));
+    }
+
     const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
         title: String(formData.get("title") ?? "").trim() || categoryTitle(category),
         display_name: displayName,
         instruction_time_min: instruction,
-        time_limit_min: test,
+        time_limit_min: timeLimit,
         is_published: publish,
         // Blank means "no reference" — the T-score then waits for a real cohort.
         reference_mean: numberOrNull(formData.get("reference_mean")),
@@ -364,6 +410,9 @@ export async function saveSettings(
           lockScroll: formData.get("lockScroll") === "on",
           overflowQuestions: formData.get("overflowQuestions") === "on",
           ...partsField,
+          ...schedule,
+          // Kept as they are: set from their own uploader, not this form.
+          ...(current?.studyImages ? { studyImages: current.studyImages } : {}),
         },
         updated_at: new Date().toISOString(),
       })

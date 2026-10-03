@@ -15,6 +15,9 @@ const TONES: Record<string, { ring: string; chip: string; icon: string }> = {
   letter: { ring: "from-emerald-500 to-teal-600", chip: "bg-emerald-50 text-emerald-700", icon: "🔤" },
   number: { ring: "from-amber-500 to-orange-600", chip: "bg-amber-50 text-amber-700", icon: "🔢" },
   figure: { ring: "from-rose-500 to-pink-600", chip: "bg-rose-50 text-rose-700", icon: "🔍" },
+  memory: { ring: "from-violet-500 to-purple-600", chip: "bg-violet-50 text-violet-700", icon: "🧠" },
+  depth: { ring: "from-cyan-500 to-blue-600", chip: "bg-cyan-50 text-cyan-700", icon: "🧊" },
+  observation: { ring: "from-lime-500 to-green-600", chip: "bg-lime-50 text-lime-700", icon: "👁️" },
 };
 
 export default async function DashboardPage() {

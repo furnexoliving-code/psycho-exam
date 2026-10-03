@@ -8,10 +8,13 @@ import { sortByName, uploadPicture } from "@/components/admin/upload";
 import { groupFigureFiles } from "@/lib/wt/figure-files";
 import type { WatchQuestion } from "@/lib/wt/types";
 import {
-  DEFAULT_OPTION_COUNT,
   FIGURE_BATCH,
+  MAX_NUMBER_OPTIONS,
   MAX_OPTION_COUNT,
   OPTION_LETTERS,
+  defaultOptionsFor,
+  optionValues,
+  type OptionStyle,
 } from "@/lib/wt/figure-sample";
 import { deleteQuestion } from "../actions";
 import {
@@ -40,15 +43,29 @@ interface Run {
  * a picture for each option when the options are drawings rather than
  * letters.
  */
+/** Every option set on offer: A–B up to A–H, and 1–2 up to 1–12. */
+const OPTION_CHOICES: { style: OptionStyle; count: number }[] = [
+  ...Array.from({ length: MAX_OPTION_COUNT - 1 }, (_, i) => ({ style: "letters" as const, count: i + 2 })),
+  ...Array.from({ length: MAX_NUMBER_OPTIONS - 1 }, (_, i) => ({ style: "numbers" as const, count: i + 2 })),
+];
+const choiceKey = (c: { style: OptionStyle; count: number }) => `${c.style}:${c.count}`;
+
 export function FigureQuestionsPanel({
   slug,
   questions,
+  category = "figure",
 }: {
   slug: string;
   questions: WatchQuestion[];
+  /** Which test the paper is: sets the options offered by default. */
+  category?: string;
 }) {
   const [run, setRun] = useState<Run | null>(null);
-  const [optionCount, setOptionCount] = useState(DEFAULT_OPTION_COUNT);
+  const [choice, setChoice] = useState(choiceKey(defaultOptionsFor(category)));
+  const [optionStyle, optionCount] = (() => {
+    const [style, count] = choice.split(":");
+    return [style as OptionStyle, Number(count)] as const;
+  })();
   const picker = useRef<HTMLInputElement | null>(null);
 
   const unanswered = questions.filter((q) => q.answer === "").length;
@@ -63,9 +80,12 @@ export function FigureQuestionsPanel({
       // The files are sorted into questions by name first, and a pile that
       // does not add up is refused before a single upload: half a paper's
       // pictures in storage with no questions would be worse than none.
-      const { groups, problems } = groupFigureFiles(files, optionCount);
+      // Option pictures are named by letter, so they go with lettered
+      // options; a numbered paper (Depth Perception) has one picture per
+      // question and nothing to group.
+      const { groups, problems } = groupFigureFiles(files, optionStyle === "letters" ? optionCount : 0);
       if (problems.length) throw new Error(problems.slice(0, 5).join(" · "));
-      const withOptions = groups.filter((g) => g.options.every(Boolean)).length;
+      const withOptions = groups.filter((g) => g.options.length > 0 && g.options.every(Boolean)).length;
       if (withOptions > 0 && withOptions < groups.length) {
         throw new Error(
           `${withOptions} question${withOptions === 1 ? " has" : "s have"} option pictures and ${groups.length - withOptions} do${groups.length - withOptions === 1 ? "es" : ""} not. Give every question its ${optionCount} option pictures, or none.`,
@@ -81,9 +101,9 @@ export function FigureQuestionsPanel({
         setRun({ ...state });
         return url;
       };
-      const items: { image: string; options?: string[] }[] = [];
+      const items: { image?: string; options?: string[] }[] = [];
       for (const g of groups) {
-        const image = await upload(g.figure!);
+        const image = g.figure ? await upload(g.figure) : undefined;
         if (g.options.every(Boolean)) {
           const options: string[] = [];
           for (const f of g.options) options.push(await upload(f!));
@@ -93,7 +113,7 @@ export function FigureQuestionsPanel({
         }
       }
       for (let i = 0; i < items.length; i += FIGURE_BATCH) {
-        const outcome = await addFigureQuestions(slug, items.slice(i, i + FIGURE_BATCH), optionCount);
+        const outcome = await addFigureQuestions(slug, items.slice(i, i + FIGURE_BATCH), optionCount, optionStyle);
         if (outcome.error) throw new Error(outcome.error);
       }
       state.total = groups.length;
@@ -136,6 +156,10 @@ export function FigureQuestionsPanel({
             match.
           </li>
           <li>
+            <strong>Option pictures alone</strong> (the Memory Test, where the figure was
+            memorised): q01-A.png … q01-E.png with no q01.png.
+          </li>
+          <li>
             Afterwards type the answer key in one line, or set each question&apos;s
             answer by hand.
           </li>
@@ -144,16 +168,18 @@ export function FigureQuestionsPanel({
 
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-[12px] text-gray-700">
-            Options per question
+            Options
             <select
-              value={optionCount}
+              value={choice}
               disabled={run?.running}
-              onChange={(e) => setOptionCount(Number(e.target.value))}
+              onChange={(e) => setChoice(e.target.value)}
               className="rounded border border-gray-400 px-2 py-1 text-[12px]"
             >
-              {Array.from({ length: MAX_OPTION_COUNT - 1 }, (_, i) => i + 2).map((n) => (
-                <option key={n} value={n}>
-                  {n} ({OPTION_LETTERS.slice(0, n).join(" ")})
+              {OPTION_CHOICES.map((c) => (
+                <option key={choiceKey(c)} value={choiceKey(c)}>
+                  {c.style === "letters"
+                    ? `Letters ${OPTION_LETTERS.slice(0, c.count).join(" ")}`
+                    : `Numbers 1 to ${c.count}`}
                 </option>
               ))}
             </select>
@@ -199,17 +225,22 @@ export function FigureQuestionsPanel({
           <input type="hidden" name="slug" value={slug} />
           <label className="block">
             <span className="mb-1 block text-[12px] font-semibold text-gray-700">
-              Answer key — one letter per question, in order ({questions.length} letters)
+              Answer key — one answer per question, in order ({questions.length} answers)
             </span>
             <input
               name="key"
-              placeholder={OPTION_LETTERS.slice(0, Math.min(questions.length, 5)).join("")}
+              placeholder={
+                typeof questions[0]?.options[0] === "number"
+                  ? "3 2 5 1 4 …"
+                  : OPTION_LETTERS.slice(0, Math.min(questions.length, 5)).join("")
+              }
               autoCapitalize="characters"
-              className="w-full max-w-xl rounded border border-gray-400 px-3 py-2 font-mono text-[14px] tracking-[0.3em]"
+              className="w-full max-w-xl rounded border border-gray-400 px-3 py-2 font-mono text-[14px] tracking-[0.2em]"
             />
             <span className="mt-1 block text-[11px] text-gray-500">
-              Spaces and commas are ignored, so ABDCE, A B D C E and A,B,D,C,E all work.
-              Nothing is saved unless every letter fits its question.
+              Letters may run together (ABDCE) or be separated by spaces or commas. Numbers
+              need a space or comma between them (3 2 10 1). Nothing is saved unless every
+              answer fits its question.
             </span>
           </label>
         </SaveForm>
@@ -275,7 +306,7 @@ function FigureRow({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={q.image} alt="" className="max-h-[120px] max-w-[320px] rounded border border-gray-300 bg-white" />
           ) : (
-            <span className="text-[12px] text-gray-500">No picture</span>
+            <span className="text-[12px] text-gray-500">No figure (options only)</span>
           )}
           <div className="mt-1">
             <button

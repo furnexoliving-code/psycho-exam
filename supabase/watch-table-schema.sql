@@ -634,3 +634,16 @@ revoke select on public.watch_questions from anon, authenticated;
 grant select (id, paper_id, position, prompt_en, prompt_hi, options, topic, image_url, option_images)
   on public.watch_questions to anon, authenticated;
 grant select on public.watch_questions_public to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Batteries 1, 3 and 4 (added later)
+--
+-- Memory, Depth Perception and Power of Observation: picture papers on the
+-- same engine as the Perceptual Speed Test. Nothing new is stored for them
+-- beyond the category; what each shows before or beside its questions is
+-- kept with the paper's features.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
+alter table public.watch_papers
+  add constraint watch_papers_category_ck
+  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation'));

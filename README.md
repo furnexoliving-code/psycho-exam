@@ -129,6 +129,19 @@ moving between parts. The Following Directions engine is untouched: its
 screen, questions and admin sections are the same code as before, and a
 paper whose category is not `figure` never reaches the new ones.
 
+### Batteries 1, 3 and 4
+
+Memory, Depth Perception and Power of Observation are picture papers on
+the same engine as Battery 5, told apart by category. Options are letters
+(A–H) or numbers (1–12) per upload, and the answer key takes either. A
+question may be its option pictures alone (q01-A … q01-E with no q01), as
+the Memory Test's are. A Memory paper has study screens: one picture per
+part (`features.studyImages`), shown for `studyTimeMin` before that part's
+questions, which then stay open for `partTimeMin`; the parts run on the
+test's clock alone, nothing moves between them and nothing goes back, and
+the test time is set to parts × (study + questions) when settings are
+saved.
+
 ### Thousands of students
 
 The student list is searched and paged in the database (fifty a page, by

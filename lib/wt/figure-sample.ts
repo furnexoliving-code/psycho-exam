@@ -27,6 +27,62 @@ export function figureInstructions(testMin: number, instructionMin: number): Ins
   ];
 }
 
+/**
+ * The instruction screen each picture paper starts with, in the wording of
+ * the real test as far as it is known, with this paper's timing written
+ * in. The institute edits it like any other paper's instructions.
+ */
+export function pictureInstructions(
+  category: string,
+  testMin: number,
+  instructionMin: number,
+  studyMin = 0,
+): InstructionBlock[] {
+  const min = (n: number, en: boolean) => (en ? `${n} minute${n === 1 ? "" : "s"}` : `${n} मिनट`);
+  const timing: InstructionBlock[] = [
+    {
+      en: `The time limit for the test is ${min(testMin, true)}.`,
+      hi: `इस परीक्षण हेतु समय सीमा ${min(testMin, false)} है।`,
+    },
+    {
+      en: "Give answer by clicking on the appropriate answer option through the mouse.",
+      hi: "अपना उत्तर माउस की सहायता से उपयुक्त विकल्प पर क्लिक करके दें।",
+    },
+    {
+      en: `You have ${min(instructionMin, true)} to read these instructions. When that time is over the test begins by itself. Press Skip Instruction to begin sooner.`,
+      hi: `इन निर्देशों को पढ़ने के लिए आपके पास ${min(instructionMin, false)} हैं। यह समय समाप्त होते ही परीक्षण स्वतः प्रारंभ हो जाएगा। जल्दी शुरू करने के लिए Skip Instruction दबाएँ।`,
+    },
+  ];
+  switch (category) {
+    case "memory":
+      return [
+        {
+          en: `This is a test of memory. The test is in parts. In each part there is a Study screen and a Test screen. On the Study screen, sets of some shapes are given for ${min(studyMin || 1, true)}. Your task is to memorise these sets of shapes. After the allotted time the Test screen will appear. On the Test screen, for each problem you will find five options A, B, C, D and E. One of the options shows a set of shapes exactly similar to one you have seen on the Study screen.`,
+          hi: `यह स्मृति का परीक्षण है। यह परीक्षण भागों में है। प्रत्येक भाग में एक अध्ययन स्क्रीन और एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर कुछ आकृतियों के सेट ${min(studyMin || 1, false)} के लिए दिए गए हैं। आपको आकृतियों के इन सेटों को याद करना है। नियत समय के बाद परीक्षण स्क्रीन दिखेगी। परीक्षण स्क्रीन पर प्रत्येक प्रश्न में आपको पाँच विकल्प A, B, C, D और E मिलेंगे। इनमें से एक विकल्प में आकृतियों का सेट बिल्कुल वैसा होगा जैसा आपने अध्ययन स्क्रीन पर देखा है।`,
+        },
+        ...timing,
+      ];
+    case "depth":
+      return [
+        {
+          en: "In each item of this test, you will see a pile of blocks. Each block is of the same shape and size. Your task is to count the number of blocks having all sides and corners hidden by the other blocks. Please remember that there are always three blocks in the base of the farthest row.",
+          hi: "आप इस परीक्षण के प्रत्येक प्रश्न में ब्लाक्स (गुटकों) का एक ढेर देखेंगे। सारे ब्लाक्स एक ही आकार और माप के हैं। ढेर में आपको उन ब्लाक्स की गिनती करनी है जिनकी सभी सतहें और किनारे पूर्ण रूप से अन्य ब्लाक्स से छिपे हुए हैं। कृपया याद रखें कि सबसे पीछे की पंक्ति के आधार में सदैव तीन ब्लाक्स (गुटके) ही होंगे।",
+        },
+        ...timing,
+      ];
+    case "observation":
+      return [
+        {
+          en: "This test measures your ability to quickly observe and compare figures given in two sets. In this test you will be shown two sets 'A' and 'B' of figures in a sequence to observe. Your task is to find out whether the placement of each figure in set A is exactly similar to the placement of figures in set B or there is some difference. If the placement of each figure in both the sets is exactly similar then your answer will be 'A'; if there are two differences in the placement of each figure you have to give answer 'B'; if there are three differences then your answer will be 'C'; and if there are four differences then your answer will be 'D'. In this test there will be either no difference or a minimum of 2 and maximum of 4 differences in the placement of each figure.",
+          hi: "यह परीक्षण शीघ्रता के साथ दो सेटों में दिये गये चित्रों की तुलना करने की आपकी योग्यता का माप करता है। इस परीक्षण में कुछ चित्र क्रम से सेट 'A' तथा सेट 'B' के माध्यम से दिखाए जाएंगे। आपको यह बताना है कि सेट 'A' में दिये गये चित्रों का स्थान सेट 'B' में दिए गए चित्रों के स्थान क्रम के बिल्कुल समान है अथवा कुछ भिन्न है। यदि दोनों सेटों के स्थान क्रम में पूर्ण समानता है तो उत्तर 'A' होगा; यदि दो चित्रों के स्थान क्रम में अंतर है तो उत्तर 'B' होगा; यदि तीन चित्रों के स्थान क्रम में अंतर है तो उत्तर 'C' होगा; इसी प्रकार यदि चार चित्रों के स्थान क्रम में अंतर है तो उत्तर 'D' होगा। इस परीक्षण में चित्रों के स्थान क्रम में या तो कोई अंतर नहीं होगा या स्थान क्रम में कम से कम दो और अधिकतम चार अंतर होगा।",
+        },
+        ...timing,
+      ];
+    default:
+      return figureInstructions(testMin, instructionMin);
+  }
+}
+
 /** The worked-example paragraphs; the institute adds its example pictures under them. */
 export const FIGURE_EXAMPLE_TEXT: InstructionBlock[] = [
   {
@@ -41,6 +97,28 @@ export const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"] as const;
 /** How many figures a question offers; the real test shows five. */
 export const DEFAULT_OPTION_COUNT = 5;
 export const MAX_OPTION_COUNT = OPTION_LETTERS.length;
+/** Numbered options run 1, 2, 3 …; the Depth Perception test offers ten. */
+export const MAX_NUMBER_OPTIONS = 12;
+
+export type OptionStyle = "letters" | "numbers";
+
+/** The option values a question offers, in order: A, B, C … or 1, 2, 3 … */
+export function optionValues(style: OptionStyle, count: number): (string | number)[] {
+  if (style === "numbers") return Array.from({ length: count }, (_, i) => i + 1);
+  return [...OPTION_LETTERS.slice(0, count)];
+}
+
+/** What each picture test offers by default; the admin may change it per upload. */
+export function defaultOptionsFor(category: string): { style: OptionStyle; count: number } {
+  switch (category) {
+    case "depth":
+      return { style: "numbers", count: 10 };
+    case "observation":
+      return { style: "letters", count: 4 };
+    default:
+      return { style: "letters", count: DEFAULT_OPTION_COUNT };
+  }
+}
 /** The most pictures the panel sends the server in one call. */
 export const FIGURE_BATCH = 50;
 
@@ -98,6 +176,55 @@ export function figureSamplePaper() {
     instructionTimeLimitMin: 5,
     instructions: figureInstructions(1, 5),
     example: { table: { label: "Example", cells: [] }, text: FIGURE_EXAMPLE_TEXT },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions,
+    resultView: {},
+  };
+}
+
+/** A tiny Memory Test, shipped like the Perceptual Speed sample: study screens on a short clock. */
+export const MEMORY_SAMPLE_ID = "memory-sample";
+
+export function memorySamplePaper() {
+  const letters = OPTION_LETTERS.slice(0, 5);
+  const study = [
+    figureSvg(SHAPES[0]),
+    figureSvg(SHAPES[3]),
+  ];
+  const questions = [0, 2, 3, 4].map((answerIndex, i) => {
+    const order = SHAPES.map((_, k) => (k + i) % SHAPES.length);
+    return {
+      id: `ms-q${i + 1}`,
+      tableIndex: 0,
+      prompt: { en: "", hi: "" },
+      options: [...letters],
+      answer: letters[order.indexOf(answerIndex)],
+      working: { en: "", hi: "" },
+      topic: "Memory",
+      optionImages: order.map((k) => figureSvg(SHAPES[k])),
+    };
+  });
+  return {
+    id: MEMORY_SAMPLE_ID,
+    kind: "figure" as const,
+    category: "memory",
+    title: "Memory Test",
+    displayName: "Memory Test - Sample",
+    features: {
+      showQuestionPaperButton: false,
+      lockScroll: true,
+      overflowQuestions: false,
+      questionsPerPart: 2,
+      // Seconds, not minutes, so the sample can be watched through: 3 s to
+      // study, 3 s of questions, per part.
+      studyTimeMin: 0.05,
+      partTimeMin: 0.05,
+      studyImages: study,
+    },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions("memory", 1, 5, 1),
+    example: { table: { label: "Example", cells: [] }, text: [] },
     tables: [{ label: "No. 1", cells: [] }],
     questions,
     resultView: {},

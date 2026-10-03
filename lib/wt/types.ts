@@ -123,6 +123,20 @@ export interface WatchFeatures {
    * them. Ignored by a Following Directions paper.
    */
   questionsPerPart?: number;
+  /**
+   * Picture papers only: a picture shown on its own, to be memorised, for
+   * this many minutes at the start of the test before the questions open.
+   * The Memory Test. Zero, or no picture, means the questions open at once.
+   */
+  studyTimeMin?: number;
+  /** One picture per part, in part order, shown for studyTimeMin before that part's questions. */
+  studyImages?: string[];
+  /**
+   * With study screens: how many minutes each part's questions stay open
+   * before the next part's study screen takes over. The parts then run on
+   * the clock alone, as in the hall, and the test time is the sum.
+   */
+  partTimeMin?: number;
 }
 
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
@@ -135,6 +149,9 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   lockScroll: true,
   overflowQuestions: true,
   questionsPerPart: 10,
+  studyTimeMin: 0,
+  studyImages: [],
+  partTimeMin: 0,
 };
 
 export function resolveFeatures(features?: WatchFeatures): Required<WatchFeatures> {

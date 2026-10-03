@@ -62,18 +62,40 @@ export function FigureExam({
   // as the attempt's current question, so a reload lands on the same part.
   const perPart = Math.max(1, Math.floor(features.questionsPerPart) || 1);
   const partCount = Math.max(1, Math.ceil(paper.questions.length / perPart));
-  const part = Math.min(partCount - 1, Math.floor(state.currentIndex / perPart));
   const parts = useMemo(
     () =>
       Array.from({ length: partCount }, (_, p) => paper.questions.slice(p * perPart, (p + 1) * perPart)),
     [paper.questions, partCount, perPart],
   );
+
+  // The Memory Test runs on the clock alone: each part is a study screen
+  // for the study time, then its questions for the part time, and the next
+  // part takes over by itself — no button moves between them, and nothing
+  // goes back. Everything is read off the test's elapsed time, which the
+  // server vouches for, so a reload lands exactly where the clock says.
+  const studySec = Math.round((features.studyTimeMin || 0) * 60);
+  const scheduled = studySec > 0 && features.studyImages.length > 0;
+  const limitSec = paper.timeLimitMin * 60;
+  const partSec = scheduled
+    ? features.partTimeMin > 0
+      ? Math.round(features.partTimeMin * 60)
+      : Math.max(1, Math.floor((limitSec - partCount * studySec) / partCount))
+    : 0;
+  // Named apart from the elapsedSec prop, which is the sitting's age on arrival.
+  const spentSec = Math.max(0, limitSec - state.remainingSec);
+  const slotSec = studySec + partSec;
+  const timedPart = scheduled ? Math.min(partCount - 1, Math.floor(spentSec / slotSec)) : 0;
+  const inStudy = scheduled && spentSec - timedPart * slotSec < studySec;
+  const studyLeftSec = scheduled ? Math.max(0, timedPart * slotSec + studySec - spentSec) : 0;
+
+  const part = scheduled ? timedPart : Math.min(partCount - 1, Math.floor(state.currentIndex / perPart));
   const goToPart = useCallback(
     (p: number) => {
+      if (scheduled) return;
       dispatch({ type: "goto", index: Math.min(Math.max(0, p), partCount - 1) * perPart });
       column.current?.scrollTo({ top: 0 });
     },
-    [dispatch, partCount, perPart],
+    [dispatch, partCount, perPart, scheduled],
   );
 
   const finish = useCallback(() => {
@@ -182,11 +204,12 @@ export function FigureExam({
                     key={p}
                     type="button"
                     data-allow-mouse="true"
+                    disabled={scheduled}
                     onClick={() => goToPart(p)}
                     aria-current={active ? "page" : undefined}
                     className={`flex items-center gap-2 rounded px-3 py-1 text-[12px] font-semibold ${
                       active ? "bg-wt-pill text-white" : "border border-wt-pill/40 bg-white text-wt-tealDark hover:bg-wt-bar"
-                    }`}
+                    } disabled:cursor-default disabled:hover:bg-white ${active ? "disabled:hover:bg-wt-pill" : ""}`}
                   >
                     Part {p + 1}
                     <span
@@ -210,6 +233,35 @@ export function FigureExam({
             className="wt-scroll-host h-full px-5 py-4 pr-[14px]"
             style={{ fontSize: `${16 * fontScale}px` }}
           >
+            {inStudy ? (
+              <div>
+                <p className="text-[0.95em] font-semibold text-[#222]">
+                  Study Screen Part {part + 1} /{" "}
+                  <span lang="hi">अध्ययन स्क्रीन भाग {part + 1}</span>
+                </p>
+                <p className="mt-1 text-[0.85em] text-[#494949]">
+                  Memorise the picture. The questions open by itself in{" "}
+                  <strong className="font-mono tabular-nums">{clock(studyLeftSec)}</strong>.
+                  <span className="ml-2" lang="hi">चित्र को याद करें। प्रश्न स्वतः खुलेंगे।</span>
+                </p>
+                {features.studyImages[part] && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={features.studyImages[part]}
+                    alt={`Study screen for part ${part + 1}`}
+                    className="mt-4 h-auto max-h-[70vh] max-w-full rounded border border-gray-300"
+                    draggable={false}
+                  />
+                )}
+              </div>
+            ) : (
+            <>
+            {scheduled && (
+              <p className="text-[0.95em] font-semibold text-[#222]">
+                Test Screen Part {part + 1} /{" "}
+                <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
+              </p>
+            )}
             <p className="text-[0.9em] text-[#494949]">
               Please Select Correct Answer /{" "}
               <span lang="hi">कृपया सही उत्तर चुनें</span>
@@ -280,6 +332,8 @@ export function FigureExam({
                 );
               })}
             </ol>
+            </>
+            )}
           </div>
           <ScrollRail target={column} axis="vertical" />
           </div>
@@ -296,6 +350,9 @@ export function FigureExam({
               {paper.questions.length}
               <span className="ml-3 text-gray-500">
                 Part {part + 1} of {partCount}
+                {scheduled && !inStudy && partSec > 0 && (
+                  <> · this part closes in {clock(Math.max(0, (part + 1) * slotSec - spentSec))}</>
+                )}
               </span>
             </>
           ) : (
@@ -312,6 +369,7 @@ export function FigureExam({
           <div className="ml-auto flex items-center gap-3">
             {/* The answers are already saved as they are chosen; this button
                 is the way to the next part, as in the real test. */}
+            {!scheduled && (
             <button
               type="button"
               data-allow-mouse="true"
@@ -321,6 +379,7 @@ export function FigureExam({
             >
               Save &amp; Next
             </button>
+            )}
             <button
               type="button"
               data-allow-mouse="true"
@@ -390,6 +449,12 @@ export function FigureExam({
       />
     </div>
   );
+}
+
+/** m:ss */
+function clock(sec: number): string {
+  const s = Math.max(0, Math.round(sec));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
 /** The test is on screen and the clock is running. */

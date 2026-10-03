@@ -14,6 +14,7 @@ import { DiagramImageField } from "./DiagramImageField";
 import { InstructionsEditor } from "./InstructionsEditor";
 import { QuestionsPanel } from "./QuestionsPanel";
 import { FigureQuestionsPanel } from "./FigureQuestionsPanel";
+import { StudyPictures } from "./StudyPictures";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
@@ -195,7 +196,7 @@ export default async function EditWatchPaper({
           </label>
 
           {figure && (
-            <div className="mt-6 max-w-xs">
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
               <Number
                 label="Questions per part"
                 name="questions_per_part"
@@ -204,6 +205,24 @@ export default async function EditWatchPaper({
                 max={100}
                 unit="questions"
                 hint="The paper is shown in parts, as in the real test; Save & Next moves to the next part."
+              />
+              <Number
+                label="Study time per part"
+                name="study_time_min"
+                defaultValue={features.studyTimeMin}
+                min={0}
+                max={60}
+                step="any"
+                hint="Memory Test: minutes each part's study picture is shown before its questions. 0 for no study screen."
+              />
+              <Number
+                label="Question time per part"
+                name="part_time_min"
+                defaultValue={features.partTimeMin}
+                min={0}
+                max={120}
+                step="any"
+                hint="With a study time: minutes each part's questions stay open, then the next part's study screen opens by itself. The test time becomes parts × (study + questions)."
               />
             </div>
           )}
@@ -498,8 +517,19 @@ export default async function EditWatchPaper({
       )}
 
       {/* ----------------------------- Questions ------------------------------ */}
+      {figure && paper.category === "memory" && (
+        <section className="mt-6 rounded border border-gray-300 bg-white p-5">
+          <h2 className="text-[15px] font-bold text-gray-900">Study screens</h2>
+          <p className="mt-1 text-[12px] text-gray-600">
+            What the candidate memorises before each part&apos;s questions. Set the study
+            time and the question time per part in the settings above.
+          </p>
+          <StudyPictures slug={slug} images={features.studyImages} />
+        </section>
+      )}
+
       {figure ? (
-        <FigureQuestionsPanel slug={slug} questions={paper.questions} />
+        <FigureQuestionsPanel slug={slug} questions={paper.questions} category={paper.category} />
       ) : (
         <QuestionsPanel slug={slug} questions={paper.questions} />
       )}
@@ -579,6 +609,7 @@ function Number({
   max,
   hint,
   unit = "minutes",
+  step,
 }: {
   label: string;
   name: string;
@@ -588,6 +619,8 @@ function Number({
   hint: string;
   /** What the number counts; most fields here are minutes. */
   unit?: string;
+  /** "any" lets a field take half minutes. */
+  step?: string;
 }) {
   return (
     <label className="block">
@@ -598,6 +631,7 @@ function Number({
           type="number"
           min={min}
           max={max}
+          step={step}
           defaultValue={defaultValue}
           className="w-[110px] rounded border border-gray-400 px-3 py-2 text-[14px]"
         />

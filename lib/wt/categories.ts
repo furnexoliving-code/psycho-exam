@@ -3,14 +3,19 @@
  * psychological test they belong to.
  *
  * Battery 2, Following Directions, has three papers that share an engine
- * and differ only in what sits around the circle. Battery 5, the
- * Perceptual Speed Test, is a different kind of paper altogether — a
- * picture to match against five — but it rides on the same table,
- * sittings, cohort and result, so it is one more category here rather
- * than a second system.
+ * and differ only in what sits around the circle. Batteries 1, 3, 4 and 5
+ * are picture papers — a figure or a scene, answered by a letter or a
+ * number — on one further engine, which can also show a picture to
+ * memorise before the questions (Memory) or keep one on screen beside
+ * them (Depth Perception, Power of Observation). They all ride on the
+ * same table, sittings, cohort and result, so each is one more category
+ * here rather than another system.
  */
 export const BATTERIES = [
+  { id: 1, title: "Memory Test", hindi: "स्मृति परीक्षण" },
   { id: 2, title: "Following Directions Test", hindi: "निर्देश पालन परीक्षण" },
+  { id: 3, title: "Depth Perception Test", hindi: "गहराई बोध परीक्षण" },
+  { id: 4, title: "Power of Observation Test", hindi: "अवलोकन शक्ति परीक्षण" },
   { id: 5, title: "Perceptual Speed Test", hindi: "प्रत्यक्षिक गति परीक्षण" },
 ] as const;
 
@@ -18,6 +23,14 @@ export const BATTERIES = [
 export type PaperKind = "directions" | "figure";
 
 export const CATEGORIES = [
+  {
+    id: "memory",
+    battery: 1,
+    kind: "figure",
+    title: "Memory Test",
+    hindi: "स्मृति परीक्षण",
+    blurb: "A picture is shown for a fixed time, then hidden; the questions ask what was in it.",
+  },
   {
     id: "watch",
     battery: 2,
@@ -41,6 +54,22 @@ export const CATEGORIES = [
     title: "Number Table Test",
     hindi: "नंबर टेबल टेस्ट",
     blurb: "Follow the directions across a table of numbers.",
+  },
+  {
+    id: "depth",
+    battery: 3,
+    kind: "figure",
+    title: "Depth Perception Test",
+    hindi: "गहराई बोध परीक्षण",
+    blurb: "A pile of blocks stays on screen; each question asks how many blocks touch a numbered one.",
+  },
+  {
+    id: "observation",
+    battery: 4,
+    kind: "figure",
+    title: "Power of Observation Test",
+    hindi: "अवलोकन शक्ति परीक्षण",
+    blurb: "A picture stays on screen; each question asks what can be seen in it.",
   },
   {
     id: "figure",

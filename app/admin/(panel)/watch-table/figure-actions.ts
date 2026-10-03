@@ -6,7 +6,14 @@ import { requireEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { paperChanged } from "@/lib/wt/db";
-import { FIGURE_BATCH, MAX_OPTION_COUNT, OPTION_LETTERS } from "@/lib/wt/figure-sample";
+import {
+  FIGURE_BATCH,
+  MAX_NUMBER_OPTIONS,
+  MAX_OPTION_COUNT,
+  optionValues,
+  type OptionStyle,
+} from "@/lib/wt/figure-sample";
+import { parseOption } from "@/lib/wt/parse-questions";
 
 /**
  * The Perceptual Speed paper's questions: pictures, each answered by a
@@ -43,7 +50,7 @@ async function questionOf(id: string, paperId: string) {
     .eq("paper_id", paperId)
     .maybeSingle();
   if (!data) throw new Error("That question no longer exists");
-  return data as { id: string; options: string[]; option_images: string[] | null };
+  return data as { id: string; options: (string | number)[]; option_images: string[] | null };
 }
 
 /**
@@ -55,27 +62,36 @@ async function questionOf(id: string, paperId: string) {
  */
 export async function addFigureQuestions(
   slug: string,
-  /** One entry per question: its figure, and a picture per option when the options are pictures. */
-  items: (string | { image: string; options?: string[] })[],
+  /**
+   * One entry per question: its figure, and a picture per option when the
+   * options are pictures. A question may also be its option pictures alone
+   * (the Memory Test, whose figure was memorised).
+   */
+  items: (string | { image?: string | null; options?: string[] })[],
   optionCount: number,
+  optionStyle: OptionStyle = "letters",
 ): Promise<{ added: number; error?: string }> {
   try {
     await requireEditor();
     if (!Array.isArray(items) || items.length === 0) throw new Error("No pictures were given");
     if (items.length > FIGURE_BATCH) throw new Error(`At most ${FIGURE_BATCH} questions in one batch`);
+    const style: OptionStyle = optionStyle === "numbers" ? "numbers" : "letters";
     const count = Math.floor(Number(optionCount));
-    if (!Number.isInteger(count) || count < 2 || count > MAX_OPTION_COUNT) {
-      throw new Error(`Options per question must be from 2 to ${MAX_OPTION_COUNT}`);
+    const most = style === "numbers" ? MAX_NUMBER_OPTIONS : MAX_OPTION_COUNT;
+    if (!Number.isInteger(count) || count < 2 || count > most) {
+      throw new Error(`Options per question must be from 2 to ${most}`);
     }
     const links = items.map((item, i) => {
-      const image = pictureLink(typeof item === "string" ? item : item.image);
+      const rawImage = typeof item === "string" ? item : item.image;
+      const image = rawImage ? pictureLink(rawImage) : null;
       const options = typeof item === "string" ? undefined : item.options;
-      if (options !== undefined) {
+      if (options !== undefined && options !== null) {
         if (!Array.isArray(options) || options.length !== count) {
           throw new Error(`Question ${i + 1}: needs exactly ${count} option pictures`);
         }
         return { image, options: options.map(pictureLink) };
       }
+      if (!image) throw new Error(`Question ${i + 1}: has neither a figure nor option pictures`);
       return { image, options: null };
     });
     const paperId = await paperIdOf(slug);
@@ -95,7 +111,7 @@ export async function addFigureQuestions(
         position: start + i,
         prompt_en: "",
         prompt_hi: "",
-        options: OPTION_LETTERS.slice(0, count),
+        options: optionValues(style, count),
         answer: "",
         image_url: q.image,
         option_images: q.options,
@@ -122,7 +138,9 @@ export async function setFigureAnswer(
     await requireEditor();
     const paperId = await paperIdOf(slug);
     const q = await questionOf(String(formData.get("id")), paperId);
-    const answer = String(formData.get("answer") ?? "").trim().toUpperCase();
+    const raw = String(formData.get("answer") ?? "").trim();
+    if (!raw) throw new Error("Choose an answer");
+    const answer = parseOption(raw);
     if (!q.options.includes(answer)) {
       throw new Error(`The answer must be one of ${q.options.join(", ")}`);
     }
@@ -150,34 +168,46 @@ export async function applyAnswerKey(
   return attempt("Answer key", async () => {
     await requireEditor();
     const paperId = await paperIdOf(slug);
-    const letters = String(formData.get("key") ?? "")
-      .toUpperCase()
-      .replace(/[^A-Z]/g, "")
-      .split("");
-    if (letters.length === 0) throw new Error("Type the answers, one letter per question, in order");
+    const text = String(formData.get("key") ?? "").trim();
+    if (!text) throw new Error("Type the answers, one per question, in order");
 
     const { data: rows } = await questionStore()
       .from("watch_questions")
       .select("id, position, options")
       .eq("paper_id", paperId)
       .order("position");
-    const questions = (rows ?? []) as { id: string; position: number; options: string[] }[];
+    const questions = (rows ?? []) as { id: string; position: number; options: (string | number)[] }[];
     if (questions.length === 0) throw new Error("There are no questions yet");
-    if (letters.length !== questions.length) {
+
+    // Letters may be run together (ABDCE); numbers need a space or comma
+    // between them, since "10" is one answer and not two. A single run of
+    // letters with no separators is split into its characters.
+    let tokens = text.split(/[\s,;|]+/).filter(Boolean);
+    if (tokens.length === 1 && questions.length > 1 && /^[A-Za-z]+$/.test(tokens[0])) {
+      tokens = tokens[0].split("");
+    }
+    if (tokens.length !== questions.length) {
       throw new Error(
-        `The key has ${letters.length} letter${letters.length === 1 ? "" : "s"} but the paper has ${questions.length} question${questions.length === 1 ? "" : "s"}. Give exactly one letter per question, in order.`,
+        `The key has ${tokens.length} answer${tokens.length === 1 ? "" : "s"} but the paper has ${questions.length} question${questions.length === 1 ? "" : "s"}. Give exactly one per question, in order (numbers separated by spaces or commas).`,
       );
     }
-    questions.forEach((q, i) => {
-      if (!q.options.includes(letters[i])) {
-        throw new Error(`Question ${i + 1}: "${letters[i]}" is not one of its options ${q.options.join(", ")}`);
+    const answers = tokens.map((token, i) => {
+      let value;
+      try {
+        value = parseOption(token);
+      } catch {
+        throw new Error(`Question ${i + 1}: "${token}" is not an answer`);
       }
+      if (!questions[i].options.includes(value)) {
+        throw new Error(`Question ${i + 1}: "${token}" is not one of its options ${questions[i].options.join(", ")}`);
+      }
+      return value;
     });
 
     for (let i = 0; i < questions.length; i++) {
       const { error } = await questionStore()
         .from("watch_questions")
-        .update({ answer: letters[i] })
+        .update({ answer: answers[i] })
         .eq("id", questions[i].id);
       if (error) throw new Error(`Question ${i + 1}: ${error.message}`);
     }
@@ -233,6 +263,41 @@ export async function replaceFigureImage(
       .from("watch_questions")
       .update({ image_url: pictureLink(url) })
       .eq("id", q.id);
+    if (error) throw new Error(error.message);
+    revalidatePath(`/admin/watch-table/${slug}`);
+    paperChanged(slug);
+    return { ok: true };
+  } catch (error) {
+    if (typeof (error as { digest?: unknown })?.digest === "string") throw error;
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * The Memory Test's study screens: one picture per part, in part order,
+ * shown for the study time before that part's questions. An empty list
+ * takes the study screens away.
+ */
+export async function setStudyImages(
+  slug: string,
+  urls: string[],
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    await requireEditor();
+    if (!Array.isArray(urls) || urls.length > 50) throw new Error("Give up to fifty pictures");
+    const images = urls.map(pictureLink);
+    const supabase = await createClient();
+    const { data: row } = await supabase
+      .from("watch_papers")
+      .select("id, features")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (!row) throw new Error("That paper no longer exists");
+    const features = { ...((row.features as Record<string, unknown>) ?? {}), studyImages: images };
+    const { error } = await supabase
+      .from("watch_papers")
+      .update({ features, updated_at: new Date().toISOString() })
+      .eq("id", row.id);
     if (error) throw new Error(error.message);
     revalidatePath(`/admin/watch-table/${slug}`);
     paperChanged(slug);
