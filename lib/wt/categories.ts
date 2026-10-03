@@ -106,7 +106,7 @@ export function categoryKind(id: string | null | undefined): PaperKind {
  * the dashboard, in the lists, or by typing a paper's address. Remove a
  * number from this list to open that battery to students.
  */
-export const HIDDEN_BATTERIES: readonly number[] = [1, 3, 5];
+export const HIDDEN_BATTERIES: readonly number[] = [1, 3, 4];
 
 /** True when a category's battery is open to students. */
 export function openToStudents(categoryId: string | null | undefined): boolean {
