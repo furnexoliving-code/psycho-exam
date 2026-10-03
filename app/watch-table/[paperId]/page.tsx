@@ -7,6 +7,7 @@ import { allowanceFor } from "@/lib/wt/attempts";
 import { openSitting } from "@/lib/wt/session";
 import { loadPaperForCandidate, loadPaperLive } from "@/lib/wt/db";
 import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
+import { openToStudents } from "@/lib/wt/categories";
 
 export default async function WatchTablePage({
   params,
@@ -29,10 +30,15 @@ export default async function WatchTablePage({
   const [who, cached] = isConfigured()
     ? await Promise.all([requireUser(`/watch-table/${paperId}`), loadPaperForCandidate(paperId)])
     : [null, getBundledPaper(paperId)];
-  const paper =
-    (await isVerifiedEditor()) ? await loadPaperLive(paperId) : cached;
+  const editor = await isVerifiedEditor();
+  const paper = editor ? await loadPaperLive(paperId) : cached;
 
   if (!paper) notFound();
+  // A battery still under test is open to the admin and the editor for
+  // trying out, and to nobody else — not even by typing the address.
+  // (The bundled samples, served only before a database exists, are a demo
+  // for whoever is setting the portal up, and stay reachable.)
+  if (isConfigured() && !editor && !openToStudents(paper.category)) notFound();
   if (paper.questions.length === 0) {
     return (
       <main className="mx-auto max-w-lg px-5 py-16 text-center">

@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { ChangePassword } from "@/components/ChangePassword";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
-import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
+import { BATTERIES, CATEGORIES, HIDDEN_BATTERIES, openToStudents } from "@/lib/wt/categories";
 import { listPublishedPapers } from "@/lib/wt/db";
 import { attemptsFor } from "@/lib/wt/history";
 
@@ -34,7 +34,9 @@ export default async function DashboardPage() {
     );
   }
 
-  const [profile, papers] = await Promise.all([requireUser(), listPublishedPapers()]);
+  const [profile, allPapers] = await Promise.all([requireUser(), listPublishedPapers()]);
+  // Papers of a battery still under test are not on offer to students.
+  const papers = allPapers.filter((p) => openToStudents(p.category));
   // A helper account has one job, and its page is in the panel.
   if (profile.role === "staff" || profile.role === "editor") redirect(panelHome(profile.role));
   const history = await attemptsFor(profile.id);
@@ -81,7 +83,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* ------------------------- The batteries -------------------------- */}
-        {BATTERIES.map((battery) => (
+        {BATTERIES.filter((battery) => !HIDDEN_BATTERIES.includes(battery.id)).map((battery) => (
         <section key={battery.id}>
         <h2 className="mt-8 text-[18px] font-bold text-gray-900">
           <span className="mr-2 rounded bg-rrb-banner/10 px-2 py-0.5 text-[12px] font-semibold text-rrb-banner">

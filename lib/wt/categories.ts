@@ -98,3 +98,19 @@ export function categoryTitle(id: string): string {
 export function categoryKind(id: string | null | undefined): PaperKind {
   return CATEGORIES.find((c) => c.id === id)?.kind ?? "directions";
 }
+
+/**
+ * Batteries kept off the student portal while the institute is still
+ * testing them. The admin panel still shows and edits them, and an admin
+ * or editor can still preview their papers; a student does not see them on
+ * the dashboard, in the lists, or by typing a paper's address. Remove a
+ * number from this list to open that battery to students.
+ */
+export const HIDDEN_BATTERIES: readonly number[] = [1, 3, 5];
+
+/** True when a category's battery is open to students. */
+export function openToStudents(categoryId: string | null | undefined): boolean {
+  const category = CATEGORIES.find((c) => c.id === categoryId);
+  if (!category) return true;
+  return !HIDDEN_BATTERIES.includes(category.battery);
+}

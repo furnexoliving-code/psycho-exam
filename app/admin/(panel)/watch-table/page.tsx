@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireEditor } from "@/lib/auth";
-import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
+import { BATTERIES, CATEGORIES, HIDDEN_BATTERIES } from "@/lib/wt/categories";
 import { listPapersForAdmin, type PaperSummary } from "@/lib/wt/db";
 import { createPaper } from "./actions";
 import { AdminNotice } from "@/components/admin/AdminNotice";
@@ -36,6 +36,11 @@ export default async function FollowingDirectionsPage({
         <div key={battery.id} className="mt-8">
           <h2 className="border-b border-gray-300 pb-1 text-[13px] font-bold uppercase tracking-wide text-gray-500">
             Battery {battery.id} · {battery.title}
+            {HIDDEN_BATTERIES.includes(battery.id) && (
+              <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-[11px] font-semibold normal-case tracking-normal text-amber-900">
+                Hidden from students while under test — admin and test setter can still preview
+              </span>
+            )}
           </h2>
       {CATEGORIES.filter((c) => c.battery === battery.id).map((category) => {
         const mine = papers.filter((p) => p.category === category.id);
