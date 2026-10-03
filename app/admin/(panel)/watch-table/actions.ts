@@ -14,6 +14,7 @@ import { paperChanged } from "@/lib/wt/db";
 import { CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
 import { FIGURE_EXAMPLE_TEXT, pictureInstructions } from "@/lib/wt/figure-sample";
 import { syncScheduleClock } from "./figure-actions";
+import { scheduleMinutes } from "@/lib/wt/schedule";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -208,7 +209,7 @@ export async function createPaper(formData: FormData) {
             lockScroll: true,
             overflowQuestions: false,
             questionsPerPart: category === "figure" ? 10 : category === "memory" ? 3 : 2,
-            ...(category === "memory" ? { studyTimeMin: 1, partTimeMin: 1 } : {}),
+            ...(category === "memory" ? { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1 } : {}),
           }
         : {},
       category,
@@ -333,7 +334,7 @@ export async function saveSettings(
     // the parts, so the two can never disagree.
     const studyRaw = formData.get("study_time_min");
     const partRaw = formData.get("part_time_min");
-    const schedule: { studyTimeMin?: number; partTimeMin?: number } = {};
+    const schedule: { studyTimeMin?: number; partTimeMin?: number; breakTimeMin?: number } = {};
     if (studyRaw !== null) {
       const n = numberOrNull(studyRaw) ?? 0;
       if (n < 0 || n > 60) throw new Error("Study time must be from 0 to 60 minutes");
@@ -343,6 +344,12 @@ export async function saveSettings(
       const n = numberOrNull(partRaw) ?? 0;
       if (n < 0 || n > 120) throw new Error("Time per part must be from 0 to 120 minutes");
       schedule.partTimeMin = n;
+    }
+    const breakRaw = formData.get("break_time_min");
+    if (breakRaw !== null) {
+      const n = numberOrNull(breakRaw) ?? 0;
+      if (n < 0 || n > 30) throw new Error("Break time must be from 0 to 30 minutes");
+      schedule.breakTimeMin = n;
     }
 
     const publish = formData.get("is_published") === "on";
@@ -378,9 +385,7 @@ export async function saveSettings(
         .from("watch_questions")
         .select("id", { count: "exact", head: true })
         .eq("paper_id", before.id);
-      const parts = Math.max(1, Math.ceil((count ?? 0) / perPart));
-      const total = parts * (schedule.studyTimeMin + (schedule.partTimeMin ?? 0));
-      if (total > 0) timeLimit = Math.max(1, Math.ceil(total));
+      timeLimit = scheduleMinutes({ ...schedule, questionsPerPart: perPart }, count ?? 0);
     }
 
     const { data: updated, error } = await supabase

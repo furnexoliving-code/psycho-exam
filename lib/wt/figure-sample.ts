@@ -219,6 +219,7 @@ export function memorySamplePaper() {
       // study, 3 s of questions, per part.
       studyTimeMin: 0.05,
       partTimeMin: 0.05,
+      breakTimeMin: 0.05,
       studyImages: study,
     },
     timeLimitMin: 1,

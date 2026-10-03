@@ -14,6 +14,7 @@ import {
   type OptionStyle,
 } from "@/lib/wt/figure-sample";
 import { parseOption } from "@/lib/wt/parse-questions";
+import { scheduleMinutes } from "@/lib/wt/schedule";
 
 /**
  * The Perceptual Speed paper's questions: pictures, each answered by a
@@ -324,17 +325,19 @@ export async function syncScheduleClock(slug: string): Promise<void> {
     .eq("slug", slug)
     .maybeSingle();
   if (!row) return;
-  const f = (row.features ?? {}) as { studyTimeMin?: number; partTimeMin?: number; questionsPerPart?: number };
-  const study = Number(f.studyTimeMin ?? 0);
-  if (!(study > 0)) return;
+  const f = (row.features ?? {}) as {
+    studyTimeMin?: number;
+    partTimeMin?: number;
+    breakTimeMin?: number;
+    questionsPerPart?: number;
+  };
+  if (!(Number(f.studyTimeMin ?? 0) > 0)) return;
 
   const { count } = await questionStore()
     .from("watch_questions")
     .select("id", { count: "exact", head: true })
     .eq("paper_id", row.id);
-  const perPart = Math.max(1, Math.floor(Number(f.questionsPerPart ?? 10)) || 10);
-  const parts = Math.max(1, Math.ceil((count ?? 0) / perPart));
-  const total = Math.max(1, Math.ceil(parts * (study + Number(f.partTimeMin ?? 0))));
+  const total = scheduleMinutes(f, count ?? 0);
   if (total === row.time_limit_min) return;
 
   await supabase

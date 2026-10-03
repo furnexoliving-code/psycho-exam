@@ -137,6 +137,8 @@ export interface WatchFeatures {
    * the clock alone, as in the hall, and the test time is the sum.
    */
   partTimeMin?: number;
+  /** With study screens: minutes of break, with a summary, between one part and the next. */
+  breakTimeMin?: number;
 }
 
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
@@ -152,6 +154,7 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   studyTimeMin: 0,
   studyImages: [],
   partTimeMin: 0,
+  breakTimeMin: 0,
 };
 
 export function resolveFeatures(features?: WatchFeatures): Required<WatchFeatures> {

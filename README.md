@@ -137,10 +137,15 @@ the same engine as Battery 5, told apart by category. Options are letters
 question may be its option pictures alone (q01-A … q01-E with no q01), as
 the Memory Test's are. A Memory paper has study screens: one picture per
 part (`features.studyImages`), shown for `studyTimeMin` before that part's
-questions, which then stay open for `partTimeMin`; the parts run on the
-test's clock alone, nothing moves between them and nothing goes back, and
-the test time is set to parts × (study + questions) when settings are
-saved.
+questions, which then stay open for `partTimeMin`, then a break of
+`breakTimeMin` with a summary of the part; the parts run on the test's
+clock alone (`lib/wt/schedule.ts`), nothing moves between them and
+nothing goes back, and the test time is kept at parts × (study +
+questions) + breaks whenever settings are saved or questions change. Each
+question is drawn as the real portal draws it: option pictures alone as a
+strip with the radios after it (Memory), a figure with its radios on one
+line (Depth Perception, Power of Observation), or a figure above "A
+[picture]" options (Perceptual Speed).
 
 ### Thousands of students
 
