@@ -345,6 +345,9 @@ export async function saveSettings(
       if (n < 0 || n > 120) throw new Error("Time per part must be from 0 to 120 minutes");
       schedule.partTimeMin = n;
     }
+    const scaleRaw = formData.get("picture_scale");
+    const pictureScale =
+      scaleRaw === null ? {} : { pictureScale: Math.min(400, Math.max(0, Math.round(Number(scaleRaw) || 0))) };
     const breakRaw = formData.get("break_time_min");
     if (breakRaw !== null) {
       const n = numberOrNull(breakRaw) ?? 0;
@@ -417,6 +420,7 @@ export async function saveSettings(
           overflowQuestions: formData.get("overflowQuestions") === "on",
           ...partsField,
           ...schedule,
+          ...pictureScale,
           // Kept as they are: set from their own uploader, not this form.
           ...(current?.studyImages ? { studyImages: current.studyImages } : {}),
         },

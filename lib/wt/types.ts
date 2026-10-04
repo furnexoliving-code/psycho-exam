@@ -139,6 +139,12 @@ export interface WatchFeatures {
   partTimeMin?: number;
   /** With study screens: minutes of break, with a summary, between one part and the next. */
   breakTimeMin?: number;
+  /**
+   * Picture papers: how large the pictures are drawn, as a percentage of
+   * the usual size. 0 means the test's own usual size (Depth Perception is
+   * drawn half as large again, since its block piles are finer).
+   */
+  pictureScale?: number;
 }
 
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
@@ -155,6 +161,7 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   studyImages: [],
   partTimeMin: 0,
   breakTimeMin: 0,
+  pictureScale: 0,
 };
 
 export function resolveFeatures(features?: WatchFeatures): Required<WatchFeatures> {

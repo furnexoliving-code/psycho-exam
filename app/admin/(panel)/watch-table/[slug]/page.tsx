@@ -16,6 +16,7 @@ import { QuestionsPanel } from "./QuestionsPanel";
 import { FigureQuestionsPanel } from "./FigureQuestionsPanel";
 import { StudyPictures } from "./StudyPictures";
 import { scheduleMinutes } from "@/lib/wt/schedule";
+import { PICTURE_SCALES, defaultPictureScale } from "@/lib/wt/figure-sample";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
@@ -207,6 +208,24 @@ export default async function EditWatchPaper({
                 unit="questions"
                 hint="The paper is shown in parts, as in the real test; Save & Next moves to the next part."
               />
+              <label className="block">
+                <span className="mb-1 block text-[12px] font-semibold text-gray-700">Picture size</span>
+                <select
+                  name="picture_scale"
+                  defaultValue={String(features.pictureScale || 0)}
+                  className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+                >
+                  <option value="0">Usual for this test ({defaultPictureScale(paper.category)}%)</option>
+                  {PICTURE_SCALES.map((n) => (
+                    <option key={n} value={n}>
+                      {n}%
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1 block text-[11px] text-gray-500">
+                  How large every question&apos;s picture and option pictures are drawn, as a share of the usual size.
+                </span>
+              </label>
               <Number
                 label="Study time per part"
                 name="study_time_min"

@@ -6,6 +6,7 @@ import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
 import { useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { phaseAt, scheduleOf } from "@/lib/wt/schedule";
+import { defaultPictureScale } from "@/lib/wt/figure-sample";
 import { PortalBanner } from "./PortalBanner";
 import { PortalToolbar } from "./PortalToolbar";
 import { TestTabs } from "./TestTabs";
@@ -53,6 +54,12 @@ export function FigureExam({
   const onTest = state.phase === "test";
   const features = resolveFeatures(paper.features);
   const fontScale = paper.fontScale ?? 1;
+  // How large the pictures are drawn: the paper's own setting, else the
+  // test's usual size.
+  const scale = (features.pictureScale > 0 ? features.pictureScale : defaultPictureScale(paper.category)) / 100;
+  const figureH = Math.round(72 * scale);
+  const optionH = Math.round(64 * scale);
+  const stripH = Math.round(52 * scale);
 
   // The same switch as the Following Directions paper: with the wheel off,
   // the scrollbar still drags and the Part tabs still move; only the wheel
@@ -358,7 +365,7 @@ export function FigureExam({
                           {q.optionImages.map((picture, oi) => (
                             <span key={oi} className="relative inline-block border border-[#333] bg-white p-0.5">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={picture} alt={`Option ${String(q.options[oi])}`} className="h-[52px] w-auto" draggable={false} />
+                              <img src={picture} alt={`Option ${String(q.options[oi])}`} className="w-auto" style={{ height: stripH }} draggable={false} />
                               <span className="absolute bottom-0 right-0.5 text-[9px] leading-none text-[#333]">
                                 {String(q.options[oi])}
                               </span>
@@ -376,7 +383,7 @@ export function FigureExam({
                       // of Observation): the picture and the radios on one line.
                       <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={q.image} alt={`Question ${number}`} className="h-[72px] w-auto max-w-full" draggable={false} />
+                        <img src={q.image} alt={`Question ${number}`} className="w-auto max-w-full" style={{ height: figureH }} draggable={false} />
                         <span className="flex flex-wrap items-center gap-x-5">
                           {q.options.map((option, oi) => (
                             <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
@@ -389,7 +396,7 @@ export function FigureExam({
                       <>
                         {q.image && (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={q.image} alt={`Question ${number}`} className="mt-2 h-[72px] w-auto max-w-full" draggable={false} />
+                          <img src={q.image} alt={`Question ${number}`} className="mt-2 w-auto max-w-full" style={{ height: figureH }} draggable={false} />
                         )}
                         <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
                           {q.options.map((option, oi) => {
@@ -400,7 +407,7 @@ export function FigureExam({
                                 <Choice id={id} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
                                 {picture && (
                                   // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={picture} alt={`Option ${String(option)}`} className="h-[64px] w-auto" draggable={false} />
+                                  <img src={picture} alt={`Option ${String(option)}`} className="w-auto" style={{ height: optionH }} draggable={false} />
                                 )}
                               </span>
                             );
