@@ -239,3 +239,49 @@ export function memorySamplePaper() {
     resultView: {},
   };
 }
+
+/** A tiny Power of Observation paper, for seeing the Set A / Set B layout before a database exists. */
+export const OBSERVATION_SAMPLE_ID = "observation-sample";
+
+export function observationSamplePaper() {
+  const glyphs = ["★", "●", "■", "▲", "◆", "✚"];
+  const row = (order: number[], swap: [number, number] | null) => {
+    const b = [...order];
+    if (swap) [b[swap[0]], b[swap[1]]] = [b[swap[1]], b[swap[0]]];
+    const text = (arr: number[], x0: number) =>
+      arr.map((g, i) => `<text x="${x0 + i * 40}" y="42" font-size="30" text-anchor="middle" fill="#111">${glyphs[g]}</text>`).join("");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="60" viewBox="0 0 560 60">${text(order, 30)}<line x1="265" y1="6" x2="265" y2="54" stroke="#111" stroke-width="2"/>${text(b, 300)}</svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+  const letters = OPTION_LETTERS.slice(0, 4);
+  const items: [number[], [number, number] | null, string][] = [
+    [[0, 1, 2, 3, 4, 5], null, "A"],
+    [[5, 4, 3, 2, 1, 0], [0, 5], "B"],
+    [[2, 0, 4, 1, 5, 3], [1, 2], "B"],
+    [[1, 3, 5, 0, 2, 4], null, "A"],
+  ];
+  return {
+    id: OBSERVATION_SAMPLE_ID,
+    kind: "figure" as const,
+    category: "observation",
+    title: "Power of Observation Test",
+    displayName: "Power of Observation Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 2 },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions("observation", 1, 5),
+    example: { table: { label: "Example", cells: [] }, text: [] },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions: items.map(([order, swap, answer], i) => ({
+      id: `os-q${i + 1}`,
+      tableIndex: 0,
+      prompt: { en: "", hi: "" },
+      options: [...letters],
+      answer,
+      working: { en: "", hi: "" },
+      topic: "Observation",
+      image: row(order, swap),
+    })),
+    resultView: {},
+  };
+}

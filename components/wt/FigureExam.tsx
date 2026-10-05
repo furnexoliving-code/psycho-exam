@@ -47,6 +47,12 @@ export function FigureExam({
     storageOwner,
   );
   const [instructionsOpen, setInstructionsOpen] = useState(false);
+  // Power of Observation: "Set A" and "Set B" stand over the two halves of
+  // the pictures, as in the real test. The headings are as wide as the
+  // first picture on screen, so they sit over its halves whatever size
+  // the pictures were uploaded at.
+  const twoSets = paper.category === "observation";
+  const [setsWidth, setSetsWidth] = useState(0);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
   const column = useRef<HTMLDivElement | null>(null);
@@ -339,6 +345,16 @@ export function FigureExam({
               <span lang="hi">कृपया सही उत्तर चुनें</span>
             </p>
 
+            {twoSets && (
+              <div
+                className="mt-3 flex text-[1.05em] text-[#222]"
+                style={{ width: setsWidth > 0 ? setsWidth : undefined, fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                <span className="w-1/2 text-center">Set A</span>
+                <span className="w-1/2 text-center">Set B</span>
+              </div>
+            )}
+
             <ol className="mt-3 space-y-6">
               {parts[part]?.map((q, i) => {
                 const number = part * perPart + i + 1;
@@ -383,7 +399,14 @@ export function FigureExam({
                       // of Observation): the picture and the radios on one line.
                       <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={q.image} alt={`Question ${number}`} className="w-auto max-w-full" style={{ height: figureH }} draggable={false} />
+                        <img
+                          src={q.image}
+                          alt={`Question ${number}`}
+                          className="w-auto max-w-full"
+                          style={{ height: figureH }}
+                          draggable={false}
+                          onLoad={twoSets && i === 0 ? (e) => setSetsWidth(e.currentTarget.clientWidth) : undefined}
+                        />
                         <span className="flex flex-wrap items-center gap-x-5">
                           {q.options.map((option, oi) => (
                             <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
