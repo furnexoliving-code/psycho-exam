@@ -11,10 +11,11 @@ import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
 import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-questions";
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
-import { CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
+import { BATTERIES, CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
 import { FIGURE_EXAMPLE_TEXT, pictureInstructions } from "@/lib/wt/figure-sample";
 import { syncScheduleClock } from "./figure-actions";
 import { scheduleMinutes } from "@/lib/wt/schedule";
+import { setBatteryHidden } from "@/lib/wt/visibility";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -919,4 +920,24 @@ export async function duplicatePaper(formData: FormData) {
 
     paperChanged(copy.slug);
     redirect(`/admin/watch-table/${copy.slug}`);  });
+}
+
+/**
+ * Shows a battery on the student dashboard, or hides it again. Admin only:
+ * what students see is the institute's call, not a test setter's.
+ */
+export async function setBatteryVisibility(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Student dashboard", async () => {
+    await requireAdmin();
+    const battery = Number(formData.get("battery"));
+    if (!BATTERIES.some((b) => b.id === battery)) throw new Error("No such battery");
+    const hidden = formData.get("hidden") === "true";
+    await setBatteryHidden(battery, hidden);
+    revalidatePath("/admin/watch-table");
+    revalidatePath("/dashboard");
+    return hidden ? `Battery ${battery} hidden from students` : `Battery ${battery} now shown to students`;
+  });
 }

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { requireEditor } from "@/lib/auth";
-import { BATTERIES, CATEGORIES, HIDDEN_BATTERIES } from "@/lib/wt/categories";
+import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
+import { hiddenBatteries } from "@/lib/wt/visibility";
+import { RowForm } from "@/components/admin/RowForm";
 import { listPapersForAdmin, type PaperSummary } from "@/lib/wt/db";
-import { createPaper } from "./actions";
+import { createPaper, deletePaper, setBatteryVisibility } from "./actions";
 import { AdminNotice } from "@/components/admin/AdminNotice";
 import { PendingButton } from "@/components/admin/PendingButton";
 
@@ -18,8 +20,13 @@ export default async function FollowingDirectionsPage({
   searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   // On the page itself, not only in the layout, which a request can skip.
-  await requireEditor("/admin/watch-table");
-  const [papers, { error, saved }] = await Promise.all([listPapersForAdmin(), searchParams]);
+  const who = await requireEditor("/admin/watch-table");
+  const isAdmin = who.role === "admin";
+  const [papers, { error, saved }, hidden] = await Promise.all([
+    listPapersForAdmin(),
+    searchParams,
+    hiddenBatteries(),
+  ]);
 
   return (
     <>
@@ -34,14 +41,41 @@ export default async function FollowingDirectionsPage({
 
       {BATTERIES.map((battery) => (
         <div key={battery.id} className="mt-8">
-          <h2 className="border-b border-gray-300 pb-1 text-[13px] font-bold uppercase tracking-wide text-gray-500">
-            Battery {battery.id} · {battery.title}
-            {HIDDEN_BATTERIES.includes(battery.id) && (
-              <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-[11px] font-semibold normal-case tracking-normal text-amber-900">
-                Hidden from students while under test — admin and test setter can still preview
+          <div className="flex flex-wrap items-center gap-3 border-b border-gray-300 pb-1">
+            <h2 className="text-[13px] font-bold uppercase tracking-wide text-gray-500">
+              Battery {battery.id} · {battery.title}
+            </h2>
+            {hidden.includes(battery.id) ? (
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
+                Hidden from students — admin and test setter can still preview
+              </span>
+            ) : (
+              <span className="rounded bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">
+                Shown on the student dashboard
               </span>
             )}
-          </h2>
+            {isAdmin && (
+              <RowForm action={setBatteryVisibility} className="ml-auto">
+                <input type="hidden" name="battery" value={battery.id} />
+                <input type="hidden" name="hidden" value={String(!hidden.includes(battery.id))} />
+                <PendingButton
+                  pendingLabel="Saving…"
+                  confirm={
+                    hidden.includes(battery.id)
+                      ? `Show Battery ${battery.id} (${battery.title}) to students? Its published papers appear on their dashboard at once.`
+                      : `Hide Battery ${battery.id} (${battery.title}) from students? Its papers disappear from their dashboard at once; nothing is deleted.`
+                  }
+                  className={`rounded px-3 py-1 text-[12px] font-semibold ${
+                    hidden.includes(battery.id)
+                      ? "bg-indigo-800 text-white hover:bg-indigo-900"
+                      : "border border-gray-400 bg-white text-gray-800 hover:bg-gray-100"
+                  } disabled:opacity-60`}
+                >
+                  {hidden.includes(battery.id) ? "Show to students" : "Hide from students"}
+                </PendingButton>
+              </RowForm>
+            )}
+          </div>
       {CATEGORIES.filter((c) => c.battery === battery.id).map((category) => {
         const mine = papers.filter((p) => p.category === category.id);
 
@@ -62,7 +96,7 @@ export default async function FollowingDirectionsPage({
                 No paper here yet. Create one below and choose {category.title}.
               </p>
             ) : (
-              <PaperTable papers={mine} />
+              <PaperTable papers={mine} canDelete={isAdmin} />
             )}
           </section>
         );
@@ -133,7 +167,7 @@ export default async function FollowingDirectionsPage({
   );
 }
 
-function PaperTable({ papers }: { papers: PaperSummary[] }) {
+function PaperTable({ papers, canDelete }: { papers: PaperSummary[]; canDelete: boolean }) {
   return (
     <div className="mt-2 overflow-x-auto">
       <table className="w-full border-collapse text-[13px]">
@@ -175,12 +209,26 @@ function PaperTable({ papers }: { papers: PaperSummary[] }) {
                 </span>
               </td>
               <td className="border border-gray-300 px-3 py-2">
-                <Link
-                  href={`/admin/watch-table/${paper.slug}`}
-                  className="font-semibold text-rrb-banner hover:underline"
-                >
-                  Open
-                </Link>
+                <div className="flex items-center gap-4">
+                  <Link
+                    href={`/admin/watch-table/${paper.slug}`}
+                    className="font-semibold text-rrb-banner hover:underline"
+                  >
+                    Open
+                  </Link>
+                  {canDelete && (
+                    <form action={deletePaper}>
+                      <input type="hidden" name="slug" value={paper.slug} />
+                      <PendingButton
+                        pendingLabel="Deleting…"
+                        confirm={`Delete "${paper.displayName}"?\n\nIts ${paper.questionCount} questions, every student's results for it, and any sitting in progress go with it. This cannot be undone.`}
+                        className="text-[12px] font-semibold text-red-700 hover:underline disabled:opacity-60"
+                      >
+                        Delete
+                      </PendingButton>
+                    </form>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

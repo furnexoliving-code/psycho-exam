@@ -5,7 +5,8 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { PaperCard } from "@/components/PaperCard";
 import { requireUser } from "@/lib/auth";
 import { allowancesFor } from "@/lib/wt/attempts";
-import { CATEGORIES, openToStudents } from "@/lib/wt/categories";
+import { CATEGORIES } from "@/lib/wt/categories";
+import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { listPublishedPapers } from "@/lib/wt/db";
 
 /**
@@ -22,8 +23,8 @@ export default async function CategoryPage({
 }) {
   const { category: id } = await params;
   const category = CATEGORIES.find((c) => c.id === id);
-  // A battery still under test is not there, as far as a student can tell.
-  if (!category || !openToStudents(id)) notFound();
+  // A battery the admin has not opened is not there, as far as a student can tell.
+  if (!category || !openToStudents(id, await hiddenBatteries())) notFound();
 
   // Who is asking and what is on offer are independent, so they load together.
   const [profile, papers] = await Promise.all([

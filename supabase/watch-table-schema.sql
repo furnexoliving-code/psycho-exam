@@ -643,3 +643,17 @@ alter table public.watch_papers drop constraint if exists watch_papers_category_
 alter table public.watch_papers
   add constraint watch_papers_category_ck
   check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation'));
+
+-- ---------------------------------------------------------------------------
+-- Portal settings (added later)
+--
+-- Small switches the admin flips from the panel, such as which batteries
+-- the student dashboard shows. No policies: only the server, through the
+-- service role, reads or writes them.
+-- ---------------------------------------------------------------------------
+create table if not exists public.portal_settings (
+  key         text primary key,
+  value       jsonb not null,
+  updated_at  timestamptz not null default now()
+);
+alter table public.portal_settings enable row level security;

@@ -7,7 +7,7 @@ import { allowanceFor } from "@/lib/wt/attempts";
 import { openSitting } from "@/lib/wt/session";
 import { loadPaperForCandidate, loadPaperLive } from "@/lib/wt/db";
 import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
-import { openToStudents } from "@/lib/wt/categories";
+import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 
 export default async function WatchTablePage({
   params,
@@ -38,7 +38,7 @@ export default async function WatchTablePage({
   // trying out, and to nobody else — not even by typing the address.
   // (The bundled samples, served only before a database exists, are a demo
   // for whoever is setting the portal up, and stay reachable.)
-  if (isConfigured() && !editor && !openToStudents(paper.category)) notFound();
+  if (isConfigured() && !editor && !openToStudents(paper.category, await hiddenBatteries())) notFound();
   if (paper.questions.length === 0) {
     return (
       <main className="mx-auto max-w-lg px-5 py-16 text-center">
