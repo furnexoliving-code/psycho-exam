@@ -1,6 +1,7 @@
 "use client";
 
 import { MockBreak } from "@/components/wt/MockBreak";
+import { ShareResult } from "@/components/ShareResult";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -276,9 +277,12 @@ export function ResultView({
 
   return (
     <div className="viz flex min-h-screen flex-col" style={{ background: "var(--plane)" }}>
-      <PortalBanner showInstructions={false} showQuestionPaper={false} />
+      <div className="no-print">
+        <PortalBanner showInstructions={false} showQuestionPaper={false} />
+      </div>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
+        <div id="result-capture" className="rounded-2xl p-1" style={{ background: "var(--plane)" }}>
         <header
           className="flex flex-wrap items-center justify-between gap-4 rounded-2xl px-6 py-5 text-white shadow-lg"
           style={{ background: "linear-gradient(120deg,#1565b0 0%,#1668b0 45%,#0f766e 100%)" }}
@@ -290,9 +294,12 @@ export function ResultView({
               <p className="mt-0.5 text-[13px] text-white/85">{displayName}</p>
             </div>
           </div>
-          <span className="rounded-full bg-white/15 px-4 py-1.5 text-[12px] font-semibold">
-            ✨ {score.correct} of {score.total} correct
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-white/15 px-4 py-1.5 text-[12px] font-semibold">
+              ✨ {score.correct} of {score.total} correct
+            </span>
+            <ShareResult targetId="result-capture" fileName={`${displayName} - result`.replace(/[^\w\- ]+/g, "").trim() || "result"} title={`${displayName} result`} />
+          </div>
         </header>
 
         {/* The hero figure, with the expert's word beside it when there is one. */}
@@ -322,6 +329,8 @@ export function ResultView({
             <Stat label="Accuracy" value={`${score.accuracy.toFixed(0)}%`} foot="of attempted" emoji="🎯" tone="green" />
           )}
           <StandingCards standing={standing} showRank={view.rank} showPercentile={view.percentile} />
+        </div>
+        <p className="mt-2 pb-1 text-[11px] text-gray-500">Kautilya Classes · Psycho Test Portal · as per RDSO pattern</p>
         </div>
 
         <div className="mt-4 space-y-4">

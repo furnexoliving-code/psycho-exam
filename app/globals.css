@@ -59,3 +59,17 @@ body {
   height: 0;
 }
 
+
+/*
+ * Printing a result ("Save as PDF" in the browser's print dialog): the
+ * page's own chrome and controls stay out of the paper.
+ */
+@media print {
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+  }
+}

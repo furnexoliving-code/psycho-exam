@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ShareResult } from "@/components/ShareResult";
 import { scoreOutOf30, type LeaderRow, type MockResult } from "@/lib/wt/mock";
 
 /**
@@ -43,6 +44,7 @@ export function MockScorecard({
 
   return (
     <>
+      <div id="scorecard-capture" className="rounded-xl bg-gray-50 p-1">
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
@@ -53,9 +55,14 @@ export function MockScorecard({
             {candidate}{rollNo ? ` · Roll ${rollNo}` : ""} · {when}
           </p>
         </div>
-        <Link href={`/mock/${mockSlug}`} className="text-[13px] font-semibold text-rrb-banner hover:underline">
-          About this mock →
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href={`/mock/${mockSlug}`} className="no-print no-capture text-[13px] font-semibold text-rrb-banner hover:underline">
+            About this mock →
+          </Link>
+          <div className="rounded-lg bg-[#0d2a6b] px-2 py-1">
+            <ShareResult targetId="scorecard-capture" fileName={`${mockName} - ${candidate}`.replace(/[^\w\- ]+/g, "").trim() || "scorecard"} title={`${mockName} scorecard`} />
+          </div>
+        </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -125,6 +132,8 @@ export function MockScorecard({
             })}
           </tbody>
         </table>
+      </div>
+      <p className="mt-2 pb-2 text-[11px] text-gray-500">Kautilya Classes · Psycho Test Portal · as per RDSO pattern</p>
       </div>
       <p className="mt-2 text-[12px] text-gray-500">
         T-score = 50 + 10 × (your marks − cohort mean) ÷ cohort SD, measured on each paper against everyone who has sat it.

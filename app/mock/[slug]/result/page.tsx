@@ -23,7 +23,9 @@ export default async function MockResultPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <StudentHeader name={who.full_name || "Candidate"} active="mocks" photoUrl={photoUrlOf(who)} />
+      <div className="no-print">
+        <StudentHeader name={who.full_name || "Candidate"} active="mocks" photoUrl={photoUrlOf(who)} />
+      </div>
       <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-6">
         <Link href="/dashboard" className="text-[13px] font-semibold text-rrb-banner hover:underline">
           ← Dashboard
