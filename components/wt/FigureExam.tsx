@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
 import { useScrollLock } from "@/lib/wt/useKeyboardOnly";
@@ -40,7 +39,6 @@ export function FigureExam({
   questionElapsedSec?: number | null;
   storageOwner?: string;
 }) {
-  const router = useRouter();
   const { state, dispatch, answered, clearSaved } = useAttempt(
     paper,
     elapsedSec,
@@ -117,9 +115,12 @@ export function FigureExam({
   // result, at once.
   useEffect(() => {
     if (state.submitted && state.startedAt !== 0) {
-      router.replace(`/watch-table/${paper.id}/result`);
+      // A full load, not a client-side move: a portal deployed afresh while
+      // the paper was open has new script files, and the router's move to
+      // the result could fail on the old ones. The page is loaded anew.
+      window.location.assign(`/watch-table/${paper.id}/result`);
     }
-  }, [state.submitted, state.startedAt, router, paper.id]);
+  }, [state.submitted, state.startedAt, paper.id]);
 
   // The sheet goes up to the server as it changes, so a browser that dies
   // mid-paper has lost nothing. The same as the Following Directions paper.

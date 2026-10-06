@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
 import { useExamKeys, useScrollLock } from "@/lib/wt/useKeyboardOnly";
@@ -37,7 +36,6 @@ export function WatchTableExam({
   /** Whose attempt this browser keeps: the account id, never shared between students. */
   storageOwner?: string;
 }) {
-  const router = useRouter();
   const { state, dispatch, answered, clearSaved } = useAttempt(
     paper,
     elapsedSec,
@@ -88,9 +86,12 @@ export function WatchTableExam({
   // was how a candidate whose time ran out sat looking at a frozen page.
   useEffect(() => {
     if (state.submitted && state.startedAt !== 0) {
-      router.replace(`/watch-table/${paper.id}/result`);
+      // A full load, not a client-side move: a portal deployed afresh while
+      // the paper was open has new script files, and the router's move to
+      // the result could fail on the old ones. The page is loaded anew.
+      window.location.assign(`/watch-table/${paper.id}/result`);
     }
-  }, [state.submitted, state.startedAt, router, paper.id]);
+  }, [state.submitted, state.startedAt, paper.id]);
 
   // The help opened from the keyboard closes from it too. The exam's own key
   // handler is off while a dialog is up, so the panel listens for itself.
