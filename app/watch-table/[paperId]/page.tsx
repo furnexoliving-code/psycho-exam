@@ -47,6 +47,8 @@ export default async function WatchTablePage({
   // (The bundled samples, served only before a database exists, are a demo
   // for whoever is setting the portal up, and stay reachable.)
   if (isConfigured() && !editor && !mockHere && !openToStudents(paper.category, await hiddenBatteries())) notFound();
+  // A paper kept for Full Mocks is no sectional test: outside its mock it is not there.
+  if (isConfigured() && !editor && !mockHere && paper.mockOnly) notFound();
   if (paper.questions.length === 0) {
     return (
       <main className="mx-auto max-w-lg px-5 py-16 text-center">

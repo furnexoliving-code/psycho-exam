@@ -223,6 +223,8 @@ export function resolveResultView(view?: ResultView): Required<ResultView> {
 }
 
 export interface WatchPaper {
+  /** Kept for Full Mocks: opens only inside a mock sitting, never from the lists. */
+  mockOnly?: boolean;
   /** The slug — what the URL and the browser's storage know the paper by. */
   id: string;
   /**

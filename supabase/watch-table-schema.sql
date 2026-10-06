@@ -794,3 +794,14 @@ create policy mock_results_own on public.mock_results
 grant select on public.mock_results to authenticated;
 create index if not exists mock_results_mock_idx on public.mock_results (mock_id, composite desc);
 create index if not exists mock_results_user_idx on public.mock_results (user_id, submitted_at desc);
+
+-- ---------------------------------------------------------------------------
+-- Papers kept for Full Mocks only (added later)
+--
+-- A paper a student can sit in sectional practice is no test of them in a
+-- Full Mock. This marks a published paper as the mock's alone: it is left
+-- out of the sectional lists and opens only inside a mock sitting. Off on
+-- every existing paper, so nothing moves.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers
+  add column if not exists mock_only boolean not null default false;

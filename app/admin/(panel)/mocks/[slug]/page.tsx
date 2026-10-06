@@ -54,6 +54,8 @@ export default async function MockEditor({
         <h2 className="text-[13px] font-bold uppercase tracking-wide text-gray-500">Step 1 · The five tests, in the hall&apos;s order</h2>
         <p className="mt-1 text-[12px] text-gray-600">
           One paper per battery. Only a published paper with questions can go into a published mock; a battery left blank is left out.
+          Prefer papers marked <b>MOCK ONLY</b> (tick &ldquo;Only for Full Mocks&rdquo; in the paper&apos;s settings): students cannot practise
+          those, so the mock tests them fresh. A paper &ldquo;also in practice&rdquo; may already have been sat.
         </p>
         <table className="mt-3 w-full border-collapse text-[13px]">
           <thead>
@@ -76,7 +78,7 @@ export default async function MockEditor({
                       <option value="">— not in this mock —</option>
                       {options.map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.displayName} · {p.questionCount} Q · {p.instructionTimeMin}+{p.timeLimitMin} min{p.isPublished ? "" : " · DRAFT"}
+                          {p.displayName} · {p.questionCount} Q · {p.instructionTimeMin}+{p.timeLimitMin} min{p.mockOnly ? " · MOCK ONLY" : " · also in practice"}{p.isPublished ? "" : " · DRAFT"}
                         </option>
                       ))}
                     </select>

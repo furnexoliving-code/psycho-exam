@@ -411,6 +411,7 @@ export async function saveSettings(
         stats_min_attempts: minAttempts,
         font_scale: fontScale,
         max_attempts: maxAttempts,
+        mock_only: formData.get("mock_only") === "on",
         result_view: resultView,
         category,
         sort_order: sortOrder,

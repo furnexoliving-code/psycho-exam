@@ -38,6 +38,7 @@ export function paperChanged(slug?: string): void {
 }
 
 interface PaperRow {
+  mock_only?: boolean | null;
   id: string;
   slug: string;
   title: string;
@@ -95,6 +96,7 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
     category: row.category ?? "watch",
     dbId: row.id,
     maxAttempts: row.max_attempts ?? null,
+    mockOnly: row.mock_only === true,
     title: row.title,
     displayName: row.display_name,
     features: row.features ?? {},
@@ -245,10 +247,12 @@ export interface PaperSummary {
   timeLimitMin: number;
   /** How many sittings the paper allows; null for no limit. */
   maxAttempts: number | null;
+  /** Kept for Full Mocks: not in the sectional lists, opens only inside a mock. */
+  mockOnly: boolean;
 }
 
 const SUMMARY_COLUMNS =
-  "id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order, max_attempts";
+  "id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order, max_attempts, mock_only";
 
 /** Every paper, published or not, with its real question count. Admin and editor only. */
 export async function listPapersForAdmin(): Promise<PaperSummary[]> {
@@ -293,13 +297,16 @@ export async function listPublishedPapers(category?: string): Promise<PaperSumma
       // papers" would tell every student there is nothing to sit.
       if (error) throw new Error(`Could not read the papers: ${error.message}`);
       if (!rows?.length) return [];
+      // A paper kept for Full Mocks is not on offer in sectional practice.
+      const open = rows.filter((r) => !r.mock_only);
+      if (!open.length) return [];
 
       const { data: counts, error: countError } = await supabase
         .from("watch_question_counts")
         .select("paper_id, question_count")
-        .in("paper_id", rows.map((r) => r.id));
+        .in("paper_id", open.map((r) => r.id));
       if (countError) throw new Error(`Could not count the questions: ${countError.message}`);
-      return withCounts(rows, counts ?? []);
+      return withCounts(open, counts ?? []);
     },
     ["published-papers", category ?? "all"],
     { tags: [PAPERS_TAG], revalidate: CACHE_SECONDS },
@@ -316,6 +323,7 @@ interface PaperRowLite {
   category: string | null;
   sort_order: number | null;
   max_attempts: number | null;
+  mock_only?: boolean | null;
 }
 
 function withCounts(
@@ -335,6 +343,7 @@ function withCounts(
     instructionTimeMin: r.instruction_time_min,
     timeLimitMin: r.time_limit_min,
     maxAttempts: r.max_attempts === null || r.max_attempts === undefined ? null : Number(r.max_attempts),
+    mockOnly: r.mock_only === true,
   }));
 }
 

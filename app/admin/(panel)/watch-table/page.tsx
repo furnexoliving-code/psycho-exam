@@ -205,7 +205,7 @@ function PaperTable({ papers, canDelete }: { papers: PaperSummary[]; canDelete: 
                       : "bg-gray-200 text-gray-700"
                   }`}
                 >
-                  {paper.isPublished ? "Published" : "Draft"}
+                  {paper.isPublished ? "Published" : "Draft"}{paper.mockOnly ? " · Mock only" : ""}
                 </span>
               </td>
               <td className="border border-gray-300 px-3 py-2">

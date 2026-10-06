@@ -40,7 +40,7 @@ export default async function EditWatchPaper({
   const { data: row } = await supabase
     .from("watch_papers")
     .select(
-      "is_published, image_url, image_width_pct, font_scale, max_attempts, result_view, category, sort_order, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
+      "is_published, image_url, image_width_pct, font_scale, max_attempts, mock_only, result_view, category, sort_order, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
     )
     .eq("slug", slug)
     .single();
@@ -187,6 +187,21 @@ export default async function EditWatchPaper({
               The student sees how many they have left. Blank means unlimited.
               The limit is enforced on the server, so it holds even if someone
               reaches the paper by its link.
+            </span>
+          </label>
+
+          <h3 className="mt-6 text-[13px] font-bold text-gray-900">
+            Where this paper is used
+          </h3>
+          <label className="mt-2 flex items-start gap-2 text-[13px] text-gray-800">
+            <input type="checkbox" name="mock_only" defaultChecked={row?.mock_only === true} className="mt-0.5 h-4 w-4" />
+            <span>
+              <span className="font-semibold">Only for Full Mocks</span>
+              <span className="mt-0.5 block text-[11px] text-gray-500">
+                Ticked: the paper is left out of sectional practice and opens only inside a Full Mock, so students meet
+                it fresh. Unticked: it is an ordinary sectional paper (and may still be put in a mock, though students
+                can practise it first).
+              </span>
             </span>
           </label>
 
