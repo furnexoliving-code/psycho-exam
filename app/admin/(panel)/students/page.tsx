@@ -3,10 +3,9 @@ import { formatDate, formatDateTime } from "@/lib/format-time";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { normalisePhone } from "@/lib/phone";
-import { createStaff, createStudent, deleteStudent, removeStaff, resetPassword, setActive, setValidity, setValidityForAll } from "./actions";
+import { createStudent, deleteStudent, resetPassword, setActive, setValidity, setValidityForAll } from "./actions";
 import { hasExpired } from "@/lib/auth";
 import { indianDay } from "@/lib/format-time";
-import { HELPER_ROLES, isHelperRole } from "./helpers";
 import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { PendingButton } from "@/components/admin/PendingButton";
@@ -50,12 +49,6 @@ export default async function StudentsPage({
   const total = studentCount ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const { data: helpers } = await supabase
-    .from("profiles")
-    .select("id, full_name, phone, role, created_at")
-    .in("role", Object.keys(HELPER_ROLES))
-    .order("created_at", { ascending: false });
-
   const { data: watchAttempts } = await supabase
     .from("watch_attempts")
     .select("id, paper_id, user_id, marks, total, attempted, submitted_at")
@@ -77,7 +70,7 @@ export default async function StudentsPage({
 
   return (
     <>
-      <h1 className="text-xl font-bold text-gray-900">Students &amp; Results</h1>
+      <h1 className="text-xl font-bold text-gray-900">Students</h1>
 
       <section className="mt-4 rounded border border-gray-300 bg-white p-5">
         <h2 className="text-[15px] font-bold text-gray-900">Add a student</h2>
@@ -303,82 +296,6 @@ export default async function StudentsPage({
             </label>
           </div>
         </SaveForm>
-      </section>
-
-      {/* --------------------------- Helper accounts --------------------------- */}
-      <section className="mt-8 rounded border border-gray-300 bg-white p-5">
-        <h2 className="text-[15px] font-bold text-gray-900">Helper accounts</h2>
-        <p className="mt-1 text-[12px] text-gray-600">
-          Each kind of helper opens one part of this panel and nothing else. Staff can
-          reset a student&apos;s password. A test setter can create, write and publish
-          papers, but sees no results and no student accounts. A result viewer sees
-          results and nothing else. All sign in at{" "}
-          <code className="rounded bg-gray-200 px-1">/admin</code> and use an
-          authenticator app like the admin does.
-        </p>
-
-        <SaveForm action={createStaff} submitLabel="Create the helper account" className="mt-3">
-          <div className="grid gap-3 sm:grid-cols-4">
-            <label className="block">
-              <span className="mb-1 block text-[12px] font-semibold text-gray-700">What for</span>
-              <select name="role" defaultValue="staff" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]">
-                {Object.entries(HELPER_ROLES).map(([role, r]) => (
-                  <option key={role} value={role}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Name</span>
-              <input name="full_name" required className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Mobile number</span>
-              <input name="phone" required inputMode="numeric" placeholder="10 digits" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Password</span>
-              <input name="password" required minLength={8} placeholder="at least 8 characters" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
-            </label>
-          </div>
-        </SaveForm>
-
-        {helpers?.length ? (
-          <table className="mt-4 w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="bg-rrb-banner text-left text-white">
-                <th className="border border-gray-300 px-3 py-2">Name</th>
-                <th className="border border-gray-300 px-3 py-2">Mobile</th>
-                <th className="border border-gray-300 px-3 py-2">Can</th>
-                <th className="border border-gray-300 px-3 py-2">Since</th>
-                <th className="border border-gray-300 px-3 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {helpers.map((m) => (
-                <tr key={m.id} className="bg-white even:bg-gray-50">
-                  <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">{m.full_name || "—"}</td>
-                  <td className="border border-gray-300 px-3 py-2">{m.phone || "—"}</td>
-                  <td className="border border-gray-300 px-3 py-2">
-                    {isHelperRole(m.role) ? HELPER_ROLES[m.role].label : m.role}
-                  </td>
-                  <td className="border border-gray-300 px-3 py-2">{formatDate(m.created_at)}</td>
-                  <td className="border border-gray-300 px-3 py-2">
-                    <RowForm action={removeStaff}>
-                      <input type="hidden" name="id" value={m.id} />
-                      <button type="submit" className="text-[12px] font-semibold text-red-700 hover:underline">
-                        Remove
-                      </button>
-                    </RowForm>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="mt-3 text-[12px] text-gray-500">No helper account yet.</p>
-        )}
       </section>
 
       <section className="mt-8">

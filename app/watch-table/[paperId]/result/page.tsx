@@ -3,6 +3,7 @@ import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { headerOf, loadPaperHeader, loadPaperHeaderLive } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { ResultView } from "./ResultView";
+import { currentMockStep } from "@/lib/wt/mock";
 
 export default async function ResultPage({
   params,
@@ -26,8 +27,17 @@ export default async function ResultPage({
       })();
 
   if (!paper) notFound();
+
+  // A test just sat inside a Full Mock: the result page moves the mock on
+  // instead of showing this test's own marks, which wait for the scorecard.
+  const inMock = who ? await currentMockStep(who.id) : null;
+  const mock =
+    inMock && inMock.paper.slug === paperId
+      ? { name: inMock.mock.name, step: inMock.step, total: inMock.papers.length, gapSec: inMock.mock.gapMin * 60 }
+      : undefined;
   return (
     <ResultView
+      mock={mock}
       paperId={paperId}
       displayName={paper.displayName}
       allowedSec={paper.timeLimitMin * 60}

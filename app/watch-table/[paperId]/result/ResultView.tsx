@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { continueMock, type MockNext } from "@/app/mock/actions";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PortalBanner } from "@/components/wt/PortalBanner";
@@ -72,6 +75,7 @@ export function ResultView({
   studyImages = [],
   questionsPerPart = 10,
   storageOwner = "guest",
+  mock,
 }: {
   paperId: string;
   displayName: string;
@@ -88,6 +92,8 @@ export function ResultView({
   questionsPerPart?: number;
   /** Whose attempt to look for in this browser. */
   storageOwner?: string;
+  /** Set when this test was sat as part of a Full Mock: the mock moves on from here. */
+  mock?: { name: string; step: number; total: number; gapSec: number };
 }) {
   const [marked, setMarked] = useState<MarkedQuestion[] | null>(null);
   const [score, setScore] = useState<Score | null>(null);
@@ -250,6 +256,16 @@ export function ResultView({
     return (
       <Shell>
         <p className="py-8 text-center text-[14px] text-gray-500">Marking your paper…</p>
+      </Shell>
+    );
+  }
+
+  // Inside a mock the marks wait for the scorecard; this screen is the gap
+  // before the next test, and it opens that test by itself.
+  if (mock) {
+    return (
+      <Shell>
+        <MockGap paperId={paperId} mock={mock} />
       </Shell>
     );
   }
@@ -561,6 +577,83 @@ export function ResultView({
           </Link>
         </div>
       </main>
+    </div>
+  );
+}
+
+/**
+ * The gap between two tests of a Full Mock. The mock is moved on as soon
+ * as this test's attempt is on record, then the next test opens when the
+ * gap runs out — with no way back, as in the hall.
+ */
+function MockGap({ paperId, mock }: { paperId: string; mock: { name: string; step: number; total: number; gapSec: number } }) {
+  const router = useRouter();
+  const [next, setNext] = useState<MockNext | null>(null);
+  const [left, setLeft] = useState(mock.gapSec);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    continueMock(paperId)
+      .then((n) => {
+        if (cancelled) return;
+        setNext(n);
+        if (n.next === "done") router.replace(n.url);
+        if (n.next === "none") router.replace("/dashboard");
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [paperId, router]);
+
+  useEffect(() => {
+    if (!next || next.next !== "paper") return;
+    if (left <= 0) {
+      router.replace(next.url);
+      return;
+    }
+    const t = setTimeout(() => setLeft((v) => v - 1), 1000);
+    return () => clearTimeout(t);
+  }, [left, next, router]);
+
+  const mm = String(Math.floor(Math.max(0, left) / 60)).padStart(2, "0");
+  const ss = String(Math.max(0, left) % 60).padStart(2, "0");
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+      <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">{mock.name}</div>
+      <h1 className="mt-1 text-xl font-bold text-gray-900">
+        Test {mock.step + 1} of {mock.total} submitted ✓
+      </h1>
+      {failed ? (
+        <>
+          <p className="mt-3 text-[14px] text-red-700">The mock could not be moved on. Check the connection and try again.</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded bg-wt-submit px-6 py-2 text-sm font-semibold text-white hover:opacity-90"
+          >
+            Try again
+          </button>
+        </>
+      ) : next?.next === "paper" ? (
+        <>
+          <p className="mt-3 text-[14px] text-gray-600">
+            Test {next.step + 1} of {next.total} opens by itself in
+          </p>
+          <div className="mt-2 font-mono text-[40px] font-bold tabular-nums text-gray-900">
+            {mm}:{ss}
+          </div>
+          <p className="mt-3 text-[12px] text-gray-500">
+            Stay on this page. Your marks for every test come together on the scorecard at the end.
+          </p>
+        </>
+      ) : (
+        <p className="mt-3 text-[14px] text-gray-600">Saving your answers…</p>
+      )}
     </div>
   );
 }

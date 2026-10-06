@@ -12,6 +12,7 @@ import {
 import { closeExpiredSitting, closeSitting, lastSubmission } from "@/lib/wt/session";
 import { decideCutOff, type CutOffVerdict } from "@/lib/wt/cutoff";
 import { isOptionValue } from "@/lib/wt/parse-questions";
+import { currentMockStep } from "@/lib/wt/mock";
 import type { OptionValue } from "@/lib/wt/types";
 import {
   aggregateFromRows,
@@ -444,7 +445,11 @@ async function statsFor({
   // handed out.
   let record = shouldRecord;
   if (record && paper.max_attempts !== null && paper.max_attempts !== undefined) {
-    if (history.length >= Number(paper.max_attempts)) record = false;
+    // A test sat inside a Full Mock is not bound by the paper's own limit:
+    // the mock's limit was checked when it began.
+    const mock = await currentMockStep(userId);
+    const inMock = mock !== null && mock.paper.id === paper.id;
+    if (!inMock && history.length >= Number(paper.max_attempts)) record = false;
   }
 
   let recorded = false;

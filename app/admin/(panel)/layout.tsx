@@ -6,11 +6,13 @@ import { isConfigured, mayOpen, missingConfig, requirePanel, type Section } from
 
 /** Every tab, with the section it belongs to; an account sees only its own. */
 const NAV: { href: string; label: string; section: Section }[] = [
-  { href: "/admin", label: "Overview", section: "admin" },
-  { href: "/admin/watch-table", label: "Following Directions Test", section: "papers" },
-  { href: "/admin/students", label: "Students & Results", section: "admin" },
+  { href: "/admin", label: "Home", section: "admin" },
+  { href: "/admin/students", label: "Students", section: "admin" },
+  { href: "/admin/watch-table", label: "Test Papers", section: "papers" },
+  { href: "/admin/mocks", label: "Full Mocks", section: "papers" },
   { href: "/admin/results", label: "Results", section: "results" },
   { href: "/admin/passwords", label: "Reset a password", section: "passwords" },
+  { href: "/admin/team", label: "Team & Activity", section: "admin" },
 ];
 
 const ROLE_LABEL = { admin: "Admin", editor: "Test setter", staff: "Staff", viewer: "Result viewer", student: "" };

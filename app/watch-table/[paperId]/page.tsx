@@ -10,6 +10,7 @@ import { openSitting } from "@/lib/wt/session";
 import { loadPaperForCandidate, loadPaperLive } from "@/lib/wt/db";
 import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
+import { currentMockStep } from "@/lib/wt/mock";
 
 export default async function WatchTablePage({
   params,
@@ -36,11 +37,16 @@ export default async function WatchTablePage({
   const paper = editor ? await loadPaperLive(paperId) : cached;
 
   if (!paper) notFound();
+  // A paper sat as a test of a Full Mock is open for that sitting whatever
+  // the battery's switch and the paper's own attempt limit say: the mock
+  // chose it, and the mock's own limit was checked when it began.
+  const inMock = who && paper.dbId ? await currentMockStep(who.id) : null;
+  const mockHere = inMock !== null && inMock.paper.id === paper.dbId;
   // A battery still under test is open to the admin and the editor for
   // trying out, and to nobody else — not even by typing the address.
   // (The bundled samples, served only before a database exists, are a demo
   // for whoever is setting the portal up, and stay reachable.)
-  if (isConfigured() && !editor && !openToStudents(paper.category, await hiddenBatteries())) notFound();
+  if (isConfigured() && !editor && !mockHere && !openToStudents(paper.category, await hiddenBatteries())) notFound();
   if (paper.questions.length === 0) {
     return (
       <main className="mx-auto max-w-lg px-5 py-16 text-center">
@@ -54,7 +60,7 @@ export default async function WatchTablePage({
 
   // The limit is checked here, on the server, before the paper is handed over.
   // Hiding the button on the dashboard is a courtesy; this is the rule.
-  if (who && paper.dbId) {
+  if (who && paper.dbId && !mockHere) {
     const allowance = await allowanceFor(paper.dbId, paper.maxAttempts ?? null, who.id);
 
     if (allowance.exhausted) {
