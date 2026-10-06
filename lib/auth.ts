@@ -116,13 +116,14 @@ const readProfile = cache(async (): Promise<Session> => {
   const claims = data?.claims;
   if (!claims?.sub) return { profile: null, inactive: false, expired: false, aal: null };
 
-  const { data: row } = await supabase
-    .from("profiles")
-    .select("id, full_name, roll_no, phone, role, is_active, valid_until, photo_path")
-    .eq("id", claims.sub)
-    .single();
+  // Every column rather than a list: a column added by a later schema file
+  // (photo_path, valid_until) must not lock everyone out of a database the
+  // file has not been run on yet. The ones not there yet read as absent.
+  const { data: row } = await supabase.from("profiles").select("*").eq("id", claims.sub).single();
 
-  const profile = row as Profile | null;
+  const profile = row
+    ? ({ valid_until: null, photo_path: null, ...(row as Record<string, unknown>) } as Profile)
+    : null;
   const aal = typeof claims.aal === "string" ? claims.aal : "aal1";
   if (!profile) return { profile: null, inactive: false, expired: false, aal };
   if (profile.is_active === false) return { profile: null, inactive: true, expired: false, aal };

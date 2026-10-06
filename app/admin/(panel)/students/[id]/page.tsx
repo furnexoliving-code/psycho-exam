@@ -24,11 +24,11 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
   const supabase = createAdminClient();
   const { data: row } = await supabase
     .from("profiles")
-    .select("id, full_name, roll_no, phone, role, created_at, is_active, valid_until, photo_path")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
   if (!row || row.role !== "student") notFound();
-  const student = row as {
+  const student = { valid_until: null, photo_path: null, ...row } as {
     id: string;
     full_name: string;
     roll_no: string;
