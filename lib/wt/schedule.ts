@@ -1,4 +1,4 @@
-import type { WatchFeatures } from "./types";
+import { resolveFeatures, type WatchFeatures, type WatchPaper } from "./types";
 
 /**
  * The Memory Test's timetable: for every part, a study screen, then its
@@ -51,15 +51,33 @@ export function phaseAt(
   return { part, phase: "break", leftSec: Math.max(0, s.slotSec - offset) };
 }
 
-/** The clock a scheduled paper needs, in whole minutes. */
+/**
+ * The clock a scheduled paper needs, in whole minutes.
+ *
+ * With breaks, it is the sitting's whole length: what the server allows.
+ * Without, it is the time the candidate is told — study and questions only,
+ * as the real test counts it; a break is not test time.
+ */
 export function scheduleMinutes(
   f: { studyTimeMin?: number; partTimeMin?: number; breakTimeMin?: number; questionsPerPart?: number },
   questionCount: number,
+  withBreaks = true,
 ): number {
   const perPart = Math.max(1, Math.floor(Number(f.questionsPerPart ?? 10)) || 10);
   const parts = Math.max(1, Math.ceil(questionCount / perPart));
   const total =
     parts * (Number(f.studyTimeMin ?? 0) + Number(f.partTimeMin ?? 0)) +
-    (parts - 1) * Number(f.breakTimeMin ?? 0);
+    (withBreaks ? (parts - 1) * Number(f.breakTimeMin ?? 0) : 0);
   return Math.max(1, Math.ceil(total));
+}
+
+/**
+ * The time limit a paper shows the candidate: study and question time on a
+ * scheduled paper, the whole clock on any other.
+ */
+export function shownTimeLimitMin(paper: Pick<WatchPaper, "features" | "questions" | "timeLimitMin">): number {
+  const features = resolveFeatures(paper.features);
+  const s = scheduleOf(features, paper.questions.length, paper.timeLimitMin * 60);
+  if (!s) return paper.timeLimitMin;
+  return Math.max(1, Math.ceil((s.parts * (s.studySec + s.partSec)) / 60));
 }

@@ -69,6 +69,8 @@ export function ResultView({
   imageUrl,
   imageWidthPct,
   kind = "directions",
+  studyImages = [],
+  questionsPerPart = 10,
   storageOwner = "guest",
 }: {
   paperId: string;
@@ -81,6 +83,9 @@ export function ResultView({
   imageWidthPct?: number;
   /** A Perceptual Speed paper's review has no diagram beside it: each question carries its own picture. */
   kind?: "directions" | "figure";
+  /** A Memory Test paper's study screens: each part's picture is shown again above its questions. */
+  studyImages?: string[];
+  questionsPerPart?: number;
   /** Whose attempt to look for in this browser. */
   storageOwner?: string;
 }) {
@@ -401,8 +406,15 @@ export function ResultView({
             )}
 
             <ol className="min-w-0 flex-1 space-y-3">
-            {visible.map(({ q, i }) => {
+            {visible.map(({ q, i }, vi) => {
               const outcome = groupOf(q);
+              // On a Memory Test paper, each part's study screen sits above
+              // its questions, as it did in the test — the review then shows
+              // what was to be remembered next to what was answered.
+              const perPart = Math.max(1, Math.floor(questionsPerPart) || 1);
+              const partNo = Math.floor(i / perPart);
+              const previous = vi > 0 ? Math.floor(visible[vi - 1].i / perPart) : -1;
+              const study = studyImages.length > 0 && partNo !== previous ? studyImages[partNo] : undefined;
               return (
                 <li
                   key={q.id}
@@ -414,6 +426,28 @@ export function ResultView({
                     borderLeft: `4px solid ${OUTCOME[outcome].color}`,
                   }}
                 >
+                  {study && (
+                    <div
+                      className="-mx-4 -mt-4 mb-4 rounded-t-lg px-4 py-3"
+                      style={{ background: "var(--plane)", borderBottom: "1px solid var(--hairline)" }}
+                    >
+                      <p className="text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
+                        Study Screen Part {partNo + 1} / <span lang="hi">अध्ययन स्क्रीन भाग -{partNo + 1}</span>
+                      </p>
+                      <div className="mt-2 inline-block border border-[#555] bg-white p-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={study}
+                          alt={`Study screen for part ${partNo + 1}`}
+                          className="h-auto max-h-[50vh] max-w-full"
+                          draggable={false}
+                        />
+                      </div>
+                      <p className="mt-3 text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
+                        Test Screen Part {partNo + 1} / <span lang="hi">परीक्षण स्क्रीन भाग -{partNo + 1}</span>
+                      </p>
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[12px] font-semibold" style={{ color: "var(--text-muted)" }}>
                       Q. {i + 1}

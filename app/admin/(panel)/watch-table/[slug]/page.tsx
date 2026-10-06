@@ -110,14 +110,27 @@ export default async function EditWatchPaper({
               max={120}
               hint="Minutes to read the instructions. The test opens by itself when this runs out."
             />
-            <Number
-              label="Test time"
-              name="time_limit_min"
-              defaultValue={paper.timeLimitMin}
-              min={1}
-              max={300}
-              hint="Minutes for the questions. The paper submits itself when this runs out."
-            />
+            {features.studyTimeMin > 0 ? (
+              // On a schedule the test time follows the parts' times, and
+              // counts study and questions only — a break is not test time.
+              <Number
+                label="Test time"
+                name="time_limit_min"
+                defaultValue={scheduleMinutes(features, paper.questions.length, false)}
+                min={1}
+                max={300}
+                hint="Study time + question time of every part; breaks are not counted. Set from the schedule below, so typing here changes nothing."
+              />
+            ) : (
+              <Number
+                label="Test time"
+                name="time_limit_min"
+                defaultValue={paper.timeLimitMin}
+                min={1}
+                max={300}
+                hint="Minutes for the questions. The paper submits itself when this runs out."
+              />
+            )}
           </div>
 
           <h3 className="mt-6 text-[13px] font-bold text-gray-900">
@@ -258,9 +271,11 @@ export default async function EditWatchPaper({
                   On this schedule the test time is set for you:{" "}
                   {Math.max(1, Math.ceil(paper.questions.length / features.questionsPerPart))} part
                   {Math.max(1, Math.ceil(paper.questions.length / features.questionsPerPart)) === 1 ? "" : "s"} × (
-                  {features.studyTimeMin} study + {features.partTimeMin} questions) + breaks ={" "}
-                  <strong>{scheduleMinutes(features, paper.questions.length)} minutes</strong>. It is kept
-                  up to date as questions are added or removed.
+                  {features.studyTimeMin} study + {features.partTimeMin} questions) ={" "}
+                  <strong>{scheduleMinutes(features, paper.questions.length, false)} minutes</strong>, as the
+                  candidate is told; with the breaks the sitting runs{" "}
+                  {scheduleMinutes(features, paper.questions.length)} minutes. It is kept up to date as
+                  questions are added or removed.
                 </p>
               )}
             </div>

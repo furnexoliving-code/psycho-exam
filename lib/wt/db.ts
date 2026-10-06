@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { SAMPLE_PAPER, defaultInstructions } from "./paper";
 import { categoryKind } from "./categories";
-import type { OptionValue, WatchCell, WatchPaper, WatchQuestion } from "./types";
+import { resolveFeatures, type OptionValue, type WatchCell, type WatchPaper, type WatchQuestion } from "./types";
 
 /**
  * Loads Watch Table papers from Supabase, mapping them onto the same shape the
@@ -347,6 +347,9 @@ export interface PaperHeader {
   table: WatchPaper["tables"][number];
   imageUrl?: string;
   imageWidthPct?: number;
+  /** A Memory Test paper's study screens, one per part, for the review. */
+  studyImages: string[];
+  questionsPerPart: number;
 }
 
 /**
@@ -383,7 +386,7 @@ async function readHeader(
 ): Promise<PaperHeader | null> {
   let query = supabase
     .from("watch_papers")
-    .select("display_name, time_limit_min, cells, image_url, image_width_pct, category")
+    .select("display_name, time_limit_min, cells, image_url, image_width_pct, category, features")
     .eq("slug", slug);
   if (publishedOnly) query = query.eq("is_published", true);
   const { data: row, error } = await query.maybeSingle();
@@ -393,6 +396,7 @@ async function readHeader(
   const cells = (row.cells as WatchCell[] | null)?.length
     ? (row.cells as WatchCell[])
     : SAMPLE_PAPER.tables[0].cells;
+  const headerFeatures = resolveFeatures((row.features ?? {}) as WatchPaper["features"]);
 
   return {
     displayName: row.display_name,
@@ -401,6 +405,8 @@ async function readHeader(
     table: { label: "No. 1", cells },
     imageUrl: row.image_url ?? undefined,
     imageWidthPct: row.image_width_pct ?? undefined,
+    studyImages: headerFeatures.studyImages,
+    questionsPerPart: headerFeatures.questionsPerPart,
   };
 }
 
@@ -412,5 +418,7 @@ export function headerOf(paper: WatchPaper): PaperHeader {
     table: paper.tables[0],
     imageUrl: paper.imageUrl,
     imageWidthPct: paper.imageWidthPct,
+    studyImages: resolveFeatures(paper.features).studyImages,
+    questionsPerPart: resolveFeatures(paper.features).questionsPerPart,
   };
 }

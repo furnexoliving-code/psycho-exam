@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
 import { useScrollLock } from "@/lib/wt/useKeyboardOnly";
-import { phaseAt, scheduleOf } from "@/lib/wt/schedule";
+import { phaseAt, scheduleOf, shownTimeLimitMin } from "@/lib/wt/schedule";
 import { defaultPictureScale } from "@/lib/wt/figure-sample";
 import { PortalBanner } from "./PortalBanner";
 import { PortalToolbar } from "./PortalToolbar";
@@ -192,9 +192,10 @@ export function FigureExam({
                 ? "Break Time Left"
                 : "Time Left"
         }
-        secondsLeft={
-          !onTest ? state.instructionRemainingSec : inStudy || inBreak ? phaseLeftSec : state.remainingSec
-        }
+        // On a schedule the toolbar counts the phase on screen — the study
+        // time, this part's question time, or the break — as the real test
+        // does; the whole sitting's clock is the server's concern.
+        secondsLeft={!onTest ? state.instructionRemainingSec : scheduled ? phaseLeftSec : state.remainingSec}
         paused={state.paused}
         showPause={features.allowPause}
         showFullscreen={features.allowFullscreen}
@@ -206,11 +207,15 @@ export function FigureExam({
         rollNo={rollNo}
         name={candidateName}
       />
+      {/* On a schedule, a tab per part — "Memory Test-1", "Memory Test-2" —
+          as the real test's top strip has one per group. */}
       <TestTabs
-        activeId={state.phase}
+        activeId={scheduled && onTest ? `part-${part}` : state.phase}
         tabs={[
           { id: "instructions", label: `${paper.title} Instructions` },
-          { id: "test", label: paper.title },
+          ...(scheduled
+            ? parts.map((_, p) => ({ id: `part-${p}`, label: `${paper.title}-${p + 1}` }))
+            : [{ id: "test", label: paper.title }]),
         ]}
       />
 
@@ -220,7 +225,10 @@ export function FigureExam({
           <div className="border-b border-[#dcdcdc] bg-white px-4 py-2">
             <div className="text-[12px] font-semibold text-gray-700">Sections</div>
             <div className="mt-1 flex flex-wrap gap-2">
-              {parts.map((group, p) => {
+              {/* On a schedule the strip names the one group on screen, as the
+                  real test does: "Memory Test (Part 1)". The parts are tabs above. */}
+              {(scheduled ? [parts[part] ?? []] : parts).map((group, i) => {
+                const p = scheduled ? part : i;
                 const done = group.filter((q) => state.answers[q.id] !== null && state.answers[q.id] !== undefined).length;
                 const active = p === part;
                 return (
@@ -235,7 +243,7 @@ export function FigureExam({
                       active ? "bg-wt-pill text-white" : "border border-wt-pill/40 bg-white text-wt-tealDark hover:bg-wt-bar"
                     } disabled:cursor-default disabled:hover:bg-white ${active ? "disabled:hover:bg-wt-pill" : ""}`}
                   >
-                    Part {p + 1}
+                    {scheduled ? `${paper.title} (Part ${p + 1})` : `Part ${p + 1}`}
                     <span
                       className={`rounded-full px-1.5 text-[10px] ${active ? "bg-white/25" : "bg-wt-bar"}`}
                       aria-label={`${done} of ${group.length} answered`}
@@ -460,9 +468,6 @@ export function FigureExam({
               {paper.questions.length}
               <span className="ml-3 text-gray-500">
                 Part {part + 1} of {partCount}
-                {scheduled && !inStudy && !inBreak && part < partCount - 1 && (
-                  <> · this part closes in {clock(phaseLeftSec)}</>
-                )}
               </span>
             </>
           ) : (
@@ -542,7 +547,7 @@ export function FigureExam({
       <ConfirmBox
         open={confirmSkip}
         title="Start the test now?"
-        body={`The instruction screen closes and the test's own ${paper.timeLimitMin} minute clock starts. You cannot come back to the instructions.`}
+        body={`The instruction screen closes and the test's own ${shownTimeLimitMin(paper)} minute clock starts. You cannot come back to the instructions.`}
         confirmLabel="Start test"
         cancelLabel="Keep reading"
         onConfirm={() => {

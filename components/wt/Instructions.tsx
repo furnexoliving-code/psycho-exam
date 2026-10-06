@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { shownTimeLimitMin } from "@/lib/wt/schedule";
 import type { InstructionBlock, WatchPaper } from "@/lib/wt/types";
 import { ScrollRail } from "./ScrollRail";
 
@@ -30,7 +31,7 @@ export function InstructionsBody({ paper }: { paper: WatchPaper }) {
                 {lang === "en" ? "Time Limit:" : "समय सीमा:"}
               </dt>
               <dd>
-                {paper.timeLimitMin} {lang === "en" ? "Minutes" : "मिनट"}
+                {shownTimeLimitMin(paper)} {lang === "en" ? "Minutes" : "मिनट"}
               </dd>
             </div>
           </dl>
