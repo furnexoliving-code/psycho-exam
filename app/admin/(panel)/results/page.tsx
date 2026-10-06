@@ -27,11 +27,24 @@ export default async function ResultsHome() {
       <p className="mt-1 text-[13px] text-gray-600">
         Every paper, with its results table and question analysis. Full Mock results are listed on their own page.
       </p>
-      <div className="mt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <Link href="/admin/mocks" className="rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100">
           Full Mock results →
         </Link>
+        <span className="ml-2 text-[12px] text-gray-500">Your own copy of the data:</span>
+        <a href="/admin/export/results" className="rounded bg-indigo-800 px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-900">
+          ⬇ Export all paper results (CSV)
+        </a>
+        <a href="/admin/export/mocks" className="rounded bg-indigo-800 px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-900">
+          ⬇ Export all Full Mock results (CSV)
+        </a>
+        <a href="/admin/export/students" className="rounded border border-indigo-800 bg-white px-4 py-1.5 text-[12px] font-semibold text-indigo-900 hover:bg-indigo-50">
+          ⬇ Export students (CSV)
+        </a>
       </div>
+      <p className="mt-1 text-[11px] text-gray-500">
+        Opens in Excel or Google Sheets. Supabase keeps a daily database backup as well; these files are the copy in your own hands.
+      </p>
 
       {BATTERIES.map((battery) => {
         const ids: string[] = CATEGORIES.filter((c) => c.battery === battery.id).map((c) => c.id);
