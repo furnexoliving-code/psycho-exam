@@ -51,7 +51,7 @@ export default async function AdminHome() {
   return (
     <>
       <h1 className="text-xl font-bold text-gray-900">Home</h1>
-      <p className="mt-1 text-[13px] text-gray-600">Ek nazar me sab kuch. Every tile opens the page where it is managed.</p>
+      <p className="mt-1 text-[13px] text-gray-600">Everything at a glance. Every tile opens the page where it is managed.</p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat href="/admin/students" label="Students" value={String(students.count ?? 0)} note={`${active.count ?? 0} active · ${expiring.count ?? 0} expiring soon`} />

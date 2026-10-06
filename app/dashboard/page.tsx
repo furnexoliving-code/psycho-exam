@@ -107,21 +107,21 @@ export default async function DashboardPage() {
         <section className="rounded-2xl bg-gradient-to-r from-[#0d2a6b] to-[#1d4ed8] px-5 py-5 text-white shadow-lg sm:px-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
-              <h1 className="text-[22px] font-bold">Namaste{profile.full_name ? ` ${profile.full_name.split(" ")[0]}` : ""} 👋</h1>
+              <h1 className="text-[22px] font-bold">Welcome{profile.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""} 👋</h1>
               <p className="mt-0.5 text-[12px] text-blue-100">
                 {profile.roll_no ? `Roll ${profile.roll_no} · ` : ""}
                 {profile.valid_until ? `Valid till ${formatDate(profile.valid_until)}` : "KAUTILYA CLASSES"}
-                {streak > 1 && ` · 🔥 ${streak} din lagatar practice`}
+                {streak > 1 && ` · 🔥 ${streak}-day practice streak`}
               </p>
               {featured ? (
                 <p className="mt-3 text-[13px]">
-                  <b>{inMock && inMock.mock.id === featured.id ? "Chal raha hai" : "Agla Full Mock"}: {featured.name}</b>
+                  <b>{inMock && inMock.mock.id === featured.id ? "In progress" : "Next Full Mock"}: {featured.name}</b>
                   {featured.opensAt && mockStatus(featured) === "scheduled" && <> · opens {formatDateTime(featured.opensAt)}</>}
                   {featured.closesAt && mockStatus(featured) === "live" && <> · till {formatDateTime(featured.closesAt)}</>}
                   {featured.maxAttempts !== null && <> · {featured.maxAttempts} attempt{featured.maxAttempts === 1 ? "" : "s"}</>}
                 </p>
               ) : (
-                <p className="mt-3 text-[13px] text-blue-100">Koi Full Mock abhi khula nahi hai. Sectional practice jaari rakhein.</p>
+                <p className="mt-3 text-[13px] text-blue-100">No Full Mock is open right now. Keep up the sectional practice.</p>
               )}
             </div>
             {featured && (
@@ -188,7 +188,7 @@ export default async function DashboardPage() {
             <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <h2 className="text-[14px] font-bold text-gray-900">Full Mock Tests</h2>
               {mocks.length === 0 && mockResults.length === 0 ? (
-                <p className="mt-2 text-[13px] text-gray-500">Full Mocks aane par yahan dikhenge.</p>
+                <p className="mt-2 text-[13px] text-gray-500">Full Mocks will appear here when the institute opens them.</p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {mocks.map((mock) => {
@@ -241,8 +241,8 @@ export default async function DashboardPage() {
               </div>
               {weakest && (
                 <p className="mt-1 text-[12px] text-gray-600">
-                  Aaj ka sujhav: <b>{weakest.title}</b>
-                  {weakest.bestT === null ? " — abhi tak nahi diya" : ` — best T ${weakest.bestT.toFixed(0)}, sabse kamzor`}
+                  Today&apos;s suggestion: <b>{weakest.title}</b>
+                  {weakest.bestT === null ? " — not attempted yet" : ` — best T ${weakest.bestT.toFixed(0)}, your weakest`}
                 </p>
               )}
               {visibleBatteries.map((battery) => (
@@ -282,7 +282,7 @@ export default async function DashboardPage() {
             <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <h2 className="text-[14px] font-bold text-gray-900">Recent sectional results</h2>
               {history.length === 0 ? (
-                <p className="mt-2 text-[13px] text-gray-500">Abhi tak koi test nahi diya. Upar se ek chunein.</p>
+                <p className="mt-2 text-[13px] text-gray-500">You have not sat a test yet. Pick one above.</p>
               ) : (
                 <table className="mt-2 w-full border-collapse text-[12px]">
                   <thead>
@@ -315,9 +315,9 @@ export default async function DashboardPage() {
           {/* ------------------------------ Side column ------------------------------ */}
           <aside className="space-y-4">
             <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <h2 className="text-[14px] font-bold text-gray-900">Meri progress · Composite T-score</h2>
+              <h2 className="text-[14px] font-bold text-gray-900">My progress · Composite T-score</h2>
               {trend.length === 0 ? (
-                <p className="mt-2 text-[12px] text-gray-500">Pehla Full Mock dene ke baad yahan graph banega.</p>
+                <p className="mt-2 text-[12px] text-gray-500">The graph appears after your first Full Mock.</p>
               ) : (
                 <TrendChart points={trend.map((r) => ({ label: r.mockName.replace(/full mock/i, "M").trim(), value: r.composite as number }))} bar={BAR} />
               )}
@@ -333,7 +333,7 @@ export default async function DashboardPage() {
                   {leaders.map((row) => (
                     <li key={row.userId} className={`flex items-center gap-2 py-1.5 text-[12px] ${row.userId === profile.id ? "-mx-2 rounded-lg bg-blue-50 px-2 font-bold" : ""}`}>
                       <span className="w-5 text-gray-500">{row.rank}</span>
-                      <span className="flex-1 truncate text-gray-900">{row.name}{row.userId === profile.id ? " (aap)" : ""}</span>
+                      <span className="flex-1 truncate text-gray-900">{row.name}{row.userId === profile.id ? " (you)" : ""}</span>
                       <span className="font-bold tabular-nums">{row.composite.toFixed(1)}</span>
                     </li>
                   ))}
@@ -343,13 +343,13 @@ export default async function DashboardPage() {
 
             {weakest && (
               <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <h2 className="text-[14px] font-bold text-gray-900">Is hafte ka target</h2>
+                <h2 className="text-[14px] font-bold text-gray-900">This week&apos;s target</h2>
                 <p className="mt-1 text-[12px] text-gray-700">
                   {weakest.bestT === null
-                    ? <>{weakest.title} ka pehla paper dein</>
+                    ? <>Sit your first {weakest.title} paper</>
                     : weakest.bestT < BAR
-                      ? <>{weakest.title} me T {BAR} paar karna</>
-                      : <>{weakest.title} ko {Math.ceil((weakest.bestT + 5) / 5) * 5} tak le jaana</>}
+                      ? <>Cross T {BAR} in {weakest.title}</>
+                      : <>Take {weakest.title} up to T {Math.ceil((weakest.bestT + 5) / 5) * 5}</>}
                 </p>
                 {weakest.bestT !== null && (
                   <div className="mt-2 h-1.5 overflow-hidden rounded bg-gray-100">
@@ -357,7 +357,7 @@ export default async function DashboardPage() {
                   </div>
                 )}
                 <Link href={`#battery-${weakest.battery}`} className="mt-2 inline-block text-[12px] font-semibold text-[#1d4ed8] hover:underline">
-                  Practice karein →
+                  Practise now →
                 </Link>
               </section>
             )}
