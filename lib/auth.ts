@@ -25,6 +25,8 @@ export interface Profile {
   is_active: boolean;
   /** The last day the account may sign in, as YYYY-MM-DD; null for no end. */
   valid_until: string | null;
+  /** Where the candidate's photo is kept, in the private bucket; null without one. */
+  photo_path: string | null;
 }
 
 /**
@@ -116,7 +118,7 @@ const readProfile = cache(async (): Promise<Session> => {
 
   const { data: row } = await supabase
     .from("profiles")
-    .select("id, full_name, roll_no, phone, role, is_active, valid_until")
+    .select("id, full_name, roll_no, phone, role, is_active, valid_until, photo_path")
     .eq("id", claims.sub)
     .single();
 

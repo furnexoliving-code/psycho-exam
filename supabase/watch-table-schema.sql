@@ -805,3 +805,20 @@ create index if not exists mock_results_user_idx on public.mock_results (user_id
 -- ---------------------------------------------------------------------------
 alter table public.watch_papers
   add column if not exists mock_only boolean not null default false;
+
+-- ---------------------------------------------------------------------------
+-- Candidate photos (added later)
+--
+-- A student may give a photo of themselves; it is drawn in the exam header,
+-- as the hall's screen shows the candidate's. The file lives in a PRIVATE
+-- bucket and is served only through the portal (/api/photo), to the student
+-- and the panel: a public bucket would make every photo a link anyone could
+-- open. The row keeps the file's path; nothing else about the account is
+-- the student's to change.
+-- ---------------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists photo_path text;
+
+insert into storage.buckets (id, name, public)
+  values ('student-photos', 'student-photos', false)
+  on conflict (id) do nothing;

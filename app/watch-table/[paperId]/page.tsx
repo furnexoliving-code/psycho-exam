@@ -11,6 +11,7 @@ import { loadPaperForCandidate, loadPaperLive } from "@/lib/wt/db";
 import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { currentMockStep, mockSummary as mockSummaryOf, type MockStep } from "@/lib/wt/mock";
+import { photoUrlOf } from "@/lib/photo";
 
 export default async function WatchTablePage({
   params,
@@ -104,7 +105,7 @@ export default async function WatchTablePage({
   // the mock, as the hall's Exam Summary does.
   const mockSummary = mockHere && inMock ? await mockSummary_(inMock) : null;
   return (
-    <ExamChromeProvider battery={battery} mockSummary={mockSummary}>
+    <ExamChromeProvider battery={battery} mockSummary={mockSummary} photoUrl={photoUrlOf(who)}>
       <Screen
         paper={withoutAnswerKey(paper)}
         candidateName={who?.full_name || "Candidate"}

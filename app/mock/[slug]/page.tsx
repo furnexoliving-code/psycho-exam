@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StudentHeader } from "@/components/StudentHeader";
+import { photoUrlOf } from "@/lib/photo";
 import { requireUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format-time";
 import { BATTERIES } from "@/lib/wt/categories";
@@ -41,7 +42,7 @@ export default async function MockPage({
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <StudentHeader name={who.full_name || "Candidate"} active="mocks" />
+      <StudentHeader name={who.full_name || "Candidate"} active="mocks" photoUrl={photoUrlOf(who)} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-6">
         <Link href="/dashboard" className="text-[13px] font-semibold text-rrb-banner hover:underline">
           ← Dashboard

@@ -5,6 +5,8 @@ import { daysUntil, examSettings } from "@/lib/settings";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StudentHeader } from "@/components/StudentHeader";
 import { ChangePassword } from "@/components/ChangePassword";
+import { PhotoCard } from "@/components/PhotoCard";
+import { photoUrlOf } from "@/lib/photo";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
@@ -126,7 +128,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f3f5f9]">
-      <StudentHeader name={profile.full_name || "Candidate"} active="dashboard" />
+      <StudentHeader name={profile.full_name || "Candidate"} photoUrl={photoUrlOf(profile)} active="dashboard" />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-5">
         {/* ------------------------------ Hero ------------------------------ */}
@@ -560,6 +562,7 @@ export default async function DashboardPage() {
               </section>
             )}
 
+            <PhotoCard photoUrl={photoUrlOf(profile)} name={profile.full_name || "Candidate"} rollNo={profile.roll_no || ""} phone={profile.phone || ""} />
             {profile.phone && <ChangePassword phone={profile.phone} />}
           </aside>
         </div>

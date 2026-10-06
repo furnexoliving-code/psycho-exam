@@ -92,7 +92,16 @@ export function ResultView({
   /** Whose attempt to look for in this browser. */
   storageOwner?: string;
   /** Set when this test was sat as part of a Full Mock: the mock moves on from here. */
-  mock?: { name: string; step: number; total: number; gapSec: number; battery: number; candidate: string; rollNo: string };
+  mock?: {
+    name: string;
+    step: number;
+    total: number;
+    gapSec: number;
+    battery: number;
+    candidate: string;
+    rollNo: string;
+    photoUrl: string | null;
+  };
 }) {
   const [marked, setMarked] = useState<MarkedQuestion[] | null>(null);
   const [score, setScore] = useState<Score | null>(null);

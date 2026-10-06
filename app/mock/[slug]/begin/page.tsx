@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { MockBegin } from "@/components/MockBegin";
 import { requireUser } from "@/lib/auth";
+import { photoUrlOf } from "@/lib/photo";
 import { currentMockStep, loadMock, mockAttemptsUsed, mockStatus, mockUnlockedFor } from "@/lib/wt/mock";
 
 /**
@@ -24,5 +25,5 @@ export default async function MockBeginPage({ params }: { params: Promise<{ slug
   const spent = mock.maxAttempts !== null && used >= mock.maxAttempts;
   if (mockStatus(mock) !== "live" || spent || !unlocked) redirect(`/mock/${slug}`);
 
-  return <MockBegin slug={slug} candidate={who.full_name || "Candidate"} rollNo={who.roll_no || ""} />;
+  return <MockBegin slug={slug} candidate={who.full_name || "Candidate"} rollNo={who.roll_no || ""} photoUrl={photoUrlOf(who)} />;
 }

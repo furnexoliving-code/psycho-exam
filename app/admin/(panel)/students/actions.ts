@@ -9,6 +9,7 @@ import { IMPORT_BATCH, parseStudentLines } from "@/lib/parse-students";
 import { HELPER_ROLES, isHelperRole } from "./helpers";
 import { logAction } from "@/lib/audit";
 import { indianDay } from "@/lib/format-time";
+import { removePhoto, savePhoto } from "@/lib/photo";
 
 /** A validity date off a form: YYYY-MM-DD, or null for none. */
 function validityOf(raw: FormDataEntryValue | null): string | null {
@@ -447,5 +448,32 @@ export async function setValidityForAll(
     await logAction("Validity set for all students", `${data?.length ?? 0} accounts: ${validUntil ?? "no end date"}`);
     revalidatePath(BACK);
     return `${data?.length ?? 0} accounts — ${validUntil ? `till ${validUntil}` : "no end date"}`;
+  });
+}
+
+/** Replaces a student's photo from the panel. */
+export async function setStudentPhoto(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
+  return attempt("Photo", async () => {
+    await requireAdmin();
+    const id = String(formData.get("id"));
+    await studentOnly(createAdminClient(), id);
+    const file = formData.get("photo");
+    if (!(file instanceof File) || file.size === 0) throw new Error("Choose a picture first");
+    await savePhoto(id, file);
+    await logAction("student.photo", `set for ${id}`);
+    revalidatePath(`${BACK}/${id}`);
+  });
+}
+
+/** Removes a student's photo from the panel. */
+export async function removeStudentPhoto(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
+  return attempt("Photo", async () => {
+    await requireAdmin();
+    const id = String(formData.get("id"));
+    await studentOnly(createAdminClient(), id);
+    await removePhoto(id);
+    await logAction("student.photo", `removed for ${id}`);
+    revalidatePath(`${BACK}/${id}`);
+    return "removed.";
   });
 }

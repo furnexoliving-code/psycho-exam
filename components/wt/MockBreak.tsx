@@ -6,6 +6,7 @@ import { continueMock, type MockNext } from "@/app/mock/actions";
 import { clock } from "./PortalToolbar";
 import { PortalBanner } from "./PortalBanner";
 import { ExamSummaryList } from "./ExamSummary";
+import { PhotoBox } from "./PhotoBox";
 
 /**
  * The break between two tests of a Full Mock, laid out as the hall shows
@@ -24,7 +25,16 @@ export function MockBreak({
   initial = null,
 }: {
   paperId: string;
-  mock: { name: string; step: number; total: number; gapSec: number; battery: number; candidate: string; rollNo: string };
+  mock: {
+    name: string;
+    step: number;
+    total: number;
+    gapSec: number;
+    battery: number;
+    candidate: string;
+    rollNo: string;
+    photoUrl: string | null;
+  };
   /** For a preview: the answer the server would give, so nothing is asked of it. */
   initial?: MockNext | null;
 }) {
@@ -66,12 +76,7 @@ export function MockBreak({
 
       <div className="flex items-start justify-end border-b border-[#dcdcdc] bg-[#f3f3f3] px-4 py-2">
         <div className="flex items-center gap-3 bg-white px-4 py-2">
-          <div className="flex h-[64px] w-[64px] items-center justify-center border border-[#bbbbbb] bg-[#dfe6ee]">
-            <svg viewBox="0 0 48 48" className="h-[50px] w-[50px]" aria-hidden="true">
-              <circle cx="24" cy="17" r="10" fill="#8fa3b8" />
-              <path d="M6 46c2-12 10-16 18-16s16 4 18 16z" fill="#8fa3b8" />
-            </svg>
-          </div>
+          <PhotoBox photoUrl={mock.photoUrl} />
           <div className="leading-tight">
             <div className="max-w-[180px] truncate text-[15px] font-semibold text-gray-900">{mock.candidate}</div>
             {mock.rollNo && <div className="text-[10px] text-gray-600">Roll No: {mock.rollNo}</div>}

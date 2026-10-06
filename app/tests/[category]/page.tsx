@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StudentHeader } from "@/components/StudentHeader";
+import { photoUrlOf } from "@/lib/photo";
 import { PaperCard } from "@/components/PaperCard";
 import { requireUser } from "@/lib/auth";
 import { allowancesFor } from "@/lib/wt/attempts";
@@ -35,7 +36,7 @@ export default async function CategoryPage({
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <StudentHeader name={profile.full_name || "Candidate"} active="practice" />
+      <StudentHeader name={profile.full_name || "Candidate"} active="practice" photoUrl={photoUrlOf(profile)} />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-6">
         <Link

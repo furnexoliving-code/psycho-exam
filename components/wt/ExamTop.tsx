@@ -2,6 +2,8 @@
 
 import { clock } from "./PortalToolbar";
 import { TestTabs } from "./TestTabs";
+import { PhotoBox } from "./PhotoBox";
+import { useExamChrome } from "./ExamChrome";
 
 /**
  * The grey panel under the charcoal bar, laid out as the hall screen is:
@@ -48,6 +50,7 @@ export function ExamTop({
   sections?: React.ReactNode;
 }) {
   const urgent = secondsLeft <= 60;
+  const { photoUrl } = useExamChrome();
   return (
     <div className="grid grid-cols-[1fr_auto] border-b border-[#dcdcdc] bg-[#eeeeee] font-exam">
       <div className="min-w-0">
@@ -79,12 +82,7 @@ export function ExamTop({
       </div>
 
       <div className="hidden items-center gap-3 border-l border-[#dcdcdc] bg-white px-4 py-2 sm:flex">
-        <div className="flex h-[64px] w-[64px] items-center justify-center border border-[#bbbbbb] bg-[#dfe6ee]">
-          <svg viewBox="0 0 48 48" className="h-[50px] w-[50px]" aria-hidden="true">
-            <circle cx="24" cy="17" r="10" fill="#8fa3b8" />
-            <path d="M6 46c2-12 10-16 18-16s16 4 18 16z" fill="#8fa3b8" />
-          </svg>
-        </div>
+        <PhotoBox photoUrl={photoUrl} />
         <div className="leading-tight">
           <div className="max-w-[150px] truncate text-[15px] font-semibold text-gray-900">{name}</div>
           {rollNo && rollNo !== "—" && <div className="text-[10px] text-gray-600">Roll No: {rollNo}</div>}

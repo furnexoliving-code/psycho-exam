@@ -4,6 +4,7 @@ import { headerOf, loadPaperHeader, loadPaperHeaderLive } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { ResultView } from "./ResultView";
 import { currentMockStep } from "@/lib/wt/mock";
+import { photoUrlOf } from "@/lib/photo";
 
 export default async function ResultPage({
   params,
@@ -41,6 +42,7 @@ export default async function ResultPage({
           battery: inMock.paper.battery,
           candidate: who?.full_name || "Candidate",
           rollNo: who?.roll_no || "",
+          photoUrl: photoUrlOf(who),
         }
       : undefined;
   return (

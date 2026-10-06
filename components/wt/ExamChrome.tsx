@@ -13,22 +13,26 @@ import type { MockSummaryTest } from "@/lib/wt/mock";
  * screens (Following Directions and the picture papers) having to pass it
  * through; the page sets it once around whichever screen it renders.
  */
-const ExamChromeContext = createContext<{ battery: number | null; mockSummary: MockSummaryTest[] | null }>({
+const ExamChromeContext = createContext<{ battery: number | null; mockSummary: MockSummaryTest[] | null; photoUrl: string | null }>({
   battery: null,
   mockSummary: null,
+  photoUrl: null,
 });
 
 export function ExamChromeProvider({
   battery,
   mockSummary = null,
+  photoUrl = null,
   children,
 }: {
   battery: number | null;
   /** Inside a Full Mock: every test of the mock, for the Exam Summary of a break within this paper. */
   mockSummary?: MockSummaryTest[] | null;
+  /** The candidate's photo for the header's box; the silhouette without one. */
+  photoUrl?: string | null;
   children: React.ReactNode;
 }) {
-  return <ExamChromeContext.Provider value={{ battery, mockSummary }}>{children}</ExamChromeContext.Provider>;
+  return <ExamChromeContext.Provider value={{ battery, mockSummary, photoUrl }}>{children}</ExamChromeContext.Provider>;
 }
 
 export function useExamChrome() {

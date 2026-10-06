@@ -171,7 +171,9 @@ export default async function StudentsPage({
                 {students.map((s) => (
                   <tr key={s.id} className="bg-white even:bg-gray-50">
                     <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">
-                      {s.full_name || "—"}
+                      <Link href={`/admin/students/${s.id}`} className="text-rrb-banner hover:underline">
+                        {s.full_name || "—"}
+                      </Link>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">{s.phone || "—"}</td>
                     <td className="border border-gray-300 px-3 py-2">

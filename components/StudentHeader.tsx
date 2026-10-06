@@ -9,9 +9,12 @@ import { SignOutButton } from "@/components/SignOutButton";
 export function StudentHeader({
   name,
   active = "dashboard",
+  photoUrl = null,
 }: {
   name: string;
   active?: "dashboard" | "mocks" | "practice" | "results";
+  /** The candidate's own photo, when they have given one. */
+  photoUrl?: string | null;
 }) {
   const tabs = [
     { id: "dashboard", label: "Dashboard", href: "/dashboard" },
@@ -50,12 +53,17 @@ export function StudentHeader({
         </nav>
 
         <div className="ml-auto flex items-center gap-2.5">
-          <span
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#1d4ed8] to-[#0d2a6b] text-[12px] font-bold text-white"
-            aria-hidden="true"
-          >
-            {initial}
-          </span>
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoUrl} alt="" className="h-8 w-8 rounded-full border border-gray-300 object-cover" />
+          ) : (
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#1d4ed8] to-[#0d2a6b] text-[12px] font-bold text-white"
+              aria-hidden="true"
+            >
+              {initial}
+            </span>
+          )}
           <span className="hidden max-w-[160px] truncate text-[13px] font-semibold text-gray-900 sm:block">{name}</span>
           <SignOutButton />
         </div>

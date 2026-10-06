@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { PortalBanner } from "@/components/wt/PortalBanner";
 import { GeneralInstructionsBody } from "@/components/wt/GeneralInstructions";
 import { ScrollRail } from "@/components/wt/ScrollRail";
+import { PhotoBox } from "@/components/wt/PhotoBox";
 import { startMock } from "@/app/mock/actions";
 
 /**
@@ -12,7 +13,7 @@ import { startMock } from "@/app/mock/actions";
  * with the declaration to tick and the button that begins. Only the
  * button starts the mock's sitting; reading costs nothing.
  */
-export function MockBegin({ slug, candidate, rollNo }: { slug: string; candidate: string; rollNo: string }) {
+export function MockBegin({ slug, candidate, rollNo, photoUrl = null }: { slug: string; candidate: string; rollNo: string; photoUrl?: string | null }) {
   const [page, setPage] = useState<1 | 2>(1);
   const [agreed, setAgreed] = useState(false);
   const body = useRef<HTMLDivElement | null>(null);
@@ -24,12 +25,7 @@ export function MockBegin({ slug, candidate, rollNo }: { slug: string; candidate
       <div className="flex items-center justify-between border-b border-[#dcdcdc] bg-[#cfe3f5] px-5 py-2">
         <h1 className="text-[17px] font-bold text-[#333]">{page === 1 ? "General Instructions" : "Other Important Instructions"}</h1>
         <div className="flex items-center gap-3">
-          <div className="flex h-[40px] w-[40px] items-center justify-center border border-[#bbbbbb] bg-[#dfe6ee]">
-            <svg viewBox="0 0 48 48" className="h-[32px] w-[32px]" aria-hidden="true">
-              <circle cx="24" cy="17" r="10" fill="#8fa3b8" />
-              <path d="M6 46c2-12 10-16 18-16s16 4 18 16z" fill="#8fa3b8" />
-            </svg>
-          </div>
+          <PhotoBox photoUrl={photoUrl} size={40} />
           <div className="leading-tight">
             <div className="max-w-[180px] truncate text-[14px] font-semibold text-gray-900">{candidate}</div>
             {rollNo && <div className="text-[10px] text-gray-600">Roll No: {rollNo}</div>}
