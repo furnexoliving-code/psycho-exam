@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SignOutButton } from "@/components/SignOutButton";
+import { StudentHeader } from "@/components/StudentHeader";
 import { requireUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format-time";
 import { BATTERIES } from "@/lib/wt/categories";
-import { currentMockStep, latestMockResult, loadMock, mockAttemptsUsed, mockMinutes, mockStatus } from "@/lib/wt/mock";
+import { currentMockStep, latestMockResult, loadMock, mockAttemptsUsed, mockMinutes, mockStatus, mockUnlockedFor } from "@/lib/wt/mock";
+import { STAGES } from "@/lib/wt/plan";
 import { leaveMock, startMock } from "../actions";
 import { examSettings } from "@/lib/settings";
 
@@ -27,10 +27,11 @@ export default async function MockPage({
   if (!loaded || !loaded.mock.isPublished) notFound();
   const { mock, papers } = loaded;
 
-  const [current, used, latest] = await Promise.all([
+  const [current, used, latest, unlocked] = await Promise.all([
     currentMockStep(who.id),
     mockAttemptsUsed(mock.id, who.id),
     latestMockResult(mock.id, who.id),
+    mockUnlockedFor(who.id, papers),
   ]);
   const status = mockStatus(mock);
   const exam = await examSettings();
@@ -40,14 +41,7 @@ export default async function MockPage({
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <SiteHeader
-        right={
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] text-white/80">{who.full_name || "Candidate"}</span>
-            <SignOutButton />
-          </div>
-        }
-      />
+      <StudentHeader name={who.full_name || "Candidate"} active="mocks" />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-6">
         <Link href="/dashboard" className="text-[13px] font-semibold text-rrb-banner hover:underline">
           ← Dashboard
@@ -155,6 +149,12 @@ export default async function MockPage({
             <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
               You are in the middle of <b>{inOther.mock.name}</b>.{" "}
               <Link href={`/mock/${inOther.mock.slug}`} className="font-semibold underline">Finish it first</Link>.
+            </p>
+          ) : status === "live" && !spent && !unlocked ? (
+            <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
+              🔒 This Full Mock opens once every battery in it is at <b>T-Score: {STAGES.pass}</b> or above in sectional practice.
+              Your dashboard shows which battery still needs work.
+              <span className="block text-[12px]" lang="hi">यह फुल मॉक तब खुलेगा जब हर बैटरी में सेक्शनल अभ्यास में T-स्कोर {STAGES.pass} या अधिक आ जाए।</span>
             </p>
           ) : status === "live" && !spent ? (
             <form action={startMock}>

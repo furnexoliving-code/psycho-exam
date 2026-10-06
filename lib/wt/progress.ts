@@ -1,7 +1,16 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { indianDay } from "@/lib/format-time";
 import { BATTERIES, CATEGORIES } from "./categories";
 import { cohortFromMoments } from "./cohort";
 import { tScore } from "./tscore";
+
+export interface DayScore {
+  /** YYYY-MM-DD in India. */
+  day: string;
+  /** The best T-score of that day's attempts in the battery; null for none. */
+  bestT: number | null;
+  attempts: number;
+}
 
 export interface BatteryProgress {
   battery: number;
@@ -11,25 +20,45 @@ export interface BatteryProgress {
   attempts: number;
   papersSat: number;
   lastAt: string | null;
+  /** The last three days, oldest first, today last. */
+  days: DayScore[];
+  /** Today's attempts in this battery. */
+  today: number;
+  /** Papers attempted today, by id. */
+  todayPapers: string[];
 }
 
 /**
  * How a candidate stands in every battery: their best T-score among the
  * papers they have sat, measured on each paper against everyone who has
- * sat it. One call for the cohort figures of every paper touched.
+ * sat it, and the best of each of the last three days. One call for the
+ * cohort figures of every paper touched.
  */
 export async function batteryProgress(userId: string): Promise<BatteryProgress[]> {
   const supabase = createAdminClient();
+  const now = Date.now();
+  const days = [2, 1, 0].map((back) => indianDay(now - back * 86400000));
+
+  const empty = (): BatteryProgress[] =>
+    BATTERIES.map((b) => ({
+      battery: b.id,
+      title: b.title,
+      bestT: null,
+      attempts: 0,
+      papersSat: 0,
+      lastAt: null,
+      days: days.map((day) => ({ day, bestT: null, attempts: 0 })),
+      today: 0,
+      todayPapers: [],
+    }));
+  const byBattery = new Map<number, BatteryProgress>(empty().map((p) => [p.battery, p]));
+
   const { data: attempts } = await supabase
     .from("watch_attempts")
     .select("paper_id, marks, total, submitted_at")
     .eq("user_id", userId)
     .order("submitted_at", { ascending: false })
-    .limit(2000);
-
-  const byBattery = new Map<number, BatteryProgress>(
-    BATTERIES.map((b) => [b.id, { battery: b.id, title: b.title, bestT: null, attempts: 0, papersSat: 0, lastAt: null }]),
-  );
+    .limit(3000);
   if (!attempts?.length) return [...byBattery.values()];
 
   const paperIds = [...new Set(attempts.map((a) => a.paper_id as string))];
@@ -64,11 +93,31 @@ export async function batteryProgress(userId: string): Promise<BatteryProgress[]
       },
     );
     const t = tScore(Number(a.marks), cohort);
-    if (t && (row.bestT === null || t.value > row.bestT)) row.bestT = Number(t.value.toFixed(1));
+    const value = t ? Number(t.value.toFixed(1)) : null;
+    if (value !== null && (row.bestT === null || value > row.bestT)) row.bestT = value;
+
+    const day = indianDay(a.submitted_at as string);
+    const slot = row.days.find((d) => d.day === day);
+    if (slot) {
+      slot.attempts++;
+      if (value !== null && (slot.bestT === null || value > slot.bestT)) slot.bestT = value;
+    }
+    if (day === days[2]) {
+      row.today++;
+      if (!row.todayPapers.includes(a.paper_id as string)) row.todayPapers.push(a.paper_id as string);
+    }
   }
   for (const [battery, set] of papersPerBattery) {
     const row = byBattery.get(battery);
     if (row) row.papersSat = set.size;
   }
   return [...byBattery.values()];
+}
+
+/** True when every battery named has reached the bar in sectional practice. */
+export function clearedBar(progress: BatteryProgress[], batteries: number[], bar: number): boolean {
+  return batteries.every((b) => {
+    const p = progress.find((x) => x.battery === b);
+    return p !== undefined && p.bestT !== null && p.bestT >= bar;
+  });
 }

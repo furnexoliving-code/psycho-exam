@@ -3,6 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { CATEGORIES } from "./categories";
 import { cohortFromMoments } from "./cohort";
 import { tScore } from "./tscore";
+import { batteryProgress, clearedBar } from "./progress";
+import { STAGES } from "./plan";
 
 /**
  * Full Mock tests: five published papers, one per battery, sat in the
@@ -303,6 +305,11 @@ export async function openMockSitting(
   if (mock.maxAttempts !== null && (await mockAttemptsUsed(mock.id, userId)) >= mock.maxAttempts) {
     return { ok: false, reason: "You have used every attempt of this mock." };
   }
+  // The institute's rule: a Full Mock opens only once every battery in it
+  // has reached the pass bar in sectional practice.
+  if (!(await mockUnlockedFor(userId, papers))) {
+    return { ok: false, reason: `Full Mocks open once every battery is at T-Score: ${STAGES.pass} or above in sectional practice.` };
+  }
 
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -320,6 +327,23 @@ export async function openMockSitting(
     ok: true,
     step: { mock, papers, sittingId: data.id as string, startedAt: data.started_at as string, step: 0, paper: papers[0] },
   };
+}
+
+/** True once every battery of these papers has passed the bar in sectional practice. */
+export async function mockUnlockedFor(userId: string, papers: MockPaper[]): Promise<boolean> {
+  const batteries = [...new Set(papers.map((p) => p.battery))];
+  if (batteries.length === 0) return false;
+  return clearedBar(await batteryProgress(userId), batteries, STAGES.pass);
+}
+
+/** How many Full Mocks this candidate finished today (India). */
+export async function mocksFinishedToday(userId: string, dayStartIso: string): Promise<number> {
+  const { count } = await createAdminClient()
+    .from("mock_results")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("submitted_at", dayStartIso);
+  return count ?? 0;
 }
 
 /**

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SignOutButton } from "@/components/SignOutButton";
+import { StudentHeader } from "@/components/StudentHeader";
 import { PaperCard } from "@/components/PaperCard";
 import { requireUser } from "@/lib/auth";
 import { allowancesFor } from "@/lib/wt/attempts";
@@ -36,16 +35,7 @@ export default async function CategoryPage({
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <SiteHeader
-        right={
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] text-white/80">
-              {profile.full_name || "Candidate"}
-            </span>
-            <SignOutButton />
-          </div>
-        }
-      />
+      <StudentHeader name={profile.full_name || "Candidate"} active="practice" />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-6">
         <Link
