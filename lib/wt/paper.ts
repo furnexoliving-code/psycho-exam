@@ -5,9 +5,11 @@ import {
   FIGURE_SAMPLE_ID,
   MEMORY_SAMPLE_ID,
   OBSERVATION_SAMPLE_ID,
+  DEPTH_SAMPLE_ID,
   figureSamplePaper,
   memorySamplePaper,
   observationSamplePaper,
+  depthSamplePaper,
 } from "./figure-sample";
 
 /**
@@ -23,6 +25,7 @@ export function getBundledPaper(paperId: string): WatchPaper | undefined {
   if (paperId === FIGURE_SAMPLE_ID) return figureSamplePaper() as WatchPaper;
   if (paperId === MEMORY_SAMPLE_ID) return memorySamplePaper() as WatchPaper;
   if (paperId === OBSERVATION_SAMPLE_ID) return observationSamplePaper() as WatchPaper;
+  if (paperId === DEPTH_SAMPLE_ID) return depthSamplePaper() as WatchPaper;
   return undefined;
 }
 

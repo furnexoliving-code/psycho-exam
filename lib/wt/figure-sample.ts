@@ -285,3 +285,48 @@ export function observationSamplePaper() {
     resultView: {},
   };
 }
+
+/** A tiny Depth Perception paper: a scene per question, drawn half as large again, answered by a letter. */
+export const DEPTH_SAMPLE_ID = "depth-sample";
+
+export function depthSamplePaper() {
+  // Four blocks at different "depths": the nearest is the largest and lowest.
+  const scene = (sizes: number[]) => {
+    const rects = sizes
+      .map((sz, i) => `<rect x="${30 + i * 70}" y="${70 - sz}" width="${sz}" height="${sz}" fill="#fff" stroke="#111" stroke-width="2"/><text x="${30 + i * 70 + sz / 2}" y="${70 - sz - 6}" font-size="14" text-anchor="middle" fill="#111">${OPTION_LETTERS[i]}</text>`)
+      .join("");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="80" viewBox="0 0 320 80"><line x1="10" y1="72" x2="310" y2="72" stroke="#999"/>${rects}</svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+  const letters = OPTION_LETTERS.slice(0, 4);
+  const items: [number[], string][] = [
+    [[50, 30, 40, 20], "A"],
+    [[20, 50, 30, 40], "B"],
+    [[30, 20, 50, 40], "C"],
+    [[40, 30, 20, 50], "D"],
+  ];
+  return {
+    id: DEPTH_SAMPLE_ID,
+    kind: "figure" as const,
+    category: "depth",
+    title: "Depth Perception Test",
+    displayName: "Depth Perception Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 2 },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions("depth", 1, 5),
+    example: { table: { label: "Example", cells: [] }, text: [] },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions: items.map(([sizes, answer], i) => ({
+      id: `ds-q${i + 1}`,
+      tableIndex: 0,
+      prompt: { en: "", hi: "" },
+      options: [...letters],
+      answer,
+      working: { en: "", hi: "" },
+      topic: "Depth",
+      image: scene(sizes),
+    })),
+    resultView: {},
+  };
+}
