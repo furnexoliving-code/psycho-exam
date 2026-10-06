@@ -145,6 +145,8 @@ export interface WatchFeatures {
    * drawn half as large again, since its block piles are finer).
    */
   pictureScale?: number;
+  /** With study screens: how tall the study picture may be drawn, as a share of the screen's height (20–100). */
+  studyScale?: number;
 }
 
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
@@ -162,6 +164,7 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   partTimeMin: 0,
   breakTimeMin: 0,
   pictureScale: 0,
+  studyScale: 60,
 };
 
 export function resolveFeatures(features?: WatchFeatures): Required<WatchFeatures> {

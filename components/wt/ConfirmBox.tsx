@@ -38,14 +38,14 @@ export function ConfirmBox({
           <button
             type="button"
             onClick={onConfirm}
-            className="min-w-[120px] rounded bg-wt-submit px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className="min-w-[120px] rounded bg-[#2a7fc0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2470ab]"
           >
             {confirmLabel}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="min-w-[120px] rounded bg-pink-600 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-700"
+            className="min-w-[120px] rounded border border-[#2a7fc0] bg-white px-4 py-2 text-sm font-semibold text-[#2a7fc0] hover:bg-[#eef4fb]"
           >
             {cancelLabel}
           </button>

@@ -17,6 +17,8 @@ import { FigureQuestionsPanel } from "./FigureQuestionsPanel";
 import { StudyPictures } from "./StudyPictures";
 import { scheduleMinutes } from "@/lib/wt/schedule";
 import { PICTURE_SCALES, defaultPictureScale } from "@/lib/wt/figure-sample";
+
+const STUDY_SCALES = [40, 50, 60, 70, 80, 90, 100];
 import { CATEGORIES } from "@/lib/wt/categories";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
@@ -263,6 +265,23 @@ export default async function EditWatchPaper({
                 step="any"
                 hint="Memory Test: minutes each part's study picture is shown before its questions. 0 for no study screen."
               />
+              <label className="block">
+                <span className="mb-1 block text-[12px] font-semibold text-gray-700">Study picture size</span>
+                <select
+                  name="study_scale"
+                  defaultValue={String(features.studyScale)}
+                  className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+                >
+                  {STUDY_SCALES.map((n) => (
+                    <option key={n} value={n}>
+                      {n}% of the screen height
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1 block text-[11px] text-gray-500">
+                  Memory Test: how tall the study picture may be drawn. The candidate scrolls if it is taller than the screen.
+                </span>
+              </label>
               <Number
                 label="Question time per part"
                 name="part_time_min"

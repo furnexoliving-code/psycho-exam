@@ -110,11 +110,11 @@ export function optionValues(style: OptionStyle, count: number): (string | numbe
 
 /** How large a picture test draws its pictures when the paper does not say: percent of the usual size. */
 export function defaultPictureScale(category: string | undefined): number {
-  return category === "depth" ? 150 : 100;
+  return category === "depth" ? 225 : category === "memory" ? 140 : 100;
 }
 
 /** The sizes offered in the settings. */
-export const PICTURE_SCALES = [75, 100, 125, 150, 200, 250] as const;
+export const PICTURE_SCALES = [75, 100, 125, 140, 150, 200, 225, 250] as const;
 
 /** What each picture test offers by default; the admin may change it per upload. */
 export function defaultOptionsFor(category: string): { style: OptionStyle; count: number } {

@@ -6,8 +6,7 @@ import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
 import { useExamKeys, useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { PortalBanner } from "./PortalBanner";
-import { PortalToolbar } from "./PortalToolbar";
-import { TestTabs } from "./TestTabs";
+import { ExamTop } from "./ExamTop";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 import { QuestionList } from "./QuestionList";
 import { KeyboardHelpPanel } from "./KeyboardHelp";
@@ -202,8 +201,9 @@ export function WatchTableExam({
         onInstructions={() => setInstructionsOpen(true)}
         onQuestionPaper={() => setPaperOpen(true)}
       />
-      <PortalToolbar
-        title={paper.displayName}
+      <ExamTop
+        title={paper.title}
+        paperName={paper.displayName}
         label={onTest ? "Time Left" : "Instruction Time Left"}
         secondsLeft={onTest ? state.remainingSec : state.instructionRemainingSec}
         paused={state.paused}
@@ -216,8 +216,6 @@ export function WatchTableExam({
         }}
         rollNo={rollNo}
         name={candidateName}
-      />
-      <TestTabs
         activeId={state.phase}
         tabs={[
           { id: "instructions", label: `${paper.title} Instructions` },

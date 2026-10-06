@@ -8,8 +8,7 @@ import { useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { phaseAt, scheduleOf, shownTimeLimitMin } from "@/lib/wt/schedule";
 import { defaultPictureScale } from "@/lib/wt/figure-sample";
 import { PortalBanner } from "./PortalBanner";
-import { PortalToolbar } from "./PortalToolbar";
-import { TestTabs } from "./TestTabs";
+import { ExamTop, SectionChip } from "./ExamTop";
 import { Instructions, InstructionsDialog } from "./Instructions";
 import { ConfirmBox } from "./ConfirmBox";
 import { ScrollRail } from "./ScrollRail";
@@ -181,8 +180,9 @@ export function FigureExam({
         showQuestionPaper={false}
         onInstructions={() => setInstructionsOpen(true)}
       />
-      <PortalToolbar
-        title={paper.displayName}
+      <ExamTop
+        title={paper.title}
+        paperName={paper.displayName}
         label={
           !onTest
             ? "Instruction Time Left"
@@ -192,7 +192,7 @@ export function FigureExam({
                 ? "Break Time Left"
                 : "Time Left"
         }
-        // On a schedule the toolbar counts the phase on screen — the study
+        // On a schedule the panel counts the phase on screen — the study
         // time, this part's question time, or the break — as the real test
         // does; the whole sitting's clock is the server's concern.
         secondsLeft={!onTest ? state.instructionRemainingSec : scheduled ? phaseLeftSec : state.remainingSec}
@@ -206,10 +206,8 @@ export function FigureExam({
         }}
         rollNo={rollNo}
         name={candidateName}
-      />
-      {/* On a schedule, a tab per part — "Memory Test-1", "Memory Test-2" —
-          as the real test's top strip has one per group. */}
-      <TestTabs
+        // On a schedule, a tab per part — "Memory Test-1", "Memory Test-2" —
+        // as the real test's top strip has one per group.
         activeId={scheduled && onTest ? `part-${part}` : state.phase}
         tabs={[
           { id: "instructions", label: `${paper.title} Instructions` },
@@ -217,45 +215,25 @@ export function FigureExam({
             ? parts.map((_, p) => ({ id: `part-${p}`, label: `${paper.title}-${p + 1}` }))
             : [{ id: "test", label: paper.title }]),
         ]}
+        // The Sections row: on a schedule the one group on screen, as the
+        // real test names it ("Memory Test (Part 1)"); otherwise a chip per
+        // part. No counts: the hall shows none.
+        sections={
+          onTest
+            ? (scheduled ? [parts[part] ?? []] : parts).map((_, i) => {
+                const p = scheduled ? part : i;
+                return (
+                  <SectionChip key={p} active={p === part} disabled={scheduled} onClick={() => goToPart(p)}>
+                    {scheduled ? `${paper.title} (Part ${p + 1})` : `Part ${p + 1}`}
+                  </SectionChip>
+                );
+              })
+            : undefined
+        }
       />
 
       {onTest ? (
         <div className="flex min-h-0 flex-1 flex-col">
-          {/* The parts, as the real portal's Sections strip. */}
-          <div className="border-b border-[#dcdcdc] bg-white px-4 py-2">
-            <div className="text-[12px] font-semibold text-gray-700">Sections</div>
-            <div className="mt-1 flex flex-wrap gap-2">
-              {/* On a schedule the strip names the one group on screen, as the
-                  real test does: "Memory Test (Part 1)". The parts are tabs above. */}
-              {(scheduled ? [parts[part] ?? []] : parts).map((group, i) => {
-                const p = scheduled ? part : i;
-                const done = group.filter((q) => state.answers[q.id] !== null && state.answers[q.id] !== undefined).length;
-                const active = p === part;
-                return (
-                  <button
-                    key={p}
-                    type="button"
-                    data-allow-mouse="true"
-                    disabled={scheduled}
-                    onClick={() => goToPart(p)}
-                    aria-current={active ? "page" : undefined}
-                    className={`flex items-center gap-2 rounded px-3 py-1 text-[12px] font-semibold ${
-                      active ? "bg-wt-pill text-white" : "border border-wt-pill/40 bg-white text-wt-tealDark hover:bg-wt-bar"
-                    } disabled:cursor-default disabled:hover:bg-white ${active ? "disabled:hover:bg-wt-pill" : ""}`}
-                  >
-                    {scheduled ? `${paper.title} (Part ${p + 1})` : `Part ${p + 1}`}
-                    <span
-                      className={`rounded-full px-1.5 text-[10px] ${active ? "bg-white/25" : "bg-wt-bar"}`}
-                      aria-label={`${done} of ${group.length} answered`}
-                    >
-                      {done}/{group.length}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
           {/* The rail is always drawn, as on the Following Directions paper:
               a browser that hides its scrollbar until the wheel moves would
               otherwise show no way down a paper whose wheel is off. */}
@@ -284,7 +262,8 @@ export function FigureExam({
                       <img
                         src={features.studyImages[part]}
                         alt={`Study screen for part ${part + 1}`}
-                        className="h-auto max-h-[60vh] max-w-full"
+                        className="h-auto max-w-full"
+                        style={{ maxHeight: `${features.studyScale}vh` }}
                         draggable={false}
                       />
                     </div>
@@ -348,6 +327,17 @@ export function FigureExam({
                 <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
               </p>
             )}
+            {features.showInstructionsButton && (
+              <p className="mb-2 text-[0.85em] text-[#333]">
+                <span lang="hi">
+                  यदि आप परीक्षण के निर्देशों को पुनः देखना चाहते हैं तो{" "}
+                  <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} /> पर क्लिक करें
+                </span>
+                {" / "}
+                If you want to see the test instructions again please click on{" "}
+                <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} />
+              </p>
+            )}
             <p className="text-[0.9em] text-[#494949]">
               Please Select Correct Answer /{" "}
               <span lang="hi">कृपया सही उत्तर चुनें</span>
@@ -363,12 +353,12 @@ export function FigureExam({
               </div>
             )}
 
-            <ol className="mt-3 space-y-6">
+            <ol className="mt-3 space-y-10">
               {parts[part]?.map((q, i) => {
                 const number = part * perPart + i + 1;
                 const chosen = state.answers[q.id];
                 return (
-                  <li key={q.id} className="border-b border-[#ececec] pb-5">
+                  <li key={q.id} className="border-b border-[#ececec] pb-8" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
                     <p className="text-[0.95em] font-bold text-[#222]">Question No : {number}</p>
                     {(q.prompt.en || q.prompt.hi) && (
                       <div className="mt-2 text-[1em] text-[#494949]">
@@ -384,7 +374,7 @@ export function FigureExam({
                       // Option pictures with no figure (Memory): a strip of
                       // the pictures, each with its letter in the corner,
                       // then the radios in a row after the strip.
-                      <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
+                      <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
                         <span className="flex flex-wrap gap-1.5">
                           {q.optionImages.map((picture, oi) => (
                             <span key={oi} className="relative inline-block border border-[#333] bg-white p-0.5">
@@ -396,7 +386,7 @@ export function FigureExam({
                             </span>
                           ))}
                         </span>
-                        <span className="flex flex-wrap items-center gap-x-5">
+                        <span className="flex flex-wrap items-center gap-x-[52px]">
                           {q.options.map((option, oi) => (
                             <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
                           ))}
@@ -405,7 +395,7 @@ export function FigureExam({
                     ) : q.image && !q.optionImages ? (
                       // A figure with plain options (Depth Perception, Power
                       // of Observation): the picture and the radios on one line.
-                      <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
+                      <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={q.image}
@@ -415,7 +405,7 @@ export function FigureExam({
                           draggable={false}
                           onLoad={twoSets && i === 0 ? (e) => setSetsWidth(e.currentTarget.clientWidth) : undefined}
                         />
-                        <span className="flex flex-wrap items-center gap-x-5">
+                        <span className="flex flex-wrap items-center gap-x-[52px]">
                           {q.options.map((option, oi) => (
                             <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
                           ))}
@@ -429,7 +419,7 @@ export function FigureExam({
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={q.image} alt={`Question ${number}`} className="mt-2 w-auto max-w-full" style={{ height: figureH }} draggable={false} />
                         )}
-                        <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
+                        <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
                           {q.options.map((option, oi) => {
                             const id = `${q.id}-opt-${oi}`;
                             const picture = q.optionImages?.[oi];
@@ -460,25 +450,15 @@ export function FigureExam({
         <Instructions paper={paper} />
       )}
 
-      <div className="flex items-center gap-4 border-t border-[#d3d3d3] bg-wt-bar px-4 py-3">
-        <span className="text-[13px] text-gray-600">
-          {onTest ? (
-            <>
-              Answered <strong className="text-gray-900">{answered}</strong> of{" "}
-              {paper.questions.length}
-              <span className="ml-3 text-gray-500">
-                Part {part + 1} of {partCount}
-              </span>
-            </>
-          ) : (
-            <>
-              The test opens by itself when the instruction time runs out.
-              <span className="ml-2 text-gray-500" lang="hi">
-                निर्देश का समय समाप्त होते ही परीक्षण स्वतः प्रारंभ हो जाएगा।
-              </span>
-            </>
-          )}
-        </span>
+      <div className="flex items-center gap-4 border-t border-[#c9dcea] bg-[#e8f4fb] px-4 py-3">
+        {!onTest && (
+          <span className="text-[13px] text-gray-600">
+            The test opens by itself when the instruction time runs out.
+            <span className="ml-2 text-gray-500" lang="hi">
+              निर्देश का समय समाप्त होते ही परीक्षण स्वतः प्रारंभ हो जाएगा।
+            </span>
+          </span>
+        )}
 
         {onTest ? (
           <div className="ml-auto flex items-center gap-3">
@@ -492,7 +472,7 @@ export function FigureExam({
                 type="button"
                 data-allow-mouse="true"
                 onClick={() => sendRef.current(false)}
-                className="rounded border border-wt-pill bg-white px-6 py-2.5 text-[14px] font-semibold text-wt-tealDark hover:bg-wt-bar"
+                className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab]"
               >
                 Save
               </button>
@@ -502,7 +482,7 @@ export function FigureExam({
               data-allow-mouse="true"
               disabled={lastPart}
               onClick={() => goToPart(part + 1)}
-              className="rounded border border-wt-pill bg-white px-6 py-2.5 text-[14px] font-semibold text-wt-tealDark hover:bg-wt-bar disabled:opacity-40"
+              className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab] disabled:opacity-40"
             >
               Save &amp; Next
             </button>
@@ -511,7 +491,7 @@ export function FigureExam({
               type="button"
               data-allow-mouse="true"
               onClick={() => setConfirmSubmit(true)}
-              className="rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90"
+              className="rounded bg-[#6fb6e6] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#5ea8dc]"
             >
               Submit
             </button>
@@ -521,7 +501,7 @@ export function FigureExam({
             type="button"
             data-allow-mouse="true"
             onClick={() => setConfirmSkip(true)}
-            className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90"
+            className="ml-auto rounded bg-[#2a7fc0] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab]"
           >
             Skip Instruction
           </button>
@@ -559,14 +539,12 @@ export function FigureExam({
 
       <ConfirmBox
         open={confirmSubmit}
-        title="Submit the test?"
-        body={
-          unanswered > 0
-            ? `${unanswered} question${unanswered === 1 ? " is" : "s are"} still unanswered. You cannot return after submitting.`
-            : "All questions are answered. You cannot return after submitting."
-        }
-        confirmLabel="Submit"
-        cancelLabel="Go back"
+        title="Are you sure you want to submit the test?"
+        body={`क्या आप वाकई परीक्षण जमा करना चाहते हैं?${
+          unanswered > 0 ? ` (${unanswered} question${unanswered === 1 ? "" : "s"} still unanswered.)` : ""
+        }`}
+        confirmLabel="Yes"
+        cancelLabel="No"
         onConfirm={() => {
           setConfirmSubmit(false);
           clearSaved();
@@ -620,4 +598,20 @@ function clock(sec: number): string {
 /** The test is on screen and the clock is running. */
 function onTestPhase(state: { phase: string; submitted: boolean; startedAt: number }): boolean {
   return state.phase === "test" && !state.submitted && state.startedAt !== 0;
+}
+
+/** The header button, drawn inline in the reminder line above the questions. */
+function GroupInstructionsLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      data-allow-mouse="true"
+      onClick={onClick}
+      className="mx-0.5 inline-flex items-center gap-1 rounded-sm bg-[#333333] px-1.5 py-0.5 align-middle text-[11px] font-bold text-white hover:bg-[#222]"
+      style={{ fontFamily: "Arial, sans-serif" }}
+    >
+      <span className="flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[#2a8fd6] text-[9px] italic" aria-hidden="true">i</span>
+      Group Instructions
+    </button>
+  );
 }

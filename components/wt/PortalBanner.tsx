@@ -1,9 +1,15 @@
+"use client";
+
+import { useState } from "react";
+import { GeneralInstructionsDialog } from "./GeneralInstructions";
+
 /**
  * The masthead, laid out as the real hall screen is: a white strip with
  * the institute's mark on the left, the board's name and the CEN line in
- * the middle between two emblems, and the RDSO badge on the right; then a
- * charcoal bar with the test series' name in yellow and the Instructions /
- * Question Paper buttons at its right end.
+ * the middle between two drawn emblems, and the RDSO badge on the right;
+ * then a charcoal bar with the test series' name in yellow and, at its
+ * right end, the two buttons the hall gives: Group Instructions (this
+ * test's own) and Instructions (the general ones, kept here).
  *
  * The two emblems are drawn here, in outline, as stylised stand-ins. The
  * State Emblem of India may not be used by a private body, and the
@@ -12,23 +18,25 @@
  */
 export function PortalBanner({
   onInstructions,
-  onQuestionPaper,
   disabled = false,
   showInstructions = true,
-  showQuestionPaper = true,
 }: {
+  /** Opens this test's own instructions: the Group Instructions button. */
   onInstructions?: () => void;
+  /** Kept for the callers that pass it; the hall screen has no such button. */
   onQuestionPaper?: () => void;
   /** Switched off per paper in the admin panel. */
   showInstructions?: boolean;
   showQuestionPaper?: boolean;
   /**
-   * Both buttons are off during the instruction screen: the instructions are
-   * already on view there, and the question paper is not the candidate's to
-   * read before the test has opened.
+   * The Group Instructions button is off during the instruction screen:
+   * the instructions are already on view there. The general Instructions
+   * stay reachable throughout, as in the hall.
    */
   disabled?: boolean;
 }) {
+  const [generalOpen, setGeneralOpen] = useState(false);
+
   return (
     <header className="font-exam">
       <div className="flex h-[56px] items-center border-b border-[#d9d9d9] bg-white px-3">
@@ -71,19 +79,17 @@ export function PortalBanner({
 
       <div className="flex h-[30px] items-center gap-3 bg-[#333333] px-3.5">
         <span className="truncate text-[13px] font-bold text-[#ffd500]">RRB ALP Aptitude Test</span>
-        <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4">
+        <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-5">
           {showInstructions && (
             <BarButton onClick={onInstructions} disabled={disabled}>
-              Instructions
+              Group Instructions
             </BarButton>
           )}
-          {showQuestionPaper && (
-            <BarButton onClick={onQuestionPaper} disabled={disabled}>
-              Question Paper
-            </BarButton>
-          )}
+          <BarButton onClick={() => setGeneralOpen(true)}>Instructions</BarButton>
         </div>
       </div>
+
+      <GeneralInstructionsDialog open={generalOpen} onClose={() => setGeneralOpen(false)} />
     </header>
   );
 }
@@ -103,6 +109,7 @@ function BarButton({
       onClick={onClick}
       disabled={disabled}
       aria-disabled={disabled}
+      data-allow-mouse="true"
       className={`flex items-center gap-1.5 whitespace-nowrap text-[12px] font-bold sm:text-[13px] ${
         disabled ? "cursor-not-allowed text-white/45" : "text-white hover:underline"
       }`}

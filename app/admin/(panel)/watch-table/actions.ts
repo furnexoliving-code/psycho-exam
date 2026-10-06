@@ -351,6 +351,9 @@ export async function saveSettings(
     const scaleRaw = formData.get("picture_scale");
     const pictureScale =
       scaleRaw === null ? {} : { pictureScale: Math.min(400, Math.max(0, Math.round(Number(scaleRaw) || 0))) };
+    const studyScaleRaw = formData.get("study_scale");
+    const studyScale =
+      studyScaleRaw === null ? {} : { studyScale: Math.min(100, Math.max(20, Math.round(Number(studyScaleRaw) || 60))) };
     const breakRaw = formData.get("break_time_min");
     if (breakRaw !== null) {
       const n = numberOrNull(breakRaw) ?? 0;
@@ -425,6 +428,7 @@ export async function saveSettings(
           ...partsField,
           ...schedule,
           ...pictureScale,
+          ...studyScale,
           // Kept as they are: set from their own uploader, not this form.
           ...(current?.studyImages ? { studyImages: current.studyImages } : {}),
         },
