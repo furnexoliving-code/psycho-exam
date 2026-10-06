@@ -530,7 +530,7 @@ end $$;
 -- ---------------------------------------------------------------------------
 alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles
-  add constraint profiles_role_check check (role in ('student', 'admin', 'staff', 'editor'));
+  add constraint profiles_role_check check (role in ('student', 'admin', 'staff', 'editor', 'viewer'));
 
 create or replace function public.can_edit_papers()
 returns boolean
@@ -657,3 +657,140 @@ create table if not exists public.portal_settings (
   updated_at  timestamptz not null default now()
 );
 alter table public.portal_settings enable row level security;
+
+-- ---------------------------------------------------------------------------
+-- Account validity (added later)
+--
+-- An account is issued for a course that ends. Past this date the student
+-- cannot sign in, and the panel shows the account as expired; the results
+-- stay. Null means no end date, which is what every existing account has,
+-- so adding the column changes nothing until an admin sets a date.
+-- ---------------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists valid_until date;
+
+-- ---------------------------------------------------------------------------
+-- Who did what in the panel (added later)
+--
+-- With more than one person in the panel, a deleted paper or a reset
+-- password needs a name against it. Written only by the server; read in the
+-- panel by the admin. No policies: the service role alone touches it.
+-- ---------------------------------------------------------------------------
+create table if not exists public.audit_log (
+  id          bigserial primary key,
+  at          timestamptz not null default now(),
+  actor_id    uuid,
+  actor_name  text not null default '',
+  actor_role  text not null default '',
+  action      text not null,
+  details     text not null default ''
+);
+alter table public.audit_log enable row level security;
+create index if not exists audit_log_at_idx on public.audit_log (at desc);
+
+-- Ranking a mark among a paper's attempts is the commonest cohort query.
+create index if not exists watch_attempts_paper_marks_idx
+  on public.watch_attempts (paper_id, marks);
+
+-- ---------------------------------------------------------------------------
+-- The cohort figures of many papers at once (added later)
+--
+-- The dashboard shows a student's best T-score in every battery, which
+-- needs each attempted paper's mean and standard deviation: one call for
+-- all of them rather than one per paper. One mark per candidate, their
+-- latest, over the paper's current length — the same rule as watch_cohort.
+-- ---------------------------------------------------------------------------
+create or replace function public.watch_cohorts(p_papers uuid[])
+returns table (paper_id uuid, total integer, n integer, mean double precision, sd double precision)
+language sql
+stable
+security definer set search_path = public
+as $$
+  with latest as (
+    select distinct on (a.paper_id, coalesce(a.user_id::text, a.id::text))
+      a.paper_id, a.total, a.marks
+    from public.watch_attempts a
+    where a.paper_id = any (p_papers)
+    order by a.paper_id, coalesce(a.user_id::text, a.id::text), a.submitted_at desc
+  )
+  select
+    l.paper_id,
+    l.total,
+    count(*)::integer,
+    avg(l.marks)::double precision,
+    coalesce(stddev_pop(l.marks), 0)::double precision
+  from latest l
+  group by l.paper_id, l.total;
+$$;
+grant execute on function public.watch_cohorts(uuid[]) to service_role;
+
+-- ---------------------------------------------------------------------------
+-- Full Mock tests (added later)
+--
+-- A full mock strings five published papers, one per battery, into one
+-- sitting in the hall's order: Test 1 to Test 5, each with its own
+-- instruction screen and clock, a short gap between. The papers stay what
+-- they are; a mock only names them in order. The sitting keeps which test
+-- the candidate is on, and the result keeps the five marks and T-scores,
+-- the composite and whether every battery cleared the bar.
+-- ---------------------------------------------------------------------------
+create table if not exists public.mock_tests (
+  id              uuid primary key default gen_random_uuid(),
+  slug            text not null unique,
+  name            text not null,
+  /* The papers in order, Test 1 first. */
+  paper_ids       uuid[] not null default '{}',
+  gap_min         integer not null default 1 check (gap_min between 0 and 30),
+  opens_at        timestamptz,
+  closes_at       timestamptz,
+  max_attempts    integer check (max_attempts is null or max_attempts between 1 and 100),
+  /* The bar every battery must clear. RRB's own is a T-score of 42. */
+  cut_off_tscore  numeric not null default 42,
+  is_published    boolean not null default false,
+  sort_order      integer not null default 0,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+alter table public.mock_tests enable row level security;
+drop policy if exists mock_tests_read on public.mock_tests;
+create policy mock_tests_read on public.mock_tests
+  for select using (is_published or public.is_admin());
+grant select on public.mock_tests to authenticated;
+
+create table if not exists public.mock_sittings (
+  id              uuid primary key default gen_random_uuid(),
+  mock_id         uuid not null references public.mock_tests on delete cascade,
+  user_id         uuid not null references auth.users on delete cascade,
+  started_at      timestamptz not null default now(),
+  /* Which test the candidate is on: 0 is Test 1. */
+  step            integer not null default 0,
+  /* When the current step began — the gap before it starts here. */
+  step_started_at timestamptz not null default now(),
+  /* The attempt recorded for each finished step, in order. */
+  attempt_ids     uuid[] not null default '{}',
+  submitted_at    timestamptz
+);
+alter table public.mock_sittings enable row level security;
+create unique index if not exists mock_sittings_one_open
+  on public.mock_sittings (mock_id, user_id) where submitted_at is null;
+create index if not exists mock_sittings_user_idx on public.mock_sittings (user_id, started_at desc);
+
+create table if not exists public.mock_results (
+  id            uuid primary key default gen_random_uuid(),
+  mock_id       uuid not null references public.mock_tests on delete cascade,
+  user_id       uuid references auth.users on delete set null,
+  sitting_id    uuid references public.mock_sittings on delete set null,
+  /* One entry per test: paper, marks, total, T-score, cleared the bar. */
+  tests         jsonb not null default '[]'::jsonb,
+  composite     numeric,
+  qualified     boolean,
+  duration_sec  integer,
+  submitted_at  timestamptz not null default now()
+);
+alter table public.mock_results enable row level security;
+drop policy if exists mock_results_own on public.mock_results;
+create policy mock_results_own on public.mock_results
+  for select using (user_id = auth.uid() or public.is_admin());
+grant select on public.mock_results to authenticated;
+create index if not exists mock_results_mock_idx on public.mock_results (mock_id, composite desc);
+create index if not exists mock_results_user_idx on public.mock_results (user_id, submitted_at desc);

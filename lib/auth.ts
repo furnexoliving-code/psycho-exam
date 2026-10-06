@@ -1,13 +1,20 @@
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "./supabase/server";
+import { indianDay } from "./format-time";
+
+/** True once the validity date is behind today's date in India. */
+export function hasExpired(validUntil: string | null | undefined): boolean {
+  if (!validUntil) return false;
+  return validUntil < indianDay(Date.now());
+}
 
 /**
  * Who an account is. Beyond the student and the admin there are two kinds of
  * helper, each with one job: staff reset students' passwords, an editor
  * writes and publishes papers. Neither sees results or accounts.
  */
-export type Role = "student" | "admin" | "staff" | "editor";
+export type Role = "student" | "admin" | "staff" | "editor" | "viewer";
 
 export interface Profile {
   id: string;
@@ -16,6 +23,8 @@ export interface Profile {
   phone: string;
   role: Role;
   is_active: boolean;
+  /** The last day the account may sign in, as YYYY-MM-DD; null for no end. */
+  valid_until: string | null;
 }
 
 /**
@@ -23,16 +32,17 @@ export interface Profile {
  * a helper opens only the section that is their job. Every page and every
  * action names its section, so the rule lives here once.
  */
-export type Section = "admin" | "papers" | "passwords";
+export type Section = "admin" | "papers" | "passwords" | "results";
 
 const SECTION_ROLES: Record<Section, readonly Role[]> = {
   admin: ["admin"],
   papers: ["admin", "editor"],
   passwords: ["admin", "staff"],
+  results: ["admin", "viewer"],
 };
 
 /** Every role that may enter the panel at all. */
-export const PANEL_ROLES: readonly Role[] = ["admin", "staff", "editor"];
+export const PANEL_ROLES: readonly Role[] = ["admin", "staff", "editor", "viewer"];
 
 /** True when this role may open the section. */
 export function mayOpen(role: Role, section: Section): boolean {
@@ -43,6 +53,7 @@ export function mayOpen(role: Role, section: Section): boolean {
 export function panelHome(role: Role): string {
   if (role === "staff") return "/admin/passwords";
   if (role === "editor") return "/admin/watch-table";
+  if (role === "viewer") return "/admin/results";
   return "/admin";
 }
 
@@ -78,6 +89,8 @@ export async function getProfile(): Promise<Profile | null> {
 interface Session {
   profile: Profile | null;
   inactive: boolean;
+  /** True when the account's validity date has passed. */
+  expired: boolean;
   /** The session's assurance level: aal2 once a second factor has been passed. */
   aal: string | null;
 }
@@ -94,24 +107,29 @@ interface Session {
  * still opens nothing.
  */
 const readProfile = cache(async (): Promise<Session> => {
-  if (!isConfigured()) return { profile: null, inactive: false, aal: null };
+  if (!isConfigured()) return { profile: null, inactive: false, expired: false, aal: null };
 
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
-  if (!claims?.sub) return { profile: null, inactive: false, aal: null };
+  if (!claims?.sub) return { profile: null, inactive: false, expired: false, aal: null };
 
   const { data: row } = await supabase
     .from("profiles")
-    .select("id, full_name, roll_no, phone, role, is_active")
+    .select("id, full_name, roll_no, phone, role, is_active, valid_until")
     .eq("id", claims.sub)
     .single();
 
   const profile = row as Profile | null;
   const aal = typeof claims.aal === "string" ? claims.aal : "aal1";
-  if (!profile) return { profile: null, inactive: false, aal };
-  if (profile.is_active === false) return { profile: null, inactive: true, aal };
-  return { profile, inactive: false, aal };
+  if (!profile) return { profile: null, inactive: false, expired: false, aal };
+  if (profile.is_active === false) return { profile: null, inactive: true, expired: false, aal };
+  // A student whose course has ended is refused on every request, the same
+  // as a switched-off one; the panel roles are never dated.
+  if (profile.role === "student" && hasExpired(profile.valid_until)) {
+    return { profile: null, inactive: false, expired: true, aal };
+  }
+  return { profile, inactive: false, expired: false, aal };
 });
 
 /**
@@ -120,8 +138,9 @@ const readProfile = cache(async (): Promise<Session> => {
  * why.
  */
 export async function requireUser(next = "/dashboard"): Promise<Profile> {
-  const { profile, inactive } = await readProfile();
+  const { profile, inactive, expired } = await readProfile();
   if (inactive) redirect("/login?error=inactive");
+  if (expired) redirect("/login?error=expired");
   if (!profile) redirect(`/login?next=${encodeURIComponent(next)}`);
   return profile;
 }
@@ -190,6 +209,11 @@ export async function requireAdmin(next = "/admin"): Promise<Profile> {
 /** The admin or an editor: writing papers. */
 export async function requireEditor(next = "/admin/watch-table"): Promise<Profile> {
   return requireSection("papers", next);
+}
+
+/** The admin or a result viewer: results, never accounts or papers. */
+export async function requireResults(next = "/admin/results"): Promise<Profile> {
+  return requireSection("results", next);
 }
 
 /** The admin or staff: resetting a student's password. */

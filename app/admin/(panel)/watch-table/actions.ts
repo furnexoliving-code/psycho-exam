@@ -16,6 +16,7 @@ import { FIGURE_EXAMPLE_TEXT, pictureInstructions } from "@/lib/wt/figure-sample
 import { syncScheduleClock } from "./figure-actions";
 import { scheduleMinutes } from "@/lib/wt/schedule";
 import { setBatteryHidden } from "@/lib/wt/visibility";
+import { logAction } from "@/lib/audit";
 import { DIRECTIONS, type Direction, type WatchCell } from "@/lib/wt/types";
 
 /**
@@ -243,6 +244,7 @@ export async function createPaper(formData: FormData) {
   if (questionError) throw new Error(questionError.message);
 
   paperChanged(data.slug);
+  await logAction("Paper created", `${displayName} (${data.slug})`);
   redirect(`/admin/watch-table/${data.slug}`);
   });
 }
@@ -433,7 +435,9 @@ export async function saveSettings(
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error(NOTHING_CHANGED);
     revalidatePath(`/admin/watch-table/${slug}`);
-    paperChanged(slug);  });
+    paperChanged(slug);
+    await logAction(publish ? "Paper settings saved (published)" : "Paper settings saved (draft)", `${displayName} (${slug})`);
+  });
 }
 
 export async function saveDiagram(
@@ -802,6 +806,7 @@ export async function deletePaper(formData: FormData) {
     if (error) throw new Error(error.message);
     if (!gone?.length) throw new Error(NOTHING_CHANGED);
     paperChanged(slug);
+    await logAction("Paper deleted", `${gone[0].display_name} (${slug}), with its questions and results`);
     redirect(
       `/admin/watch-table?saved=${encodeURIComponent(`Deleted — ${gone[0].display_name}, with its questions and results`)}`,
     );
@@ -938,6 +943,7 @@ export async function setBatteryVisibility(
     await setBatteryHidden(battery, hidden);
     revalidatePath("/admin/watch-table");
     revalidatePath("/dashboard");
+    await logAction(hidden ? "Battery hidden from students" : "Battery shown to students", `Battery ${battery}`);
     return hidden ? `Battery ${battery} hidden from students` : `Battery ${battery} now shown to students`;
   });
 }

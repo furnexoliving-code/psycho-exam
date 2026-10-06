@@ -54,6 +54,15 @@ export default async function LoginPage({
           </p>
         )}
 
+        {error === "expired" && (
+          <p
+            role="alert"
+            className="mt-5 rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"
+          >
+            This account&apos;s validity has ended. Ask at the institute to extend it.
+          </p>
+        )}
+
         {isConfigured() ? <AuthForm next={target} /> : <SetupNotice />}
 
         <p className="mt-5 rounded border border-gray-300 bg-white px-4 py-3 text-center text-[13px] text-gray-600">

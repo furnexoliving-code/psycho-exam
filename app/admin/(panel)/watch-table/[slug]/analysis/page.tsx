@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireResults } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll } from "@/lib/wt/cohort";
 import { questionStats } from "@/lib/wt/question-stats";
@@ -20,7 +20,7 @@ export default async function PaperAnalysisPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  await requireAdmin();
+  await requireResults();
   // Reading questions needs the service-role client: SELECT on that table is
   // revoked from `authenticated`, admins included, to keep the answer column
   // away from candidates.

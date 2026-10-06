@@ -3,7 +3,9 @@ import { formatDate, formatDateTime } from "@/lib/format-time";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { normalisePhone } from "@/lib/phone";
-import { createStaff, createStudent, deleteStudent, removeStaff, resetPassword, setActive } from "./actions";
+import { createStaff, createStudent, deleteStudent, removeStaff, resetPassword, setActive, setValidity, setValidityForAll } from "./actions";
+import { hasExpired } from "@/lib/auth";
+import { indianDay } from "@/lib/format-time";
 import { HELPER_ROLES, isHelperRole } from "./helpers";
 import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
@@ -33,7 +35,7 @@ export default async function StudentsPage({
   // everyone sitting a paper at that moment.
   let request = supabase
     .from("profiles")
-    .select("id, full_name, phone, created_at, is_active", { count: "exact" })
+    .select("id, full_name, phone, created_at, is_active, valid_until", { count: "exact" })
     .eq("role", "student");
   if (query) {
     const digits = normalisePhone(query);
@@ -114,6 +116,15 @@ export default async function StudentsPage({
               className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
             />
           </label>
+          <label className="block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Valid till (optional)</span>
+            <input
+              name="valid_until"
+              type="date"
+              min={indianDay(Date.now())}
+              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
+            />
+          </label>
           </div>
         </SaveForm>
       </section>
@@ -157,6 +168,7 @@ export default async function StudentsPage({
                   <th className="border border-gray-300 px-3 py-2">Name</th>
                   <th className="border border-gray-300 px-3 py-2">Mobile</th>
                   <th className="border border-gray-300 px-3 py-2">Registered</th>
+                  <th className="border border-gray-300 px-3 py-2">Valid till</th>
                   <th className="border border-gray-300 px-3 py-2">Account</th>
                   <th className="border border-gray-300 px-3 py-2">New password</th>
                   <th className="border border-gray-300 px-3 py-2" />
@@ -171,6 +183,29 @@ export default async function StudentsPage({
                     <td className="border border-gray-300 px-3 py-2">{s.phone || "—"}</td>
                     <td className="border border-gray-300 px-3 py-2">
                       {formatDate(s.created_at)}
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">
+                      <RowForm action={setValidity} className="flex items-center gap-1">
+                        <input type="hidden" name="id" value={s.id} />
+                        <input
+                          name="valid_until"
+                          type="date"
+                          defaultValue={s.valid_until ?? ""}
+                          className={`w-[138px] rounded border px-1.5 py-1 text-[12px] ${
+                            hasExpired(s.valid_until) ? "border-red-400 bg-red-50 text-red-800" : "border-gray-400"
+                          }`}
+                          title={hasExpired(s.valid_until) ? "Expired — the account is refused" : "Blank means no end date"}
+                        />
+                        <button
+                          type="submit"
+                          className="rounded border border-gray-400 px-2 py-1 text-[11px] font-semibold text-gray-800 hover:bg-gray-100"
+                        >
+                          Set
+                        </button>
+                      </RowForm>
+                      {hasExpired(s.valid_until) && (
+                        <span className="mt-1 block text-[10px] font-semibold text-red-700">Expired</span>
+                      )}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <RowForm action={setActive}>
@@ -248,13 +283,36 @@ export default async function StudentsPage({
         )}
       </section>
 
+      {/* ------------------------ Validity for everyone ------------------------ */}
+      <section className="mt-8 rounded border border-gray-300 bg-white p-5">
+        <h2 className="text-[15px] font-bold text-gray-900">Validity for all students</h2>
+        <p className="mt-1 text-[12px] text-gray-600">
+          Sets one end date on every student account at once — for when the course&apos;s end
+          date is fixed or moves. Past the date a student cannot sign in; their results stay.
+          Leave the date blank to remove every end date.
+        </p>
+        <SaveForm action={setValidityForAll} submitLabel="Apply to every student" className="mt-3">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Valid till</span>
+              <input name="valid_until" type="date" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Type ALL to confirm</span>
+              <input name="confirm" required placeholder="ALL" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
+            </label>
+          </div>
+        </SaveForm>
+      </section>
+
       {/* --------------------------- Helper accounts --------------------------- */}
       <section className="mt-8 rounded border border-gray-300 bg-white p-5">
         <h2 className="text-[15px] font-bold text-gray-900">Helper accounts</h2>
         <p className="mt-1 text-[12px] text-gray-600">
           Each kind of helper opens one part of this panel and nothing else. Staff can
           reset a student&apos;s password. A test setter can create, write and publish
-          papers, but sees no results and no student accounts. Both sign in at{" "}
+          papers, but sees no results and no student accounts. A result viewer sees
+          results and nothing else. All sign in at{" "}
           <code className="rounded bg-gray-200 px-1">/admin</code> and use an
           authenticator app like the admin does.
         </p>

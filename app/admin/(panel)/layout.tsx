@@ -9,10 +9,11 @@ const NAV: { href: string; label: string; section: Section }[] = [
   { href: "/admin", label: "Overview", section: "admin" },
   { href: "/admin/watch-table", label: "Following Directions Test", section: "papers" },
   { href: "/admin/students", label: "Students & Results", section: "admin" },
+  { href: "/admin/results", label: "Results", section: "results" },
   { href: "/admin/passwords", label: "Reset a password", section: "passwords" },
 ];
 
-const ROLE_LABEL = { admin: "Admin", editor: "Test setter", staff: "Staff", student: "" };
+const ROLE_LABEL = { admin: "Admin", editor: "Test setter", staff: "Staff", viewer: "Result viewer", student: "" };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // Say plainly that the database is missing rather than bouncing to a login

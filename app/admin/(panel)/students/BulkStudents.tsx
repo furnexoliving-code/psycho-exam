@@ -28,6 +28,7 @@ interface Progress {
  */
 export function BulkStudents() {
   const [bulk, setBulk] = useState("");
+  const [validUntil, setValidUntil] = useState("");
   const [progress, setProgress] = useState<Progress | null>(null);
   const file = useRef<HTMLInputElement | null>(null);
 
@@ -67,7 +68,7 @@ export function BulkStudents() {
       const lines = batch.map((s) => `${s.fullName}\t${s.phone}\t${s.password}`).join("\n");
       let outcome: ImportOutcome;
       try {
-        outcome = await importStudentBatch(lines, i + IMPORT_BATCH >= students.length);
+        outcome = await importStudentBatch(lines, i + IMPORT_BATCH >= students.length, validUntil);
       } catch (e) {
         outcome = { made: 0, skipped: [], failed: [], error: e instanceof Error ? e.message : String(e) };
       }
@@ -149,6 +150,18 @@ export function BulkStudents() {
         placeholder="Paste your student list here, or choose a file above…"
         className="mt-3 w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px] disabled:bg-gray-100"
       />
+      <label className="mt-3 block max-w-xs">
+        <span className="mb-1 block text-[12px] font-semibold text-gray-700">
+          Valid till (optional) — applies to every account in this list
+        </span>
+        <input
+          type="date"
+          value={validUntil}
+          disabled={busy}
+          onChange={(e) => setValidUntil(e.target.value)}
+          className="w-full rounded border border-gray-400 px-3 py-2 text-[13px] disabled:bg-gray-100"
+        />
+      </label>
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <button
           type="button"

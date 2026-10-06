@@ -7,6 +7,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidPhone, normalisePhone, phoneToEmail } from "@/lib/phone";
 import { IMPORT_BATCH, parseStudentLines } from "@/lib/parse-students";
 import { HELPER_ROLES, isHelperRole } from "./helpers";
+import { logAction } from "@/lib/audit";
+import { indianDay } from "@/lib/format-time";
+
+/** A validity date off a form: YYYY-MM-DD, or null for none. */
+function validityOf(raw: FormDataEntryValue | null): string | null {
+  const value = String(raw ?? "").trim();
+  if (!value) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error("The validity date must be a date");
+  return value;
+}
 
 const BACK = "/admin/students";
 
@@ -29,6 +39,7 @@ export async function createStudent(
     const fullName = String(formData.get("full_name") ?? "").trim();
     const phoneRaw = String(formData.get("phone") ?? "");
     const password = String(formData.get("password") ?? "");
+    const validUntil = validityOf(formData.get("valid_until"));
 
     if (!fullName) throw new Error("The student's name is required");
     if (!isValidPhone(phoneRaw)) {
@@ -66,9 +77,10 @@ export async function createStudent(
     // database runs.
     await supabase
       .from("profiles")
-      .update({ full_name: fullName, phone, is_active: true })
+      .update({ full_name: fullName, phone, is_active: true, valid_until: validUntil })
       .eq("id", created.user.id);
 
+    await logAction("Student created", `${fullName} (${phone})${validUntil ? `, valid till ${validUntil}` : ""}`);
     revalidatePath(BACK);
     return `${fullName} — ${phone}`;
   });
@@ -91,6 +103,7 @@ export async function resetPassword(
     const { error } = await supabase.auth.admin.updateUserById(id, { password });
     if (error) throw new Error(error.message);
 
+    await logAction("Password reset", `student ${id}`);
     revalidatePath(BACK);
     return "changed";
   });
@@ -135,6 +148,7 @@ export async function setActive(
       throw new Error(`The account flag is saved, but the sign-in block failed: ${banError.message}`);
     }
 
+    await logAction(active ? "Account switched on" : "Account switched off", `student ${id}`);
     revalidatePath(BACK);
     return active ? "switched on" : "switched off";
   });
@@ -170,6 +184,7 @@ export async function deleteStudent(
     const { error } = await supabase.auth.admin.deleteUser(id);
     if (error) throw new Error(error.message);
 
+    await logAction("Student deleted", `student ${id}, with their results`);
     revalidatePath(BACK);
     return "deleted";
   });
@@ -218,11 +233,14 @@ export async function importStudentBatch(
   lines: string,
   /** The last batch of the run: only then is the page's list refreshed. */
   final = true,
+  /** The validity date for every account in the run, or none. */
+  validUntilRaw = "",
 ): Promise<ImportOutcome> {
   const outcome: ImportOutcome = { made: 0, skipped: [], failed: [] };
   try {
     await requireAdmin();
     const supabase = createAdminClient();
+    const validUntil = validityOf(validUntilRaw);
 
     const parsed = parseStudentLines(lines);
     if (parsed.length > IMPORT_BATCH) {
@@ -263,6 +281,7 @@ export async function importStudentBatch(
               full_name: student.fullName,
               phone: student.phone,
               is_active: true,
+              valid_until: validUntil,
             })
             .eq("id", created.user.id);
 
@@ -271,6 +290,9 @@ export async function importStudentBatch(
       );
     }
 
+    if (outcome.made > 0) {
+      await logAction("Students imported", `${outcome.made} account${outcome.made === 1 ? "" : "s"}${validUntil ? `, valid till ${validUntil}` : ""}`);
+    }
     if (final) revalidatePath(BACK);
   } catch (error) {
     // A redirect (to the second-factor page) is not a failure to report.
@@ -338,6 +360,7 @@ export async function createStaff(
     }
     if (!updated?.length) throw new Error("The account was made but its role could not be set");
 
+    await logAction("Helper account created", `${fullName} (${phone}) as ${role}`);
     revalidatePath(BACK);
     return `${fullName} — ${phone}. They sign in at ${HELPER_ROLES[role].home}.`;
   });
@@ -355,12 +378,74 @@ export async function removeStaff(
     const id = String(formData.get("id"));
     const { data } = await supabase.from("profiles").select("role").eq("id", id).maybeSingle();
     if (!data) throw new Error("That account no longer exists");
-    if (!isHelperRole(data.role)) throw new Error("Only a staff or test-setter account can be removed here");
+    if (!isHelperRole(data.role)) throw new Error("Only a helper account can be removed here");
 
     const { error } = await supabase.auth.admin.deleteUser(id);
     if (error) throw new Error(error.message);
 
+    await logAction("Helper account removed", `${data.role} ${id}`);
     revalidatePath(BACK);
     return "removed";
+  });
+}
+
+/**
+ * Sets, moves or clears the last day a student may sign in. Past it the
+ * account is refused like a switched-off one, and the results stay.
+ */
+export async function setValidity(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Validity", async () => {
+    await requireAdmin();
+    const supabase = createAdminClient();
+
+    const id = String(formData.get("id"));
+    const validUntil = validityOf(formData.get("valid_until"));
+    await studentOnly(supabase, id);
+
+    const { data: updated, error } = await supabase
+      .from("profiles")
+      .update({ valid_until: validUntil })
+      .eq("id", id)
+      .select("id");
+    if (error) throw new Error(error.message);
+    if (!updated?.length) throw new Error("That account no longer exists");
+
+    await logAction("Validity changed", `student ${id}: ${validUntil ?? "no end date"}`);
+    revalidatePath(BACK);
+    return validUntil
+      ? validUntil < indianDay(Date.now())
+        ? `ends ${validUntil} — already past, the account is now refused`
+        : `till ${validUntil}`
+      : "no end date";
+  });
+}
+
+/**
+ * One validity date for every student at once — the usual case when a
+ * course's end date moves. Admin only.
+ */
+export async function setValidityForAll(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Validity for all students", async () => {
+    await requireAdmin();
+    const supabase = createAdminClient();
+    const validUntil = validityOf(formData.get("valid_until"));
+    if (String(formData.get("confirm") ?? "") !== "ALL") {
+      throw new Error('Type ALL in the box to confirm: this changes every student account');
+    }
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ valid_until: validUntil })
+      .eq("role", "student")
+      .select("id");
+    if (error) throw new Error(error.message);
+    await logAction("Validity set for all students", `${data?.length ?? 0} accounts: ${validUntil ?? "no end date"}`);
+    revalidatePath(BACK);
+    return `${data?.length ?? 0} accounts — ${validUntil ? `till ${validUntil}` : "no end date"}`;
   });
 }

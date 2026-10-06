@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { logAction } from "@/lib/audit";
 import { attempt, type SaveState } from "@/lib/admin-result";
 import { requireStaff } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -35,6 +36,7 @@ export async function resetStudentPassword(
     const { error } = await supabase.auth.admin.updateUserById(id, { password });
     if (error) throw new Error(error.message);
 
+    await logAction("Password reset", `${target.full_name || target.phone}`);
     revalidatePath("/admin/passwords");
     return `changed for ${target.full_name || target.phone}`;
   });

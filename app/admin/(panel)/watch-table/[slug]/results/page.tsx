@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireResults } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { tScore } from "@/lib/wt/tscore";
 import {
@@ -29,7 +29,7 @@ export default async function PaperResultsPage({
 }) {
   const { slug } = await params;
   // On the page itself, not only in the layout, which a request can skip.
-  await requireAdmin(`/admin/watch-table/${slug}/results`);
+  await requireResults(`/admin/watch-table/${slug}/results`);
   const supabase = await createClient();
 
   const { data: paper } = await supabase
