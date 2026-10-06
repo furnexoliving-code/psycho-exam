@@ -1,9 +1,14 @@
 /**
- * The masthead strip: institute mark, the RRB board panel with the national
- * emblem and a locomotive photo, then the Instructions / Question Paper
- * buttons on the far right.
+ * The masthead, laid out as the real hall screen is: a white strip with
+ * the institute's mark on the left, the board's name and the CEN line in
+ * the middle between two emblems, and the RDSO badge on the right; then a
+ * charcoal bar with the test series' name in yellow and the Instructions /
+ * Question Paper buttons at its right end.
  *
- * Everything is drawn inline — no third-party artwork ships with the repo.
+ * The two emblems are drawn here, in outline, as stylised stand-ins. The
+ * State Emblem of India may not be used by a private body, and the
+ * railway roundel is the railways' own mark, so neither is the real
+ * artwork: the drawings give the screen its familiar shape, no more.
  */
 export function PortalBanner({
   onInstructions,
@@ -25,53 +30,65 @@ export function PortalBanner({
   disabled?: boolean;
 }) {
   return (
-    <div className="flex h-[58px] items-stretch bg-wt-teal">
-      <div className="hidden w-[200px] shrink-0 items-center gap-2 px-3 sm:flex">
-        <InstituteMark />
-        <div className="leading-none">
-          <div className="text-[13px] font-extrabold tracking-tight text-white">
-            KAUTILYA
+    <header className="font-exam">
+      <div className="flex h-[56px] items-center border-b border-[#d9d9d9] bg-white px-3">
+        <div className="flex shrink-0 items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/kautilya-logo.png" alt="Kautilya Classes" className="h-[44px] w-auto" draggable={false} />
+          <div className="leading-none">
+            <div className="text-[15px] font-bold text-[#0d2a6b]">KAUTILYA CLASSES</div>
+            <div className="mt-1 text-[8.5px] font-bold tracking-[0.2em] text-[#c8102e]">
+              PSYCHO TEST PORTAL
+            </div>
           </div>
-          <div className="text-[8px] font-semibold uppercase tracking-[0.15em] text-white/85">
-            Classes
+        </div>
+
+        <div className="mx-auto hidden items-center gap-3.5 md:flex">
+          <LionCapital />
+          <div className="leading-tight text-[#111]">
+            <div className="text-[12.5px] font-bold">
+              <span lang="hi">रेल भर्ती बोर्ड</span> / RAILWAY RECRUITMENT BOARDS
+            </div>
+            <div className="mt-0.5 text-[12.5px] font-bold tracking-wider">
+              <span lang="hi">सी ई एन आर आर बी - ०१/२०२५</span> - CEN RRB - 01/2025
+            </div>
           </div>
+          <RailRoundel />
+        </div>
+
+        <div className="ml-auto hidden shrink-0 flex-col items-end sm:flex md:ml-0">
+          <span className="text-[12px] font-extrabold tracking-wider text-[#0d2a6b]">
+            AS PER RDSO PATTERN
+          </span>
+          <span
+            className="my-0.5 h-[2px] w-full"
+            style={{ background: "linear-gradient(90deg,#ff9933 33%,#ffffff 33% 66%,#138808 66%)" }}
+            aria-hidden="true"
+          />
+          <span className="text-[9px] font-bold tracking-[0.2em] text-[#c8102e]">RRB ALP · CBAT 2025</span>
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 items-center justify-center gap-4 bg-wt-banner px-4">
-        <Emblem />
-        <div className="text-center leading-tight">
-          <div className="text-[17px] font-extrabold tracking-wide text-white sm:text-xl">
-            RAILWAY RECRUITMENT BOARD
-          </div>
-          <div className="text-[8px] font-semibold uppercase tracking-[0.22em] text-white/85 sm:text-[9px]">
-            Government of India · Ministry of Railways
-          </div>
-          <div className="mt-0.5 inline-block bg-white px-2 py-px text-[9px] font-bold uppercase tracking-wider text-wt-banner">
-            Be best at psycho test
-          </div>
+      <div className="flex h-[30px] items-center gap-3 bg-[#333333] px-3.5">
+        <span className="truncate text-[13px] font-bold text-[#ffd500]">RRB ALP Aptitude Test</span>
+        <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4">
+          {showInstructions && (
+            <BarButton onClick={onInstructions} disabled={disabled}>
+              Instructions
+            </BarButton>
+          )}
+          {showQuestionPaper && (
+            <BarButton onClick={onQuestionPaper} disabled={disabled}>
+              Question Paper
+            </BarButton>
+          )}
         </div>
-        <Locomotive />
-        <RrbRoundel />
       </div>
-
-      <div className="flex shrink-0 flex-col items-stretch justify-center gap-1 px-2 sm:flex-row sm:items-center sm:gap-2 sm:px-3">
-        {showInstructions && (
-          <BannerButton onClick={onInstructions} disabled={disabled}>
-            Instructions
-          </BannerButton>
-        )}
-        {showQuestionPaper && (
-          <BannerButton onClick={onQuestionPaper} disabled={disabled}>
-            Question Paper
-          </BannerButton>
-        )}
-      </div>
-    </div>
+    </header>
   );
 }
 
-function BannerButton({
+function BarButton({
   children,
   onClick,
   disabled = false,
@@ -86,37 +103,40 @@ function BannerButton({
       onClick={onClick}
       disabled={disabled}
       aria-disabled={disabled}
-      className={`rounded border px-3 py-1.5 text-[12px] font-semibold ${
-        disabled
-          ? "cursor-not-allowed border-white/30 bg-white/40 text-gray-500"
-          : "border-white/70 bg-white text-gray-800 hover:bg-gray-50"
+      className={`flex items-center gap-1.5 whitespace-nowrap text-[12px] font-bold sm:text-[13px] ${
+        disabled ? "cursor-not-allowed text-white/45" : "text-white hover:underline"
       }`}
     >
+      <InfoDot dim={disabled} />
       {children}
     </button>
   );
 }
 
-function InstituteMark() {
+function InfoDot({ dim = false }: { dim?: boolean }) {
   return (
-    <svg viewBox="0 0 40 40" className="h-8 w-8 shrink-0" aria-hidden="true">
-      <circle cx="20" cy="20" r="19" fill="#ffffff" />
-      <path d="M6 26c6-10 22-10 28 0-6-4-22-4-28 0z" fill="#1aa7c4" />
-      <path d="M9 19c5-7 17-7 22 0-5-3-17-3-22 0z" fill="#63cbdd" />
-    </svg>
+    <span
+      className={`flex h-[16px] w-[16px] items-center justify-center rounded-full text-[11px] font-bold italic text-white ${
+        dim ? "bg-[#2a8fd6]/50" : "bg-[#2a8fd6]"
+      }`}
+      aria-hidden="true"
+    >
+      i
+    </span>
   );
 }
 
-function Emblem() {
+/** A stylised lion capital, in outline grey: a stand-in, not the State Emblem. */
+function LionCapital() {
   return (
-    <svg viewBox="0 0 60 70" className="hidden h-[42px] w-[34px] shrink-0 sm:block" aria-hidden="true">
-      <g fill="#ffffff">
+    <svg viewBox="0 0 60 70" className="h-[40px] w-[34px] shrink-0" aria-hidden="true">
+      <g fill="#333333">
         <circle cx="22" cy="16" r="7" />
         <circle cx="38" cy="16" r="7" />
         <rect x="18" y="20" width="24" height="9" rx="3" />
         <rect x="14" y="30" width="32" height="5" rx="2" />
         <rect x="17" y="36" width="26" height="4" rx="1.5" />
-        <circle cx="30" cy="43" r="3.4" fill="none" stroke="#ffffff" strokeWidth="1.4" />
+        <circle cx="30" cy="43" r="3.4" fill="none" stroke="#333333" strokeWidth="1.4" />
         <rect x="20" y="48" width="20" height="3" rx="1" />
         <rect x="26" y="52" width="8" height="12" rx="1" />
       </g>
@@ -124,38 +144,21 @@ function Emblem() {
   );
 }
 
-function Locomotive() {
+/** A red roundel with a locomotive's face: a stand-in for the railways' mark. */
+function RailRoundel() {
   return (
-    <svg viewBox="0 0 90 50" className="hidden h-[42px] w-[76px] shrink-0 md:block" aria-hidden="true">
-      <rect width="90" height="50" fill="#7fb2d8" />
-      <rect y="34" width="90" height="16" fill="#8ab36a" />
-      <g fill="#1f6fa8">
-        <rect x="18" y="8" width="44" height="30" rx="3" />
-        <rect x="62" y="16" width="14" height="22" rx="2" />
-      </g>
-      <rect x="24" y="13" width="32" height="9" rx="1.5" fill="#cfe4f2" />
-      <g fill="#123c5c">
-        <circle cx="30" cy="40" r="4" />
-        <circle cx="44" cy="40" r="4" />
-        <circle cx="66" cy="40" r="3.4" />
-      </g>
-      <rect x="10" y="36" width="80" height="2.5" fill="#5b5b5b" />
-    </svg>
-  );
-}
-
-function RrbRoundel() {
-  return (
-    <svg viewBox="0 0 60 60" className="hidden h-[42px] w-[42px] shrink-0 sm:block" aria-hidden="true">
+    <svg viewBox="0 0 60 60" className="ml-3 h-[40px] w-[40px] shrink-0" aria-hidden="true">
       <circle cx="30" cy="30" r="28" fill="#ffffff" />
-      <circle cx="30" cy="30" r="28" fill="none" stroke="#1f4e9c" strokeWidth="2.5" />
-      <circle cx="30" cy="30" r="21" fill="none" stroke="#1f4e9c" strokeWidth="1.2" />
-      <g fill="#1f4e9c">
-        <rect x="23" y="21" width="14" height="15" rx="2" />
-        <rect x="26" y="37" width="8" height="3.5" rx="1" />
-        <circle cx="26" cy="43" r="2.2" />
-        <circle cx="34" cy="43" r="2.2" />
+      <circle cx="30" cy="30" r="28" fill="none" stroke="#c8102e" strokeWidth="3" />
+      <circle cx="30" cy="30" r="21" fill="none" stroke="#c8102e" strokeWidth="1.4" />
+      <g fill="#c8102e">
+        <rect x="22" y="20" width="16" height="16" rx="2" />
+        <rect x="25" y="37" width="10" height="3.5" rx="1" />
+        <circle cx="25" cy="44" r="2.4" />
+        <circle cx="35" cy="44" r="2.4" />
+        <rect x="26" y="15" width="8" height="4" rx="1" />
       </g>
+      <rect x="25" y="23" width="10" height="5" fill="#ffffff" />
     </svg>
   );
 }

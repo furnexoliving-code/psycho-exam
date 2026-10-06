@@ -10,8 +10,10 @@ export function clock(totalSec: number): string {
 }
 
 /**
- * The white toolbar under the banner: test title, the boxed countdown, pause
- * and fullscreen, and the candidate's roll number and name.
+ * The grey row under the charcoal bar, as the real hall screen has it: the
+ * paper's name on the left, the countdown and the fullscreen switch on the
+ * right, and beside them the candidate's photo box and name. The tab strip
+ * follows on the same grey, so the two read as one panel.
  */
 export function PortalToolbar({
   title,
@@ -41,19 +43,16 @@ export function PortalToolbar({
   const urgent = secondsLeft <= 60;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-gray-200 bg-white px-3 py-2">
-      <Logo />
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 bg-[#eeeeee] px-3 pb-1 pt-2 font-exam">
       <span className="truncate text-[14px] font-bold text-gray-900">{title}</span>
 
       <div
-        className={`mx-auto rounded border px-4 py-1.5 text-[14px] font-bold ${
-          urgent
-            ? "animate-pulse border-red-400 bg-red-50 text-red-700"
-            : "border-gray-500 bg-white text-gray-900"
+        className={`ml-auto whitespace-nowrap text-[13px] font-bold ${
+          urgent ? "animate-pulse text-red-700" : "text-gray-900"
         }`}
         role="timer"
       >
-        {label} <span className="font-mono tabular-nums">{clock(secondsLeft)}</span>
+        {label} : <span className="font-mono tabular-nums">{clock(secondsLeft)}</span>
       </div>
 
       {showPause && (
@@ -65,9 +64,19 @@ export function PortalToolbar({
         <ToolbarButton onClick={onToggleFullscreen}>Switch Fullscreen</ToolbarButton>
       )}
 
-      <div className="hidden shrink-0 items-end gap-3 border-l border-gray-300 pl-3 sm:flex">
-        {rollNo && rollNo !== "—" && <Candidate label={`Roll No: ${rollNo}`} />}
-        <Candidate label={`Name: ${name}`} />
+      <div className="hidden shrink-0 items-center gap-2.5 sm:flex">
+        <div className="flex h-[44px] w-[44px] items-center justify-center border border-[#bbbbbb] bg-[#dfe6ee]">
+          <svg viewBox="0 0 48 48" className="h-[34px] w-[34px]" aria-hidden="true">
+            <circle cx="24" cy="17" r="10" fill="#8fa3b8" />
+            <path d="M6 46c2-12 10-16 18-16s16 4 18 16z" fill="#8fa3b8" />
+          </svg>
+        </div>
+        <div className="leading-tight">
+          <div className="whitespace-nowrap text-[14px] font-bold text-gray-900">{name}</div>
+          {rollNo && rollNo !== "—" && (
+            <div className="whitespace-nowrap text-[10px] font-semibold text-gray-600">Roll No: {rollNo}</div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -87,39 +96,10 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       title={title}
-      className="shrink-0 rounded border border-gray-500 bg-white px-4 py-1.5 text-[13px]
+      className="shrink-0 rounded border border-gray-500 bg-white px-3 py-1 text-[12px]
                  font-semibold text-gray-800 hover:bg-gray-50"
     >
       {children}
     </button>
-  );
-}
-
-function Candidate({ label }: { label: string }) {
-  return (
-    <div className="flex flex-col items-center">
-      <svg viewBox="0 0 40 42" className="h-7 w-7" aria-hidden="true">
-        <defs>
-          <linearGradient id="wt-av" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#d5dde3" />
-            <stop offset="100%" stopColor="#6e7d88" />
-          </linearGradient>
-        </defs>
-        <circle cx="20" cy="12" r="8" fill="url(#wt-av)" />
-        <path d="M4 42C4 28 36 28 36 42Z" fill="url(#wt-av)" />
-      </svg>
-      <span className="whitespace-nowrap text-[10px] font-semibold text-gray-700">
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function Logo() {
-  return (
-    <svg viewBox="0 0 40 40" className="h-7 w-7 shrink-0" aria-hidden="true">
-      <circle cx="20" cy="20" r="19" fill="#1aa7c4" />
-      <path d="M7 26c6-9 20-9 26 0-6-4-20-4-26 0z" fill="#ffffff" />
-    </svg>
   );
 }

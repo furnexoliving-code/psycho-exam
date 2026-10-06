@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { WatchTableExam } from "@/components/wt/WatchTableExam";
 import { FigureExam } from "@/components/wt/FigureExam";
+import { ExamChromeProvider } from "@/components/wt/ExamChrome";
+import { CATEGORIES } from "@/lib/wt/categories";
 import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
 import { openSitting } from "@/lib/wt/session";
@@ -83,14 +85,23 @@ export default async function WatchTablePage({
   // A Perceptual Speed paper has its own screen; everything else is the
   // Following Directions engine, unchanged.
   const Screen = paper.kind === "figure" ? FigureExam : WatchTableExam;
+  // The header's tab strip shows the whole test series around this paper's
+  // battery, as the hall screen does; the screens themselves need not know.
+  const battery =
+    CATEGORIES.find((c) => c.id === paper.category)?.battery ??
+    // A paper with no category is a Following Directions one from before
+    // the categories existed, or the bundled sample.
+    (paper.kind === "figure" ? null : 2);
   return (
-    <Screen
-      paper={withoutAnswerKey(paper)}
-      candidateName={who?.full_name || "Candidate"}
-      rollNo={who?.roll_no || ""}
-      elapsedSec={sitting?.elapsedSec ?? null}
-      questionElapsedSec={sitting?.questionElapsedSec ?? null}
-      storageOwner={who?.id ?? "guest"}
-    />
+    <ExamChromeProvider battery={battery}>
+      <Screen
+        paper={withoutAnswerKey(paper)}
+        candidateName={who?.full_name || "Candidate"}
+        rollNo={who?.roll_no || ""}
+        elapsedSec={sitting?.elapsedSec ?? null}
+        questionElapsedSec={sitting?.questionElapsedSec ?? null}
+        storageOwner={who?.id ?? "guest"}
+      />
+    </ExamChromeProvider>
   );
 }
