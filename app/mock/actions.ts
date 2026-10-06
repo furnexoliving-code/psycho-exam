@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { abandonMock, advanceMock, openMockSitting } from "@/lib/wt/mock";
+import { abandonMock, advanceMock, openMockSitting, type MockSummaryTest } from "@/lib/wt/mock";
 
 /** Starts the mock, or rejoins it, and opens the test it is on. */
 export async function startMock(formData: FormData): Promise<void> {
@@ -23,8 +23,8 @@ export async function leaveMock(formData: FormData): Promise<void> {
 }
 
 export type MockNext =
-  | { next: "paper"; url: string; gapSec: number; step: number; total: number }
-  | { next: "done"; url: string }
+  | { next: "paper"; url: string; gapSec: number; step: number; total: number; summary: MockSummaryTest[] }
+  | { next: "done"; url: string; summary: MockSummaryTest[] }
   | { next: "none" };
 
 /**
@@ -38,6 +38,13 @@ export async function continueMock(paperSlug: string): Promise<MockNext> {
   if (!paper) return { next: "none" };
   const moved = await advanceMock(who.id, paper.id as string);
   if (!moved) return { next: "none" };
-  if (moved.next === "done") return { next: "done", url: `/mock/${moved.slug}/result` };
-  return { next: "paper", url: `/watch-table/${moved.slug}`, gapSec: moved.gapSec, step: moved.step, total: moved.total };
+  if (moved.next === "done") return { next: "done", url: `/mock/${moved.slug}/result`, summary: moved.summary };
+  return {
+    next: "paper",
+    url: `/watch-table/${moved.slug}`,
+    gapSec: moved.gapSec,
+    step: moved.step,
+    total: moved.total,
+    summary: moved.summary,
+  };
 }

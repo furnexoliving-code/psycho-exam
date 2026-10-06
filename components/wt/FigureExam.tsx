@@ -11,6 +11,8 @@ import { PortalBanner } from "./PortalBanner";
 import { ExamTop, SectionChip } from "./ExamTop";
 import { Instructions, InstructionsDialog } from "./Instructions";
 import { ConfirmBox } from "./ConfirmBox";
+import { ExamSummaryList } from "./ExamSummary";
+import { useExamChrome } from "./ExamChrome";
 import { ScrollRail } from "./ScrollRail";
 
 /**
@@ -170,6 +172,7 @@ export function FigureExam({
   }, [state, paper.id]);
 
   const unanswered = paper.questions.length - answered;
+  const { battery, mockSummary } = useExamChrome();
   const lastPart = part >= partCount - 1;
 
   return (
@@ -313,6 +316,11 @@ export function FigureExam({
                   <p className="mt-4 text-[0.8em] font-semibold text-[#222]">
                     {paper.title} (Part {part + 2}) : ( Yet to attempt )
                   </p>
+                  {mockSummary && (
+                    <div className="mt-4">
+                      <ExamSummaryList tests={mockSummary} skipBattery={battery ?? undefined} />
+                    </div>
+                  )}
                   <p className="mt-2 text-[0.75em] text-[#666]">
                     The next part&apos;s study screen opens by itself when the break ends.
                     <span className="ml-2" lang="hi">अवकाश समाप्त होते ही अगले भाग की अध्ययन स्क्रीन स्वतः खुलेगी।</span>

@@ -6,7 +6,7 @@ import { formatDateTime } from "@/lib/format-time";
 import { BATTERIES } from "@/lib/wt/categories";
 import { currentMockStep, latestMockResult, loadMock, mockAttemptsUsed, mockMinutes, mockStatus, mockUnlockedFor } from "@/lib/wt/mock";
 import { STAGES } from "@/lib/wt/plan";
-import { leaveMock, startMock } from "../actions";
+import { leaveMock } from "../actions";
 import { examSettings } from "@/lib/settings";
 
 /**
@@ -111,11 +111,15 @@ export default async function MockPage({
           </h2>
           <ul className="mt-2 list-disc space-y-1.5 pl-5">
             <li>
+              Start opens the general instructions and the declaration, as in the hall; the first test begins when you press &ldquo;I am ready to begin&rdquo;.
+              <span className="block text-[12px] text-gray-500" lang="hi">Start दबाने पर पहले सामान्य निर्देश और घोषणा आएगी, परीक्षा हॉल की तरह; &ldquo;I am ready to begin&rdquo; दबाने पर पहला परीक्षण शुरू होगा।</span>
+            </li>
+            <li>
               Each test opens with its own instruction screen and its own clock, exactly as in the hall.
               <span className="block text-[12px] text-gray-500" lang="hi">हर परीक्षण की अपनी निर्देश स्क्रीन और अपनी घड़ी होगी, बिल्कुल परीक्षा हॉल की तरह।</span>
             </li>
             <li>
-              After you submit a test there is a {mock.gapMin}-minute gap, then the next test opens by itself. There is no way back to a finished test.
+              After you submit a test there is a {mock.gapMin}-minute break with the Exam Summary, then the next test opens by itself. There is no way back to a finished test.
               <span className="block text-[12px] text-gray-500" lang="hi">एक परीक्षण जमा करने के बाद {mock.gapMin} मिनट का अंतराल होगा, फिर अगला परीक्षण स्वतः खुलेगा। पूरे हो चुके परीक्षण पर वापस नहीं जा सकते।</span>
             </li>
             <li>
@@ -157,12 +161,12 @@ export default async function MockPage({
               <span className="block text-[12px]" lang="hi">यह फुल मॉक तब खुलेगा जब हर बैटरी में सेक्शनल अभ्यास में T-स्कोर {STAGES.pass} या अधिक आ जाए।</span>
             </p>
           ) : status === "live" && !spent ? (
-            <form action={startMock}>
-              <input type="hidden" name="slug" value={slug} />
-              <button type="submit" className="rounded-lg bg-[#1d4ed8] px-6 py-2.5 text-[14px] font-bold text-white shadow hover:bg-[#1e40af]">
-                Start Full Mock ▶
-              </button>
-            </form>
+            <Link
+              href={`/mock/${slug}/begin`}
+              className="rounded-lg bg-[#1d4ed8] px-6 py-2.5 text-[14px] font-bold text-white shadow hover:bg-[#1e40af]"
+            >
+              Start Full Mock ▶
+            </Link>
           ) : (
             <p className="rounded border border-gray-300 bg-white px-4 py-3 text-[13px] text-gray-700">
               {spent

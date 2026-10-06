@@ -10,7 +10,7 @@ import { openSitting } from "@/lib/wt/session";
 import { loadPaperForCandidate, loadPaperLive } from "@/lib/wt/db";
 import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
-import { currentMockStep } from "@/lib/wt/mock";
+import { currentMockStep, mockSummary as mockSummaryOf, type MockStep } from "@/lib/wt/mock";
 
 export default async function WatchTablePage({
   params,
@@ -100,8 +100,11 @@ export default async function WatchTablePage({
     // A paper with no category is a Following Directions one from before
     // the categories existed, or the bundled sample.
     (paper.kind === "figure" ? null : 2);
+  // Inside a mock the break between this paper's parts lists every test of
+  // the mock, as the hall's Exam Summary does.
+  const mockSummary = mockHere && inMock ? await mockSummary_(inMock) : null;
   return (
-    <ExamChromeProvider battery={battery}>
+    <ExamChromeProvider battery={battery} mockSummary={mockSummary}>
       <Screen
         paper={withoutAnswerKey(paper)}
         candidateName={who?.full_name || "Candidate"}
@@ -112,4 +115,8 @@ export default async function WatchTablePage({
       />
     </ExamChromeProvider>
   );
+}
+
+function mockSummary_(step: MockStep) {
+  return mockSummaryOf(step.papers, step.attemptIds, step.step);
 }

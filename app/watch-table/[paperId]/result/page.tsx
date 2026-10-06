@@ -33,7 +33,15 @@ export default async function ResultPage({
   const inMock = who ? await currentMockStep(who.id) : null;
   const mock =
     inMock && inMock.paper.slug === paperId
-      ? { name: inMock.mock.name, step: inMock.step, total: inMock.papers.length, gapSec: inMock.mock.gapMin * 60 }
+      ? {
+          name: inMock.mock.name,
+          step: inMock.step,
+          total: inMock.papers.length,
+          gapSec: inMock.mock.gapMin * 60,
+          battery: inMock.paper.battery,
+          candidate: who?.full_name || "Candidate",
+          rollNo: who?.roll_no || "",
+        }
       : undefined;
   return (
     <ResultView

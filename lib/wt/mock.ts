@@ -1,6 +1,7 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { CATEGORIES } from "./categories";
+import { BATTERIES, CATEGORIES, categoryKind } from "./categories";
+import { resolveFeatures, type WatchFeatures } from "./types";
 import { cohortFromMoments } from "./cohort";
 import { tScore } from "./tscore";
 import { batteryProgress, clearedBar } from "./progress";
@@ -239,6 +240,26 @@ export interface MockStep {
   /** 0-based: which test is on. */
   step: number;
   paper: MockPaper;
+  /** The attempt each finished test became, in order ("" where none was recorded). */
+  attemptIds: string[];
+}
+
+/**
+ * Stands in the sitting's attempt list for a test that left no attempt
+ * (opened and shut unanswered): the column holds uuids, so an empty string
+ * cannot.
+ */
+export const NO_ATTEMPT = "00000000-0000-0000-0000-000000000000";
+const isAttempt = (id: string | null | undefined): id is string => Boolean(id) && id !== NO_ATTEMPT;
+
+/** One test of a mock as the break screen's Exam Summary lists it. */
+export interface MockSummaryTest {
+  battery: number;
+  title: string;
+  hindi: string;
+  /** Finished tests carry their groups' counts; the rest are yet to attempt. */
+  status: "done" | "pending";
+  rows: { name: string; total: number; answered: number }[];
 }
 
 /**
@@ -265,7 +286,82 @@ export async function currentMockStep(userId: string): Promise<MockStep | null> 
   const papers = await papersOf(mock.paperIds);
   const paper = papers[sitting.step];
   if (!paper) return null;
-  return { mock, papers, sittingId: sitting.id, startedAt: sitting.started_at, step: sitting.step, paper };
+  return {
+    mock,
+    papers,
+    sittingId: sitting.id,
+    startedAt: sitting.started_at,
+    step: sitting.step,
+    paper,
+    attemptIds: (sitting.attempt_ids ?? []).map((id) => id ?? ""),
+  };
+}
+
+/**
+ * The Exam Summary the hall shows in every break: each test of the mock
+ * with, for the ones finished, how many questions each of its groups
+ * held and how many were answered, and for the rest "yet to attempt".
+ * `finished` is how many tests from the start are done.
+ */
+export async function mockSummary(papers: MockPaper[], attemptIds: string[], finished: number): Promise<MockSummaryTest[]> {
+  const supabase = createAdminClient();
+  const done = papers.slice(0, finished);
+  const ids = done.map((p) => p.id);
+  const realAttempts = attemptIds.slice(0, finished).filter(isAttempt);
+  const [{ data: rows }, { data: questions }, { data: attempts }] = await Promise.all([
+    ids.length
+      ? supabase.from("watch_papers").select("id, title, features").in("id", ids)
+      : Promise.resolve({ data: [] as { id: string; title: string; features: WatchFeatures | null }[] }),
+    ids.length
+      ? supabase.from("watch_questions").select("id, paper_id, position").in("paper_id", ids).order("position")
+      : Promise.resolve({ data: [] as { id: string; paper_id: string; position: number }[] }),
+    realAttempts.length
+      ? supabase.from("watch_attempts").select("id, paper_id, responses").in("id", realAttempts)
+      : Promise.resolve({ data: [] as { id: string; paper_id: string; responses: Record<string, unknown> | null }[] }),
+  ]);
+  const rowById = new Map((rows ?? []).map((r) => [r.id as string, r]));
+  const attemptById = new Map((attempts ?? []).map((a) => [a.id as string, a]));
+
+  return papers.map((paper, i) => {
+    const battery = BATTERIES.find((b) => b.id === paper.battery);
+    const title = battery?.title ?? paper.displayName;
+    const hindi = battery?.hindi ?? "";
+    if (i >= finished) return { battery: paper.battery, title, hindi, status: "pending", rows: [] };
+
+    const row = rowById.get(paper.id);
+    const features = resolveFeatures((row?.features ?? {}) as WatchFeatures);
+    const qids = (questions ?? []).filter((q) => q.paper_id === paper.id).map((q) => q.id as string);
+    const answered = new Set(Object.keys((attemptById.get(attemptIds[i] ?? "")?.responses as Record<string, unknown> | null) ?? {}));
+    const ownTitle = (row?.title as string) ?? title;
+
+    // A picture paper is shown in parts, and the hall lists each part as its
+    // own group; a Following Directions paper is one group.
+    if (categoryKind(paper.category) === "figure") {
+      const per = Math.max(1, features.questionsPerPart);
+      const parts: string[][] = [];
+      for (let at = 0; at < qids.length; at += per) parts.push(qids.slice(at, at + per));
+      if (parts.length === 0) parts.push([]);
+      const scheduled = features.studyTimeMin > 0;
+      return {
+        battery: paper.battery,
+        title,
+        hindi,
+        status: "done",
+        rows: parts.map((group, n) => ({
+          name: scheduled ? `${ownTitle} (Part ${n + 1})` : `Part${n + 1}_`,
+          total: group.length,
+          answered: group.filter((id) => answered.has(id)).length,
+        })),
+      };
+    }
+    return {
+      battery: paper.battery,
+      title,
+      hindi,
+      status: "done",
+      rows: [{ name: ownTitle, total: qids.length, answered: qids.filter((id) => answered.has(id)).length }],
+    };
+  });
 }
 
 /** How many times this candidate has finished this mock. */
@@ -325,7 +421,7 @@ export async function openMockSitting(
   }
   return {
     ok: true,
-    step: { mock, papers, sittingId: data.id as string, startedAt: data.started_at as string, step: 0, paper: papers[0] },
+    step: { mock, papers, sittingId: data.id as string, startedAt: data.started_at as string, step: 0, paper: papers[0], attemptIds: [] },
   };
 }
 
@@ -354,7 +450,11 @@ export async function mocksFinishedToday(userId: string, dayStartIso: string): P
 export async function advanceMock(
   userId: string,
   paperDbId: string,
-): Promise<{ next: "paper"; slug: string; gapSec: number; step: number; total: number } | { next: "done"; slug: string } | null> {
+): Promise<
+  | { next: "paper"; slug: string; gapSec: number; step: number; total: number; summary: MockSummaryTest[] }
+  | { next: "done"; slug: string; summary: MockSummaryTest[] }
+  | null
+> {
   const current = await currentMockStep(userId);
   if (!current || current.paper.id !== paperDbId) return null;
   const supabase = createAdminClient();
@@ -378,7 +478,7 @@ export async function advanceMock(
     .eq("id", current.sittingId)
     .maybeSingle();
   const ids = [...((row?.attempt_ids as string[] | null) ?? [])];
-  ids[current.step] = attempt?.id ?? "";
+  ids[current.step] = attempt?.id ?? NO_ATTEMPT;
 
   const last = current.step >= current.papers.length - 1;
   if (!last) {
@@ -394,11 +494,12 @@ export async function advanceMock(
       gapSec: current.mock.gapMin * 60,
       step: current.step + 1,
       total: current.papers.length,
+      summary: await mockSummary(current.papers, ids, current.step + 1),
     };
   }
 
   await finishMock(current, ids);
-  return { next: "done", slug: current.mock.slug };
+  return { next: "done", slug: current.mock.slug, summary: await mockSummary(current.papers, ids, current.papers.length) };
 }
 
 /** Writes the scorecard and closes the sitting. */
@@ -406,7 +507,7 @@ async function finishMock(current: MockStep, attemptIds: string[]): Promise<void
   const supabase = createAdminClient();
   const { mock, papers } = current;
 
-  const realIds = attemptIds.filter(Boolean);
+  const realIds = attemptIds.filter(isAttempt);
   const [{ data: attempts }, { data: cohorts }, { data: settings }] = await Promise.all([
     realIds.length
       ? supabase.from("watch_attempts").select("id, paper_id, marks, total, attempted, duration_sec").in("id", realIds)
