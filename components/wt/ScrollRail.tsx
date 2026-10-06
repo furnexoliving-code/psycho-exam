@@ -60,15 +60,27 @@ export function ScrollRail({
     measure();
     el.addEventListener("scroll", measure, { passive: true });
 
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
     // The thumb length depends on content height, which changes as answers
-    // wrap onto new lines, so watch the content too.
-    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    // wrap onto new lines, so watch the content too — and watch whatever
+    // the content is now, not what it was on mount: the Memory Test swaps
+    // the column's children out as it moves from study to questions to
+    // break, and a rail still watching the removed child would carry a
+    // stale full-length thumb until the next scroll.
+    const sizes = new ResizeObserver(measure);
+    const watch = () => {
+      sizes.disconnect();
+      sizes.observe(el);
+      for (const child of Array.from(el.children)) sizes.observe(child);
+      measure();
+    };
+    watch();
+    const children = new MutationObserver(watch);
+    children.observe(el, { childList: true });
 
     return () => {
       el.removeEventListener("scroll", measure);
-      observer.disconnect();
+      sizes.disconnect();
+      children.disconnect();
     };
   }, [measure, target]);
 
