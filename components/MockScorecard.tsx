@@ -43,7 +43,9 @@ export function MockScorecard({
     <>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">Full Mock scorecard</div>
+          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
+            Full Mock scorecard <span className="font-semibold normal-case tracking-normal" lang="hi">/ स्कोरकार्ड</span>
+          </div>
           <h1 className="text-[24px] font-bold text-gray-900">{mockName}</h1>
           <p className="text-[13px] text-gray-600">
             {candidate}{rollNo ? ` · Roll ${rollNo}` : ""} · {when}
@@ -55,7 +57,7 @@ export function MockScorecard({
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <Tile big={verdict} small={`every battery T ≥ ${cutOffT}`} tone={verdictColor} />
+        <Tile big={verdict} small={`every battery T ≥ ${cutOffT} · हर बैटरी में`} tone={verdictColor} />
         <Tile big={result.composite === null ? "—" : result.composite.toFixed(1)} small="Composite T-score" />
         <Tile big={standing ? `${standing.rank} / ${standing.outOf}` : "—"} small="Rank among candidates" />
         <Tile big={`${marks} / ${total}`} small="Total marks" />

@@ -628,6 +628,7 @@ function MockGap({ paperId, mock }: { paperId: string; mock: { name: string; ste
       <h1 className="mt-1 text-xl font-bold text-gray-900">
         Test {mock.step + 1} of {mock.total} submitted ✓
       </h1>
+      <p className="text-[13px] text-gray-500" lang="hi">परीक्षण {mock.step + 1} / {mock.total} जमा हो गया</p>
       {failed ? (
         <>
           <p className="mt-3 text-[14px] text-red-700">The mock could not be moved on. Check the connection and try again.</p>
@@ -643,12 +644,14 @@ function MockGap({ paperId, mock }: { paperId: string; mock: { name: string; ste
         <>
           <p className="mt-3 text-[14px] text-gray-600">
             Test {next.step + 1} of {next.total} opens by itself in
+            <span className="block text-[12px] text-gray-500" lang="hi">परीक्षण {next.step + 1} / {next.total} स्वतः खुलेगा</span>
           </p>
           <div className="mt-2 font-mono text-[40px] font-bold tabular-nums text-gray-900">
             {mm}:{ss}
           </div>
           <p className="mt-3 text-[12px] text-gray-500">
             Stay on this page. Your marks for every test come together on the scorecard at the end.
+            <span className="block" lang="hi">इसी पेज पर रहें। सभी परीक्षणों के अंक अंत में स्कोरकार्ड पर एक साथ मिलेंगे।</span>
           </p>
         </>
       ) : (

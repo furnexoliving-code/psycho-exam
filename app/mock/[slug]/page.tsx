@@ -79,7 +79,9 @@ export default async function MockPage({
         )}
 
         <section className="mt-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="text-[15px] font-bold text-gray-900">The five tests, in the hall&apos;s order</h2>
+          <h2 className="text-[15px] font-bold text-gray-900">
+            The five tests, in the hall&apos;s order <span className="font-normal text-gray-500" lang="hi">/ पाँचों परीक्षण, परीक्षा हॉल के क्रम में</span>
+          </h2>
           <ol className="mt-3 divide-y divide-gray-100">
             {papers.map((paper, i) => {
               const battery = BATTERIES.find((b) => b.id === paper.battery);
@@ -108,12 +110,26 @@ export default async function MockPage({
         </section>
 
         <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5 text-[13px] text-gray-700 shadow-sm">
-          <h2 className="text-[15px] font-bold text-gray-900">How it runs</h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Each test opens with its own instruction screen and its own clock, exactly as in the hall.</li>
-            <li>After you submit a test there is a {mock.gapMin}-minute gap, then the next test opens by itself. There is no way back to a finished test.</li>
-            <li>Your scorecard comes at the end: every test&apos;s T-score, the composite, and whether every battery cleared T {mock.cutOffT}.</li>
-            <li>If the browser closes mid-way, sign in again and press Continue: the mock picks up where the clock says.</li>
+          <h2 className="text-[15px] font-bold text-gray-900">
+            How it runs <span className="font-normal text-gray-500" lang="hi">/ यह कैसे चलेगा</span>
+          </h2>
+          <ul className="mt-2 list-disc space-y-1.5 pl-5">
+            <li>
+              Each test opens with its own instruction screen and its own clock, exactly as in the hall.
+              <span className="block text-[12px] text-gray-500" lang="hi">हर परीक्षण की अपनी निर्देश स्क्रीन और अपनी घड़ी होगी, बिल्कुल परीक्षा हॉल की तरह।</span>
+            </li>
+            <li>
+              After you submit a test there is a {mock.gapMin}-minute gap, then the next test opens by itself. There is no way back to a finished test.
+              <span className="block text-[12px] text-gray-500" lang="hi">एक परीक्षण जमा करने के बाद {mock.gapMin} मिनट का अंतराल होगा, फिर अगला परीक्षण स्वतः खुलेगा। पूरे हो चुके परीक्षण पर वापस नहीं जा सकते।</span>
+            </li>
+            <li>
+              Your scorecard comes at the end: every test&apos;s T-score, the composite, and whether every battery cleared T {mock.cutOffT}.
+              <span className="block text-[12px] text-gray-500" lang="hi">स्कोरकार्ड अंत में मिलेगा: हर परीक्षण का T-स्कोर, कंपोज़िट, और हर बैटरी में T {mock.cutOffT} पार हुआ या नहीं।</span>
+            </li>
+            <li>
+              If the browser closes mid-way, sign in again and press Continue: the mock picks up where the clock says.
+              <span className="block text-[12px] text-gray-500" lang="hi">बीच में ब्राउज़र बंद हो जाए तो दोबारा साइन इन करके Continue दबाएँ: मॉक घड़ी के अनुसार वहीं से चलेगा।</span>
+            </li>
           </ul>
         </section>
 

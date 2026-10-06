@@ -107,7 +107,10 @@ export default async function DashboardPage() {
         <section className="rounded-2xl bg-gradient-to-r from-[#0d2a6b] to-[#1d4ed8] px-5 py-5 text-white shadow-lg sm:px-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
-              <h1 className="text-[22px] font-bold">Welcome{profile.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""} 👋</h1>
+              <h1 className="text-[22px] font-bold">
+                Welcome{profile.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""} 👋
+                <span className="ml-2 text-[14px] font-medium text-blue-100" lang="hi">स्वागत है</span>
+              </h1>
               <p className="mt-0.5 text-[12px] text-blue-100">
                 {profile.roll_no ? `Roll ${profile.roll_no} · ` : ""}
                 {profile.valid_until ? `Valid till ${formatDate(profile.valid_until)}` : "KAUTILYA CLASSES"}
@@ -186,7 +189,9 @@ export default async function DashboardPage() {
           <div className="min-w-0">
             {/* ---------------------------- Full Mocks ---------------------------- */}
             <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <h2 className="text-[14px] font-bold text-gray-900">Full Mock Tests</h2>
+              <h2 className="text-[14px] font-bold text-gray-900">
+                Full Mock Tests <span className="font-normal text-gray-500" lang="hi">/ पूर्ण मॉक टेस्ट</span>
+              </h2>
               {mocks.length === 0 && mockResults.length === 0 ? (
                 <p className="mt-2 text-[13px] text-gray-500">Full Mocks will appear here when the institute opens them.</p>
               ) : (
@@ -234,7 +239,9 @@ export default async function DashboardPage() {
             {/* ------------------------- Sectional practice ------------------------- */}
             <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-[14px] font-bold text-gray-900">Sectional practice</h2>
+                <h2 className="text-[14px] font-bold text-gray-900">
+                  Sectional practice <span className="font-normal text-gray-500" lang="hi">/ अनुभाग अभ्यास</span>
+                </h2>
                 <span className="text-[12px] text-gray-500">
                   · {papers.length} papers · {progress.reduce((n, p) => n + p.papersSat, 0)} sat
                 </span>
