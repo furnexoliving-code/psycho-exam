@@ -7,6 +7,7 @@ import { formatDateTime } from "@/lib/format-time";
 import { BATTERIES } from "@/lib/wt/categories";
 import { currentMockStep, latestMockResult, loadMock, mockAttemptsUsed, mockMinutes, mockStatus } from "@/lib/wt/mock";
 import { leaveMock, startMock } from "../actions";
+import { examSettings } from "@/lib/settings";
 
 /**
  * The door to a Full Mock: what it holds, how long it runs, what is left,
@@ -32,6 +33,7 @@ export default async function MockPage({
     latestMockResult(mock.id, who.id),
   ]);
   const status = mockStatus(mock);
+  const exam = await examSettings();
   const inThis = current && current.mock.id === mock.id ? current : null;
   const inOther = current && current.mock.id !== mock.id ? current : null;
   const spent = mock.maxAttempts !== null && used >= mock.maxAttempts;
@@ -123,8 +125,8 @@ export default async function MockPage({
               <span className="block text-[12px] text-gray-500" lang="hi">एक परीक्षण जमा करने के बाद {mock.gapMin} मिनट का अंतराल होगा, फिर अगला परीक्षण स्वतः खुलेगा। पूरे हो चुके परीक्षण पर वापस नहीं जा सकते।</span>
             </li>
             <li>
-              Your scorecard comes at the end: every test&apos;s T-score, the composite, and whether every battery cleared T {mock.cutOffT}.
-              <span className="block text-[12px] text-gray-500" lang="hi">स्कोरकार्ड अंत में मिलेगा: हर परीक्षण का T-स्कोर, कंपोज़िट, और हर बैटरी में T {mock.cutOffT} पार हुआ या नहीं।</span>
+              Your scorecard comes at the end: every test&apos;s T-score, a score out of 30, and whether every battery cleared T {mock.cutOffT}. Aim for T {exam.targetT} in each.
+              <span className="block text-[12px] text-gray-500" lang="hi">स्कोरकार्ड अंत में मिलेगा: हर परीक्षण का T-स्कोर, 30 में से अंक, और हर बैटरी में T {mock.cutOffT} पार हुआ या नहीं। हर बैटरी में T {exam.targetT} का लक्ष्य रखें।</span>
             </li>
             <li>
               If the browser closes mid-way, sign in again and press Continue: the mock picks up where the clock says.

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { formatDate, formatDateTime, formatDayMonth } from "@/lib/format-time";
+import { formatDate, formatDateTime, formatDayMonth, indianDay } from "@/lib/format-time";
+import { daysUntil, examSettings } from "@/lib/settings";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { ChangePassword } from "@/components/ChangePassword";
@@ -16,11 +17,9 @@ import {
   mockLeaderboard,
   mockResultsFor,
   mockStatus,
+  scoreOutOf30,
   type MockStatus,
 } from "@/lib/wt/mock";
-
-/** The bar RRB sets; the dashboard's "below the bar" line. */
-const BAR = 42;
 
 /** A tile's look, kept out of the markup so the cards read as one set. */
 const TONES: Record<string, { ring: string; chip: string; icon: string }> = {
@@ -51,7 +50,7 @@ export default async function DashboardPage() {
   // A helper account has one job, and its page is in the panel.
   if (profile.role !== "student" && profile.role !== "admin") redirect(panelHome(profile.role));
 
-  const [allPapers, hidden, history, progress, mocks, mockResults, inMock] = await Promise.all([
+  const [allPapers, hidden, history, progress, mocks, mockResults, inMock, exam] = await Promise.all([
     listPublishedPapers(),
     hiddenBatteries(),
     attemptsFor(profile.id, 10),
@@ -59,7 +58,12 @@ export default async function DashboardPage() {
     listPublishedMocks(),
     mockResultsFor(profile.id, 30),
     currentMockStep(profile.id),
+    examSettings(),
   ]);
+  // The bar RRB sets, and the institute's own target above it.
+  const BAR = exam.passT;
+  const TARGET = exam.targetT;
+  const daysLeft = exam.examDate ? daysUntil(exam.examDate, indianDay(Date.now())) : null;
   // Papers of a battery the admin has not opened yet are not on offer.
   const papers = allPapers.filter((p) => openToStudents(p.category, hidden));
   const visibleBatteries = BATTERIES.filter((b) => !hidden.includes(b.id));
@@ -85,10 +89,10 @@ export default async function DashboardPage() {
   const newest = mockResults[0] ?? null;
   const leaders = newest ? await mockLeaderboard(newest.mockId, 5) : [];
 
-  const weakest = progress
-    .filter((p) => visibleBatteries.some((b) => b.id === p.battery))
-    .slice()
-    .sort((a, b) => (a.bestT ?? -1) - (b.bestT ?? -1))[0];
+  const inPlay = progress.filter((p) => visibleBatteries.some((b) => b.id === p.battery));
+  const weakest = inPlay.slice().sort((a, b) => (a.bestT ?? -1) - (b.bestT ?? -1))[0];
+  const atTarget = inPlay.filter((p) => p.bestT !== null && p.bestT >= TARGET).length;
+  const passing = inPlay.filter((p) => p.bestT !== null && p.bestT >= BAR).length;
   const streak = practiceStreak(history.map((h) => h.submittedAt));
 
   return (
@@ -116,6 +120,18 @@ export default async function DashboardPage() {
                 {profile.valid_until ? `Valid till ${formatDate(profile.valid_until)}` : "KAUTILYA CLASSES"}
                 {streak > 1 && ` · 🔥 ${streak}-day practice streak`}
               </p>
+              {exam.examDate && daysLeft !== null && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="rounded-lg bg-white/15 px-3 py-1.5 text-[13px] font-bold">
+                    {daysLeft > 0 ? `⏳ ${daysLeft} day${daysLeft === 1 ? "" : "s"} to the exam` : daysLeft === 0 ? "📅 Exam day is today" : "Exam date has passed"}
+                    <span className="ml-2 font-medium text-blue-100">· {formatDate(exam.examDate)}</span>
+                  </span>
+                  <span className="rounded-lg bg-white/15 px-3 py-1.5 text-[13px]">
+                    🎯 Target: <b>T {TARGET}</b> in every battery · <b>{atTarget}/{inPlay.length}</b> there
+                    <span className="ml-1 text-blue-100">· pass needs {BAR}</span>
+                  </span>
+                </div>
+              )}
               {featured ? (
                 <p className="mt-3 text-[13px]">
                   <b>{inMock && inMock.mock.id === featured.id ? "In progress" : "Next Full Mock"}: {featured.name}</b>
@@ -154,17 +170,16 @@ export default async function DashboardPage() {
           {visibleBatteries.map((battery) => {
             const p = progress.find((x) => x.battery === battery.id);
             const t = p?.bestT ?? null;
-            const width = t === null ? 0 : Math.max(4, Math.min(100, ((t - 20) / 60) * 100));
+            const scale = (v: number) => Math.max(0, Math.min(100, ((v - 20) / 60) * 100));
+            const width = t === null ? 0 : Math.max(4, scale(t));
             const status =
               t === null
                 ? { label: "Not yet attempted", cls: "bg-gray-100 text-gray-600" }
-                : t < BAR
-                  ? { label: `! Below ${BAR}`, cls: "bg-red-50 text-red-700" }
-                  : t < BAR + 5
-                    ? { label: "▲ Improve", cls: "bg-amber-50 text-amber-700" }
-                    : t < 55
-                      ? { label: "✓ Good", cls: "bg-green-50 text-green-700" }
-                      : { label: "✓ Strong", cls: "bg-green-50 text-green-700" };
+                : t >= TARGET
+                  ? { label: `🎯 Target ${TARGET} reached`, cls: "bg-green-50 text-green-700" }
+                  : t >= BAR
+                    ? { label: `Pass · ${(TARGET - t).toFixed(0)} to target`, cls: "bg-amber-50 text-amber-700" }
+                    : { label: `! Below ${BAR} · ${(BAR - t).toFixed(0)} to pass`, cls: "bg-red-50 text-red-700" };
             return (
               <Link
                 key={battery.id}
@@ -176,8 +191,11 @@ export default async function DashboardPage() {
                 <div className="mt-1.5 text-[22px] font-extrabold leading-none text-gray-900">
                   {t === null ? "—" : t.toFixed(0)} <span className="text-[10px] font-semibold text-gray-500">best T</span>
                 </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded bg-gray-100">
+                <div className="relative mt-2 h-1.5 rounded bg-gray-100">
                   <div className="h-full rounded bg-[#1d4ed8]" style={{ width: `${width}%` }} />
+                  {/* The pass bar and the target, as ticks on the same scale. */}
+                  <span className="absolute -top-0.5 h-2.5 w-0.5 bg-red-400" style={{ left: `${scale(BAR)}%` }} title={`Pass ${BAR}`} />
+                  <span className="absolute -top-0.5 h-2.5 w-0.5 bg-green-600" style={{ left: `${scale(TARGET)}%` }} title={`Target ${TARGET}`} />
                 </div>
                 <span className={`mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${status.cls}`}>{status.label}</span>
               </Link>
@@ -216,7 +234,12 @@ export default async function DashboardPage() {
                           </span>
                         </span>
                         <span className="shrink-0 text-right">
-                          {last && <span className="block text-[14px] font-extrabold text-gray-900">{last.composite?.toFixed(1) ?? "—"}</span>}
+                          {last && (
+                            <span className="block text-[14px] font-extrabold text-gray-900">
+                              {scoreOutOf30(last.tests) === null ? "—" : `${scoreOutOf30(last.tests)!.toFixed(1)} / 30`}
+                              <span className="ml-1 text-[10px] font-semibold text-gray-500">T {last.composite?.toFixed(1) ?? "—"}</span>
+                            </span>
+                          )}
                           {here ? (
                             <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">⏵ In progress</span>
                           ) : last ? (
@@ -249,7 +272,7 @@ export default async function DashboardPage() {
               {weakest && (
                 <p className="mt-1 text-[12px] text-gray-600">
                   Today&apos;s suggestion: <b>{weakest.title}</b>
-                  {weakest.bestT === null ? " — not attempted yet" : ` — best T ${weakest.bestT.toFixed(0)}, your weakest`}
+                  {weakest.bestT === null ? " — not attempted yet" : ` — best T ${weakest.bestT.toFixed(0)}, furthest from ${TARGET}`}
                 </p>
               )}
               {visibleBatteries.map((battery) => (
@@ -324,9 +347,9 @@ export default async function DashboardPage() {
             <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <h2 className="text-[14px] font-bold text-gray-900">My progress · Composite T-score</h2>
               {trend.length === 0 ? (
-                <p className="mt-2 text-[12px] text-gray-500">The graph appears after your first Full Mock.</p>
+                <p className="mt-2 text-[12px] text-gray-500">The graph appears after your first Full Mock. Red line: pass ({BAR}). Green line: target ({TARGET}).</p>
               ) : (
-                <TrendChart points={trend.map((r) => ({ label: r.mockName.replace(/full mock/i, "M").trim(), value: r.composite as number }))} bar={BAR} />
+                <TrendChart points={trend.map((r) => ({ label: r.mockName.replace(/full mock/i, "M").trim(), value: r.composite as number }))} bar={BAR} target={TARGET} />
               )}
             </section>
 
@@ -348,26 +371,40 @@ export default async function DashboardPage() {
               </section>
             )}
 
-            {weakest && (
-              <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <h2 className="text-[14px] font-bold text-gray-900">This week&apos;s target</h2>
-                <p className="mt-1 text-[12px] text-gray-700">
-                  {weakest.bestT === null
-                    ? <>Sit your first {weakest.title} paper</>
-                    : weakest.bestT < BAR
-                      ? <>Cross T {BAR} in {weakest.title}</>
-                      : <>Take {weakest.title} up to T {Math.ceil((weakest.bestT + 5) / 5) * 5}</>}
-                </p>
-                {weakest.bestT !== null && (
-                  <div className="mt-2 h-1.5 overflow-hidden rounded bg-gray-100">
-                    <div className="h-full rounded bg-[#1d4ed8]" style={{ width: `${Math.max(4, Math.min(100, ((weakest.bestT - 20) / 60) * 100))}%` }} />
-                  </div>
-                )}
-                <Link href={`#battery-${weakest.battery}`} className="mt-2 inline-block text-[12px] font-semibold text-[#1d4ed8] hover:underline">
-                  Practise now →
-                </Link>
-              </section>
-            )}
+            <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <h2 className="text-[14px] font-bold text-gray-900">
+                🎯 Road to T {TARGET} <span className="font-normal text-gray-500" lang="hi">/ लक्ष्य</span>
+              </h2>
+              <p className="mt-1 text-[12px] text-gray-600">
+                {atTarget === inPlay.length && inPlay.length > 0
+                  ? `Every battery is at ${TARGET} or above. Keep it there with a mock a week.`
+                  : `${atTarget} of ${inPlay.length} batteries at target · ${passing} passing (${BAR}+). Work the list from the top.`}
+              </p>
+              <ul className="mt-2 divide-y divide-gray-100">
+                {inPlay
+                  .slice()
+                  .sort((a, b) => (a.bestT ?? -1) - (b.bestT ?? -1))
+                  .map((p) => {
+                    const gap = p.bestT === null ? null : Math.max(0, TARGET - p.bestT);
+                    const pct = p.bestT === null ? 0 : Math.max(4, Math.min(100, ((p.bestT - 20) / (TARGET - 20)) * 100));
+                    return (
+                      <li key={p.battery} className="py-2 text-[12px]">
+                        <div className="flex items-center gap-2">
+                          <Link href={`#battery-${p.battery}`} className="flex-1 truncate font-semibold text-gray-900 hover:underline">
+                            Test {p.battery} · {p.title.replace(" Test", "")}
+                          </Link>
+                          <span className={`shrink-0 font-bold tabular-nums ${gap === 0 ? "text-green-700" : p.bestT !== null && p.bestT < BAR ? "text-red-700" : "text-amber-700"}`}>
+                            {p.bestT === null || gap === null ? "not sat" : gap === 0 ? "✓ done" : `+${gap.toFixed(0)} to go`}
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1 rounded bg-gray-100">
+                          <div className={`h-full rounded ${gap === 0 ? "bg-green-600" : "bg-[#1d4ed8]"}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </section>
 
             {profile.phone && <ChangePassword phone={profile.phone} />}
           </aside>
@@ -417,7 +454,7 @@ function practiceStreak(dates: string[]): number {
 }
 
 /** The composite T-score, mock by mock, with the qualifying bar drawn across. */
-function TrendChart({ points, bar }: { points: { label: string; value: number }[]; bar: number }) {
+function TrendChart({ points, bar, target }: { points: { label: string; value: number }[]; bar: number; target: number }) {
   const W = 296;
   const H = 120;
   const left = 30;
@@ -425,15 +462,17 @@ function TrendChart({ points, bar }: { points: { label: string; value: number }[
   const top = 14;
   const bottom = H - 24;
   const lo = Math.min(30, ...points.map((p) => p.value)) - 2;
-  const hi = Math.max(60, ...points.map((p) => p.value)) + 2;
+  const hi = Math.max(target + 5, ...points.map((p) => p.value)) + 2;
   const y = (v: number) => bottom - ((v - lo) / (hi - lo)) * (bottom - top);
   const x = (i: number) => (points.length === 1 ? (left + right) / 2 : left + (i / (points.length - 1)) * (right - left));
   const last = points[points.length - 1];
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 h-auto w-full" role="img" aria-label="Composite T-score by mock">
       <line x1={left} y1={bottom} x2={right} y2={bottom} stroke="#e6e9ef" />
-      <line x1={left} y1={y(bar)} x2={right} y2={y(bar)} stroke="#9ca3af" strokeDasharray="3 3" />
-      <text x={0} y={y(bar) + 4} fontSize="10" fill="#8a94a6">T {bar}</text>
+      <line x1={left} y1={y(bar)} x2={right} y2={y(bar)} stroke="#f87171" strokeDasharray="3 3" />
+      <text x={0} y={y(bar) + 4} fontSize="10" fill="#b91c1c">T {bar}</text>
+      <line x1={left} y1={y(target)} x2={right} y2={y(target)} stroke="#16a34a" strokeDasharray="3 3" />
+      <text x={0} y={y(target) + 4} fontSize="10" fill="#15803d">T {target}</text>
       <polyline
         points={points.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")}
         fill="none"

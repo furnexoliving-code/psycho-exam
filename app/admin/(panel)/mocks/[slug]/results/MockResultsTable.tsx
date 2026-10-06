@@ -9,6 +9,7 @@ export interface MockResultRow {
   when: string;
   tests: { battery: number; marks: number; total: number; tScore: number | null }[];
   composite: number | null;
+  out30: number | null;
   qualified: boolean | null;
   latest: boolean;
 }
@@ -29,7 +30,7 @@ export function MockResultsTable({ rows, batteries }: { rows: MockResultRow[]; b
   }, [rows, q, only]);
 
   const csv = () => {
-    const head = ["Rank", "Name", "Mobile", "Date", ...batteries.flatMap((b) => [`Test ${b} marks`, `Test ${b} T`]), "Composite", "Qualified"];
+    const head = ["Rank", "Name", "Mobile", "Date", ...batteries.flatMap((b) => [`Test ${b} marks`, `Test ${b} T`]), "Composite", "Out of 30", "Qualified"];
     const lines = visible.map((r) => [
       r.rank,
       r.name,
@@ -40,6 +41,7 @@ export function MockResultsTable({ rows, batteries }: { rows: MockResultRow[]; b
         return [t ? `${t.marks}/${t.total}` : "", t?.tScore ?? ""];
       }),
       r.composite ?? "",
+      r.out30 ?? "",
       r.qualified === null ? "" : r.qualified ? "Yes" : "No",
     ]);
     const text = [head, ...lines].map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -77,6 +79,7 @@ export function MockResultsTable({ rows, batteries }: { rows: MockResultRow[]; b
                 <th key={b} className="border border-gray-300 px-2 py-2">Test {b}</th>
               ))}
               <th className="border border-gray-300 px-2 py-2">Composite</th>
+              <th className="border border-gray-300 px-2 py-2">/ 30</th>
               <th className="border border-gray-300 px-2 py-2">Qualified</th>
             </tr>
           </thead>
@@ -101,6 +104,7 @@ export function MockResultsTable({ rows, batteries }: { rows: MockResultRow[]; b
                   );
                 })}
                 <td className="border border-gray-300 px-2 py-1.5 font-bold tabular-nums">{r.composite === null ? "—" : r.composite.toFixed(1)}</td>
+                <td className="border border-gray-300 px-2 py-1.5 font-bold tabular-nums">{r.out30 === null ? "—" : r.out30.toFixed(1)}</td>
                 <td className="border border-gray-300 px-2 py-1.5">
                   {r.qualified === true ? <span className="rounded bg-green-100 px-1.5 py-0.5 font-semibold text-green-800">Yes</span>
                     : r.qualified === false ? <span className="rounded bg-red-100 px-1.5 py-0.5 font-semibold text-red-800">No</span>

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireResults } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format-time";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { loadMock, mockResultsOf } from "@/lib/wt/mock";
+import { loadMock, mockResultsOf, scoreOutOf30 } from "@/lib/wt/mock";
 import { MockResultsTable, type MockResultRow } from "./MockResultsTable";
 
 export default async function MockResultsPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -46,6 +46,7 @@ export default async function MockResultsPage({ params }: { params: Promise<{ sl
         when: formatDateTime(r.submittedAt),
         tests: r.tests.map((t) => ({ battery: t.battery, marks: t.marks, total: t.total, tScore: t.tScore })),
         composite: r.composite,
+        out30: scoreOutOf30(r.tests),
         qualified: r.qualified,
         latest,
       };

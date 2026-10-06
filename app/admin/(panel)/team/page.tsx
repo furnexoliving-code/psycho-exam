@@ -2,6 +2,8 @@ import { requireAdmin } from "@/lib/auth";
 import { formatDate, formatDateTime } from "@/lib/format-time";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recentActions } from "@/lib/audit";
+import { examSettings } from "@/lib/settings";
+import { updateExamSettings } from "./actions";
 import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { createStaff, removeStaff } from "../students/actions";
@@ -15,6 +17,7 @@ export default async function TeamPage() {
   await requireAdmin("/admin/team");
   const supabase = createAdminClient();
 
+  const exam = await examSettings();
   const [{ data: helpers }, log] = await Promise.all([
     supabase
       .from("profiles")
@@ -40,10 +43,30 @@ export default async function TeamPage() {
 
   return (
     <>
-      <h1 className="text-xl font-bold text-gray-900">Team &amp; activity</h1>
+      <h1 className="text-xl font-bold text-gray-900">Team, settings &amp; activity</h1>
       <p className="mt-1 text-[13px] text-gray-600">
-        Who may open the panel, and a record of what everyone in it has done.
+        Who may open the panel, the exam settings every student&apos;s dashboard is built around, and a record of what everyone in it has done.
       </p>
+
+      <section className="mt-4 rounded border border-gray-300 bg-white p-5">
+        <h2 className="text-[15px] font-bold text-gray-900">Exam settings</h2>
+        <p className="mt-1 text-[12px] text-gray-600">
+          The dashboard counts down to the exam date and pushes every student towards the target T-score in every battery.
+          Passing needs 42 in each; the target is where a good rank starts.
+        </p>
+        <SaveForm action={updateExamSettings} submitLabel="Save exam settings" className="mt-3">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Exam date</span>
+              <input name="exam_date" type="date" defaultValue={exam.examDate ?? ""} className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Target T-score, every battery</span>
+              <input name="target_t" type="number" min={42} max={90} defaultValue={exam.targetT} className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
+            </label>
+          </div>
+        </SaveForm>
+      </section>
 
       {/* --------------------------- Helper accounts --------------------------- */}
       <section className="mt-4 rounded border border-gray-300 bg-white p-5">
