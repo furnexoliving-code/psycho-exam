@@ -204,7 +204,7 @@ export default async function TeamPage() {
       <section className="mt-8">
         <h2 className="text-[15px] font-bold text-gray-900">Activity log</h2>
         <p className="mt-1 text-[12px] text-gray-600">
-          Every change made in the panel, newest first: papers, mocks, accounts, passwords, battery switches.
+          Every change made in the panel over the last 7 days, newest first: papers, mocks, accounts, passwords, battery switches. Older lines are dropped.
         </p>
         {log.length === 0 ? (
           <p className="mt-3 rounded border border-dashed border-gray-300 bg-white p-6 text-center text-[13px] text-gray-500">

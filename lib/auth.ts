@@ -29,6 +29,8 @@ export interface Profile {
   valid_until: string | null;
   /** Where the candidate's photo is kept, in the private bucket; null without one. */
   photo_path: string | null;
+  /** When the student was last on the portal, to the hour; null before the column existed. */
+  last_seen_at: string | null;
 }
 
 /**
@@ -126,7 +128,7 @@ const readProfile = cache(async (): Promise<Session> => {
   const { data: row } = await supabase.from("profiles").select("*").eq("id", claims.sub).single();
 
   const profile = row
-    ? ({ valid_until: null, photo_path: null, ...(row as Record<string, unknown>) } as Profile)
+    ? ({ valid_until: null, photo_path: null, last_seen_at: null, ...(row as Record<string, unknown>) } as Profile)
     : null;
   const aal = typeof claims.aal === "string" ? claims.aal : "aal1";
   if (!profile) return { profile: null, inactive: false, expired: false, aal };
@@ -159,6 +161,7 @@ export async function requireUser(next = "/dashboard"): Promise<Profile> {
   if (expired) redirect("/login?error=expired");
   if (elsewhere) redirect("/auth/elsewhere");
   if (!profile) redirect(`/login?next=${encodeURIComponent(next)}`);
+  await touchLastSeen(profile);
   return profile;
 }
 
@@ -272,4 +275,22 @@ export async function isVerifiedEditor(): Promise<boolean> {
   const { profile } = await readProfile();
   if (!profile || !mayOpen(profile.role, "papers")) return false;
   return (await secondFactor()).passed;
+}
+
+/**
+ * Notes that the student is on the portal, at most once an hour: one small
+ * write per student per hour, not one per page. Never the page's problem.
+ */
+const touched = new Set<string>();
+async function touchLastSeen(profile: Profile): Promise<void> {
+  if (profile.role !== "student" || touched.has(profile.id)) return;
+  const last = profile.last_seen_at ? new Date(profile.last_seen_at).getTime() : 0;
+  if (Date.now() - last < 3600000) return;
+  touched.add(profile.id);
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    await createAdminClient().from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", profile.id);
+  } catch {
+    // No column yet, or a blip: tried again next hour.
+  }
 }

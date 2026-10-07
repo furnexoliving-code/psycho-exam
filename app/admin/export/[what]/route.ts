@@ -163,7 +163,7 @@ async function mocks(write: Write): Promise<void> {
 
 async function students(write: Write): Promise<void> {
   const supabase = createAdminClient();
-  write(row(["Name", "Roll No", "Mobile", "Registered (IST)", "Account", "Valid till", "Photo"]));
+  write(row(["Name", "Roll No", "Mobile", "Registered (IST)", "Last seen (IST)", "Account", "Valid till", "Photo"]));
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await supabase
       .from("profiles")
@@ -180,6 +180,7 @@ async function students(write: Write): Promise<void> {
           s.roll_no ?? "",
           s.phone ?? "",
           s.created_at ? formatDateTime(s.created_at as string) : "",
+          s.last_seen_at ? formatDateTime(s.last_seen_at as string) : "",
           s.is_active === false ? "Off" : "On",
           s.valid_until ?? "",
           s.photo_path ? "Yes" : "No",

@@ -842,3 +842,27 @@ alter table public.login_locks enable row level security;
 
 alter table public.profiles
   add column if not exists session_id text;
+
+-- ---------------------------------------------------------------------------
+-- Question reports and last seen (added later)
+--
+-- A student can flag a question from the review ("there is a mistake");
+-- the panel lists the open flags per question and clears them. The
+-- profile keeps when the student was last on the portal (to the hour), so
+-- the team can see who has gone quiet.
+-- ---------------------------------------------------------------------------
+create table if not exists public.question_reports (
+  id          bigserial primary key,
+  paper_id    uuid not null references public.watch_papers on delete cascade,
+  question_id uuid not null,
+  user_id     uuid references auth.users on delete set null,
+  note        text not null default '',
+  created_at  timestamptz not null default now(),
+  resolved_at timestamptz
+);
+alter table public.question_reports enable row level security;
+create index if not exists question_reports_open_idx
+  on public.question_reports (paper_id, question_id) where resolved_at is null;
+
+alter table public.profiles
+  add column if not exists last_seen_at timestamptz;

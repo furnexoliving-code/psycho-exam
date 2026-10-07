@@ -5,6 +5,8 @@ import { formatDateTime, indianDay } from "@/lib/format-time";
 import { listPapersForAdmin } from "@/lib/wt/db";
 import { listMocksForAdmin, mockStatus } from "@/lib/wt/mock";
 import { recentActions } from "@/lib/audit";
+import { openReportCount } from "@/lib/reports";
+import { STAGES } from "@/lib/wt/plan";
 
 /**
  * The panel's front page: the counts that matter, what is live now, what
@@ -18,7 +20,7 @@ export default async function AdminHome() {
   const soon = indianDay(Date.now() + 10 * 86400000);
   const dayStart = new Date(`${today}T00:00:00+05:30`).toISOString();
 
-  const [papers, mocks, log, students, active, expiring, attemptsToday, mockResults, openSittings] = await Promise.all([
+  const [papers, mocks, log, students, active, expiring, attemptsToday, mockResults, openSittings, seenToday, satToday, mocksToday, reportCount] = await Promise.all([
     listPapersForAdmin(),
     listMocksForAdmin(),
     recentActions(8),
@@ -28,7 +30,14 @@ export default async function AdminHome() {
     supabase.from("watch_attempts").select("id", { count: "exact", head: true }).gte("submitted_at", dayStart),
     supabase.from("mock_results").select("mock_id, user_id").limit(100000),
     supabase.from("mock_sittings").select("id", { count: "exact", head: true }).is("submitted_at", null),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student").gte("last_seen_at", dayStart),
+    supabase.from("watch_attempts").select("user_id").gte("submitted_at", dayStart).limit(100000),
+    supabase.from("mock_results").select("qualified").gte("submitted_at", dayStart).limit(100000),
+    openReportCount(),
   ]);
+  const studentsSatToday = new Set((satToday.data ?? []).map((r) => r.user_id as string).filter(Boolean)).size;
+  const mocksFinishedToday = (mocksToday.data ?? []).length;
+  const mocksQualifiedToday = (mocksToday.data ?? []).filter((r) => r.qualified === true).length;
 
   const live = mocks.filter((m) => mockStatus(m) === "live");
   const scheduled = mocks.filter((m) => mockStatus(m) === "scheduled");
@@ -42,6 +51,7 @@ export default async function AdminHome() {
   }
 
   const attention: { text: string; href: string; label: string; tone: "warn" | "info" }[] = [];
+  if (reportCount > 0) attention.push({ text: `${reportCount} question${reportCount === 1 ? "" : "s"} flagged by students as wrong`, href: "/admin/reports", label: "Reports →", tone: "warn" });
   if ((expiring.count ?? 0) > 0) attention.push({ text: `${expiring.count} student account${expiring.count === 1 ? "" : "s"} expire within 10 days`, href: "/admin/students", label: "Students →", tone: "warn" });
   if (drafts.length) attention.push({ text: `${drafts.length} paper${drafts.length === 1 ? " is" : "s are"} still a draft`, href: "/admin/papers", label: "Papers →", tone: "info" });
   const emptyMocks = mocks.filter((m) => m.isPublished && m.paperIds.length < 5);
@@ -59,6 +69,17 @@ export default async function AdminHome() {
         <Stat href="/admin/papers" label="Test Papers" value={String(papers.length)} note={`${papers.length - drafts.length} published · ${drafts.length} draft`} />
         <Stat href="/admin/results" label="Attempts today" value={String(attemptsToday.count ?? 0)} note="sectional papers submitted since midnight" />
       </div>
+
+      <section className="mt-4 rounded border border-gray-300 bg-white p-4">
+        <h2 className="text-[14px] font-bold text-gray-900">Today <span className="font-normal text-gray-500">· since midnight, India time</span></h2>
+        <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <Today label="Students on the portal" value={seenToday.count ?? 0} note="signed in today" />
+          <Today label="Students who sat a paper" value={studentsSatToday} note={`${attemptsToday.count ?? 0} papers submitted`} />
+          <Today label="Full Mocks finished" value={mocksFinishedToday} note="today" />
+          <Today label="Mocks qualified" value={mocksQualifiedToday} note={`every battery T ≥ ${STAGES.pass}`} />
+          <Today label="Open question reports" value={reportCount} note="flagged by students" href="/admin/reports" />
+        </div>
+      </section>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <section className="rounded border border-gray-300 bg-white p-4">
@@ -149,5 +170,20 @@ function Stat({ href, label, value, note }: { href: string; label: string; value
       <div className="text-2xl font-bold text-gray-900">{value}</div>
       <div className="text-[11px] text-gray-500">{note}</div>
     </Link>
+  );
+}
+
+function Today({ label, value, note, href }: { label: string; value: number; note: string; href?: string }) {
+  const body = (
+    <>
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</div>
+      <div className="mt-0.5 text-[22px] font-extrabold tabular-nums text-gray-900">{value.toLocaleString("en-IN")}</div>
+      <div className="text-[11px] text-gray-500">{note}</div>
+    </>
+  );
+  return href ? (
+    <Link href={href} className="rounded-lg border border-gray-200 bg-gray-50 p-3 hover:border-rrb-banner">{body}</Link>
+  ) : (
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">{body}</div>
   );
 }

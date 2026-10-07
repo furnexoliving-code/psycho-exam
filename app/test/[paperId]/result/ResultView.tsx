@@ -2,6 +2,7 @@
 
 import { MockBreak } from "@/components/wt/MockBreak";
 import { ShareResult } from "@/components/ShareResult";
+import { ReportQuestion } from "@/components/wt/ReportQuestion";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -559,6 +560,7 @@ export function ResultView({
                     )}
                   </p>
 
+                  {storageOwner !== "guest" && <ReportQuestion paperSlug={paperId} questionId={q.id} />}
                 </li>
               );
             })}

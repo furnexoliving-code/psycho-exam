@@ -17,14 +17,15 @@ const PAGE_SIZE = 50;
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; quiet?: string }>;
 }) {
   // On the page itself, not only in the layout: a request can ask for the
   // page segment alone, and the layout then never runs.
   await requireAdmin("/admin/students");
   const supabase = await createClient();
 
-  const { q = "", page: pageRaw = "1" } = await searchParams;
+  const { q = "", page: pageRaw = "1", quiet = "" } = await searchParams;
+  const quietDays = quiet === "7" ? 7 : quiet === "30" ? 30 : 0;
   const query = q.trim();
   const page = Math.max(1, Math.floor(Number(pageRaw)) || 1);
   const from = (page - 1) * PAGE_SIZE;
@@ -34,8 +35,12 @@ export default async function StudentsPage({
   // everyone sitting a paper at that moment.
   let request = supabase
     .from("profiles")
-    .select("id, full_name, phone, created_at, is_active, valid_until", { count: "exact" })
+    .select("id, full_name, phone, created_at, is_active, valid_until, last_seen_at", { count: "exact" })
     .eq("role", "student");
+  if (quietDays) {
+    const cutoff = new Date(Date.now() - quietDays * 86400000).toISOString();
+    request = request.eq("is_active", true).or(`last_seen_at.is.null,last_seen_at.lt.${cutoff}`);
+  }
   if (query) {
     const digits = normalisePhone(query);
     request = /^\d{4,}$/.test(digits)
@@ -142,6 +147,19 @@ export default async function StudentsPage({
             >
               Search
             </button>
+            <Link
+              href={quietDays === 7 ? "/admin/students#list" : "/admin/students?quiet=7#list"}
+              className={`rounded border px-3 py-1.5 text-[12px] font-semibold ${quietDays === 7 ? "border-amber-500 bg-amber-100 text-amber-900" : "border-gray-400 bg-white text-gray-800 hover:bg-gray-100"}`}
+              title="Active accounts not seen on the portal for 7 days (or never)"
+            >
+              Quiet 7 days
+            </Link>
+            <Link
+              href={quietDays === 30 ? "/admin/students#list" : "/admin/students?quiet=30#list"}
+              className={`rounded border px-3 py-1.5 text-[12px] font-semibold ${quietDays === 30 ? "border-amber-500 bg-amber-100 text-amber-900" : "border-gray-400 bg-white text-gray-800 hover:bg-gray-100"}`}
+            >
+              Quiet 30 days
+            </Link>
             {query && (
               <Link
                 href="/admin/students#list"
@@ -161,6 +179,7 @@ export default async function StudentsPage({
                   <th className="border border-gray-300 px-3 py-2">Name</th>
                   <th className="border border-gray-300 px-3 py-2">Mobile</th>
                   <th className="border border-gray-300 px-3 py-2">Registered</th>
+                  <th className="border border-gray-300 px-3 py-2">Last seen</th>
                   <th className="border border-gray-300 px-3 py-2">Valid till</th>
                   <th className="border border-gray-300 px-3 py-2">Account</th>
                   <th className="border border-gray-300 px-3 py-2">New password</th>
@@ -178,6 +197,9 @@ export default async function StudentsPage({
                     <td className="border border-gray-300 px-3 py-2">{s.phone || "—"}</td>
                     <td className="border border-gray-300 px-3 py-2">
                       {formatDate(s.created_at)}
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2 text-[12px]">
+                      {s.last_seen_at ? formatDateTime(s.last_seen_at) : <span className="text-gray-400">never</span>}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <RowForm action={setValidity} className="flex items-center gap-1">

@@ -28,7 +28,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
     .eq("id", id)
     .maybeSingle();
   if (!row || row.role !== "student") notFound();
-  const student = { valid_until: null, photo_path: null, ...row } as {
+  const student = { valid_until: null, photo_path: null, last_seen_at: null, ...row } as {
     id: string;
     full_name: string;
     roll_no: string;
@@ -37,6 +37,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
     is_active: boolean;
     valid_until: string | null;
     photo_path: string | null;
+    last_seen_at: string | null;
   };
 
   const [progress, attempts, mocks] = await Promise.all([batteryProgress(id), attemptsFor(id, 40), mockResultsFor(id, 20)]);
@@ -68,6 +69,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
             <Row label="Mobile">{student.phone || "—"}</Row>
             <Row label="Roll No">{student.roll_no || "—"}</Row>
             <Row label="Registered">{formatDateTime(student.created_at)}</Row>
+            <Row label="Last seen">{student.last_seen_at ? formatDateTime(student.last_seen_at) : "Never"}</Row>
             <Row label="Account">
               <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${student.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                 {student.is_active ? "On" : "Off"}

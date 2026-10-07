@@ -9,16 +9,22 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * missing line. A database on which the newest SQL has not been run yet
  * has no table, and the write simply does nothing.
  */
+export const LOG_DAYS = 7;
+
 export async function logAction(action: string, details = ""): Promise<void> {
   try {
     const who = await getProfile();
-    await createAdminClient().from("audit_log").insert({
+    const supabase = createAdminClient();
+    await supabase.from("audit_log").insert({
       actor_id: who?.id ?? null,
       actor_name: who?.full_name ?? "",
       actor_role: who?.role ?? "",
       action,
       details: details.slice(0, 2000),
     });
+    // The log keeps a week: older lines go with each new one, so the
+    // table never grows past what anyone reads.
+    await supabase.from("audit_log").delete().lt("at", new Date(Date.now() - LOG_DAYS * 86400000).toISOString());
   } catch {
     // Never the action's problem.
   }

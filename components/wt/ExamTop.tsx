@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { clock } from "./PortalToolbar";
 import { TestTabs } from "./TestTabs";
 import { PhotoBox } from "./PhotoBox";
@@ -51,6 +52,15 @@ export function ExamTop({
   sections?: React.ReactNode;
 }) {
   const urgent = secondsLeft <= 60;
+  // One soft beep as the test's last minute begins; the clock also turns
+  // red. Only the test's own clock, never the instruction or break ones,
+  // and once per sitting.
+  const beeped = useRef(false);
+  useEffect(() => {
+    if (label !== "Time Left" || secondsLeft !== 60 || beeped.current) return;
+    beeped.current = true;
+    softBeep();
+  }, [label, secondsLeft]);
   const { photoUrl, battery } = useExamChrome();
   // The hall names every test by its battery; a paper's own title (set
   // when it was uploaded) is not what the tabs and chips show.
@@ -114,4 +124,26 @@ export function SectionChip({ children, active = true, onClick, disabled = true 
       <span className={`flex h-[14px] w-[14px] items-center justify-center rounded-full text-[10px] font-bold italic ${active ? "bg-white text-[#1166cc]" : "bg-[#2a8fd6] text-white"}`} aria-hidden="true">i</span>
     </button>
   );
+}
+
+/** A short, quiet tone, drawn by the browser itself; silent where sound is not allowed. */
+function softBeep(): void {
+  try {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+    osc.onended = () => void ctx.close();
+  } catch {
+    // No sound: the red clock is the signal.
+  }
 }
