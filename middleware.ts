@@ -63,6 +63,7 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/tests") ||
     path.startsWith("/mock") ||
     path.startsWith("/profile") ||
+    path.startsWith("/results") ||
     path.startsWith("/test");
 
   if (isPrivate && !user) {

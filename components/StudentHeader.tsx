@@ -20,7 +20,7 @@ export function StudentHeader({
     { id: "dashboard", label: "Dashboard", href: "/dashboard" },
     { id: "mocks", label: "Full Mocks", href: "/dashboard#mocks" },
     { id: "practice", label: "Practice", href: "/dashboard#practice" },
-    { id: "results", label: "My results", href: "/dashboard#results" },
+    { id: "results", label: "My results", href: "/results" },
   ] as const;
 
   return (
