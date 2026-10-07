@@ -5,8 +5,6 @@ import { daysUntil, examSettings } from "@/lib/settings";
 import { activeNotices, listNotices } from "@/lib/notices";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StudentHeader } from "@/components/StudentHeader";
-import { ChangePassword } from "@/components/ChangePassword";
-import { PhotoCard } from "@/components/PhotoCard";
 import { photoUrlOf } from "@/lib/photo";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
@@ -579,8 +577,25 @@ export default async function DashboardPage() {
               </section>
             )}
 
-            <PhotoCard photoUrl={photoUrlOf(profile)} name={profile.full_name || "Candidate"} rollNo={profile.roll_no || ""} phone={profile.phone || ""} />
-            {profile.phone && <ChangePassword phone={profile.phone} />}
+            <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                {photoUrlOf(profile) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photoUrlOf(profile) ?? ""} alt="" className="h-12 w-12 rounded-full border border-gray-300 object-cover" />
+                ) : (
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#1d4ed8] to-[#0d2a6b] text-[16px] font-bold text-white" aria-hidden="true">
+                    {(profile.full_name?.trim()[0] ?? "S").toUpperCase()}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[14px] font-bold text-gray-900">{profile.full_name || "Candidate"}</div>
+                  <div className="text-[11px] text-gray-500">{profile.roll_no ? `Roll ${profile.roll_no} · ` : ""}{profile.phone}</div>
+                </div>
+              </div>
+              <Link href="/profile" className="mt-3 block rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-[12px] font-semibold text-gray-800 hover:bg-gray-50">
+                Edit profile · photo, name, password →
+              </Link>
+            </section>
           </aside>
         </div>
       </main>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SignOutButton } from "@/components/SignOutButton";
+import { UserMenu } from "@/components/UserMenu";
 
 /**
  * The student pages' masthead: the institute's mark, the page tabs, and
@@ -12,7 +12,7 @@ export function StudentHeader({
   photoUrl = null,
 }: {
   name: string;
-  active?: "dashboard" | "mocks" | "practice" | "results";
+  active?: "dashboard" | "mocks" | "practice" | "results" | "profile";
   /** The candidate's own photo, when they have given one. */
   photoUrl?: string | null;
 }) {
@@ -22,7 +22,6 @@ export function StudentHeader({
     { id: "practice", label: "Practice", href: "/dashboard#practice" },
     { id: "results", label: "My results", href: "/dashboard#results" },
   ] as const;
-  const initial = (name.trim()[0] ?? "S").toUpperCase();
 
   return (
     <header className="bg-white shadow-[0_1px_8px_rgba(13,42,107,0.06)]">
@@ -52,20 +51,8 @@ export function StudentHeader({
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2.5">
-          {photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={photoUrl} alt="" className="h-8 w-8 rounded-full border border-gray-300 object-cover" />
-          ) : (
-            <span
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#1d4ed8] to-[#0d2a6b] text-[12px] font-bold text-white"
-              aria-hidden="true"
-            >
-              {initial}
-            </span>
-          )}
-          <span className="hidden max-w-[160px] truncate text-[13px] font-semibold text-gray-900 sm:block">{name}</span>
-          <SignOutButton />
+        <div className="ml-auto flex items-center">
+          <UserMenu name={name} photoUrl={photoUrl} />
         </div>
       </div>
       <div

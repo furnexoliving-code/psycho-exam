@@ -53,7 +53,7 @@ export function ChangePassword({ phone }: { phone: string }) {
     "w-full rounded border border-gray-400 px-3 py-2 text-[14px] focus:border-rrb-banner focus:outline-none focus:ring-1 focus:ring-rrb-banner";
 
   return (
-    <section className="mt-9 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-[15px] font-bold text-gray-900">Your password</h2>

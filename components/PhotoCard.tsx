@@ -18,7 +18,7 @@ export function PhotoCard({ photoUrl, name, rollNo, phone }: { photoUrl: string 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
       <h2 className="text-[15px] font-bold text-gray-900">
-        My profile <span className="font-normal text-gray-500" lang="hi">/ मेरी प्रोफ़ाइल</span>
+        Photo <span className="font-normal text-gray-500" lang="hi">/ फ़ोटो</span>
       </h2>
       <div className="mt-3 flex items-start gap-4">
         <div className="flex h-[96px] w-[84px] shrink-0 items-center justify-center overflow-hidden border border-[#bbbbbb] bg-[#dfe6ee]">
@@ -50,8 +50,8 @@ export function PhotoCard({ photoUrl, name, rollNo, phone }: { photoUrl: string 
         </dl>
       </div>
       <p className="mt-3 text-[12px] text-gray-500">
-        Your photo appears in the exam header, as in the hall. Name, mobile and roll number are set by the institute; ask them for a change.
-        <span className="block" lang="hi">आपकी फ़ोटो परीक्षा हेडर में दिखेगी। नाम, मोबाइल और रोल नंबर संस्थान द्वारा तय हैं; बदलाव के लिए संस्थान से कहें।</span>
+        Your photo appears in the exam header, as in the hall. A passport-style photo looks best.
+        <span className="block" lang="hi">आपकी फ़ोटो परीक्षा हेडर में दिखेगी, परीक्षा हॉल की तरह। पासपोर्ट जैसी फ़ोटो सबसे अच्छी लगती है।</span>
       </p>
       <SaveForm action={updateMyPhoto} submitLabel={photoUrl ? "Replace photo" : "Upload photo"} className="mt-3" buttonClassName="rounded-lg bg-indigo-800 px-4 py-2 text-[13px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60">
         <input
