@@ -52,7 +52,7 @@ export function MockScorecard({
           </div>
           <h1 className="text-[24px] font-bold text-gray-900">{mockName}</h1>
           <p className="text-[13px] text-gray-600">
-            {candidate}{rollNo ? ` · Roll ${rollNo}` : ""} · {when}
+            {candidate} · {when}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">

@@ -73,9 +73,6 @@ export function PortalToolbar({
         </div>
         <div className="leading-tight">
           <div className="whitespace-nowrap text-[14px] font-bold text-gray-900">{name}</div>
-          {rollNo && rollNo !== "—" && (
-            <div className="whitespace-nowrap text-[10px] font-semibold text-gray-600">Roll No: {rollNo}</div>
-          )}
         </div>
       </div>
     </div>

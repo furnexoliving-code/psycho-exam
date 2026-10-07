@@ -28,7 +28,6 @@ export function MockBegin({ slug, candidate, rollNo, photoUrl = null }: { slug: 
           <PhotoBox photoUrl={photoUrl} size={40} />
           <div className="leading-tight">
             <div className="max-w-[180px] truncate text-[14px] font-semibold text-gray-900">{candidate}</div>
-            {rollNo && <div className="text-[10px] text-gray-600">Roll No: {rollNo}</div>}
           </div>
         </div>
       </div>

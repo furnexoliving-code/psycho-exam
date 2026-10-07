@@ -589,7 +589,7 @@ export default async function DashboardPage() {
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[14px] font-bold text-gray-900">{profile.full_name || "Candidate"}</div>
-                  <div className="text-[11px] text-gray-500">{profile.roll_no ? `Roll ${profile.roll_no} · ` : ""}{profile.phone}</div>
+                  <div className="text-[11px] text-gray-500">{profile.phone}</div>
                 </div>
               </div>
               <Link href="/profile" className="mt-3 block rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-[12px] font-semibold text-gray-800 hover:bg-gray-50">

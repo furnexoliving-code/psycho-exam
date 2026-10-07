@@ -133,11 +133,9 @@ const readProfile = cache(async (): Promise<Session> => {
   const aal = typeof claims.aal === "string" ? claims.aal : "aal1";
   if (!profile) return { profile: null, inactive: false, expired: false, aal };
   if (profile.is_active === false) return { profile: null, inactive: true, expired: false, aal };
-  // A student whose course has ended is refused on every request, the same
-  // as a switched-off one; the panel roles are never dated.
-  if (profile.role === "student" && hasExpired(profile.valid_until)) {
-    return { profile: null, inactive: false, expired: true, aal };
-  }
+  // Accounts carry no end date for now: every Kautilya student has the
+  // portal as long as the account is on. A paid batch or test series,
+  // when it comes, will carry its own validity.
   // One device at a time: a student's sign-in stamps the account with the
   // device's id, and a request carrying another id, or none, is signed
   // out. An account never stamped (signed in before this existed) is left

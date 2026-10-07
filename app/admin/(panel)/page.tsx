@@ -17,16 +17,14 @@ export default async function AdminHome() {
   await requireAdmin("/admin");
   const supabase = createAdminClient();
   const today = indianDay(Date.now());
-  const soon = indianDay(Date.now() + 10 * 86400000);
   const dayStart = new Date(`${today}T00:00:00+05:30`).toISOString();
 
-  const [papers, mocks, log, students, active, expiring, attemptsToday, mockResults, openSittings, seenToday, satToday, mocksToday, reportCount] = await Promise.all([
+  const [papers, mocks, log, students, active, attemptsToday, mockResults, openSittings, seenToday, satToday, mocksToday, reportCount] = await Promise.all([
     listPapersForAdmin(),
     listMocksForAdmin(),
     recentActions(8),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student"),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student").eq("is_active", true).or(`valid_until.is.null,valid_until.gte.${today}`),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student").eq("is_active", true).gte("valid_until", today).lte("valid_until", soon),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student").eq("is_active", true),
     supabase.from("watch_attempts").select("id", { count: "exact", head: true }).gte("submitted_at", dayStart),
     supabase.from("mock_results").select("mock_id, user_id").limit(100000),
     supabase.from("mock_sittings").select("id", { count: "exact", head: true }).is("submitted_at", null),
@@ -52,7 +50,6 @@ export default async function AdminHome() {
 
   const attention: { text: string; href: string; label: string; tone: "warn" | "info" }[] = [];
   if (reportCount > 0) attention.push({ text: `${reportCount} question${reportCount === 1 ? "" : "s"} flagged by students as wrong`, href: "/admin/reports", label: "Reports →", tone: "warn" });
-  if ((expiring.count ?? 0) > 0) attention.push({ text: `${expiring.count} student account${expiring.count === 1 ? "" : "s"} expire within 10 days`, href: "/admin/students", label: "Students →", tone: "warn" });
   if (drafts.length) attention.push({ text: `${drafts.length} paper${drafts.length === 1 ? " is" : "s are"} still a draft`, href: "/admin/papers", label: "Papers →", tone: "info" });
   const emptyMocks = mocks.filter((m) => m.isPublished && m.paperIds.length < 5);
   if (emptyMocks.length) attention.push({ text: `${emptyMocks.map((m) => m.name).join(", ")}: fewer than 5 tests`, href: "/admin/mocks", label: "Mocks →", tone: "warn" });
@@ -64,7 +61,7 @@ export default async function AdminHome() {
       <p className="mt-1 text-[13px] text-gray-600">Everything at a glance. Every tile opens the page where it is managed.</p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat href="/admin/students" label="Students" value={String(students.count ?? 0)} note={`${active.count ?? 0} active · ${expiring.count ?? 0} expiring soon`} />
+        <Stat href="/admin/students" label="Students" value={String(students.count ?? 0)} note={`${active.count ?? 0} active · ${(students.count ?? 0) - (active.count ?? 0)} switched off`} />
         <Stat href="/admin/mocks" label="Full Mocks" value={String(mocks.length)} note={`${live.length} live · ${scheduled.length} upcoming · ${closed.length} closed`} />
         <Stat href="/admin/papers" label="Test Papers" value={String(papers.length)} note={`${papers.length - drafts.length} published · ${drafts.length} draft`} />
         <Stat href="/admin/results" label="Attempts today" value={String(attemptsToday.count ?? 0)} note="sectional papers submitted since midnight" />

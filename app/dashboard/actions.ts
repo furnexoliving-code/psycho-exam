@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * A student's own photo: the one thing about the account that is theirs to
- * change. Name, mobile and roll number are the institute's to set.
+ * change, and their name. The mobile number is the institute's to set.
  */
 export async function updateMyPhoto(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Photo", async () => {
@@ -30,7 +30,7 @@ export async function removeMyPhoto(_prev: SaveState | null, formData: FormData)
   });
 }
 
-/** The student's own name. Mobile and roll number stay the institute's to set. */
+/** The student's own name. The mobile number stays the institute's to set. */
 export async function updateMyName(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Name", async () => {
     const who = await requireUser("/profile");

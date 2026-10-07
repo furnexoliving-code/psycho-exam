@@ -5,12 +5,10 @@ import { NameForm } from "@/components/NameForm";
 import { ChangePassword } from "@/components/ChangePassword";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { photoUrlOf } from "@/lib/photo";
-import { formatDate } from "@/lib/format-time";
 
 /**
  * The student's own page: photo, name and password are theirs to change;
- * mobile, roll number and validity are the institute's and shown as they
- * stand.
+ * the mobile number is the institute's and shown as it stands.
  */
 export default async function ProfilePage() {
   if (!isConfigured()) redirect("/dashboard");
@@ -26,12 +24,12 @@ export default async function ProfilePage() {
           My profile <span className="text-[15px] font-normal text-gray-500" lang="hi">/ मेरी प्रोफ़ाइल</span>
         </h1>
         <p className="mt-1 text-[13px] text-gray-600">
-          Your photo, name and password are yours to change. Mobile number, roll number and validity are set by the institute.
+          Your photo, name and password are yours to change. The mobile number is set by the institute.
         </p>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <section id="photo" className="scroll-mt-4 md:col-span-1">
-            <PhotoCard photoUrl={photoUrlOf(profile)} name={name} rollNo={profile.roll_no || ""} phone={profile.phone || ""} />
+            <PhotoCard photoUrl={photoUrlOf(profile)} name={name} phone={profile.phone || ""} />
           </section>
 
           <div className="space-y-4">
@@ -51,14 +49,10 @@ export default async function ProfilePage() {
               <dl className="mt-3 grid grid-cols-[120px_1fr] gap-y-2 text-[13px]">
                 <dt className="text-gray-500">Mobile</dt>
                 <dd className="font-semibold text-gray-900">{profile.phone || "—"}</dd>
-                <dt className="text-gray-500">Roll No</dt>
-                <dd className="font-semibold text-gray-900">{profile.roll_no || "—"}</dd>
-                <dt className="text-gray-500">Valid till</dt>
-                <dd className="font-semibold text-gray-900">{profile.valid_until ? formatDate(profile.valid_until) : "No end date"}</dd>
               </dl>
               <p className="mt-3 text-[11px] text-gray-500">
-                To change the mobile number or roll number, ask at the institute.
-                <span className="block" lang="hi">मोबाइल नंबर या रोल नंबर बदलवाने के लिए संस्थान से संपर्क करें।</span>
+                To change the mobile number, ask at the institute.
+                <span className="block" lang="hi">मोबाइल नंबर बदलवाने के लिए संस्थान से संपर्क करें।</span>
               </p>
             </section>
           </div>

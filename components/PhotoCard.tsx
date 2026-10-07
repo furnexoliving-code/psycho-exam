@@ -8,10 +8,10 @@ import { removeMyPhoto, updateMyPhoto } from "@/app/dashboard/actions";
 
 /**
  * The student's photo, as the exam header will show it. Upload or replace
- * it here; the rest of the account (name, mobile, roll number) is read-only
+ * it here; the mobile number is read-only
  * for the student, as the institute set it.
  */
-export function PhotoCard({ photoUrl, name, rollNo, phone }: { photoUrl: string | null; name: string; rollNo: string; phone: string }) {
+export function PhotoCard({ photoUrl, name, phone }: { photoUrl: string | null; name: string; phone: string }) {
   const [preview, setPreview] = useState<string | null>(null);
   const shown = preview ?? photoUrl;
 
@@ -35,12 +35,6 @@ export function PhotoCard({ photoUrl, name, rollNo, phone }: { photoUrl: string 
         <dl className="min-w-0 flex-1 text-[13px]">
           <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Name</dt>
           <dd className="truncate font-semibold text-gray-900">{name}</dd>
-          {rollNo && (
-            <>
-              <dt className="mt-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Roll No</dt>
-              <dd className="text-gray-900">{rollNo}</dd>
-            </>
-          )}
           {phone && (
             <>
               <dt className="mt-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Mobile</dt>

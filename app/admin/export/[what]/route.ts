@@ -58,17 +58,17 @@ const row = (values: unknown[]) => values.map(cell).join(",") + "\n";
 
 type Write = (line: string) => void;
 
-/** Names, roll numbers and mobiles for a set of account ids, in one query per page. */
-async function namesOf(ids: string[]): Promise<Map<string, { name: string; roll: string; phone: string }>> {
+/** Names and mobiles for a set of account ids, in one query per page. */
+async function namesOf(ids: string[]): Promise<Map<string, { name: string; phone: string }>> {
   const unique = [...new Set(ids.filter(Boolean))];
-  const out = new Map<string, { name: string; roll: string; phone: string }>();
+  const out = new Map<string, { name: string; phone: string }>();
   for (let at = 0; at < unique.length; at += PAGE) {
     const { data } = await createAdminClient()
       .from("profiles")
-      .select("id, full_name, roll_no, phone")
+      .select("id, full_name, phone")
       .in("id", unique.slice(at, at + PAGE));
     for (const p of data ?? []) {
-      out.set(p.id as string, { name: (p.full_name as string) ?? "", roll: (p.roll_no as string) ?? "", phone: (p.phone as string) ?? "" });
+      out.set(p.id as string, { name: (p.full_name as string) ?? "", phone: (p.phone as string) ?? "" });
     }
   }
   return out;
@@ -78,7 +78,7 @@ async function results(write: Write): Promise<void> {
   const supabase = createAdminClient();
   const { data: papers } = await supabase.from("watch_papers").select("id, display_name, category");
   const paperOf = new Map((papers ?? []).map((p) => [p.id as string, p]));
-  write(row(["Submitted (IST)", "Student", "Roll No", "Mobile", "Battery", "Paper", "Marks", "Out of", "Attempted", "Time (sec)", "Attempt id"]));
+  write(row(["Submitted (IST)", "Student", "Mobile", "Battery", "Paper", "Marks", "Out of", "Attempted", "Time (sec)", "Attempt id"]));
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await supabase
       .from("watch_attempts")
@@ -97,7 +97,6 @@ async function results(write: Write): Promise<void> {
         row([
           formatDateTime(a.submitted_at as string),
           person?.name ?? "(deleted account)",
-          person?.roll ?? "",
           person?.phone ?? "",
           `Test ${battery} - ${BATTERIES.find((b) => b.id === battery)?.title ?? ""}`,
           paper?.display_name ?? "(deleted paper)",
@@ -119,7 +118,7 @@ async function mocks(write: Write): Promise<void> {
   const mockName = new Map((mockRows ?? []).map((m) => [m.id as string, m.name as string]));
   write(
     row([
-      "Submitted (IST)", "Student", "Roll No", "Mobile", "Full Mock", "Score out of 30", "Composite T", "Qualified",
+      "Submitted (IST)", "Student", "Mobile", "Full Mock", "Score out of 30", "Composite T", "Qualified",
       "T1 Memory", "T2 Following Directions", "T3 Depth Perception", "T4 Power of Observation", "T5 Perceptual Speed",
       "Total marks", "Time (min)",
     ]),
@@ -145,7 +144,6 @@ async function mocks(write: Write): Promise<void> {
         row([
           formatDateTime(r.submitted_at as string),
           person?.name ?? "(deleted account)",
-          person?.roll ?? "",
           person?.phone ?? "",
           mockName.get(r.mock_id as string) ?? "(deleted mock)",
           out30 === null ? "" : out30.toFixed(1),
@@ -163,7 +161,7 @@ async function mocks(write: Write): Promise<void> {
 
 async function students(write: Write): Promise<void> {
   const supabase = createAdminClient();
-  write(row(["Name", "Roll No", "Mobile", "Registered (IST)", "Last seen (IST)", "Account", "Valid till", "Photo"]));
+  write(row(["Name", "Mobile", "Registered (IST)", "Last seen (IST)", "Account", "Photo"]));
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await supabase
       .from("profiles")
@@ -177,12 +175,10 @@ async function students(write: Write): Promise<void> {
       write(
         row([
           s.full_name ?? "",
-          s.roll_no ?? "",
           s.phone ?? "",
           s.created_at ? formatDateTime(s.created_at as string) : "",
           s.last_seen_at ? formatDateTime(s.last_seen_at as string) : "",
           s.is_active === false ? "Off" : "On",
-          s.valid_until ?? "",
           s.photo_path ? "Yes" : "No",
         ]),
       );

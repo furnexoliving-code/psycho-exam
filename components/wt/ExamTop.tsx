@@ -100,7 +100,6 @@ export function ExamTop({
         <PhotoBox photoUrl={photoUrl} />
         <div className="leading-tight">
           <div className="max-w-[150px] truncate text-[15px] font-semibold text-gray-900">{name}</div>
-          {rollNo && rollNo !== "—" && <div className="text-[10px] text-gray-600">Roll No: {rollNo}</div>}
         </div>
       </div>
     </div>

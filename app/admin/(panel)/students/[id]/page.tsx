@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { hasExpired, requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { formatDate, formatDateTime } from "@/lib/format-time";
+import { formatDateTime } from "@/lib/format-time";
 import { photoUrlOf } from "@/lib/photo";
 import { attemptsFor } from "@/lib/wt/history";
 import { batteryProgress } from "@/lib/wt/progress";
@@ -11,7 +11,7 @@ import { STAGES } from "@/lib/wt/plan";
 import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { PendingButton } from "@/components/admin/PendingButton";
-import { deleteStudent, removeStudentPhoto, resetPassword, setActive, setStudentPhoto, setValidity } from "../actions";
+import { deleteStudent, removeStudentPhoto, resetPassword, setActive, setStudentPhoto } from "../actions";
 
 /**
  * One student, in full: the account and its switches, the photo, how each
@@ -42,7 +42,6 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
 
   const [progress, attempts, mocks] = await Promise.all([batteryProgress(id), attemptsFor(id, 40), mockResultsFor(id, 20)]);
   const photo = photoUrlOf(student);
-  const expired = hasExpired(student.valid_until);
   const passed = progress.filter((b) => (b.bestT ?? 0) >= STAGES.pass).length;
 
   return (
@@ -67,17 +66,12 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
           <h1 className="text-xl font-bold text-gray-900">{student.full_name || "Unnamed"}</h1>
           <dl className="mt-2 grid gap-x-6 gap-y-1 text-[13px] sm:grid-cols-2 lg:grid-cols-3">
             <Row label="Mobile">{student.phone || "—"}</Row>
-            <Row label="Roll No">{student.roll_no || "—"}</Row>
             <Row label="Registered">{formatDateTime(student.created_at)}</Row>
             <Row label="Last seen">{student.last_seen_at ? formatDateTime(student.last_seen_at) : "Never"}</Row>
             <Row label="Account">
               <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${student.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                 {student.is_active ? "On" : "Off"}
               </span>
-            </Row>
-            <Row label="Valid till">
-              {student.valid_until ? formatDate(student.valid_until) : "No end date"}
-              {expired && <span className="ml-2 text-[11px] font-semibold text-red-700">Expired</span>}
             </Row>
             <Row label="Batteries passed">
               {passed} of {progress.length} at T-Score: {STAGES.pass}+
@@ -105,21 +99,8 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
         </section>
 
         <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-[14px] font-bold text-gray-900">Validity and account</h2>
-          <RowForm action={setValidity} className="mt-2 flex items-center gap-2">
-            <input type="hidden" name="id" value={id} />
-            <input
-              name="valid_until"
-              type="date"
-              defaultValue={student.valid_until ?? ""}
-              className={`rounded border px-2 py-1 text-[12px] ${expired ? "border-red-400 bg-red-50 text-red-800" : "border-gray-400"}`}
-              title="Blank means no end date"
-            />
-            <button type="submit" className="rounded border border-gray-400 px-2 py-1 text-[11px] font-semibold text-gray-800 hover:bg-gray-100">
-              Set validity
-            </button>
-          </RowForm>
-          <RowForm action={setActive} className="mt-3">
+          <h2 className="text-[14px] font-bold text-gray-900">Account</h2>
+          <RowForm action={setActive} className="mt-2">
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="active" value={String(!student.is_active)} />
             <button

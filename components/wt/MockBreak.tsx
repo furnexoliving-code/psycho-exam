@@ -79,7 +79,6 @@ export function MockBreak({
           <PhotoBox photoUrl={mock.photoUrl} />
           <div className="leading-tight">
             <div className="max-w-[180px] truncate text-[15px] font-semibold text-gray-900">{mock.candidate}</div>
-            {mock.rollNo && <div className="text-[10px] text-gray-600">Roll No: {mock.rollNo}</div>}
           </div>
         </div>
       </div>
