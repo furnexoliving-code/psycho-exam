@@ -61,7 +61,29 @@ export function ExamTop({
     beeped.current = true;
     softBeep();
   }, [label, secondsLeft]);
-  const { photoUrl, battery } = useExamChrome();
+  const { photoUrl, battery, mockSummary } = useExamChrome();
+  // Inside a Full Mock, fullscreen chosen once stays on for every test: the
+  // browser drops it when the next test's page loads, and may only put it
+  // back on a click or a key, so the first one on the new page does that.
+  const inMock = mockSummary !== null;
+  useEffect(() => {
+    if (!inMock || !wantsFullscreen() || document.fullscreenElement) return;
+    const restore = () => {
+      document.removeEventListener("pointerdown", restore, true);
+      document.removeEventListener("keydown", restore, true);
+      if (!document.fullscreenElement) void document.documentElement.requestFullscreen().catch(() => {});
+    };
+    document.addEventListener("pointerdown", restore, true);
+    document.addEventListener("keydown", restore, true);
+    return () => {
+      document.removeEventListener("pointerdown", restore, true);
+      document.removeEventListener("keydown", restore, true);
+    };
+  }, [inMock]);
+  const toggleFullscreen = () => {
+    if (inMock) rememberFullscreen(!document.fullscreenElement);
+    onToggleFullscreen();
+  };
   // The hall names every test by its battery; a paper's own title (set
   // when it was uploaded) is not what the tabs and chips show.
   const testName = testNameOf(battery, title);
@@ -85,7 +107,7 @@ export function ExamTop({
               </button>
             )}
             {showFullscreen && (
-              <button type="button" onClick={onToggleFullscreen} data-allow-mouse="true" className="rounded border border-gray-500 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-gray-800 hover:bg-gray-50">
+              <button type="button" onClick={toggleFullscreen} data-allow-mouse="true" className="rounded border border-gray-500 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-gray-800 hover:bg-gray-50">
                 Switch Fullscreen
               </button>
             )}
@@ -144,5 +166,25 @@ function softBeep(): void {
     osc.onended = () => void ctx.close();
   } catch {
     // No sound: the red clock is the signal.
+  }
+}
+
+const FULLSCREEN_KEY = "kc_mock_fullscreen";
+
+/** Whether the candidate switched fullscreen on during this mock sitting. */
+function wantsFullscreen() {
+  try {
+    return sessionStorage.getItem(FULLSCREEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function rememberFullscreen(on: boolean) {
+  try {
+    if (on) sessionStorage.setItem(FULLSCREEN_KEY, "1");
+    else sessionStorage.removeItem(FULLSCREEN_KEY);
+  } catch {
+    // Private mode or blocked storage: fullscreen simply has to be switched on again.
   }
 }

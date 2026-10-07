@@ -36,7 +36,6 @@ export function MockScorecard({
 }) {
   const marks = result.tests.reduce((s, t) => s + t.marks, 0);
   const out30 = scoreOutOf30(result.tests);
-  const sumT = result.tests.every((t) => t.tScore !== null) ? result.tests.reduce((s, t) => s + (t.tScore as number), 0) : null;
   const total = result.tests.reduce((s, t) => s + t.total, 0);
   const verdict =
     result.qualified === true ? "QUALIFIED" : result.qualified === false ? "NOT QUALIFIED" : "PENDING";
@@ -67,7 +66,7 @@ export function MockScorecard({
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Tile big={verdict} small={`every battery T ≥ ${cutOffT} · हर बैटरी में`} tone={verdictColor} />
-        <Tile big={out30 === null ? "—" : `${out30.toFixed(1)} / 30`} small={sumT === null ? "Score out of 30" : `Score out of 30 · ΣT ${sumT.toFixed(0)} ÷ 400 × 30`} tone="text-[#0d2a6b]" />
+        <Tile big={out30 === null ? "—" : `${out30.toFixed(1)} / 30`} small="Score out of 30" tone="text-[#0d2a6b]" />
         <Tile big={result.composite === null ? "—" : result.composite.toFixed(1)} small="Composite T-score" />
         <Tile big={standing ? `${standing.rank} / ${standing.outOf}` : "—"} small="Rank among candidates" />
         <Tile big={`${marks} / ${total}`} small="Total marks" />
@@ -135,11 +134,6 @@ export function MockScorecard({
       </div>
       <p className="mt-2 pb-2 text-[11px] text-gray-500">Kautilya Classes · Psycho Test Portal · as per RDSO pattern</p>
       </div>
-      <p className="mt-2 text-[12px] text-gray-500">
-        T-score = 50 + 10 × (your marks − cohort mean) ÷ cohort SD, measured on each paper against everyone who has sat it.
-        Score out of 30 = (the five T-scores added up ÷ 400) × 30.
-        A test marked &ldquo;Not measured&rdquo; has too few candidates yet; it is re-measured on the paper&apos;s own result page as more sit it.
-      </p>
 
       {leaders.length > 0 && (
         <section className="mt-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
