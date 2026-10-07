@@ -33,7 +33,7 @@ export function ResultsView({ profile, mockResults, attempts, battery, passT }: 
           My results <span className="text-[15px] font-normal text-gray-500" lang="hi">/ मेरे परिणाम</span>
         </h1>
         <p className="mt-1 text-[13px] text-gray-600">
-          Full Mocks first, as the real exam counts them; then every sectional paper you have sat. Open any row to see the full result and the review.
+          Full Mocks first, as the real exam counts them; then every practice paper you have attempted. Open any row to see the full result and the review.
         </p>
 
         {/* ------------------------------ Full Mocks ------------------------------ */}
@@ -119,7 +119,7 @@ export function ResultsView({ profile, mockResults, attempts, battery, passT }: 
           </div>
           {shown.length === 0 ? (
             <p className="mt-3 text-[13px] text-gray-500">
-              {attempts.length === 0 ? "No paper sat yet. Start from the dashboard's Today's plan." : "No paper of this test sat yet."}
+              {attempts.length === 0 ? "No paper attempted yet. Start from the dashboard's Today's plan." : "No paper of this test attempted yet."}
             </p>
           ) : (
             <div className="mt-3 overflow-x-auto">

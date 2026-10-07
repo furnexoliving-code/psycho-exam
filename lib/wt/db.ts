@@ -3,7 +3,7 @@ import { requireEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { SAMPLE_PAPER, defaultInstructions } from "./paper";
-import { categoryKind } from "./categories";
+import { categoryKind, categoryTitle } from "./categories";
 import { resolveFeatures, type OptionValue, type WatchCell, type WatchPaper, type WatchQuestion } from "./types";
 
 /**
@@ -249,10 +249,12 @@ export interface PaperSummary {
   maxAttempts: number | null;
   /** Kept for Full Mocks: not in the sectional lists, opens only inside a mock. */
   mockOnly: boolean;
+  /** The kind of test the paper is shown under in practice; the category's name unless the admin set one. */
+  series: string;
 }
 
 const SUMMARY_COLUMNS =
-  "id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order, max_attempts, mock_only";
+  "id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order, max_attempts, mock_only, series";
 
 /** Every paper, published or not, with its real question count. Admin and editor only. */
 export async function listPapersForAdmin(): Promise<PaperSummary[]> {
@@ -324,6 +326,7 @@ interface PaperRowLite {
   sort_order: number | null;
   max_attempts: number | null;
   mock_only?: boolean | null;
+  series?: string | null;
 }
 
 function withCounts(
@@ -344,6 +347,7 @@ function withCounts(
     timeLimitMin: r.time_limit_min,
     maxAttempts: r.max_attempts === null || r.max_attempts === undefined ? null : Number(r.max_attempts),
     mockOnly: r.mock_only === true,
+    series: (r.series ?? "").trim() || categoryTitle(r.category ?? "watch"),
   }));
 }
 

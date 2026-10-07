@@ -19,7 +19,7 @@ import { scheduleMinutes } from "@/lib/wt/schedule";
 import { PICTURE_SCALES, defaultPictureScale } from "@/lib/wt/figure-sample";
 
 const STUDY_SCALES = [40, 50, 60, 70, 80, 90, 100];
-import { CATEGORIES } from "@/lib/wt/categories";
+import { CATEGORIES, categoryTitle } from "@/lib/wt/categories";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
 export default async function EditWatchPaper({
@@ -42,10 +42,13 @@ export default async function EditWatchPaper({
   const { data: row } = await supabase
     .from("watch_papers")
     .select(
-      "is_published, image_url, image_width_pct, font_scale, max_attempts, mock_only, result_view, category, sort_order, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
+      "is_published, image_url, image_width_pct, font_scale, max_attempts, mock_only, series, result_view, category, sort_order, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment",
     )
     .eq("slug", slug)
     .single();
+  // The series names already in use, so a paper joins an existing group by picking it.
+  const { data: seriesRows } = await supabase.from("watch_papers").select("series").not("series", "is", null);
+  const seriesNames = [...new Set((seriesRows ?? []).map((r) => String(r.series ?? "").trim()).filter(Boolean))].sort();
 
   // Only the admin may read attempts; the count is only shown to them.
   const { count: attemptCount } = isAdmin
@@ -103,6 +106,24 @@ export default async function EditWatchPaper({
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Name in the toolbar" name="display_name" defaultValue={paper.displayName} />
             <Field label="Test name on the tabs" name="title" defaultValue={paper.title} />
+            <label className="block sm:col-span-2">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Test series (the group students see it under in Practice)</span>
+              <input
+                name="series"
+                defaultValue={row?.series ?? ""}
+                list="series-names"
+                placeholder={`Blank = ${categoryTitle(paper.category ?? "watch")}`}
+                className="w-full rounded border border-gray-400 px-3 py-2 text-[14px]"
+              />
+              <datalist id="series-names">
+                {seriesNames.map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
+              <span className="mt-1 block text-[11px] text-gray-500">
+                A battery may hold many kinds of test, each with many papers: "Hidden Cube Test", "Figure Counting Test"… Papers with the same series name sit together.
+              </span>
+            </label>
 
             <Number
               label="Instruction screen time"

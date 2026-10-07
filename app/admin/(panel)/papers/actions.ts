@@ -402,6 +402,7 @@ export async function saveSettings(
       .update({
         title: String(formData.get("title") ?? "").trim() || categoryTitle(category),
         display_name: displayName,
+        series: String(formData.get("series") ?? "").trim().slice(0, 80) || null,
         instruction_time_min: instruction,
         time_limit_min: timeLimit,
         is_published: publish,

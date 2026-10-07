@@ -18,8 +18,8 @@ export function StudentHeader({
 }) {
   const tabs = [
     { id: "dashboard", label: "Dashboard", href: "/dashboard" },
-    { id: "mocks", label: "Full Mocks", href: "/dashboard#mocks" },
-    { id: "practice", label: "Practice", href: "/dashboard#practice" },
+    { id: "mocks", label: "Full Mocks", href: "/mocks" },
+    { id: "practice", label: "Practice", href: "/practice" },
     { id: "results", label: "My results", href: "/results" },
   ] as const;
 

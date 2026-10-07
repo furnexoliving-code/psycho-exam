@@ -866,3 +866,14 @@ create index if not exists question_reports_open_idx
 
 alter table public.profiles
   add column if not exists last_seen_at timestamptz;
+
+-- ---------------------------------------------------------------------------
+-- Test series (added later)
+--
+-- A battery may hold many kinds of test ("Hidden Cube Test", "Figure
+-- Counting Test", …), each with many papers. The series is the group a
+-- paper is shown under in practice; blank means the category's own name,
+-- so every existing paper stays where it was.
+-- ---------------------------------------------------------------------------
+alter table public.watch_papers
+  add column if not exists series text;

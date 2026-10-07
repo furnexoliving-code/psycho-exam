@@ -34,16 +34,6 @@ export interface DashboardInput {
   leaders: LeaderRow[];
 }
 
-/** A tile's look, kept out of the markup so the cards read as one set. */
-const TONES: Record<string, { ring: string; chip: string; icon: string; soft: string }> = {
-  watch: { ring: "from-sky-500 to-indigo-600", chip: "bg-sky-50 text-sky-700", icon: "🧭", soft: "bg-sky-50" },
-  letter: { ring: "from-emerald-500 to-teal-600", chip: "bg-emerald-50 text-emerald-700", icon: "🔤", soft: "bg-emerald-50" },
-  number: { ring: "from-amber-500 to-orange-600", chip: "bg-amber-50 text-amber-700", icon: "🔢", soft: "bg-amber-50" },
-  figure: { ring: "from-rose-500 to-pink-600", chip: "bg-rose-50 text-rose-700", icon: "🔍", soft: "bg-rose-50" },
-  memory: { ring: "from-violet-500 to-purple-600", chip: "bg-violet-50 text-violet-700", icon: "🧠", soft: "bg-violet-50" },
-  depth: { ring: "from-cyan-500 to-blue-600", chip: "bg-cyan-50 text-cyan-700", icon: "🧊", soft: "bg-cyan-50" },
-  observation: { ring: "from-lime-500 to-green-600", chip: "bg-lime-50 text-lime-700", icon: "👁️", soft: "bg-lime-50" },
-};
 const BATTERY_ICON: Record<number, string> = { 1: "🧠", 2: "🧭", 3: "🧊", 4: "👁️", 5: "🔍" };
 const BATTERY_SOFT: Record<number, string> = { 1: "bg-violet-50", 2: "bg-sky-50", 3: "bg-cyan-50", 4: "bg-lime-50", 5: "bg-rose-50" };
 
@@ -154,8 +144,8 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
 
               <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                 <HeroStat big={daysLeft === null ? "—" : daysLeft < 0 ? "0" : String(daysLeft)} label={daysLeft !== null && daysLeft === 0 ? "exam day is today" : "days to the exam"} />
-                <HeroStat big={String(passed)} suffix={`/${inPlay.length}`} label={`batteries passed · ${stages.pass}+`} />
-                <HeroStat big={String(atTarget)} suffix={`/${inPlay.length}`} label={`at target · ${stages.target}+`} />
+                <HeroStat big={String(passed)} suffix={`/${inPlay.length}`} label={`tests passed · T-Score ${stages.pass}+`} />
+                <HeroStat big={String(atTarget)} suffix={`/${inPlay.length}`} label={`tests at target · T-Score ${stages.target}+`} />
                 <HeroStat
                   big={newest && scoreOutOf30(newest.tests) !== null ? scoreOutOf30(newest.tests)!.toFixed(1) : "—"}
                   suffix={newest ? "/30" : ""}
@@ -194,7 +184,7 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
             <div className="flex flex-col items-center justify-center lg:border-l lg:border-white/15 lg:pl-5">
               <Gauge percent={ready} />
               <p className="mt-2 text-center text-[11px] leading-relaxed text-[#c9d8ff]">
-                Readiness: the five batteries against <b className="text-white">T-Score: {stages.target}</b>.
+                How ready you are: all 5 tests measured against <b className="text-white">T-Score: {stages.target}</b>.
               </p>
             </div>
           </div>
@@ -369,97 +359,67 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_330px]">
           <div className="min-w-0">
-            {/* ---------------------------- Full Mocks ---------------------------- */}
-            <section className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm sm:p-5" id="mocks">
-              <h2 className="text-[14px] font-bold text-gray-900">
-                Full Mock Tests <span className="font-normal text-gray-500" lang="hi">/ पूर्ण मॉक टेस्ट</span>
-              </h2>
-              {mocks.length === 0 && mockResults.length === 0 ? (
-                <p className="mt-2 text-[13px] text-gray-500">Full Mocks will appear here when the institute opens them.</p>
-              ) : (
-                <ul className="mt-3 space-y-2">
-                  {mocks.map((mock) => {
-                    const status = mockStatus(mock);
-                    const last = latestByMock.get(mock.id);
-                    const here = inMock && inMock.mock.id === mock.id;
-                    const out30 = last ? scoreOutOf30(last.tests) : null;
+            {/* ------------------ Full Mocks and Practice, in brief ------------------ */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <section className="flex flex-col rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm sm:p-5" id="mocks">
+                <h2 className="flex items-center text-[14px] font-bold text-gray-900">
+                  Full Mock Tests <span className="ml-1 font-normal text-gray-500" lang="hi">/ पूर्ण मॉक</span>
+                  <Link href="/mocks" className="ml-auto text-[11px] font-semibold text-[#1d4ed8] hover:underline">All mocks →</Link>
+                </h2>
+                <div className="mt-3 grid grid-cols-3 gap-2 border-b border-gray-100 pb-3 text-center">
+                  <Mini big={String(mocks.length)} label="available" />
+                  <Mini big={String(latestByMock.size)} label="completed" />
+                  <Mini big={newest ? (scoreOutOf30(newest.tests) ?? 0).toFixed(1) : "—"} label="last / 30" tone={newest ? (newest.qualified ? "green" : "red") : "gray"} />
+                </div>
+                <div className="mt-3 flex-1 text-[12px]">
+                  {inMock ? (
+                    <p className="text-gray-700"><span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">⏵ In progress</span> <b>{inMock.mock.name}</b> · Test {inMock.step + 1} of {inMock.papers.length}</p>
+                  ) : !plan.mocksUnlocked ? (
+                    <p className="text-gray-600">🔒 Unlocks when every battery is at T-Score: {stages.pass}+. {inPlay.filter((p) => p.bestT === null || p.bestT < stages.pass).length === 1 ? "1 battery" : `${inPlay.filter((p) => p.bestT === null || p.bestT < stages.pass).length} batteries`} to go.</p>
+                  ) : featured ? (
+                    <p className="text-gray-700"><b>{featured.name}</b> · {mockWindow(featured, mockStatus(featured))}</p>
+                  ) : (
+                    <p className="text-gray-500">Full Mocks appear here when the institute opens them.</p>
+                  )}
+                </div>
+                <Link href={inMock ? `/mock/${inMock.mock.slug}` : plan.mocksUnlocked && featured && mockStatus(featured) === "live" ? `/mock/${featured.slug}` : "/mocks"} className={`mt-3 block rounded-lg px-3 py-2 text-center text-[12px] font-bold ${inMock || (plan.mocksUnlocked && featured && mockStatus(featured) === "live") ? "bg-[#1d4ed8] text-white hover:bg-[#1e40af]" : "border border-gray-300 bg-white text-gray-800 hover:bg-gray-50"}`}>
+                  {inMock ? "Continue the mock →" : plan.mocksUnlocked && featured && mockStatus(featured) === "live" ? `Start ${featured.name} →` : "See all Full Mocks →"}
+                </Link>
+              </section>
+
+              <section className="flex flex-col rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm sm:p-5" id="practice">
+                <h2 className="flex items-center text-[14px] font-bold text-gray-900">
+                  Practice Tests <span className="ml-1 font-normal text-gray-500" lang="hi">/ अभ्यास</span>
+                  <Link href="/practice" className="ml-auto text-[11px] font-semibold text-[#1d4ed8] hover:underline">All practice →</Link>
+                </h2>
+                <div className="mt-3 grid grid-cols-3 gap-2 border-b border-gray-100 pb-3 text-center">
+                  <Mini big={String(papers.length)} label="papers" />
+                  <Mini big={String(inPlay.reduce((n, p) => n + p.papersSat, 0))} label="attempted" />
+                  <Mini big={String(inPlay.reduce((n, p) => n + p.attempts, 0))} label="attempts" />
+                </div>
+                <ul className="mt-3 flex-1 space-y-1 text-[12px]">
+                  {visibleBatteries.map((b) => {
+                    const n = papers.filter((p) => CATEGORIES.find((c) => c.id === p.category)?.battery === b.id).length;
+                    const prog = progress.find((p) => p.battery === b.id);
                     return (
-                      <li key={mock.id} className="flex items-center gap-3 rounded-[12px] border border-gray-200 p-3 text-[12px]">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#eef2fb] to-[#dbe7ff] text-[11px] font-extrabold text-[#0d2a6b]">
-                          M{mock.sortOrder || ""}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <Link href={`/mock/${mock.slug}`} className="block truncate font-bold text-gray-900 hover:underline">{mock.name}</Link>
-                          <span className="block text-[11px] text-gray-500">
-                            {last
-                              ? <>{formatDayMonth(last.submittedAt)} · T-Score {last.tests.map((t) => (t.tScore === null ? "—" : t.tScore.toFixed(0))).join(" · ")}</>
-                              : mockWindow(mock, status)}
-                          </span>
-                        </span>
-                        <span className="shrink-0 text-right">
-                          {last && (
-                            <span className="block text-[15px] font-extrabold text-gray-900">
-                              {out30 === null ? "—" : out30.toFixed(1)}<span className="text-[10px] font-semibold text-gray-500"> / 30</span>
-                            </span>
-                          )}
-                          {here ? (
-                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">⏵ In progress</span>
-                          ) : last ? (
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${last.qualified === true ? "bg-green-50 text-green-700" : last.qualified === false ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
-                              {last.qualified === true ? "✓ Qualified" : last.qualified === false ? `✕ ${failedTest(last.tests, mock.cutOffT)}` : "? Pending"}
-                            </span>
-                          ) : !plan.mocksUnlocked ? (
-                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">🔒 Locked</span>
-                          ) : (
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_CLS[status]}`}>{STATUS_LABEL[status]}</span>
-                          )}
-                        </span>
+                      <li key={b.id} className="flex items-center gap-2">
+                        <Link href={`/practice#battery-${b.id}`} className="min-w-0 flex-1 truncate text-gray-800 hover:underline">Test {b.id} · {b.title.replace(" Test", "")}</Link>
+                        <span className="tabular-nums text-gray-500">{prog?.papersSat ?? 0}/{n}</span>
                       </li>
                     );
                   })}
                 </ul>
-              )}
-            </section>
-
-            {/* ------------------------- Sectional practice ------------------------- */}
-            <section className="mt-4 rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm sm:p-5" id="practice">
-              <h2 className="text-[14px] font-bold text-gray-900">
-                Sectional practice <span className="font-normal text-gray-500" lang="hi">/ अनुभाग अभ्यास</span>
-                <span className="ml-1 font-normal text-gray-500">· {papers.length} papers · {progress.reduce((n, p) => n + p.papersSat, 0)} sat</span>
-              </h2>
-              {visibleBatteries.map((battery) => (
-                <div key={battery.id} id={`battery-${battery.id}`} className="mt-4 scroll-mt-4">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
-                    Test {battery.id} · {battery.title} <span className="font-normal normal-case tracking-normal" lang="hi">· {battery.hindi}</span>
-                  </h3>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {CATEGORIES.filter((c) => c.battery === battery.id).map((category) => {
-                      const count = papers.filter((p) => p.category === category.id).length;
-                      const tone = TONES[category.id];
-                      return (
-                        <Link key={category.id} href={`/tests/${category.id}`} className="group flex items-center gap-3 rounded-[12px] border border-gray-200 p-2.5 transition hover:border-[#1d4ed8] hover:shadow-sm">
-                          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br ${tone.ring} text-[17px]`} aria-hidden="true">{tone.icon}</span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-[13px] font-bold text-gray-900">{category.title}</span>
-                            <span className={`mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${count ? tone.chip : "bg-gray-100 text-gray-500"}`}>
-                              {count === 0 ? "Coming soon" : `${count} test${count === 1 ? "" : "s"}`}
-                            </span>
-                          </span>
-                          <span className="text-gray-300 group-hover:text-[#1d4ed8]" aria-hidden="true">›</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </section>
-
+                <Link href={focusNext ? `/test/${focusNext.paper.slug}` : "/practice"} className="mt-3 block rounded-lg bg-[#1d4ed8] px-3 py-2 text-center text-[12px] font-bold text-white hover:bg-[#1e40af]">
+                  {focusNext ? `Start ${focusNext.paper.displayName} →` : "Open practice →"}
+                </Link>
+              </section>
+            </div>
           </div>
 
           {/* ------------------------------ Side column ------------------------------ */}
           <aside className="space-y-4">
             <section className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-              <h2 className="text-[14px] font-bold text-gray-900">My progress <span className="font-normal text-gray-500">· Composite T-Score</span></h2>
+              <h2 className="text-[14px] font-bold text-gray-900">My progress <span className="font-normal text-gray-500">· Full Mock average T-Score</span></h2>
               {trend.length === 0 ? (
                 <p className="mt-2 text-[12px] text-gray-500">The graph appears after your first Full Mock. Red line: pass (T-Score: {stages.pass}). Green line: target (T-Score: {stages.target}).</p>
               ) : (
@@ -485,7 +445,7 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                       <div className="flex items-center gap-2">
                         <Link href={`#battery-${p.battery}`} className="flex-1 truncate font-semibold text-gray-900 hover:underline">Test {p.battery} · {p.title.replace(" Test", "")}</Link>
                         <span className={`shrink-0 font-bold tabular-nums ${gap === 0 ? "text-green-700" : p.bestT !== null && p.bestT < stages.pass ? "text-red-700" : gap === null ? "text-gray-400" : "text-amber-700"}`}>
-                          {p.bestT === null || gap === null ? "not sat" : gap === 0 ? "✓ done" : `+${gap.toFixed(0)} to go`}
+                          {p.bestT === null || gap === null ? "not attempted" : gap === 0 ? "✓ done" : `+${gap.toFixed(0)} to go`}
                         </span>
                       </div>
                       <div className="mt-1 h-1 rounded bg-[#eef1f6]"><div className={`h-full rounded ${gap === 0 ? "bg-green-600" : "bg-[#1d4ed8]"}`} style={{ width: `${pct}%` }} /></div>
@@ -520,21 +480,12 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
   );
 }
 
-const STATUS_LABEL: Record<MockStatus, string> = { draft: "Draft", scheduled: "⏱ Upcoming", live: "● Live", closed: "Closed" };
-const STATUS_CLS: Record<MockStatus, string> = { draft: "bg-gray-100 text-gray-600", scheduled: "bg-blue-50 text-blue-700", live: "bg-green-50 text-green-700", closed: "bg-gray-100 text-gray-600" };
 
 function mockWindow(mock: { opensAt: string | null; closesAt: string | null }, status: MockStatus): string {
   if (status === "scheduled" && mock.opensAt) return `Opens ${formatDateTime(mock.opensAt)}`;
   if (status === "live" && mock.closesAt) return `Till ${formatDateTime(mock.closesAt)}`;
   if (status === "closed") return "Over";
   return "Open now";
-}
-
-/** "Test 3 < 42": the batteries that missed the bar. */
-function failedTest(tests: { battery: number; cleared: boolean | null }[], bar: number): string {
-  const miss = tests.filter((t) => t.cleared === false).map((t) => t.battery);
-  if (miss.length === 0) return "Not qualified";
-  return miss.length === 1 ? `Test ${miss[0]} < ${bar}` : `Tests ${miss.join(", ")} < ${bar}`;
 }
 
 type Stages = { pass: number; average: number; target: number };
@@ -648,5 +599,15 @@ function TrendChart({ points, bar, target, examAt }: { points: { label: string; 
       ))}
       <text x={x(points.length - 1)} y={y(last.value) - 8} fontSize="11" fontWeight="700" fill="#0b1220" textAnchor="end">{last.value.toFixed(1)}</text>
     </svg>
+  );
+}
+
+function Mini({ big, label, tone = "gray" }: { big: string; label: string; tone?: "gray" | "green" | "red" }) {
+  const color = tone === "green" ? "text-green-700" : tone === "red" ? "text-red-700" : "text-gray-900";
+  return (
+    <div className="rounded-[10px] bg-[#f8fafc] px-2 py-1.5">
+      <div className={`text-[17px] font-extrabold tabular-nums ${color}`}>{big}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</div>
+    </div>
   );
 }
