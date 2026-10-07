@@ -6,6 +6,7 @@ import { useAttempt } from "@/lib/wt/state";
 import { useExamKeys, useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { PortalBanner } from "./PortalBanner";
 import { ExamTop } from "./ExamTop";
+import { useExamChrome } from "./ExamChrome";
 import { WatchTableDiagram } from "./WatchTableDiagram";
 import { QuestionList } from "./QuestionList";
 import { KeyboardHelpPanel } from "./KeyboardHelp";
@@ -36,6 +37,7 @@ export function WatchTableExam({
   /** Whose attempt this browser keeps: the account id, never shared between students. */
   storageOwner?: string;
 }) {
+  const { goToResult } = useExamChrome();
   const { state, dispatch, answered, clearSaved } = useAttempt(
     paper,
     elapsedSec,
@@ -86,12 +88,10 @@ export function WatchTableExam({
   // was how a candidate whose time ran out sat looking at a frozen page.
   useEffect(() => {
     if (state.submitted && state.startedAt !== 0) {
-      // A full load, not a client-side move: a portal deployed afresh while
-      // the paper was open has new script files, and the router's move to
-      // the result could fail on the old ones. The page is loaded anew.
-      window.location.assign(`/test/${paper.id}/result`);
+      // A full load on its own, a client-side move inside a Full Mock; see ExamChrome.
+      goToResult(paper.id);
     }
-  }, [state.submitted, state.startedAt, paper.id]);
+  }, [state.submitted, state.startedAt, paper.id, goToResult]);
 
   // The help opened from the keyboard closes from it too. The exam's own key
   // handler is off while a dialog is up, so the panel listens for itself.

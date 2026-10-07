@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useCallback, useContext } from "react";
+import { useRouter } from "next/navigation";
 import type { MockSummaryTest } from "@/lib/wt/mock";
 
 /**
@@ -13,10 +14,17 @@ import type { MockSummaryTest } from "@/lib/wt/mock";
  * screens (Following Directions and the picture papers) having to pass it
  * through; the page sets it once around whichever screen it renders.
  */
-const ExamChromeContext = createContext<{ battery: number | null; mockSummary: MockSummaryTest[] | null; photoUrl: string | null }>({
+const ExamChromeContext = createContext<{
+  battery: number | null;
+  mockSummary: MockSummaryTest[] | null;
+  photoUrl: string | null;
+  /** Opens a submitted paper's result (the break screen, inside a mock). */
+  goToResult: (paperId: string) => void;
+}>({
   battery: null,
   mockSummary: null,
   photoUrl: null,
+  goToResult: (paperId) => window.location.assign(`/test/${paperId}/result`),
 });
 
 export function ExamChromeProvider({
@@ -32,7 +40,23 @@ export function ExamChromeProvider({
   photoUrl?: string | null;
   children: React.ReactNode;
 }) {
-  return <ExamChromeContext.Provider value={{ battery, mockSummary, photoUrl }}>{children}</ExamChromeContext.Provider>;
+  const router = useRouter();
+  const inMock = mockSummary !== null;
+  // How a submitted paper moves on to its result. On its own, a full load:
+  // a portal deployed afresh while the paper was open has new script files,
+  // and a client-side move could fail on the old ones. Inside a Full Mock,
+  // a client-side move instead, so the browser's fullscreen, switched on
+  // once, carries through every break and every test of the mock (a full
+  // load always drops it, and only a click could bring it back).
+  const goToResult = useCallback(
+    (paperId: string) => {
+      const url = `/test/${paperId}/result`;
+      if (inMock) router.replace(url);
+      else window.location.assign(url);
+    },
+    [inMock, router],
+  );
+  return <ExamChromeContext.Provider value={{ battery, mockSummary, photoUrl, goToResult }}>{children}</ExamChromeContext.Provider>;
 }
 
 export function useExamChrome() {

@@ -59,7 +59,7 @@ export function FigureExam({
 
   const onTest = state.phase === "test";
   const features = resolveFeatures(paper.features);
-  const { battery, mockSummary } = useExamChrome();
+  const { battery, mockSummary, goToResult } = useExamChrome();
   const testName = testNameOf(battery, paper.title);
   const fontScale = paper.fontScale ?? 1;
   // How large the pictures are drawn: the paper's own setting, else the
@@ -118,12 +118,10 @@ export function FigureExam({
   // result, at once.
   useEffect(() => {
     if (state.submitted && state.startedAt !== 0) {
-      // A full load, not a client-side move: a portal deployed afresh while
-      // the paper was open has new script files, and the router's move to
-      // the result could fail on the old ones. The page is loaded anew.
-      window.location.assign(`/test/${paper.id}/result`);
+      // A full load on its own, a client-side move inside a Full Mock; see ExamChrome.
+      goToResult(paper.id);
     }
-  }, [state.submitted, state.startedAt, paper.id]);
+  }, [state.submitted, state.startedAt, paper.id, goToResult]);
 
   // The sheet goes up to the server as it changes, so a browser that dies
   // mid-paper has lost nothing. The same as the Following Directions paper.
