@@ -822,3 +822,23 @@ alter table public.profiles
 insert into storage.buckets (id, name, public)
   values ('student-photos', 'student-photos', false)
   on conflict (id) do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Login guard and one device at a time (added later)
+--
+-- Five wrong passwords in a row lock a mobile number out for ten minutes;
+-- the count lives here, read and written with the service role only. A
+-- student's sign-in also stamps the account with the device's id; a
+-- request from any other device is signed out, so one account is never
+-- open in two places at once.
+-- ---------------------------------------------------------------------------
+create table if not exists public.login_locks (
+  phone        text primary key,
+  failures     integer not null default 0,
+  locked_until timestamptz,
+  updated_at   timestamptz not null default now()
+);
+alter table public.login_locks enable row level security;
+
+alter table public.profiles
+  add column if not exists session_id text;

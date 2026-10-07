@@ -54,6 +54,16 @@ export default async function LoginPage({
           </p>
         )}
 
+        {error === "elsewhere" && (
+          <p
+            role="alert"
+            className="mt-5 rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"
+          >
+            This account was signed in on another device, so this one was signed out. One device at a time; sign in again here to continue on this one.
+            <span className="mt-1 block" lang="hi">यह खाता दूसरे डिवाइस पर साइन इन हुआ, इसलिए यहाँ से साइन आउट हो गया। एक समय पर एक ही डिवाइस; यहाँ जारी रखने के लिए फिर साइन इन करें।</span>
+          </p>
+        )}
+
         {error === "expired" && (
           <p
             role="alert"

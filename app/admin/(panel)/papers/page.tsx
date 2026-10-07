@@ -216,6 +216,13 @@ function PaperTable({ papers, canDelete }: { papers: PaperSummary[]; canDelete: 
                   >
                     Open
                   </Link>
+                  <Link
+                    href={`/test/${paper.slug}?view=student`}
+                    className="text-[12px] font-semibold text-gray-700 hover:underline"
+                    title="See the paper exactly as a student would, under every rule"
+                  >
+                    Preview as student
+                  </Link>
                   {canDelete && (
                     <form action={deletePaper}>
                       <input type="hidden" name="slug" value={paper.slug} />

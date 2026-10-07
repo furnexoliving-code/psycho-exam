@@ -3,6 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "KAUTILYA CLASSES | RAILWAY PSYCHO TEST PORTAL",
+  robots: { index: false, follow: false },
   description:
     "Practice portal for the RRB ALP Computer Based Aptitude Test's Following Directions papers — Watch, Letter and Number Table tests.",
 };

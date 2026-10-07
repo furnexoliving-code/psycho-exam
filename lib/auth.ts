@@ -1,4 +1,6 @@
 import { cache } from "react";
+import { cookies } from "next/headers";
+import { DEVICE_COOKIE } from "@/lib/login-guard";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "./supabase/server";
 import { indianDay } from "./format-time";
@@ -93,6 +95,8 @@ interface Session {
   inactive: boolean;
   /** True when the account's validity date has passed. */
   expired: boolean;
+  /** True when the account was signed in on another device since this one. */
+  elsewhere?: boolean;
   /** The session's assurance level: aal2 once a second factor has been passed. */
   aal: string | null;
 }
@@ -132,6 +136,15 @@ const readProfile = cache(async (): Promise<Session> => {
   if (profile.role === "student" && hasExpired(profile.valid_until)) {
     return { profile: null, inactive: false, expired: true, aal };
   }
+  // One device at a time: a student's sign-in stamps the account with the
+  // device's id, and a request carrying another id, or none, is signed
+  // out. An account never stamped (signed in before this existed) is left
+  // alone until its next sign-in.
+  const stamp = (row as Record<string, unknown>).session_id;
+  if (profile.role === "student" && typeof stamp === "string" && stamp) {
+    const mine = (await cookies()).get(DEVICE_COOKIE)?.value ?? null;
+    if (mine !== stamp) return { profile: null, inactive: false, expired: false, elsewhere: true, aal };
+  }
   return { profile, inactive: false, expired: false, aal };
 });
 
@@ -141,9 +154,10 @@ const readProfile = cache(async (): Promise<Session> => {
  * why.
  */
 export async function requireUser(next = "/dashboard"): Promise<Profile> {
-  const { profile, inactive, expired } = await readProfile();
+  const { profile, inactive, expired, elsewhere } = await readProfile();
   if (inactive) redirect("/login?error=inactive");
   if (expired) redirect("/login?error=expired");
+  if (elsewhere) redirect("/auth/elsewhere");
   if (!profile) redirect(`/login?next=${encodeURIComponent(next)}`);
   return profile;
 }

@@ -3,7 +3,8 @@ import { formatDate, formatDateTime } from "@/lib/format-time";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recentActions } from "@/lib/audit";
 import { examSettings } from "@/lib/settings";
-import { updateExamSettings } from "./actions";
+import { listNotices } from "@/lib/notices";
+import { addNotice, removeNotice, updateExamSettings } from "./actions";
 import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { createStaff, removeStaff } from "../students/actions";
@@ -18,6 +19,7 @@ export default async function TeamPage() {
   const supabase = createAdminClient();
 
   const exam = await examSettings();
+  const notices = await listNotices();
   const [{ data: helpers }, log] = await Promise.all([
     supabase
       .from("profiles")
@@ -66,6 +68,50 @@ export default async function TeamPage() {
             </label>
           </div>
         </SaveForm>
+      </section>
+
+      {/* ----------------------------- Notice board ----------------------------- */}
+      <section className="mt-4 rounded border border-gray-300 bg-white p-5">
+        <h2 className="text-[15px] font-bold text-gray-900">Notice board</h2>
+        <p className="mt-1 text-[12px] text-gray-600">
+          Shown at the top of every student&apos;s dashboard until its last day. Keep it short: a date, a mock, a change.
+        </p>
+        <SaveForm action={addNotice} submitLabel="Put on the board" className="mt-3">
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_160px]">
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Notice (English)</span>
+              <textarea name="en" rows={2} maxLength={400} placeholder="Full Mock 3 opens on Sunday at 10 am." className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Notice (Hindi)</span>
+              <textarea name="hi" rows={2} maxLength={400} placeholder="फुल मॉक 3 रविवार सुबह 10 बजे खुलेगा।" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" lang="hi" />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-gray-700">Show until</span>
+              <input name="until" type="date" className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
+              <span className="mt-1 block text-[11px] text-gray-500">Blank: until removed.</span>
+            </label>
+          </div>
+        </SaveForm>
+        {notices.length > 0 && (
+          <ul className="mt-4 divide-y divide-gray-200 border-t border-gray-200">
+            {notices.map((n) => (
+              <li key={n.id} className="flex items-start gap-3 py-2.5 text-[13px]">
+                <span className="min-w-0 flex-1">
+                  {n.en && <span className="block text-gray-900">{n.en}</span>}
+                  {n.hi && <span className="block text-gray-700" lang="hi">{n.hi}</span>}
+                  <span className="block text-[11px] text-gray-500">
+                    Added {formatDate(n.createdAt)}{n.until ? ` · shown until ${formatDate(n.until)}` : " · until removed"}
+                  </span>
+                </span>
+                <RowForm action={removeNotice}>
+                  <input type="hidden" name="id" value={n.id} />
+                  <button type="submit" className="text-[12px] font-semibold text-red-700 hover:underline">Remove</button>
+                </RowForm>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* --------------------------- Helper accounts --------------------------- */}

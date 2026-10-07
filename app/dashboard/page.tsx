@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { formatDate, formatDateTime, formatDayMonth, indianDay } from "@/lib/format-time";
 import { daysUntil, examSettings } from "@/lib/settings";
+import { activeNotices, listNotices } from "@/lib/notices";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StudentHeader } from "@/components/StudentHeader";
 import { ChangePassword } from "@/components/ChangePassword";
@@ -61,6 +62,7 @@ export default async function DashboardPage() {
   const today = indianDay(now);
   const dayStart = new Date(`${today}T00:00:00+05:30`).toISOString();
 
+  const notices = activeNotices(await listNotices(), today);
   const [allPapers, hidden, history, progress, mocks, mockResults, inMock, exam, mocksToday] = await Promise.all([
     listPublishedPapers(),
     hiddenBatteries(),
@@ -131,6 +133,21 @@ export default async function DashboardPage() {
       <StudentHeader name={profile.full_name || "Candidate"} photoUrl={photoUrlOf(profile)} active="dashboard" />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-5">
+        {notices.length > 0 && (
+          <section className="mb-4 rounded-[14px] border border-amber-300 bg-amber-50 px-4 py-3 shadow-sm" aria-label="Notices">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-amber-800">
+              📢 Notice board <span className="font-semibold normal-case tracking-normal" lang="hi">/ सूचना पट्ट</span>
+            </h2>
+            <ul className="mt-1.5 space-y-1.5">
+              {notices.map((n) => (
+                <li key={n.id} className="text-[13px] text-amber-950">
+                  {n.en && <span className="block">{n.en}</span>}
+                  {n.hi && <span className="block text-[12px] text-amber-900" lang="hi">{n.hi}</span>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {/* ------------------------------ Hero ------------------------------ */}
         <section
           className="relative overflow-hidden rounded-[20px] px-6 py-6 text-white shadow-[0_14px_34px_rgba(13,42,107,0.28)] sm:px-7"

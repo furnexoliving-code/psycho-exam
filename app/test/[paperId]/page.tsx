@@ -4,6 +4,7 @@ import { WatchTableExam } from "@/components/wt/WatchTableExam";
 import { FigureExam } from "@/components/wt/FigureExam";
 import { ExamChromeProvider } from "@/components/wt/ExamChrome";
 import { NoPrint } from "@/components/NoPrint";
+import { OneTab } from "@/components/wt/OneTab";
 import type { Metadata } from "next";
 import { CATEGORIES, testNameOf } from "@/lib/wt/categories";
 import { headerOf, loadPaperHeader } from "@/lib/wt/db";
@@ -34,10 +35,13 @@ export async function generateMetadata({ params }: { params: Promise<{ paperId: 
 
 export default async function WatchTablePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ paperId: string }>;
+  searchParams: Promise<{ view?: string }>;
 }) {
   const { paperId } = await params;
+  const { view } = await searchParams;
 
   // Every paper is sat from an account. There is no public paper: the
   // institute issues the accounts, and a paper reachable without one is the
@@ -53,10 +57,16 @@ export default async function WatchTablePage({
   const [who, cached] = isConfigured()
     ? await Promise.all([requireUser(`/test/${paperId}`), loadPaperForCandidate(paperId)])
     : [null, getBundledPaper(paperId)];
-  const editor = await isVerifiedEditor();
+  // "Preview as student": the editor sees the paper under every rule a
+  // student is under, and is told which rule shuts it instead of a 404.
+  const preview = view === "student" && (await isVerifiedEditor());
+  const editor = !preview && (await isVerifiedEditor());
   const paper = editor ? await loadPaperLive(paperId) : cached;
 
-  if (!paper) notFound();
+  if (!paper) {
+    if (preview) return <PreviewShut reason="This paper is not published, so students cannot open it." paperId={paperId} />;
+    notFound();
+  }
   // A paper sat as a test of a Full Mock is open for that sitting whatever
   // the battery's switch and the paper's own attempt limit say: the mock
   // chose it, and the mock's own limit was checked when it began.
@@ -66,9 +76,15 @@ export default async function WatchTablePage({
   // trying out, and to nobody else — not even by typing the address.
   // (The bundled samples, served only before a database exists, are a demo
   // for whoever is setting the portal up, and stay reachable.)
-  if (isConfigured() && !editor && !mockHere && !openToStudents(paper.category, await hiddenBatteries())) notFound();
+  if (isConfigured() && !editor && !mockHere && !openToStudents(paper.category, await hiddenBatteries())) {
+    if (preview) return <PreviewShut reason="This paper's battery is hidden from students (Test Papers → Show to students)." paperId={paperId} />;
+    notFound();
+  }
   // A paper kept for Full Mocks is no sectional test: outside its mock it is not there.
-  if (isConfigured() && !editor && !mockHere && paper.mockOnly) notFound();
+  if (isConfigured() && !editor && !mockHere && paper.mockOnly) {
+    if (preview) return <PreviewShut reason="This paper is kept for Full Mocks only; students reach it inside a mock, not from the lists." paperId={paperId} />;
+    notFound();
+  }
   if (paper.questions.length === 0) {
     return (
       <main className="mx-auto max-w-lg px-5 py-16 text-center">
@@ -125,6 +141,12 @@ export default async function WatchTablePage({
   const mockSummary = mockHere && inMock ? await mockSummary_(inMock) : null;
   return (
     <NoPrint>
+    <OneTab paperId={paper.id} />
+    {preview && (
+      <div className="fixed bottom-3 left-3 z-[90] rounded bg-amber-400 px-3 py-1 text-[11px] font-bold text-amber-950 shadow">
+        Student preview · <Link href={`/admin/papers/${paperId}`} className="underline">back to the paper</Link>
+      </div>
+    )}
     <ExamChromeProvider battery={battery} mockSummary={mockSummary} photoUrl={photoUrlOf(who)}>
       <Screen
         paper={withoutAnswerKey(paper)}
@@ -141,4 +163,18 @@ export default async function WatchTablePage({
 
 function mockSummary_(step: MockStep) {
   return mockSummaryOf(step.papers, step.attemptIds, step.step);
+}
+
+/** What the editor sees in a student preview of a paper a student cannot open. */
+function PreviewShut({ reason, paperId }: { reason: string; paperId: string }) {
+  return (
+    <main className="mx-auto max-w-lg px-5 py-16 text-center">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-700">Student preview</p>
+      <h1 className="mt-2 text-lg font-bold text-gray-900">A student cannot open this paper right now</h1>
+      <p className="mt-2 text-[14px] text-gray-600">{reason}</p>
+      <Link href={`/admin/papers/${paperId}`} className="mt-6 inline-block rounded bg-indigo-800 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-900">
+        Back to the paper
+      </Link>
+    </main>
+  );
 }
