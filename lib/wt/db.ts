@@ -255,18 +255,32 @@ export interface PaperSummary {
 
 const SUMMARY_COLUMNS =
   "id, slug, display_name, is_published, instruction_time_min, time_limit_min, category, sort_order, max_attempts, mock_only, series";
+/** The same list on a database the series column has not reached yet. */
+const SUMMARY_COLUMNS_NO_SERIES = SUMMARY_COLUMNS.replace(", series", "");
+
+/**
+ * Reads the paper summaries, with or without the series column: a
+ * database the newest SQL has not been run on (or whose API has not yet
+ * noticed the new column) must not take every student page down with it.
+ */
+async function selectSummaries(
+  supabase: ReturnType<typeof createAdminClient>,
+  shape: (q: ReturnType<ReturnType<typeof supabase.from>["select"]>) => ReturnType<ReturnType<typeof supabase.from>["select"]>,
+): Promise<{ data: PaperRowLite[] | null; error: { message: string } | null }> {
+  const first = await shape(supabase.from("watch_papers").select(SUMMARY_COLUMNS));
+  if (!first.error) return first as unknown as { data: PaperRowLite[] | null; error: null };
+  if (!/series/i.test(first.error.message)) return first as unknown as { data: PaperRowLite[] | null; error: { message: string } };
+  console.error(`watch_papers.series not readable yet (${first.error.message}); reading without it`);
+  const second = await shape(supabase.from("watch_papers").select(SUMMARY_COLUMNS_NO_SERIES));
+  return second as unknown as { data: PaperRowLite[] | null; error: { message: string } | null };
+}
 
 /** Every paper, published or not, with its real question count. Admin and editor only. */
 export async function listPapersForAdmin(): Promise<PaperSummary[]> {
   await requireEditor();
   const supabase = createAdminClient();
 
-  const { data: rows } = await supabase
-    .from("watch_papers")
-    .select(SUMMARY_COLUMNS)
-    .order("category")
-    .order("sort_order")
-    .order("created_at");
+  const { data: rows } = await selectSummaries(supabase, (q) => q.order("category").order("sort_order").order("created_at"));
   if (!rows?.length) return [];
 
   const { data: counts } = await supabase
@@ -288,13 +302,10 @@ export async function listPublishedPapers(category?: string): Promise<PaperSumma
     async () => {
       const supabase = createAdminClient();
 
-      let query = supabase
-        .from("watch_papers")
-        .select(SUMMARY_COLUMNS)
-        .eq("is_published", true);
-      if (category) query = query.eq("category", category);
-
-      const { data: rows, error } = await query.order("sort_order").order("created_at");
+      const { data: rows, error } = await selectSummaries(supabase, (q) => {
+        const base = q.eq("is_published", true);
+        return (category ? base.eq("category", category) : base).order("sort_order").order("created_at");
+      });
       // Thrown, not returned as an empty list: a failed read cached as "no
       // papers" would tell every student there is nothing to sit.
       if (error) throw new Error(`Could not read the papers: ${error.message}`);
