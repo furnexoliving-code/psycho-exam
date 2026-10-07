@@ -29,7 +29,7 @@ export default async function PaperResultsPage({
 }) {
   const { slug } = await params;
   // On the page itself, not only in the layout, which a request can skip.
-  await requireResults(`/admin/watch-table/${slug}/results`);
+  await requireResults(`/admin/papers/${slug}/results`);
   const supabase = await createClient();
 
   const { data: paper } = await supabase
@@ -141,7 +141,7 @@ export default async function PaperResultsPage({
         <h1 className="text-xl font-bold text-gray-900">Results</h1>
         <span className="text-[13px] text-gray-600">{paper.display_name}</span>
         <Link
-          href={`/admin/watch-table/${slug}`}
+          href={`/admin/papers/${slug}`}
           className="ml-auto rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
         >
           ← Back to the paper

@@ -3,6 +3,7 @@ import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { headerOf, loadPaperHeader, loadPaperHeaderLive } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { ResultView } from "./ResultView";
+import { NoPrint } from "@/components/NoPrint";
 import { currentMockStep } from "@/lib/wt/mock";
 import { photoUrlOf } from "@/lib/photo";
 
@@ -14,7 +15,7 @@ export default async function ResultPage({
   const { paperId } = await params;
 
   // A result belongs to the account that sat the paper.
-  const who = isConfigured() ? await requireUser(`/watch-table/${paperId}/result`) : null;
+  const who = isConfigured() ? await requireUser(`/test/${paperId}/result`) : null;
 
   // Only the paper's name and diagram: no questions, and no answer key. The
   // marks come from /api/watch-table/score, which looks the key up server-side.
@@ -46,6 +47,7 @@ export default async function ResultPage({
         }
       : undefined;
   return (
+    <NoPrint>
     <ResultView
       mock={mock}
       paperId={paperId}
@@ -61,5 +63,6 @@ export default async function ResultPage({
       questionsPerPart={paper.questionsPerPart}
       storageOwner={who?.id ?? "guest"}
     />
+    </NoPrint>
   );
 }

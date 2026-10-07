@@ -32,7 +32,7 @@ export default async function EditWatchPaper({
   const { slug } = await params;
   // On the page itself, not only in the layout, which a request can skip.
   // An editor writes the paper; only the admin sees its results or deletes it.
-  const who = await requireEditor(`/admin/watch-table/${slug}`);
+  const who = await requireEditor(`/admin/papers/${slug}`);
   const isAdmin = who.role === "admin";
   const { error: noticeError, saved: noticeSaved } = await searchParams;
   const paper = await loadPaperForAdmin(slug);
@@ -67,7 +67,7 @@ export default async function EditWatchPaper({
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-bold text-gray-900">{paper.displayName}</h1>
         <Link
-          href={`/watch-table/${slug}`}
+          href={`/test/${slug}`}
           target="_blank"
           className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
         >
@@ -76,13 +76,13 @@ export default async function EditWatchPaper({
         {isAdmin && (
           <>
             <Link
-              href={`/admin/watch-table/${slug}/results`}
+              href={`/admin/papers/${slug}/results`}
               className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
             >
               Results{typeof attemptCount === "number" ? ` (${attemptCount})` : ""}
             </Link>
             <Link
-              href={`/admin/watch-table/${slug}/analysis`}
+              href={`/admin/papers/${slug}/analysis`}
               className="rounded border border-gray-400 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100"
             >
               Question analysis

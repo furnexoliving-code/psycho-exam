@@ -76,13 +76,13 @@ export default async function PaperAnalysisPage({
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-bold text-gray-900">Question analysis</h1>
         <Link
-          href={`/admin/watch-table/${slug}`}
+          href={`/admin/papers/${slug}`}
           className="text-[12px] font-semibold text-rrb-banner hover:underline"
         >
           ← Back to the paper
         </Link>
         <Link
-          href={`/admin/watch-table/${slug}/results`}
+          href={`/admin/papers/${slug}/results`}
           className="text-[12px] font-semibold text-rrb-banner hover:underline"
         >
           Student results

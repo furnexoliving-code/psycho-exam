@@ -20,7 +20,7 @@ export default async function FollowingDirectionsPage({
   searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   // On the page itself, not only in the layout, which a request can skip.
-  const who = await requireEditor("/admin/watch-table");
+  const who = await requireEditor("/admin/papers");
   const isAdmin = who.role === "admin";
   const [papers, { error, saved }, hidden] = await Promise.all([
     listPapersForAdmin(),
@@ -190,7 +190,7 @@ function PaperTable({ papers, canDelete }: { papers: PaperSummary[]; canDelete: 
               </td>
               <td className="border border-gray-300 px-3 py-2">
                 <div className="font-semibold text-gray-900">{paper.displayName}</div>
-                <div className="text-[11px] text-gray-500">/watch-table/{paper.slug}</div>
+                <div className="text-[11px] text-gray-500">/test/{paper.slug}</div>
               </td>
               <td className="border border-gray-300 px-3 py-2">{paper.questionCount}</td>
               <td className="border border-gray-300 px-3 py-2">
@@ -211,7 +211,7 @@ function PaperTable({ papers, canDelete }: { papers: PaperSummary[]; canDelete: 
               <td className="border border-gray-300 px-3 py-2">
                 <div className="flex items-center gap-4">
                   <Link
-                    href={`/admin/watch-table/${paper.slug}`}
+                    href={`/admin/papers/${paper.slug}`}
                     className="font-semibold text-rrb-banner hover:underline"
                   >
                     Open

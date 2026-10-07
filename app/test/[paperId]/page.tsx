@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { WatchTableExam } from "@/components/wt/WatchTableExam";
 import { FigureExam } from "@/components/wt/FigureExam";
 import { ExamChromeProvider } from "@/components/wt/ExamChrome";
+import { NoPrint } from "@/components/NoPrint";
 import { CATEGORIES } from "@/lib/wt/categories";
 import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
@@ -32,7 +33,7 @@ export default async function WatchTablePage({
   // student's paper comes from the shared cache; an admin previewing sees the
   // paper as it is right now, draft or not.
   const [who, cached] = isConfigured()
-    ? await Promise.all([requireUser(`/watch-table/${paperId}`), loadPaperForCandidate(paperId)])
+    ? await Promise.all([requireUser(`/test/${paperId}`), loadPaperForCandidate(paperId)])
     : [null, getBundledPaper(paperId)];
   const editor = await isVerifiedEditor();
   const paper = editor ? await loadPaperLive(paperId) : cached;
@@ -105,6 +106,7 @@ export default async function WatchTablePage({
   // the mock, as the hall's Exam Summary does.
   const mockSummary = mockHere && inMock ? await mockSummary_(inMock) : null;
   return (
+    <NoPrint>
     <ExamChromeProvider battery={battery} mockSummary={mockSummary} photoUrl={photoUrlOf(who)}>
       <Screen
         paper={withoutAnswerKey(paper)}
@@ -115,6 +117,7 @@ export default async function WatchTablePage({
         storageOwner={who?.id ?? "guest"}
       />
     </ExamChromeProvider>
+    </NoPrint>
   );
 }
 

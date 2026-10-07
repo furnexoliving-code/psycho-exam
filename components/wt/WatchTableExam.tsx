@@ -89,7 +89,7 @@ export function WatchTableExam({
       // A full load, not a client-side move: a portal deployed afresh while
       // the paper was open has new script files, and the router's move to
       // the result could fail on the old ones. The page is loaded anew.
-      window.location.assign(`/watch-table/${paper.id}/result`);
+      window.location.assign(`/test/${paper.id}/result`);
     }
   }, [state.submitted, state.startedAt, paper.id]);
 

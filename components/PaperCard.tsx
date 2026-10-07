@@ -55,7 +55,7 @@ export function PaperCard({
           </span>
         ) : (
           <Link
-            href={`/watch-table/${paper.slug}`}
+            href={`/test/${paper.slug}`}
             className="flex-1 rounded-lg bg-indigo-800 px-4 py-2.5 text-center text-[13px] font-semibold text-white shadow-sm hover:bg-indigo-900"
           >
             {allowance.used > 0 ? "Re-attempt" : "Start test"}
@@ -63,7 +63,7 @@ export function PaperCard({
         )}
         {allowance.used > 0 && (
           <Link
-            href={`/watch-table/${paper.slug}/result`}
+            href={`/test/${paper.slug}/result`}
             className="flex-1 rounded-lg border border-indigo-800 px-4 py-2.5 text-center text-[13px] font-semibold text-indigo-800 hover:bg-indigo-50"
           >
             Result

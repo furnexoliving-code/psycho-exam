@@ -227,7 +227,7 @@ export function ResultView({
         </p>
         {state === "missing" ? (
           <Link
-            href={`/watch-table/${paperId}`}
+            href={`/test/${paperId}`}
             className="mt-6 inline-block rounded bg-wt-submit px-6 py-2 text-sm font-semibold text-white hover:opacity-90"
           >
             Go to the test
@@ -569,7 +569,7 @@ export function ResultView({
 
         <div className="mt-8 flex gap-3">
           <Link
-            href={`/watch-table/${paperId}`}
+            href={`/test/${paperId}`}
             className="rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
             style={{ background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
           >

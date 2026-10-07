@@ -240,7 +240,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
                 {attempts.map((a) => (
                   <tr key={a.id} className="bg-white even:bg-gray-50">
                     <td className="border border-gray-300 px-2 py-1.5 font-semibold text-gray-900">
-                      <Link href={`/admin/watch-table/${a.paperSlug}/results`} className="text-rrb-banner hover:underline">{a.paperName}</Link>
+                      <Link href={`/admin/papers/${a.paperSlug}/results`} className="text-rrb-banner hover:underline">{a.paperName}</Link>
                     </td>
                     <td className="border border-gray-300 px-2 py-1.5">{formatDateTime(a.submittedAt)}</td>
                     <td className="border border-gray-300 px-2 py-1.5 tabular-nums">{a.marks} / {a.total}</td>

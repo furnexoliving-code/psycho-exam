@@ -54,7 +54,7 @@ export function mayOpen(role: Role, section: Section): boolean {
 /** Where an account lands after signing in, or after passing the second factor. */
 export function panelHome(role: Role): string {
   if (role === "staff") return "/admin/passwords";
-  if (role === "editor") return "/admin/watch-table";
+  if (role === "editor") return "/admin/papers";
   if (role === "viewer") return "/admin/results";
   return "/admin";
 }
@@ -210,7 +210,7 @@ export async function requireAdmin(next = "/admin"): Promise<Profile> {
 }
 
 /** The admin or an editor: writing papers. */
-export async function requireEditor(next = "/admin/watch-table"): Promise<Profile> {
+export async function requireEditor(next = "/admin/papers"): Promise<Profile> {
   return requireSection("papers", next);
 }
 

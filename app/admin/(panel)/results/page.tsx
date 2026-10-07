@@ -77,10 +77,10 @@ export default async function ResultsHome() {
                       </span>
                     </td>
                     <td className="px-3 py-2 text-right">
-                      <Link href={`/admin/watch-table/${paper.slug}/results`} className="font-semibold text-rrb-banner hover:underline">
+                      <Link href={`/admin/papers/${paper.slug}/results`} className="font-semibold text-rrb-banner hover:underline">
                         Results
                       </Link>
-                      <Link href={`/admin/watch-table/${paper.slug}/analysis`} className="ml-4 font-semibold text-rrb-banner hover:underline">
+                      <Link href={`/admin/papers/${paper.slug}/analysis`} className="ml-4 font-semibold text-rrb-banner hover:underline">
                         Question analysis
                       </Link>
                     </td>

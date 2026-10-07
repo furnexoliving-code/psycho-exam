@@ -5,8 +5,7 @@ import { toBlob } from "html-to-image";
 
 /**
  * Download and share for a result: the scorecard is drawn into a picture
- * in the browser and either saved, printed (the browser's "Save as PDF"),
- * or handed to the phone's share sheet. Nothing is posted anywhere and no
+ * in the browser and either saved or handed to the phone's share sheet. Nothing is posted anywhere and no
  * public link is made: the picture leaves only by the student's own hand.
  */
 export function ShareResult({ targetId, fileName, title }: { targetId: string; fileName: string; title: string }) {
@@ -84,9 +83,6 @@ export function ShareResult({ targetId, fileName, title }: { targetId: string; f
     <div className="no-print no-capture flex flex-wrap items-center gap-2">
       <button type="button" onClick={download} disabled={busy !== null} className={button}>
         {busy === "image" ? "Drawing…" : "⬇ Download"}
-      </button>
-      <button type="button" onClick={() => window.print()} className={button}>
-        🖨 Save as PDF
       </button>
       <button type="button" onClick={share} disabled={busy !== null} className={button}>
         {busy === "share" ? "Drawing…" : "↗ Share"}

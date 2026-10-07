@@ -11,7 +11,7 @@ export async function startMock(formData: FormData): Promise<void> {
   const who = await requireUser(`/mock/${slug}`);
   const opened = await openMockSitting(slug, who.id);
   if (!opened.ok) redirect(`/mock/${slug}?error=${encodeURIComponent(opened.reason)}`);
-  redirect(`/watch-table/${opened.step.paper.slug}`);
+  redirect(`/test/${opened.step.paper.slug}`);
 }
 
 /** Gives the sitting up. Nothing is scored and no attempt is spent. */
@@ -33,7 +33,7 @@ export type MockNext =
  * paper was not the mock's current test, so there is nothing to do.
  */
 export async function continueMock(paperSlug: string): Promise<MockNext> {
-  const who = await requireUser(`/watch-table/${paperSlug}/result`);
+  const who = await requireUser(`/test/${paperSlug}/result`);
   const { data: paper } = await createAdminClient().from("watch_papers").select("id").eq("slug", paperSlug).maybeSingle();
   if (!paper) return { next: "none" };
   const moved = await advanceMock(who.id, paper.id as string);
@@ -41,7 +41,7 @@ export async function continueMock(paperSlug: string): Promise<MockNext> {
   if (moved.next === "done") return { next: "done", url: `/mock/${moved.slug}/result`, summary: moved.summary };
   return {
     next: "paper",
-    url: `/watch-table/${moved.slug}`,
+    url: `/test/${moved.slug}`,
     gapSec: moved.gapSec,
     step: moved.step,
     total: moved.total,

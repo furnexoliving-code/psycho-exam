@@ -62,7 +62,7 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/dashboard") ||
     path.startsWith("/tests") ||
     path.startsWith("/mock") ||
-    path.startsWith("/watch-table");
+    path.startsWith("/test");
 
   if (isPrivate && !user) {
     const login = request.nextUrl.clone();

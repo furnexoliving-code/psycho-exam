@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "KAUTILYA CLASSES | Following Directions Test",
+  title: "KAUTILYA CLASSES | RAILWAY PSYCHO TEST PORTAL",
   description:
     "Practice portal for the RRB ALP Computer Based Aptitude Test's Following Directions papers — Watch, Letter and Number Table tests.",
 };

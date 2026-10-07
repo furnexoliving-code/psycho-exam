@@ -138,7 +138,7 @@ export default async function MockPage({
           {inThis ? (
             <>
               <Link
-                href={`/watch-table/${inThis.paper.slug}`}
+                href={`/test/${inThis.paper.slug}`}
                 className="rounded-lg bg-[#1d4ed8] px-6 py-2.5 text-[14px] font-bold text-white shadow hover:bg-[#1e40af]"
               >
                 Continue · Test {inThis.step + 1} of {inThis.papers.length} ▶

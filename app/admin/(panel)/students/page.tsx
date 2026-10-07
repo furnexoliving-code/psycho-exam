@@ -306,7 +306,7 @@ export default async function StudentsPage({
         </h2>
         <p className="mb-2 text-[12px] text-gray-600">
           Every attempt of a paper, with search and filters, is under that paper&apos;s{" "}
-          <Link href="/admin/watch-table" className="font-semibold text-rrb-banner hover:underline">
+          <Link href="/admin/papers" className="font-semibold text-rrb-banner hover:underline">
             Results
           </Link>{" "}
           button.

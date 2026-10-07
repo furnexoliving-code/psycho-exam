@@ -69,6 +69,16 @@ body {
   .no-print * {
     display: none !important;
   }
+  /* A paper and its result are not for printing: the questions stay in the
+     portal. The result leaves as the picture its own button draws. */
+  .print-blocked {
+    display: none !important;
+  }
+  .print-blocked-note {
+    display: block !important;
+    padding: 40px;
+    font: 16px Arial, sans-serif;
+  }
   body {
     background: #ffffff !important;
   }

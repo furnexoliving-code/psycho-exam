@@ -122,7 +122,7 @@ export function MockScorecard({
                   </td>
                   <td className="px-4 py-2.5">
                     {t.slug && (
-                      <Link href={`/watch-table/${t.slug}/result`} className="font-semibold text-rrb-banner hover:underline">
+                      <Link href={`/test/${t.slug}/result`} className="font-semibold text-rrb-banner hover:underline">
                         Solutions
                       </Link>
                     )}

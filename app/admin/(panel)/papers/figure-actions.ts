@@ -121,7 +121,7 @@ export async function addFigureQuestions(
     if (error) throw new Error(error.message);
 
     await syncScheduleClock(slug);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     return { added: links.length };
   } catch (error) {
@@ -151,7 +151,7 @@ export async function setFigureAnswer(
       .update({ answer })
       .eq("id", q.id);
     if (error) throw new Error(error.message);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     return `set to ${answer}`;
   });
@@ -214,7 +214,7 @@ export async function applyAnswerKey(
       if (error) throw new Error(`Question ${i + 1}: ${error.message}`);
     }
 
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     return `${questions.length} answers set`;
   });
@@ -242,7 +242,7 @@ export async function setOptionImages(
       .update({ option_images: images })
       .eq("id", q.id);
     if (error) throw new Error(error.message);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     return { ok: true };
   } catch (error) {
@@ -266,7 +266,7 @@ export async function replaceFigureImage(
       .update({ image_url: pictureLink(url) })
       .eq("id", q.id);
     if (error) throw new Error(error.message);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     return { ok: true };
   } catch (error) {
@@ -301,7 +301,7 @@ export async function setStudyImages(
       .update({ features, updated_at: new Date().toISOString() })
       .eq("id", row.id);
     if (error) throw new Error(error.message);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     return { ok: true };
   } catch (error) {

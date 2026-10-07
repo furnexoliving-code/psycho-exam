@@ -18,7 +18,7 @@ export default async function MockBeginPage({ params }: { params: Promise<{ slug
   const { mock, papers } = loaded;
 
   const current = await currentMockStep(who.id);
-  if (current && current.mock.id === mock.id) redirect(`/watch-table/${current.paper.slug}`);
+  if (current && current.mock.id === mock.id) redirect(`/test/${current.paper.slug}`);
   if (current) redirect(`/mock/${slug}`);
 
   const [used, unlocked] = await Promise.all([mockAttemptsUsed(mock.id, who.id), mockUnlockedFor(who.id, papers)]);

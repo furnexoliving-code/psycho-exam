@@ -43,7 +43,7 @@ export default async function AdminHome() {
 
   const attention: { text: string; href: string; label: string; tone: "warn" | "info" }[] = [];
   if ((expiring.count ?? 0) > 0) attention.push({ text: `${expiring.count} student account${expiring.count === 1 ? "" : "s"} expire within 10 days`, href: "/admin/students", label: "Students →", tone: "warn" });
-  if (drafts.length) attention.push({ text: `${drafts.length} paper${drafts.length === 1 ? " is" : "s are"} still a draft`, href: "/admin/watch-table", label: "Papers →", tone: "info" });
+  if (drafts.length) attention.push({ text: `${drafts.length} paper${drafts.length === 1 ? " is" : "s are"} still a draft`, href: "/admin/papers", label: "Papers →", tone: "info" });
   const emptyMocks = mocks.filter((m) => m.isPublished && m.paperIds.length < 5);
   if (emptyMocks.length) attention.push({ text: `${emptyMocks.map((m) => m.name).join(", ")}: fewer than 5 tests`, href: "/admin/mocks", label: "Mocks →", tone: "warn" });
   if ((openSittings.count ?? 0) > 0) attention.push({ text: `${openSittings.count} Full Mock sitting${openSittings.count === 1 ? "" : "s"} in progress right now`, href: "/admin/mocks", label: "Mocks →", tone: "info" });
@@ -56,7 +56,7 @@ export default async function AdminHome() {
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat href="/admin/students" label="Students" value={String(students.count ?? 0)} note={`${active.count ?? 0} active · ${expiring.count ?? 0} expiring soon`} />
         <Stat href="/admin/mocks" label="Full Mocks" value={String(mocks.length)} note={`${live.length} live · ${scheduled.length} upcoming · ${closed.length} closed`} />
-        <Stat href="/admin/watch-table" label="Test Papers" value={String(papers.length)} note={`${papers.length - drafts.length} published · ${drafts.length} draft`} />
+        <Stat href="/admin/papers" label="Test Papers" value={String(papers.length)} note={`${papers.length - drafts.length} published · ${drafts.length} draft`} />
         <Stat href="/admin/results" label="Attempts today" value={String(attemptsToday.count ?? 0)} note="sectional papers submitted since midnight" />
       </div>
 
@@ -113,7 +113,7 @@ export default async function AdminHome() {
         <div className="mt-2 flex flex-wrap gap-2">
           <Link href="/admin/mocks" className="rounded bg-indigo-800 px-4 py-2 text-[13px] font-semibold text-white hover:bg-indigo-900">+ New Full Mock</Link>
           <Link href="/admin/students" className="rounded border border-gray-400 bg-white px-4 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100">+ Add students (CSV)</Link>
-          <Link href="/admin/watch-table" className="rounded border border-gray-400 bg-white px-4 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100">+ New test paper</Link>
+          <Link href="/admin/papers" className="rounded border border-gray-400 bg-white px-4 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100">+ New test paper</Link>
           <Link href="/admin/results" className="rounded border border-gray-400 bg-white px-4 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100">Results</Link>
         </div>
       </section>

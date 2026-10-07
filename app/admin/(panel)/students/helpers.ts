@@ -4,7 +4,7 @@
  */
 export const HELPER_ROLES = {
   staff: { label: "Staff — resets students' passwords", home: "/admin/passwords" },
-  editor: { label: "Test setter — writes and publishes papers", home: "/admin/watch-table" },
+  editor: { label: "Test setter — writes and publishes papers", home: "/admin/papers" },
   viewer: { label: "Result viewer — sees results only, changes nothing", home: "/admin/results" },
 } as const;
 

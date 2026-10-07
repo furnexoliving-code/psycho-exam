@@ -191,11 +191,11 @@ export default async function DashboardPage() {
 
               <div className="mt-4 flex flex-wrap gap-2.5">
                 {inMock ? (
-                  <Link href={`/watch-table/${inMock.paper.slug}`} className="rounded-[10px] bg-white px-4 py-2.5 text-[13.5px] font-bold text-[#0d2a6b] shadow-lg hover:bg-blue-50">
+                  <Link href={`/test/${inMock.paper.slug}`} className="rounded-[10px] bg-white px-4 py-2.5 text-[13.5px] font-bold text-[#0d2a6b] shadow-lg hover:bg-blue-50">
                     ▶ Continue {inMock.mock.name} · Test {inMock.step + 1} of {inMock.papers.length}
                   </Link>
                 ) : focus && focusNext ? (
-                  <Link href={`/watch-table/${focusNext.paper.slug}`} className="rounded-[10px] bg-white px-4 py-2.5 text-[13.5px] font-bold text-[#0d2a6b] shadow-lg hover:bg-blue-50">
+                  <Link href={`/test/${focusNext.paper.slug}`} className="rounded-[10px] bg-white px-4 py-2.5 text-[13.5px] font-bold text-[#0d2a6b] shadow-lg hover:bg-blue-50">
                     ▶ Start today&apos;s plan · {focus.title.replace(" Test", "")}
                   </Link>
                 ) : (
@@ -287,7 +287,7 @@ export default async function DashboardPage() {
                       </td>
                       <td className="px-2 py-2.5 whitespace-nowrap">
                         {next ? (
-                          <Link href={`/watch-table/${next.paper.slug}`} className="font-bold text-[#1d4ed8] hover:underline">
+                          <Link href={`/test/${next.paper.slug}`} className="font-bold text-[#1d4ed8] hover:underline">
                             {row.keepSharp && !row.due ? "1 test every 3 days" : "Start"} · {next.paper.displayName}
                             {next.allowance.max !== null && (
                               <span className="font-normal text-gray-500"> ({next.allowance.remaining} of {next.allowance.max} attempts left)</span>
@@ -496,7 +496,7 @@ export default async function DashboardPage() {
                         <td className="py-1.5 font-semibold text-gray-900">{row.paperName}</td>
                         <td className="py-1.5 tabular-nums">{row.marks} / {row.total}</td>
                         <td className="py-1.5 text-gray-600">{formatDate(row.submittedAt)}</td>
-                        <td className="py-1.5 text-right">{row.paperSlug && <Link href={`/watch-table/${row.paperSlug}/result`} className="font-semibold text-[#1d4ed8] hover:underline">View</Link>}</td>
+                        <td className="py-1.5 text-right">{row.paperSlug && <Link href={`/test/${row.paperSlug}/result`} className="font-semibold text-[#1d4ed8] hover:underline">View</Link>}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -165,7 +165,7 @@ function readCells(formData: FormData, prefix = "cell"): WatchCell[] {
 export async function createPaper(formData: FormData) {
   // A failure — a web address already taken, most often — lands back on the
   // list with its reason, rather than on the generic error page.
-  return run("/admin/watch-table", "New paper", async () => {
+  return run("/admin/papers", "New paper", async () => {
   await requireEditor();
   const supabase = await createClient();
 
@@ -245,7 +245,7 @@ export async function createPaper(formData: FormData) {
 
   paperChanged(data.slug);
   await logAction("Paper created", `${displayName} (${data.slug})`);
-  redirect(`/admin/watch-table/${data.slug}`);
+  redirect(`/admin/papers/${data.slug}`);
   });
 }
 
@@ -439,7 +439,7 @@ export async function saveSettings(
 
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error(NOTHING_CHANGED);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     await logAction(publish ? "Paper settings saved (published)" : "Paper settings saved (draft)", `${displayName} (${slug})`);
   });
@@ -473,7 +473,7 @@ export async function saveDiagram(
 
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error(NOTHING_CHANGED);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);  });
 }
 
@@ -584,7 +584,7 @@ export async function regenerateQuestions(
 
   // Emptied whatever happened: the new rows may be in even when the old
   // ones could not be removed, and the cache must show what the database holds.
-  revalidatePath(`/admin/watch-table/${slug}`);
+  revalidatePath(`/admin/papers/${slug}`);
   paperChanged(slug);
   if (error) throw new Error(error);
   return `${chosen.length} built from the diagram`;
@@ -697,7 +697,7 @@ export async function importQuestions(
 
     if (!append) {
       const { inserted, error } = await replaceQuestions(paper.id, rows);
-      revalidatePath(`/admin/watch-table/${slug}`);
+      revalidatePath(`/admin/papers/${slug}`);
       paperChanged(slug);
       if (error) throw new Error(error);
       return `${inserted} questions`;
@@ -716,7 +716,7 @@ export async function importQuestions(
           `account is not an admin there. Check the role on your row in the profiles table.`,
       );
     }
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     return `${inserted.length} questions added`;
   });
@@ -740,7 +740,7 @@ export async function deleteQuestion(
     if (!gone?.length) throw new Error("That question is already gone");
     // A scheduled picture paper's clock follows its number of parts.
     await syncScheduleClock(slug);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
     return "deleted";
   });
@@ -790,14 +790,14 @@ export async function saveQuestion(
 
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error("That question no longer exists");
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
   });
 }
 
 export async function deletePaper(formData: FormData) {
   const slug = String(formData.get("slug"));
-  return run(`/admin/watch-table/${slug}`, "Delete", async () => {
+  return run(`/admin/papers/${slug}`, "Delete", async () => {
     await requireAdmin();
     const supabase = await createClient();
 
@@ -813,7 +813,7 @@ export async function deletePaper(formData: FormData) {
     paperChanged(slug);
     await logAction("Paper deleted", `${gone[0].display_name} (${slug}), with its questions and results`);
     redirect(
-      `/admin/watch-table?saved=${encodeURIComponent(`Deleted — ${gone[0].display_name}, with its questions and results`)}`,
+      `/admin/papers?saved=${encodeURIComponent(`Deleted — ${gone[0].display_name}, with its questions and results`)}`,
     );
   });
 }
@@ -853,7 +853,7 @@ export async function saveInstructions(
 
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error(NOTHING_CHANGED);
-    revalidatePath(`/admin/watch-table/${slug}`);
+    revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);  });
 }
 
@@ -868,7 +868,7 @@ export async function duplicatePaper(formData: FormData) {
   const slug = String(formData.get("slug"));
   // The body redirects to the new paper on success; run() lets a
   // redirect through and only catches real failures.
-  return run(`/admin/watch-table/${slug}`, "Copy", async () => {
+  return run(`/admin/papers/${slug}`, "Copy", async () => {
     await requireEditor();
     const supabase = await createClient();
 
@@ -929,7 +929,7 @@ export async function duplicatePaper(formData: FormData) {
     }
 
     paperChanged(copy.slug);
-    redirect(`/admin/watch-table/${copy.slug}`);  });
+    redirect(`/admin/papers/${copy.slug}`);  });
 }
 
 /**
@@ -946,7 +946,7 @@ export async function setBatteryVisibility(
     if (!BATTERIES.some((b) => b.id === battery)) throw new Error("No such battery");
     const hidden = formData.get("hidden") === "true";
     await setBatteryHidden(battery, hidden);
-    revalidatePath("/admin/watch-table");
+    revalidatePath("/admin/papers");
     revalidatePath("/dashboard");
     await logAction(hidden ? "Battery hidden from students" : "Battery shown to students", `Battery ${battery}`);
     return hidden ? `Battery ${battery} hidden from students` : `Battery ${battery} now shown to students`;

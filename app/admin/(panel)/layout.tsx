@@ -8,7 +8,7 @@ import { isConfigured, mayOpen, missingConfig, requirePanel, type Section } from
 const NAV: { href: string; label: string; section: Section }[] = [
   { href: "/admin", label: "Home", section: "admin" },
   { href: "/admin/students", label: "Students", section: "admin" },
-  { href: "/admin/watch-table", label: "Test Papers", section: "papers" },
+  { href: "/admin/papers", label: "Test Papers", section: "papers" },
   { href: "/admin/mocks", label: "Full Mocks", section: "papers" },
   { href: "/admin/results", label: "Results", section: "results" },
   { href: "/admin/passwords", label: "Reset a password", section: "passwords" },
