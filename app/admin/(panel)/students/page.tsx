@@ -45,20 +45,19 @@ export default async function StudentsPage({
       ? request.like("phone", `%${digits}%`)
       : request.ilike("full_name", `%${query.replace(/[%_]/g, "")}%`);
   }
-  const { data: students, count: studentCount } = await request
-    .order("created_at", { ascending: false })
-    .order("id")
-    .range(from, from + PAGE_SIZE - 1);
+  // The three reads do not depend on each other, so they go out together:
+  // one round trip to the database instead of three, one after another.
+  const [{ data: students, count: studentCount }, { data: watchAttempts }, { data: papers }] = await Promise.all([
+    request.order("created_at", { ascending: false }).order("id").range(from, from + PAGE_SIZE - 1),
+    supabase
+      .from("watch_attempts")
+      .select("id, paper_id, user_id, marks, total, attempted, submitted_at")
+      .order("submitted_at", { ascending: false })
+      .limit(50),
+    supabase.from("watch_papers").select("id, display_name"),
+  ]);
   const total = studentCount ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
-  const { data: watchAttempts } = await supabase
-    .from("watch_attempts")
-    .select("id, paper_id, user_id, marks, total, attempted, submitted_at")
-    .order("submitted_at", { ascending: false })
-    .limit(50);
-
-  const { data: papers } = await supabase.from("watch_papers").select("id, display_name");
   const paperName = new Map((papers ?? []).map((p) => [p.id, p.display_name]));
 
   // Names for the recent attempts only — never the whole student table.
