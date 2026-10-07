@@ -198,11 +198,15 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
               <span className="ml-1 font-normal text-gray-500">· {formatDate(now)}</span>
             </h2>
             <div className="text-[12px] text-gray-600">
-              <b className="text-gray-900">{plan.sectionalDone} / {plan.sectionalTarget}</b> sectional tests done
+              <b className="text-gray-900">{plan.sectionalDone} of {plan.sectionalTarget}</b> practice tests done today
               {" · "}Full Mock{" "}
-              <b className="text-gray-900">{plan.mocksUnlocked ? `${mocksToday} / ${plan.mocksTarget}` : "locked"}</b>
+              <b className="text-gray-900">{plan.mocksUnlocked ? `${mocksToday} of ${plan.mocksTarget}` : "locked"}</b>
             </div>
           </div>
+          <p className="mt-1.5 text-[12px] text-gray-600">
+            Do the rows top to bottom: the weakest test comes first. Each row shows your best T-Score, the next goal to reach, how many papers to do today, and the paper to open.
+            <span className="block text-[11px] text-gray-500" lang="hi">ऊपर से नीचे करें: सबसे कमज़ोर टेस्ट सबसे ऊपर है। हर पंक्ति में आपका best T-Score, अगला लक्ष्य, आज कितने पेपर देने हैं, और कौन सा पेपर खोलना है।</span>
+          </p>
           <div className="mt-2.5 h-2 overflow-hidden rounded bg-[#eef1f6]">
             <div
               className="h-full rounded"
@@ -217,12 +221,12 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
             <table className="w-full border-collapse text-[12px]">
               <thead>
                 <tr className="text-left text-[10px] font-bold text-gray-500">
-                  <th className="px-2 py-1.5">Battery</th>
-                  <th className="px-2 py-1.5">Now</th>
-                  <th className="px-2 py-1.5">Stage</th>
-                  <th className="px-2 py-1.5">Today</th>
-                  <th className="px-2 py-1.5">Progress</th>
-                  <th className="px-2 py-1.5" />
+                  <th className="px-2 py-1.5">Test</th>
+                  <th className="whitespace-nowrap px-2 py-1.5">Best T-Score</th>
+                  <th className="whitespace-nowrap px-2 py-1.5">Next goal</th>
+                  <th className="whitespace-nowrap px-2 py-1.5">Do today</th>
+                  <th className="whitespace-nowrap px-2 py-1.5">Done today</th>
+                  <th className="whitespace-nowrap px-2 py-1.5">Open this paper</th>
                 </tr>
               </thead>
               <tbody>
@@ -233,13 +237,14 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                   const pct = row.keepSharp ? 100 : row.target ? Math.min(100, (row.done / row.target) * 100) : 0;
                   return (
                     <tr key={row.battery} className={`border-t border-gray-100 ${hot ? "bg-[#f3f6ff]" : ""} ${row.keepSharp && !row.due ? "text-gray-500" : ""}`}>
-                      <td className={`px-2 py-2.5 font-bold text-gray-900 ${hot ? "border-l-[3px] border-[#1d4ed8]" : ""}`}>
+                      <td className={`whitespace-nowrap px-2 py-2.5 font-bold text-gray-900 ${hot ? "border-l-[3px] border-[#1d4ed8]" : ""}`}>
                         Test {row.battery} · {row.title.replace(" Test", "")}
+                        {hot && <span className="mt-1 block w-fit rounded bg-[#1d4ed8] px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white">Do this first</span>}
                       </td>
                       <td className={`px-2 py-2.5 font-bold tabular-nums ${tone}`}>{row.bestT === null ? "—" : row.bestT.toFixed(0)}</td>
-                      <td className="px-2 py-2.5"><StageChip row={row} stages={stages} /></td>
+                      <td className="whitespace-nowrap px-2 py-2.5"><StageChip row={row} stages={stages} /></td>
                       <td className="px-2 py-2.5 whitespace-nowrap">
-                        {row.keepSharp ? (row.due ? <b>1 test</b> : "keep sharp") : <><b>{row.target}</b> test{row.target === 1 ? "" : "s"}</>}
+                        {row.keepSharp ? (row.due ? <b>1 paper</b> : <span className="text-gray-500">1 every 3 days</span>) : <><b>{row.target}</b> paper{row.target === 1 ? "" : "s"}</>}
                       </td>
                       <td className="px-2 py-2.5 whitespace-nowrap">
                         <span className="mr-1.5 inline-block h-1.5 w-[70px] overflow-hidden rounded bg-[#eef1f6] align-middle">
@@ -252,7 +257,7 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                       <td className="px-2 py-2.5 whitespace-nowrap">
                         {next ? (
                           <Link href={`/test/${next.paper.slug}`} className="font-bold text-[#1d4ed8] hover:underline">
-                            {row.keepSharp && !row.due ? "1 test every 3 days" : "Start"} · {next.paper.displayName}
+                            {row.keepSharp && !row.due ? "Revise" : "Start"} · {next.paper.displayName}
                             {next.allowance.max !== null && (
                               <span className="font-normal text-gray-500"> ({next.allowance.remaining} of {next.allowance.max} attempts left)</span>
                             )}
@@ -267,14 +272,14 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                 })}
                 <tr className="border-t border-gray-100 bg-[#fafafa]">
                   <td className="px-2 py-2.5 font-bold text-gray-900">Full Mock Tests</td>
-                  <td className="px-2 py-2.5" colSpan={2}>
+                  <td className="whitespace-nowrap px-2 py-2.5" colSpan={2}>
                     {plan.mocksUnlocked ? (
-                      <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">Open · every battery {stages.pass}+</span>
+                      <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">✓ Open · every test at {stages.pass}+</span>
                     ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">🔒 Locked · {passed} of {inPlay.length} batteries at {stages.pass}+</span>
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">🔒 Locked · {passed} of {inPlay.length} tests at {stages.pass}+</span>
                     )}
                   </td>
-                  <td className="px-2 py-2.5 whitespace-nowrap">{plan.mocksUnlocked ? <><b>2</b> / day</> : <><b>2</b> / day once open</>}</td>
+                  <td className="px-2 py-2.5 whitespace-nowrap">{plan.mocksUnlocked ? <><b>2</b> mocks</> : <span className="text-gray-500">2 a day, once open</span>}</td>
                   <td className="px-2 py-2.5 whitespace-nowrap">
                     <span className="mr-1.5 inline-block h-1.5 w-[70px] overflow-hidden rounded bg-[#eef1f6] align-middle">
                       <span className="block h-full rounded bg-[#1d4ed8]" style={{ width: `${plan.mocksUnlocked ? Math.min(100, (mocksToday / 2) * 100) : 0}%` }} />
@@ -288,7 +293,7 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                       <span className="text-gray-400">No Full Mock open right now</span>
                     ) : (
                       <span className="text-gray-500">
-                        Get {plan.rows.filter((r) => r.stage === 1).map((r) => r.title.replace(" Test", "")).join(", ")} to {stages.pass} to unlock
+                        Reach T-Score {stages.pass} in {plan.rows.filter((r) => r.stage === 1).map((r) => r.title.replace(" Test", "")).join(", ")} to unlock
                       </span>
                     )}
                   </td>
@@ -296,10 +301,22 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
               </tbody>
             </table>
           </div>
+          <p className="mt-2 text-[11px] text-gray-500">
+            T-Score colours: <span className="font-bold text-red-700">red</span> below {stages.pass} · <span className="font-bold text-amber-700">amber</span> {stages.pass}–{stages.target - 1}, passed · <span className="font-bold text-green-700">green</span> {stages.target}+, target reached.
+            <span className="ml-1" lang="hi">लाल = {stages.pass} से कम · पीला = पास · हरा = लक्ष्य पूरा</span>
+          </p>
         </section>
 
         {/* --------------------------- Battery tiles --------------------------- */}
-        <section className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
+          <h2 className="text-[14px] font-bold text-gray-900">
+            Your 5 tests <span className="font-normal text-gray-500" lang="hi">/ आपके 5 टेस्ट</span>
+          </h2>
+          <p className="text-[11px] text-gray-500">
+            The real exam has these 5 tests. Pass needs T-Score {stages.pass} in each; aim for {stages.target}. Bar: {stages.pass} pass · {stages.average} average · {stages.target} target. Lines below: your best score each day; <span className="font-bold text-red-500">|</span> = {stages.pass}, <span className="font-bold text-green-600">|</span> = {stages.target}.
+          </p>
+        </div>
+        <section className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {visibleBatteries.map((battery) => {
             const p = progress.find((x) => x.battery === battery.id) as BatteryProgress;
             const t = p?.bestT ?? null;
@@ -320,7 +337,7 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                   </span>
                 </div>
                 <div className="mt-2 text-[26px] font-extrabold leading-none text-gray-900">
-                  {t === null ? "—" : t.toFixed(0)} <span className="text-[10px] font-semibold text-gray-500">best T-Score</span>
+                  {t === null ? "—" : t.toFixed(0)} <span className="text-[10px] font-semibold text-gray-500">your best T-Score</span>
                 </div>
                 <div className="mt-2"><StageChip row={{ ...stageRow(t, stages) }} stages={stages} /></div>
                 <StageBar t={t} stages={stages} />
@@ -348,7 +365,7 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                         const delta = (seen[seen.length - 1].bestT as number) - (seen[0].bestT as number);
                         return `${delta >= 0 ? "📈 +" : "📉 "}${delta.toFixed(0)} over ${seen.length} days · ${p.today} today`;
                       }
-                      return p?.attempts ? `${p.attempts} attempt${p.attempts === 1 ? "" : "s"} · ${p.papersSat} paper${p.papersSat === 1 ? "" : "s"}` : "Start with one paper today";
+                      return p?.attempts ? `${p.attempts} attempt${p.attempts === 1 ? "" : "s"} on ${p.papersSat} paper${p.papersSat === 1 ? "" : "s"}` : "Not started yet · do one paper today";
                     })()}
                   </div>
                 </div>
@@ -498,13 +515,14 @@ function stageRow(t: number | null, s: Stages): Pick<PlanRow, "bestT" | "stage" 
 }
 
 function StageChip({ row, stages }: { row: Pick<PlanRow, "bestT" | "stage" | "next" | "keepSharp">; stages: Stages }) {
-  if (row.bestT === null) return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">Not attempted · start Stage 1</span>;
-  if (row.keepSharp) return <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">Target reached · T-Score: {stages.target}+</span>;
+  if (row.bestT === null) return <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">Not attempted yet · first goal T-Score {stages.pass}</span>;
+  if (row.keepSharp) return <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">✓ Target reached · T-Score {stages.target}+</span>;
   const cls = row.stage === 1 ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700";
   const gap = Math.max(1, Math.ceil((row.next as number) - row.bestT));
+  const goal = row.stage === 1 ? "pass" : row.stage === 2 ? "average" : "target";
   return (
     <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${cls}`}>
-      Stage {row.stage} · {gap} to {row.stage === 1 ? "pass" : ""} T-Score: {row.next}
+      +{gap} more → T-Score {row.next} ({goal})
     </span>
   );
 }
@@ -522,7 +540,7 @@ function StageBar({ t, stages }: { t: number | null; stages: Stages }) {
           </span>
         ))}
       </div>
-      <div className="mt-0.5 flex justify-between text-[9px] text-gray-500"><span>{stages.pass}</span><span>{stages.average}</span><span>{stages.target}</span></div>
+      <div className="mt-0.5 flex justify-between text-[9px] text-gray-500"><span>{stages.pass} pass</span><span>{stages.average} avg</span><span>{stages.target} target</span></div>
     </div>
   );
 }
