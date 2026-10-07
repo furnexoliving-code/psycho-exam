@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
 
 /**
  * The page when something on the server fails. It says so plainly and offers
@@ -8,7 +9,9 @@ import Link from "next/link";
  */
 export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-5 py-16 text-center">
+    <div className="flex min-h-screen flex-col bg-gray-50">
+    <SiteHeader />
+    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-5 py-16 text-center">
       <h1 className="text-xl font-bold text-gray-900">Something went wrong</h1>
       <p className="mt-2 text-[14px] text-gray-600">
         The page could not be loaded. Try again, and if it keeps happening tell the
@@ -30,5 +33,6 @@ export default function ErrorPage({ reset }: { error: Error; reset: () => void }
         </Link>
       </div>
     </main>
+    </div>
   );
 }

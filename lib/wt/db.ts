@@ -359,6 +359,8 @@ export interface PaperHeader {
   /** A Memory Test paper's study screens, one per part, for the review. */
   studyImages: string[];
   questionsPerPart: number;
+  /** Which battery's paper it is, for the window title. */
+  category: string | null;
 }
 
 /**
@@ -416,6 +418,7 @@ async function readHeader(
     imageWidthPct: row.image_width_pct ?? undefined,
     studyImages: headerFeatures.studyImages,
     questionsPerPart: headerFeatures.questionsPerPart,
+    category: (row.category as string | null) ?? null,
   };
 }
 
@@ -429,5 +432,6 @@ export function headerOf(paper: WatchPaper): PaperHeader {
     imageWidthPct: paper.imageWidthPct,
     studyImages: resolveFeatures(paper.features).studyImages,
     questionsPerPart: resolveFeatures(paper.features).questionsPerPart,
+    category: paper.category ?? null,
   };
 }

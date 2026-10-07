@@ -4,7 +4,9 @@ import { WatchTableExam } from "@/components/wt/WatchTableExam";
 import { FigureExam } from "@/components/wt/FigureExam";
 import { ExamChromeProvider } from "@/components/wt/ExamChrome";
 import { NoPrint } from "@/components/NoPrint";
-import { CATEGORIES } from "@/lib/wt/categories";
+import type { Metadata } from "next";
+import { CATEGORIES, testNameOf } from "@/lib/wt/categories";
+import { headerOf, loadPaperHeader } from "@/lib/wt/db";
 import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
 import { openSitting } from "@/lib/wt/session";
@@ -13,6 +15,22 @@ import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { currentMockStep, mockSummary as mockSummaryOf, type MockStep } from "@/lib/wt/mock";
 import { photoUrlOf } from "@/lib/photo";
+
+
+/** The window's title while a paper is open: the test's name, as the hall writes it. */
+export async function generateMetadata({ params }: { params: Promise<{ paperId: string }> }): Promise<Metadata> {
+  const { paperId } = await params;
+  const header = isConfigured()
+    ? await loadPaperHeader(paperId).catch(() => null)
+    : (() => {
+        const bundled = getBundledPaper(paperId);
+        return bundled ? headerOf(bundled) : null;
+      })();
+  if (!header) return {};
+  const battery = CATEGORIES.find((c) => c.id === header.category)?.battery ?? (header.kind === "figure" ? null : 2);
+  const name = testNameOf(battery, header.displayName);
+  return { title: `${battery ? `Test ${battery} - ` : ""}${name} | KAUTILYA CLASSES` };
+}
 
 export default async function WatchTablePage({
   params,

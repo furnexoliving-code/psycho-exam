@@ -4,6 +4,7 @@ import { clock } from "./PortalToolbar";
 import { TestTabs } from "./TestTabs";
 import { PhotoBox } from "./PhotoBox";
 import { useExamChrome } from "./ExamChrome";
+import { testNameOf } from "@/lib/wt/categories";
 
 /**
  * The grey panel under the charcoal bar, laid out as the hall screen is:
@@ -50,16 +51,20 @@ export function ExamTop({
   sections?: React.ReactNode;
 }) {
   const urgent = secondsLeft <= 60;
-  const { photoUrl } = useExamChrome();
+  const { photoUrl, battery } = useExamChrome();
+  // The hall names every test by its battery; a paper's own title (set
+  // when it was uploaded) is not what the tabs and chips show.
+  const testName = testNameOf(battery, title);
+  const named = tabs.map((t) => ({ ...t, label: t.label.split(title).join(testName) }));
   return (
     <div className="grid grid-cols-[1fr_auto] border-b border-[#dcdcdc] bg-[#eeeeee] font-exam">
       <div className="min-w-0">
-        <TestTabs tabs={tabs} activeId={activeId} title={title} />
+        <TestTabs tabs={named} activeId={activeId} title={testName} />
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 pb-2 pt-0.5">
           <div>
             <div className="text-[11px] font-semibold text-[#333]">Sections</div>
             <div className="mt-1 flex flex-wrap gap-2">
-              {sections ?? <SectionChip>{title}</SectionChip>}
+              {sections ?? <SectionChip>{testName}</SectionChip>}
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3 self-end">

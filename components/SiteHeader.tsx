@@ -1,37 +1,34 @@
 import Link from "next/link";
 
-/** The KAUTILYA CLASSES masthead used outside the exam screen. */
-export function SiteHeader({
-  right,
-}: {
-  right?: React.ReactNode;
-}) {
+/**
+ * The portal's plain masthead, for the pages outside the exam and the
+ * student's own pages: the institute's mark, the portal's name, and a
+ * slot on the right for whatever the page needs (the admin's name and
+ * sign-out, say). White and plain, as a professional portal is; the exam
+ * screen keeps its own hall-style header.
+ */
+export function SiteHeader({ right }: { right?: React.ReactNode }) {
   return (
-    <header className="flex h-[52px] items-stretch bg-rrb-teal text-white">
-      <Link
-        href="/"
-        className="flex w-[110px] shrink-0 items-center justify-center bg-gradient-to-r from-emerald-500 to-emerald-400 px-2 sm:w-[180px] sm:px-3"
-      >
-        <span className="text-[13px] font-bold leading-tight tracking-wide">
-          KAUTILYA
-          <span className="block text-[9px] font-medium opacity-90">CLASSES</span>
-        </span>
-      </Link>
-
-      {/* min-w-0 lets the middle give way on a phone instead of pushing the
-          page wider than the screen. */}
-      <div className="flex min-w-0 flex-1 items-center justify-center bg-rrb-banner px-2 sm:px-4">
-        <div className="min-w-0 text-center">
-          <div className="truncate text-[11px] font-bold uppercase tracking-[0.08em] sm:text-[15px] sm:tracking-[0.18em] md:text-lg">
-            Railway Recruitment Board
-          </div>
-          <div className="mx-auto mt-0.5 hidden bg-white/15 px-2 py-px text-[9px] font-semibold uppercase tracking-widest sm:inline-block">
-            Computer Based Aptitude Test
-          </div>
-        </div>
+    <header className="bg-white shadow-[0_1px_8px_rgba(13,42,107,0.06)]">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:px-5">
+        <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/kautilya-logo.png" alt="Kautilya Classes" className="h-10 w-auto" draggable={false} />
+          <span className="min-w-0 leading-none">
+            <span className="block truncate text-[15px] font-bold text-[#0d2a6b]">KAUTILYA CLASSES</span>
+            <span className="mt-1 block truncate text-[8.5px] font-bold tracking-[0.2em] text-[#c8102e]">
+              RAILWAY PSYCHO TEST PORTAL
+            </span>
+          </span>
+        </Link>
+        <span className="ml-auto hidden text-[11px] font-bold tracking-wider text-[#0d2a6b] md:block">AS PER RDSO PATTERN · RRB ALP CBAT</span>
+        {right && <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-4">{right}</div>}
       </div>
-
-      <div className="flex shrink-0 items-center gap-2 bg-rrb-bannerDark px-2 sm:px-4">{right}</div>
+      <div
+        className="h-[3px]"
+        style={{ background: "linear-gradient(90deg,#ff9933 33%,#ffffff 33% 66%,#138808 66%)" }}
+        aria-hidden="true"
+      />
     </header>
   );
 }

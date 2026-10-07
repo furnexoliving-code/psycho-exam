@@ -88,6 +88,11 @@ export const CATEGORIES = [
   blurb: string;
 }[];
 
+/** The battery's own name, as the hall screen writes it: the name of every test in it. */
+export function testNameOf(battery: number | null | undefined, fallback = ""): string {
+  return BATTERIES.find((b) => b.id === battery)?.title ?? fallback;
+}
+
 export type CategoryId = (typeof CATEGORIES)[number]["id"];
 
 export function categoryTitle(id: string): string {

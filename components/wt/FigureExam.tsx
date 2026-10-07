@@ -12,6 +12,7 @@ import { Instructions, InstructionsDialog } from "./Instructions";
 import { ConfirmBox } from "./ConfirmBox";
 import { ExamSummaryList } from "./ExamSummary";
 import { useExamChrome } from "./ExamChrome";
+import { testNameOf } from "@/lib/wt/categories";
 import { ScrollRail } from "./ScrollRail";
 
 /**
@@ -58,6 +59,8 @@ export function FigureExam({
 
   const onTest = state.phase === "test";
   const features = resolveFeatures(paper.features);
+  const { battery, mockSummary } = useExamChrome();
+  const testName = testNameOf(battery, paper.title);
   const fontScale = paper.fontScale ?? 1;
   // How large the pictures are drawn: the paper's own setting, else the
   // test's usual size.
@@ -173,7 +176,6 @@ export function FigureExam({
   }, [state, paper.id]);
 
   const unanswered = paper.questions.length - answered;
-  const { battery, mockSummary } = useExamChrome();
   const lastPart = part >= partCount - 1;
 
   return (
@@ -185,7 +187,7 @@ export function FigureExam({
         onInstructions={() => setInstructionsOpen(true)}
       />
       <ExamTop
-        title={paper.title}
+        title={testName}
         paperName={paper.displayName}
         label={
           !onTest
@@ -214,10 +216,10 @@ export function FigureExam({
         // as the real test's top strip has one per group.
         activeId={scheduled && onTest ? `part-${part}` : state.phase}
         tabs={[
-          { id: "instructions", label: `${paper.title} Instructions` },
+          { id: "instructions", label: `${testName} Instructions` },
           ...(scheduled
-            ? parts.map((_, p) => ({ id: `part-${p}`, label: `${paper.title}-${p + 1}` }))
-            : [{ id: "test", label: paper.title }]),
+            ? parts.map((_, p) => ({ id: `part-${p}`, label: `${testName}-${p + 1}` }))
+            : [{ id: "test", label: testName }]),
         ]}
         // The Sections row: on a schedule the one group on screen, as the
         // real test names it ("Memory Test (Part 1)"); otherwise a chip per
@@ -228,7 +230,7 @@ export function FigureExam({
                 const p = scheduled ? part : i;
                 return (
                   <SectionChip key={p} active={p === part} disabled={scheduled} onClick={() => goToPart(p)}>
-                    {scheduled ? `${paper.title} (Part ${p + 1})` : `Part ${p + 1}`}
+                    {scheduled ? `${testName} (Part ${p + 1})` : `Part ${p + 1}`}
                   </SectionChip>
                 );
               })
@@ -253,7 +255,7 @@ export function FigureExam({
               // timer in the toolbar above.
               <div className="-mx-5 -mt-4">
                 <div className="border-b border-[#dcdcdc] bg-[#e9ecef] px-5 py-2 text-center text-[1.05em] text-[#333]">
-                  Group Instructions: {paper.title} (Part {part + 1})
+                  Group Instructions: {testName} (Part {part + 1})
                 </div>
                 <div className="px-5 pt-3">
                   <p className="text-[0.85em] text-[#333]">
@@ -288,7 +290,7 @@ export function FigureExam({
                 <h3 className="mt-3 text-center text-[1em] font-semibold text-[#222]">Exam Summary</h3>
                 <div className="px-5 pt-3">
                   <p className="text-[0.8em] font-semibold text-[#222]">
-                    {paper.title} (Part {part + 1}) : ( Attempted Group ; View not allowed; Edit not allowed )
+                    {testName} (Part {part + 1}) : ( Attempted Group ; View not allowed; Edit not allowed )
                   </p>
                   <table className="mt-2 w-full border-collapse text-center text-[0.8em]">
                     <thead>
@@ -305,7 +307,7 @@ export function FigureExam({
                         const done = group.filter((q) => state.answers[q.id] !== null && state.answers[q.id] !== undefined).length;
                         return (
                           <tr className="bg-white text-[#222]">
-                            <td className="border border-[#999] px-3 py-1.5">{paper.title} (Part {part + 1})</td>
+                            <td className="border border-[#999] px-3 py-1.5">{testName} (Part {part + 1})</td>
                             <td className="border border-[#999] px-3 py-1.5">{group.length}</td>
                             <td className="border border-[#999] px-3 py-1.5">{done}</td>
                             <td className="border border-[#999] px-3 py-1.5">{group.length - done}</td>
@@ -315,7 +317,7 @@ export function FigureExam({
                     </tbody>
                   </table>
                   <p className="mt-4 text-[0.8em] font-semibold text-[#222]">
-                    {paper.title} (Part {part + 2}) : ( Yet to attempt )
+                    {testName} (Part {part + 2}) : ( Yet to attempt )
                   </p>
                   {mockSummary && (
                     <div className="mt-4">

@@ -332,7 +332,8 @@ export async function mockSummary(papers: MockPaper[], attemptIds: string[], fin
     const features = resolveFeatures((row?.features ?? {}) as WatchFeatures);
     const qids = (questions ?? []).filter((q) => q.paper_id === paper.id).map((q) => q.id as string);
     const answered = new Set(Object.keys((attemptById.get(attemptIds[i] ?? "")?.responses as Record<string, unknown> | null) ?? {}));
-    const ownTitle = (row?.title as string) ?? title;
+    // The hall names the group by the battery, whatever the paper was called.
+    const ownTitle = title;
 
     // A picture paper is shown in parts, and the hall lists each part as its
     // own group; a Following Directions paper is one group.

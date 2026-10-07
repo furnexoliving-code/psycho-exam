@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { CATEGORIES, testNameOf } from "@/lib/wt/categories";
 import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { headerOf, loadPaperHeader, loadPaperHeaderLive } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
@@ -6,6 +8,22 @@ import { ResultView } from "./ResultView";
 import { NoPrint } from "@/components/NoPrint";
 import { currentMockStep } from "@/lib/wt/mock";
 import { photoUrlOf } from "@/lib/photo";
+
+
+/** The window's title on a result: the test's name, then Result. */
+export async function generateMetadata({ params }: { params: Promise<{ paperId: string }> }): Promise<Metadata> {
+  const { paperId } = await params;
+  const header = isConfigured()
+    ? await loadPaperHeader(paperId).catch(() => null)
+    : (() => {
+        const bundled = getBundledPaper(paperId);
+        return bundled ? headerOf(bundled) : null;
+      })();
+  if (!header) return {};
+  const battery = CATEGORIES.find((c) => c.id === header.category)?.battery ?? (header.kind === "figure" ? null : 2);
+  const name = testNameOf(battery, header.displayName);
+  return { title: `${battery ? `Test ${battery} - ` : ""}${name} · Result | KAUTILYA CLASSES` };
+}
 
 export default async function ResultPage({
   params,

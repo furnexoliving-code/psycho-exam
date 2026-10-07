@@ -4,6 +4,8 @@ import { useRef } from "react";
 import { shownTimeLimitMin } from "@/lib/wt/schedule";
 import type { InstructionBlock, WatchPaper } from "@/lib/wt/types";
 import { ScrollRail } from "./ScrollRail";
+import { useExamChrome } from "./ExamChrome";
+import { testNameOf } from "@/lib/wt/categories";
 
 /**
  * The instruction content, in the portal's two-column English | Hindi layout.
@@ -13,11 +15,13 @@ import { ScrollRail } from "./ScrollRail";
  * copy of this text so the two can never drift apart.
  */
 export function InstructionsBody({ paper }: { paper: WatchPaper }) {
+  const { battery } = useExamChrome();
+  const name = testNameOf(battery, paper.title);
   return (
     <div className="grid grid-cols-1 divide-x divide-gray-200 xl:grid-cols-2">
       {(["en", "hi"] as const).map((lang) => (
         <div key={lang} className="px-6 py-5" lang={lang}>
-          <h2 className="text-[19px] font-bold text-[#494949]">{paper.title}</h2>
+          <h2 className="text-[19px] font-bold text-[#494949]">{name}</h2>
 
           <dl className="mt-3 space-y-1 text-[15px] text-[#494949]">
             <div className="flex gap-2">
