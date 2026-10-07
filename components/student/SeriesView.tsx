@@ -11,6 +11,8 @@ export interface PaperStat {
   bestMarks: number | null;
   total: number | null;
   lastAt: string | null;
+  /** The best T-score on this paper; null before one can be measured. */
+  bestT: number | null;
 }
 
 export interface SeriesInput {
@@ -20,9 +22,10 @@ export interface SeriesInput {
   stats: Map<string, PaperStat>;
   /** The other series of the same battery, for moving sideways. */
   siblings: { name: string; slug: string }[];
+  stages: { pass: number; average: number; target: number };
 }
 
-export function SeriesView({ profile, series, allowances, stats, siblings }: SeriesInput) {
+export function SeriesView({ profile, series, allowances, stats, siblings, stages }: SeriesInput) {
   const battery = BATTERIES.find((b) => b.id === series.battery);
   const sat = series.papers.filter((p) => (stats.get(p.id)?.sat ?? 0) > 0).length;
 
@@ -56,7 +59,12 @@ export function SeriesView({ profile, series, allowances, stats, siblings }: Ser
           )}
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-sm">
+        <p className="mt-3 text-[11px] text-gray-500">
+          Best T-Score: <span className="rounded-full bg-red-50 px-1.5 py-0.5 font-bold text-red-700">below {stages.pass}</span>{" "}
+          <span className="rounded-full bg-amber-50 px-1.5 py-0.5 font-bold text-amber-700">{stages.pass} to {stages.target - 1} · passed</span>{" "}
+          <span className="rounded-full bg-green-50 px-1.5 py-0.5 font-bold text-green-700">{stages.target}+ · target</span>
+        </p>
+        <div className="mt-2 overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-sm">
           <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr className="bg-[#f8fafc] text-left text-[11px] uppercase tracking-wide text-gray-500">
@@ -64,6 +72,7 @@ export function SeriesView({ profile, series, allowances, stats, siblings }: Ser
                 <th className="px-4 py-2.5 font-semibold">Paper</th>
                 <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">Questions · time</th>
                 <th className="px-4 py-2.5 font-semibold">Your best</th>
+                <th className="px-4 py-2.5 font-semibold">Best T-Score</th>
                 <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">Attempts used</th>
                 <th className="px-4 py-2.5" />
               </tr>
@@ -84,6 +93,17 @@ export function SeriesView({ profile, series, allowances, stats, siblings }: Ser
                     <td className="px-4 py-3">
                       {done && st?.bestMarks !== null && st?.bestMarks !== undefined ? (
                         <span className="font-bold tabular-nums text-gray-900">{st.bestMarks} / {st.total}</span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {st?.bestT !== null && st?.bestT !== undefined ? (
+                        <span className={`rounded-full px-2 py-0.5 text-[12px] font-bold tabular-nums ${st.bestT >= stages.target ? "bg-green-50 text-green-700" : st.bestT >= stages.pass ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
+                          {st.bestT.toFixed(1)}
+                        </span>
+                      ) : done ? (
+                        <span className="text-[11px] text-gray-400" title="Too few students on this paper yet to measure a T-score">not yet measured</span>
                       ) : (
                         <span className="text-gray-400">—</span>
                       )}

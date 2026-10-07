@@ -121,3 +121,41 @@ export function clearedBar(progress: BatteryProgress[], batteries: number[], bar
     return p !== undefined && p.bestT !== null && p.bestT >= bar;
   });
 }
+
+/**
+ * The student's best T-score on each of the papers named, measured the
+ * way the result page measures it (the paper's cohort, or its reference
+ * figures). Papers never sat, or not yet measurable, are absent.
+ */
+export async function paperBestT(userId: string, paperIds: string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (paperIds.length === 0) return out;
+  const supabase = createAdminClient();
+  const [{ data: attempts }, { data: papers }, { data: cohorts }] = await Promise.all([
+    supabase.from("watch_attempts").select("paper_id, marks, total").eq("user_id", userId).in("paper_id", paperIds).limit(3000),
+    supabase.from("watch_papers").select("id, stats_min_attempts, reference_mean, reference_sd").in("id", paperIds),
+    supabase.rpc("watch_cohorts", { p_papers: paperIds }),
+  ]);
+  const paperById = new Map((papers ?? []).map((p) => [p.id as string, p]));
+  const cohortRows = (cohorts as { paper_id: string; total: number; n: number; mean: number; sd: number }[] | null) ?? [];
+  for (const a of attempts ?? []) {
+    const paper = paperById.get(a.paper_id as string);
+    if (!paper) continue;
+    const total = Number(a.total);
+    const c = cohortRows.find((r) => r.paper_id === a.paper_id && Number(r.total) === total);
+    const cohort = cohortFromMoments(
+      c ? { n: Number(c.n), mean: Number(c.mean), sd: Number(c.sd) } : { n: 0, mean: 0, sd: 0 },
+      {
+        stats_min_attempts: paper.stats_min_attempts as number | null,
+        reference_mean: paper.reference_mean as number | null,
+        reference_sd: paper.reference_sd as number | null,
+      },
+    );
+    const t = tScore(Number(a.marks), cohort);
+    if (!t) continue;
+    const value = Number(t.value.toFixed(1));
+    const best = out.get(a.paper_id as string);
+    if (best === undefined || value > best) out.set(a.paper_id as string, value);
+  }
+  return out;
+}
