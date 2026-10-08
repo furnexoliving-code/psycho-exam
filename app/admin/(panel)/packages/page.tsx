@@ -24,7 +24,8 @@ export default async function PackagesAdminPage() {
     <>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl font-bold text-gray-900">Packages</h1>
-        <Link href="/admin/orders" className="ml-auto rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100">Orders & payments</Link>
+        <Link href="/admin/coupons" className="ml-auto rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100">Coupon codes</Link>
+        <Link href="/admin/orders" className=" rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100">Orders & payments</Link>
         <Link href="/packages" target="_blank" className="rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100">See the packages page ↗</Link>
       </div>
       <p className="mt-1 text-[13px] text-gray-600">

@@ -3,6 +3,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://kautilyaonline.com"),
+  // Google Search Console: paste the code from "HTML tag" verification
+  // into GOOGLE_SITE_VERIFICATION in Vercel; nothing shows without it.
+  verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
   title: "KAUTILYA CLASSES | RAILWAY PSYCHO TEST PORTAL",
   // Only the front page overrides this: everything behind the login stays
   // out of search engines.

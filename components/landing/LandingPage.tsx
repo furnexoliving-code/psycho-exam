@@ -5,6 +5,7 @@ import exam from "@/public/landing/exam.jpg";
 import result from "@/public/landing/result.jpg";
 import mocks from "@/public/landing/mocks.jpg";
 import { KIND_LABEL, rupees, type Package } from "@/lib/packages";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 /**
  * The public front page: what the portal is, for whom, and how to join.
@@ -21,11 +22,11 @@ export const CONTACT = {
 };
 
 export const TESTS = [
-  { n: 1, en: "Memory Test", hi: "स्मृति परीक्षण", what: "Study pictures for a minute, then recall them from memory." },
-  { n: 2, en: "Following Directions Test", hi: "निर्देश पालन परीक्षण", what: "Watch, Letter and Number Tables: read the rule, find the answer." },
-  { n: 3, en: "Depth Perception Test", hi: "गहराई बोध परीक्षण", what: "Count the hidden cubes in a stacked figure." },
-  { n: 4, en: "Power of Observation Test", hi: "अवलोकन शक्ति परीक्षण", what: "Spot how a figure is placed or what has changed." },
-  { n: 5, en: "Perceptual Speed Test", hi: "प्रत्यक्ष गति परीक्षण", what: "Match the same figure fast, against the clock." },
+  { n: 1, slug: "memory-test", en: "Memory Test", hi: "स्मृति परीक्षण", what: "Study pictures for a minute, then recall them from memory." },
+  { n: 2, slug: "following-directions-test", en: "Following Directions Test", hi: "निर्देश पालन परीक्षण", what: "Watch, Letter and Number Tables: read the rule, find the answer." },
+  { n: 3, slug: "depth-perception-test", en: "Depth Perception Test", hi: "गहराई बोध परीक्षण", what: "Count the hidden cubes in a stacked figure." },
+  { n: 4, slug: "power-of-observation-test", en: "Power of Observation Test", hi: "अवलोकन शक्ति परीक्षण", what: "Spot how a figure is placed or what has changed." },
+  { n: 5, slug: "perceptual-speed-test", en: "Perceptual Speed Test", hi: "प्रत्यक्ष गति परीक्षण", what: "Match the same figure fast, against the clock." },
 ];
 
 export const SERIES = [
@@ -113,8 +114,8 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
               <Link href="/signup" className="rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b] shadow hover:brightness-95" style={{ background: Y }}>
                 Create free account · try a Full Mock
               </Link>
-              <Link href="/login" className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
-                Student Login
+              <Link href="/demo" className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
+                Try a 2-minute sample test, no login
               </Link>
             </div>
             <p className="mt-4 text-[13px] text-[#9fb0d4]">One free Full Mock for every account · Packages from {packages.length ? rupees(Math.min(...packages.map((p) => p.priceInr))) : "₹399"} · New papers every week</p>
@@ -155,7 +156,9 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
               <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${s.status === "live" ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"}`}>
                 {s.status === "live" ? "Available now" : "Coming soon"}
               </span>
-              <h3 className="mt-3 text-[19px] font-bold text-gray-900">{s.name}</h3>
+              <h3 className="mt-3 text-[19px] font-bold text-gray-900">
+                {s.status === "live" ? <Link href="/rrb-alp-psycho-test" className="hover:underline">{s.name}</Link> : s.name}
+              </h3>
               <p className="text-[14px] text-gray-500" lang="hi">{s.hi} · {s.exam}</p>
               <p className="mt-3 text-[14px] text-gray-700">{s.note}</p>
               {s.status === "live" ? (
@@ -179,12 +182,13 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
           <h2 className="mt-2 text-[28px] font-extrabold text-gray-900 sm:text-[34px]">Every test of the RRB ALP CBAT, in the same order</h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {TESTS.map((t) => (
-              <div key={t.n} className="rounded-xl border-t-4 bg-white p-5 shadow-sm" style={{ borderColor: Y }}>
+              <Link key={t.n} href={`/psycho-test/${t.slug}`} className="rounded-xl border-t-4 bg-white p-5 shadow-sm hover:shadow-md" style={{ borderColor: Y }}>
                 <div className="text-[28px] font-extrabold" style={{ color: Y }}>0{t.n}</div>
                 <h3 className="mt-1 text-[16px] font-bold leading-tight text-gray-900">{t.en}</h3>
                 <p className="text-[13px] text-gray-500" lang="hi">{t.hi}</p>
                 <p className="mt-2 text-[13px] text-gray-700">{t.what}</p>
-              </div>
+                <p className="mt-2 text-[12px] font-bold text-[#0d2a6b]">Pattern, tips & sample →</p>
+              </Link>
             ))}
           </div>
           <p className="mt-6 text-[14px] text-gray-600">
@@ -380,7 +384,8 @@ export function PublicHeader() {
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-gray-200 bg-gray-50">
+    <footer className="border-t border-gray-200 bg-gray-50 pb-16 md:pb-0">
+      <WhatsAppButton />
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 md:grid-cols-3">
         <div>
           <div className="text-[15px] font-bold text-[#0d2a6b]">KAUTILYA CLASSES</div>
@@ -399,6 +404,8 @@ export function PublicFooter() {
             <li><a href="#test-series" className="hover:underline">Test series</a></li>
             <li><a href="#faq" className="hover:underline">FAQ</a></li>
             <li><Link href="/packages" className="hover:underline">Packages & prices</Link></li>
+            <li><Link href="/rrb-alp-psycho-test" className="hover:underline">RRB ALP psycho test guide</Link></li>
+            <li><Link href="/demo" className="hover:underline">Free sample test</Link></li>
             <li><Link href="/blog" className="hover:underline">Articles & guides</Link></li>
             <li><Link href="/terms" className="hover:underline">Terms of Use</Link></li>
             <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>

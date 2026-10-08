@@ -13,6 +13,7 @@ const NAV: { href: string; label: string; section: Section }[] = [
   { href: "/admin/results", label: "Results", section: "results" },
   { href: "/admin/reports", label: "Question reports", section: "papers" },
   { href: "/admin/packages", label: "Packages", section: "admin" },
+  { href: "/admin/coupons", label: "Coupons", section: "admin" },
   { href: "/admin/blog", label: "Blog", section: "admin" },
   { href: "/admin/passwords", label: "Reset a password", section: "passwords" },
   { href: "/admin/team", label: "Team & Activity", section: "admin" },

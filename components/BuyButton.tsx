@@ -22,7 +22,7 @@ function loadCheckout(): Promise<void> {
 }
 
 /** Buys a package: opens Razorpay's checkout, then confirms the payment on the server. */
-export function BuyButton({ slug, label, className }: { slug: string; label: string; className: string }) {
+export function BuyButton({ slug, label, className, coupon = "" }: { slug: string; label: string; className: string; coupon?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export function BuyButton({ slug, label, className }: { slug: string; label: str
     setBusy(true);
     setError(null);
     try {
-      const start = await startCheckout(slug);
+      const start = await startCheckout(slug, coupon);
       if (!start.ok) {
         setError(start.error);
         return;

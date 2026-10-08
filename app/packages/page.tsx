@@ -6,6 +6,7 @@ import { photoUrlOf } from "@/lib/photo";
 import { accessFor, enrollmentActive, listPackages } from "@/lib/packages";
 import { PackagesView } from "@/components/student/PackagesView";
 import { razorpayConfigured } from "@/lib/razorpay";
+import { couponProblem, discounted, loadCoupon, normaliseCode } from "@/lib/coupons";
 import { listPublishedMocks } from "@/lib/wt/mock";
 
 export const metadata: Metadata = {
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
  * sees prices and a sign-up button; a signed-in student sees Buy, or
  * "Active" on what they already hold.
  */
-export default async function PackagesPage({ searchParams }: { searchParams: Promise<{ paid?: string }> }) {
-  const { paid } = await searchParams;
+export default async function PackagesPage({ searchParams }: { searchParams: Promise<{ paid?: string; coupon?: string }> }) {
+  const { paid, coupon: couponRaw } = await searchParams;
   const profile = isConfigured() ? await getProfile() : null;
   const [packages, mocks, access] = await Promise.all([
     listPackages("alp"),
@@ -33,6 +34,20 @@ export default async function PackagesPage({ searchParams }: { searchParams: Pro
   const online = razorpayConfigured();
   const held = new Map((access?.enrollments ?? []).filter(enrollmentActive).map((e) => [e.package.id, e]));
 
+  // A code typed on the page: the price it gives each package, or why not.
+  let coupon: { code: string; message: string | null; prices: Map<string, { price: number; discount: number }> } | null = null;
+  if (couponRaw && normaliseCode(couponRaw)) {
+    const code = normaliseCode(couponRaw);
+    const found = await loadCoupon(code);
+    const prices = new Map<string, { price: number; discount: number }>();
+    let message: string | null = found ? couponProblem(found) : "No such code.";
+    if (found && !message) {
+      for (const p of packages) if (!couponProblem(found, p)) prices.set(p.id, discounted(found, p.priceInr));
+      if (prices.size === 0) message = `This code works only on ${found.packageSlug?.replace(/-/g, " ") ?? "another package"}.`;
+    }
+    coupon = { code, message, prices };
+  }
+
   const view = (
     <PackagesView
       profile={profile ? { full_name: profile.full_name } : null}
@@ -41,6 +56,7 @@ export default async function PackagesPage({ searchParams }: { searchParams: Pro
       online={online}
       held={held}
       paid={Boolean(paid)}
+      coupon={coupon}
     />
   );
 

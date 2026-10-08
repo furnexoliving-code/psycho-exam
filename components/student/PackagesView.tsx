@@ -22,10 +22,12 @@ export interface PackagesInput {
   /** The student's active enrollments, by package id. */
   held: Map<string, Enrollment>;
   paid: boolean;
+  /** The code typed on the page, checked: the price it gives per package, or why it does not. */
+  coupon?: { code: string; message: string | null; prices: Map<string, { price: number; discount: number }> } | null;
 }
 
 /** The packages on sale and the free mock; the markup alone, drawn from what the page loaded. */
-export function PackagesView({ profile, packages, freeMock, online, held, paid }: PackagesInput) {
+export function PackagesView({ profile, packages, freeMock, online, held, paid, coupon = null }: PackagesInput) {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">
       {paid && (
@@ -65,8 +67,22 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid }
         )}
       </section>
 
+      {/* Coupon */}
+      <form method="get" action="/packages" className="mt-6 flex flex-wrap items-end gap-2">
+        <label className="block">
+          <span className="mb-1 block text-[12px] font-semibold text-gray-700">Have a coupon code? <span lang="hi">कूपन कोड?</span></span>
+          <input name="coupon" defaultValue={coupon?.code ?? ""} placeholder="KAUTILYA100" className="w-48 rounded-md border border-gray-400 px-3 py-2 text-[14px] uppercase" />
+        </label>
+        <button type="submit" className="rounded-md border border-[#0d2a6b] px-4 py-2 text-[14px] font-bold text-[#0d2a6b] hover:bg-[#eef2fb]">Apply</button>
+        {coupon && (
+          <span className={`text-[13px] font-semibold ${coupon.message ? "text-red-700" : "text-green-700"}`}>
+            {coupon.message ?? `✓ Code ${coupon.code} applied`}
+          </span>
+        )}
+      </form>
+
       {/* Packages */}
-      <div className="mt-8 grid gap-5 md:grid-cols-3">
+      <div className="mt-6 grid gap-5 md:grid-cols-3">
         {packages.length === 0 && (
           <p className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-[14px] text-gray-500 md:col-span-3">
             Packages will be listed here soon. Ask at the office or on WhatsApp.
@@ -75,6 +91,8 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid }
         {packages.map((p) => {
           const mine = held.get(p.id) ?? null;
           const best = p.kind === "combo";
+          const off = coupon?.prices.get(p.id) ?? null;
+          const price = off ? off.price : p.priceInr;
           return (
             <section
               key={p.id}
@@ -90,8 +108,13 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid }
               <h2 className="mt-1 text-[22px] font-extrabold leading-tight text-gray-900">{p.name}</h2>
               {p.nameHi && <p className="text-[13px] text-gray-500" lang="hi">{p.nameHi}</p>}
               <div className="mt-4 flex items-baseline gap-2">
-                <span className="text-[36px] font-extrabold text-[#0d2a6b]">{rupees(p.priceInr)}</span>
-                {p.mrpInr && p.mrpInr > p.priceInr && <span className="text-[15px] text-gray-400 line-through">{rupees(p.mrpInr)}</span>}
+                <span className="text-[36px] font-extrabold text-[#0d2a6b]">{rupees(price)}</span>
+                {off ? (
+                  <span className="text-[15px] text-gray-400 line-through">{rupees(p.priceInr)}</span>
+                ) : (
+                  p.mrpInr && p.mrpInr > p.priceInr && <span className="text-[15px] text-gray-400 line-through">{rupees(p.mrpInr)}</span>
+                )}
+                {off && <span className="rounded bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-800">−{rupees(off.discount)} with {coupon?.code}</span>}
               </div>
               <p className="text-[12px] text-gray-500">{p.validityDays ? `Valid ${p.validityDays} days from purchase` : "No expiry"} · incl. all taxes</p>
               <ul className="mt-4 flex-1 space-y-1.5 text-[14px] text-gray-700">
@@ -113,10 +136,10 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid }
                     Create account to buy
                   </Link>
                 ) : online ? (
-                  <BuyButton slug={p.slug} label={`Buy · ${rupees(p.priceInr)}`} className={`w-full rounded-md px-4 py-3 text-center text-[14px] font-bold disabled:opacity-60 ${best ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`} />
+                  <BuyButton slug={p.slug} coupon={off ? coupon?.code : ""} label={`Buy · ${rupees(price)}`} className={`w-full rounded-md px-4 py-3 text-center text-[14px] font-bold disabled:opacity-60 ${best ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`} />
                 ) : (
                   <a href={CONTACT.whatsapp} className={`block rounded-md px-4 py-3 text-center text-[14px] font-bold ${best ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>
-                    Buy on WhatsApp · {rupees(p.priceInr)}
+                    Buy on WhatsApp · {rupees(price)}
                   </a>
                 )}
               </div>

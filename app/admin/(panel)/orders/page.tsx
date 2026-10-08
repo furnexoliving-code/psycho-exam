@@ -40,7 +40,7 @@ export default async function OrdersPage() {
                 <span className="block text-gray-500">{o.phone}</span>
               </td>
               <td className="border border-gray-300 px-2 py-1.5">{o.packageName}</td>
-              <td className="border border-gray-300 px-2 py-1.5 tabular-nums">{rupees(o.amountInr)}</td>
+              <td className="border border-gray-300 px-2 py-1.5 tabular-nums">{rupees(o.amountInr)}{o.couponCode ? <span className="block text-[10px] text-green-700">{o.couponCode} −{rupees(o.discountInr)}</span> : null}</td>
               <td className="border border-gray-300 px-2 py-1.5">
                 <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${o.status === "paid" ? "bg-green-100 text-green-800" : o.status === "failed" ? "bg-red-100 text-red-800" : "bg-gray-200 text-gray-700"}`}>{o.status}</span>
               </td>

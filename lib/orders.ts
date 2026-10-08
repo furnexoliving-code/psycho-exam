@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { grantEnrollment, loadPackage, type Package } from "@/lib/packages";
+import { countCouponUse } from "@/lib/coupons";
 
 export interface Order {
   id: string;
@@ -11,6 +12,8 @@ export interface Order {
   gatewayPaymentId: string | null;
   createdAt: string;
   paidAt: string | null;
+  couponCode: string | null;
+  discountInr: number;
 }
 
 interface OrderRow {
@@ -23,9 +26,11 @@ interface OrderRow {
   gateway_payment_id: string | null;
   created_at: string;
   paid_at: string | null;
+  coupon_code?: string | null;
+  discount_inr?: number | null;
 }
 
-const COLUMNS = "id, user_id, package_id, amount_inr, status, gateway_order_id, gateway_payment_id, created_at, paid_at";
+const COLUMNS = "id, user_id, package_id, amount_inr, status, gateway_order_id, gateway_payment_id, created_at, paid_at, coupon_code, discount_inr";
 
 function toOrder(r: OrderRow): Order {
   return {
@@ -38,14 +43,16 @@ function toOrder(r: OrderRow): Order {
     gatewayPaymentId: r.gateway_payment_id,
     createdAt: r.created_at,
     paidAt: r.paid_at,
+    couponCode: r.coupon_code ?? null,
+    discountInr: Number(r.discount_inr ?? 0),
   };
 }
 
-/** Records a purchase about to be paid. */
-export async function createOrder(userId: string, pkg: Package): Promise<Order> {
+/** Records a purchase about to be paid, at the price after any code. */
+export async function createOrder(userId: string, pkg: Package, price: { amountInr: number; couponCode: string | null; discountInr: number }): Promise<Order> {
   const { data, error } = await createAdminClient()
     .from("orders")
-    .insert({ user_id: userId, package_id: pkg.id, amount_inr: pkg.priceInr, status: "created" })
+    .insert({ user_id: userId, package_id: pkg.id, amount_inr: price.amountInr, status: "created", coupon_code: price.couponCode, discount_inr: price.discountInr })
     .select(COLUMNS)
     .single();
   if (error) throw new Error(error.message);
@@ -88,7 +95,8 @@ export async function settlePaidOrder(order: Order, paymentId: string): Promise<
   const { data: row } = await supabase.from("packages").select("slug").eq("id", order.packageId).single();
   const pkg = row ? await loadPackage(row.slug as string) : null;
   if (!pkg) throw new Error("The package of this order no longer exists");
-  await grantEnrollment(order.userId, pkg, { source: "purchase", orderId: order.id, note: `Paid online · ${paymentId}` });
+  await grantEnrollment(order.userId, pkg, { source: "purchase", orderId: order.id, note: `Paid online · ${paymentId}${order.couponCode ? ` · code ${order.couponCode}` : ""}` });
+  if (order.couponCode) await countCouponUse(order.couponCode);
 }
 
 /** Every order, newest first, with the student's name and the package, for the panel. */

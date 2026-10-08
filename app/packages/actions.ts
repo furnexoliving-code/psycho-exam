@@ -5,27 +5,39 @@ import { loadPackage } from "@/lib/packages";
 import { createOrder, loadOrder, setGatewayOrder, settlePaidOrder } from "@/lib/orders";
 import { createRazorpayOrder, razorpayConfigured, razorpayKeyId, verifyPaymentSignature } from "@/lib/razorpay";
 import { logAction } from "@/lib/audit";
+import { applyCoupon } from "@/lib/coupons";
 
 export type CheckoutStart =
   | { ok: true; orderId: string; gatewayOrderId: string; amountInr: number; keyId: string; name: string; phone: string; packageName: string }
   | { ok: false; error: string };
 
 /** Makes the order, here and at Razorpay, and hands the checkout what it needs. */
-export async function startCheckout(slug: string): Promise<CheckoutStart> {
+export async function startCheckout(slug: string, couponCode = ""): Promise<CheckoutStart> {
   const who = await requireUser(`/packages`);
   if (!razorpayConfigured()) return { ok: false, error: "Online payment is not switched on yet. Pay at the office or on WhatsApp." };
   const pkg = await loadPackage(slug);
   if (!pkg || !pkg.isPublished) return { ok: false, error: "This package is not on sale." };
-  if (pkg.priceInr <= 0) return { ok: false, error: "This package is free; ask at the institute to add it." };
+  // The code is checked again here: the price the student saw is not trusted.
+  let amountInr = pkg.priceInr;
+  let discountInr = 0;
+  let code: string | null = null;
+  if (couponCode.trim()) {
+    const applied = await applyCoupon(couponCode, pkg);
+    if (!applied.ok) return { ok: false, error: applied.error };
+    amountInr = applied.price;
+    discountInr = applied.discount;
+    code = applied.coupon.code;
+  }
+  if (amountInr <= 0) return { ok: false, error: "This package is free with that code; ask at the institute to add it." };
   try {
-    const order = await createOrder(who.id, pkg);
-    const gw = await createRazorpayOrder(pkg.priceInr, order.id, { package: pkg.slug, user: who.id, phone: who.phone });
+    const order = await createOrder(who.id, pkg, { amountInr, couponCode: code, discountInr });
+    const gw = await createRazorpayOrder(amountInr, order.id, { package: pkg.slug, user: who.id, phone: who.phone, coupon: code ?? "" });
     await setGatewayOrder(order.id, gw.id);
     return {
       ok: true,
       orderId: order.id,
       gatewayOrderId: gw.id,
-      amountInr: pkg.priceInr,
+      amountInr,
       keyId: razorpayKeyId() as string,
       name: who.full_name,
       phone: who.phone,

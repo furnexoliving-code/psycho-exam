@@ -7,6 +7,11 @@ import { formatDateTime } from "@/lib/format-time";
 import { BATTERIES } from "@/lib/wt/categories";
 import { latestMockResult, loadMock, mockLeaderboard, mockMinutes, mockStanding } from "@/lib/wt/mock";
 import { MockScorecard } from "@/components/MockScorecard";
+import { ScorecardOffer } from "@/components/ScorecardOffer";
+import { accessFor, canPractice, listPackages } from "@/lib/packages";
+import { listPublishedPapers } from "@/lib/wt/db";
+import { batteryOf } from "@/lib/wt/series";
+import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 
 /** The scorecard: every test's T-score, the composite, the verdict and the rank. */
 export default async function MockResultPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -17,9 +22,33 @@ export default async function MockResultPage({ params }: { params: Promise<{ slu
   const { mock, papers } = loaded;
 
   const result = await latestMockResult(mock.id, who.id);
-  const [standing, leaders] = result
-    ? await Promise.all([mockStanding(mock.id, who.id), mockLeaderboard(mock.id, 10)])
-    : [null, []];
+  const [standing, leaders, access] = result
+    ? await Promise.all([mockStanding(mock.id, who.id), mockLeaderboard(mock.id, 10), accessFor(who.id, who.role)])
+    : [null, [], null];
+
+  // Without the practice papers, the scorecard ends with the way to them:
+  // the weakest test by name, and how many papers the portal has for it.
+  let offer: React.ReactNode = null;
+  if (result && access && !canPractice(access, "alp")) {
+    const [packages, papers, hidden] = await Promise.all([listPackages("alp"), listPublishedPapers(), hiddenBatteries()]);
+    const measured = result.tests.filter((t) => t.tScore !== null);
+    const weakest = (measured.length ? measured : result.tests).reduce<(typeof result.tests)[number] | null>((w, t) => (w === null || (t.tScore ?? 0) < (w.tScore ?? 0) ? t : w), null);
+    const battery = weakest?.battery ?? null;
+    const papersForIt = battery === null ? 0 : papers.filter((p) => !p.mockOnly && openToStudents(p.category, hidden) && batteryOf(p.category) === battery).length;
+    const sectional = packages.find((p) => p.kind === "sectional") ?? null;
+    const combo = packages.find((p) => p.kind === "combo") ?? null;
+    const name = battery === null ? weakest?.name ?? "" : (BATTERIES.find((b) => b.id === battery)?.title ?? weakest?.name ?? "");
+    offer = (
+      <ScorecardOffer
+        weakest={weakest ? { name, tScore: weakest.tScore } : null}
+        papersForIt={papersForIt}
+        cutOffT={mock.cutOffT}
+        sectional={sectional ? { name: sectional.name, priceInr: sectional.priceInr } : null}
+        combo={combo ? { name: combo.name, priceInr: combo.priceInr } : null}
+        hasFull={access.all || access.full.has("alp")}
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -52,6 +81,7 @@ export default async function MockResultPage({ params }: { params: Promise<{ slu
             myId={who.id}
           />
         )}
+        {offer}
       </main>
     </div>
   );
