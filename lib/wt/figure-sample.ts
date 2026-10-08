@@ -1,4 +1,5 @@
 import type { InstructionBlock } from "./types";
+import { yesNoQuestions } from "./yesno";
 
 /**
  * The instruction screen a new Perceptual Speed paper starts with: the
@@ -70,6 +71,14 @@ export function pictureInstructions(
         },
         ...timing,
       ];
+    case "yesno":
+      return [
+        {
+          en: "This is a test to find out how quickly you can compare two numbers and decide whether or not they are the same. In each question two numbers are given side by side. If the numbers are the same, select 'Y'; otherwise select 'N' by clicking the mouse.",
+          hi: "इस परीक्षण में आपको दिये गये दो अंक समूहों के बीच शीघ्रता से तुलना करनी है और यह तय करना है कि वे एक जैसे हैं या भिन्न। प्रत्येक प्रश्न में दो संख्याएँ आमने-सामने दी गई हैं। यदि अंक समान हैं तो माउस की सहायता से 'Y' चुनें, अन्यथा 'N' चुनें।",
+        },
+        ...timing,
+      ];
     case "observation":
       return [
         {
@@ -127,6 +136,19 @@ export function defaultOptionsFor(category: string): { style: OptionStyle; count
       return { style: "letters", count: DEFAULT_OPTION_COUNT };
   }
 }
+/** The worked example the Yes or No Test's instruction screen shows: the guideline's own five pairs. */
+export const YESNO_EXAMPLE_TEXT: InstructionBlock[] = [
+  { en: "1.   589 = 589", hi: "1.   589 = 589" },
+  { en: "2.   2768 = 2786", hi: "2.   2768 = 2786" },
+  { en: "3.   36463 = 36462", hi: "3.   36463 = 36462" },
+  { en: "4.   712963 = 712963", hi: "4.   712963 = 712963" },
+  { en: "5.   487562 = 487652", hi: "5.   487562 = 487652" },
+  {
+    en: "The answers for the above questions are 'Y', 'N', 'N', 'Y' and 'N'.",
+    hi: "ऊपर दिये गये प्रश्नों के सही उत्तर क्रमशः 'Y', 'N', 'N', 'Y' और 'N' हैं।",
+  },
+];
+
 /** The most pictures the panel sends the server in one call. */
 export const FIGURE_BATCH = 50;
 
@@ -327,6 +349,27 @@ export function depthSamplePaper() {
       topic: "Depth",
       image: scene(sizes),
     })),
+    resultView: {},
+  };
+}
+
+/** A Yes or No paper at the hall's size, built from a fixed seed, for seeing the screen before a database exists. */
+export const YESNO_SAMPLE_ID = "yes-or-no-sample";
+
+export function yesNoSamplePaper() {
+  return {
+    id: YESNO_SAMPLE_ID,
+    kind: "figure" as const,
+    category: "yesno",
+    title: "Yes or No Test",
+    displayName: "Yes or No Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 24 },
+    timeLimitMin: 4,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions("yesno", 4, 5),
+    example: { table: { label: "Example", cells: [] }, text: YESNO_EXAMPLE_TEXT },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions: yesNoQuestions({ seed: 20200101, count: 96 }, "yn"),
     resultView: {},
   };
 }

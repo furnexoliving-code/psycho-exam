@@ -8,6 +8,7 @@ import {
   deleteQuestion,
   importQuestions,
   regenerateQuestions,
+  regenerateYesNo,
   saveQuestion,
 } from "../actions";
 
@@ -22,13 +23,21 @@ Which letter is directly above the letter in row 2, column 3? | पंक्त�
  * "Build a sample set" exists only so a new paper shows what the format looks
  * like before anyone has typed anything.
  */
+const YESNO_FORMAT_HELP = `# left number = right number | (Hindi, leave empty) | Y,N | answer | topic
+48426 = 38436 | | Y,N | N | One digit differs
+591075 = 591075 | | Y,N | Y | Same numbers`;
+
 export function QuestionsPanel({
   slug,
   questions,
+  generator = "diagram",
 }: {
   slug: string;
   questions: WatchQuestion[];
+  /** What "build a set" builds: questions from the diagram, or the Yes or No Test's pairs of numbers. */
+  generator?: "diagram" | "yesno";
 }) {
+  const yesNo = generator === "yesno";
   const [tab, setTab] = useState<"upload" | "list">("upload");
   const [bulk, setBulk] = useState("");
   const [editing, setEditing] = useState<WatchQuestion | null>(null);
@@ -84,7 +93,7 @@ export function QuestionsPanel({
               One question per line, four fields separated by <code>|</code>
             </p>
             <pre className="mt-2 overflow-x-auto rounded bg-white p-3 text-[11px] leading-relaxed text-gray-700">
-{FORMAT_HELP}
+{yesNo ? YESNO_FORMAT_HELP : FORMAT_HELP}
             </pre>
             <ul className="mt-2 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
               <li>Leave the Hindi field empty if you do not need it — keep the two bars.</li>
@@ -164,6 +173,48 @@ export function QuestionsPanel({
 
           </SaveForm>
 
+          {yesNo ? (
+          <SaveForm
+            action={regenerateYesNo}
+            submitLabel="Build the pairs"
+            buttonClassName="rounded bg-indigo-800 px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60"
+            className="mt-6 border-t border-gray-200 pt-4"
+          >
+            <input type="hidden" name="slug" value={slug} />
+            <p className="text-[12px] font-semibold text-gray-800">
+              Build the pairs of numbers
+            </p>
+            <p className="mt-0.5 text-[11px] text-gray-600">
+              The portal makes the pairs itself: about half the same, the rest one digit off, two digits off,
+              two digits swapped, or the first or last digit changed, as the guideline&apos;s practice set is.
+              Every answer is worked out. Replaces whatever is there. The hall gives 96 pairs in 4 minutes.
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-4 text-[12px] text-gray-700">
+              <label className="flex items-center gap-2">
+                How many
+                <input
+                  name="count"
+                  type="number"
+                  min={1}
+                  max={200}
+                  defaultValue={96}
+                  className="w-[80px] rounded border border-gray-400 px-2 py-1.5 text-center text-[13px]"
+                />
+              </label>
+              <label className="flex items-center gap-2">
+                Seed (optional)
+                <input
+                  name="seed"
+                  type="number"
+                  min={0}
+                  placeholder="any number"
+                  className="w-[120px] rounded border border-gray-400 px-2 py-1.5 text-center text-[13px]"
+                />
+                <span className="text-[11px] text-gray-500">The same seed gives the same pairs again; blank for new ones.</span>
+              </label>
+            </div>
+          </SaveForm>
+          ) : (
           <SaveForm
             action={regenerateQuestions}
             submitLabel="Build a sample set"
@@ -191,6 +242,7 @@ export function QuestionsPanel({
               />
             </label>
           </SaveForm>
+          )}
         </div>
       ) : (
         <div className="mt-4">

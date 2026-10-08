@@ -637,7 +637,9 @@ export default async function EditWatchPaper({
         </section>
       )}
 
-      {figure ? (
+      {paper.category === "yesno" ? (
+        <QuestionsPanel slug={slug} questions={paper.questions} generator="yesno" />
+      ) : figure ? (
         <FigureQuestionsPanel slug={slug} questions={paper.questions} category={paper.category} />
       ) : (
         <QuestionsPanel slug={slug} questions={paper.questions} />

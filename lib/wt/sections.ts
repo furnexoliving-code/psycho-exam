@@ -67,6 +67,7 @@ const DEFAULT_SECTION: Record<string, string> = {
   watch: "2b",
   number: "2c",
   depth: "3b",
+  yesno: "4a",
   observation: "4d",
   figure: "5e",
 };

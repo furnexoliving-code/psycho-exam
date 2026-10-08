@@ -7,9 +7,10 @@
  * are picture papers — a figure or a scene, answered by a letter or a
  * number — on one further engine, which can also show a picture to
  * memorise before the questions (Memory) or keep one on screen beside
- * them (Depth Perception, Power of Observation). They all ride on the
- * same table, sittings, cohort and result, so each is one more category
- * here rather than another system.
+ * them (Depth Perception, Power of Observation), and which draws a
+ * question with no picture as a row of text (the Yes or No Test's pair of
+ * numbers). They all ride on the same table, sittings, cohort and result,
+ * so each is one more category here rather than another system.
  */
 export const BATTERIES = [
   { id: 1, title: "Memory Test", hindi: "स्मृति परीक्षण" },
@@ -62,6 +63,14 @@ export const CATEGORIES = [
     title: "Depth Perception Test",
     hindi: "गहराई बोध परीक्षण",
     blurb: "A pile of blocks stays on screen; each question asks how many blocks touch a numbered one.",
+  },
+  {
+    id: "yesno",
+    battery: 4,
+    kind: "figure",
+    title: "Yes or No Test",
+    hindi: "हाँ या नहीं परीक्षण",
+    blurb: "Two numbers side by side: Y when they are the same, N when they are not. 96 pairs in 4 minutes.",
   },
   {
     id: "observation",

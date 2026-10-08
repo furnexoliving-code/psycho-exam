@@ -12,7 +12,8 @@ import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-ques
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
 import { BATTERIES, CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
-import { FIGURE_EXAMPLE_TEXT, pictureInstructions } from "@/lib/wt/figure-sample";
+import { FIGURE_EXAMPLE_TEXT, YESNO_EXAMPLE_TEXT, pictureInstructions } from "@/lib/wt/figure-sample";
+import { yesNoQuestions } from "@/lib/wt/yesno";
 import { syncScheduleClock } from "./figure-actions";
 import { scheduleMinutes } from "@/lib/wt/schedule";
 import { setBatteryHidden } from "@/lib/wt/visibility";
@@ -175,6 +176,10 @@ export async function createPaper(formData: FormData) {
   const wanted = String(formData.get("category") ?? "watch");
   const category = CATEGORIES.some((c) => c.id === wanted) ? wanted : "watch";
   const figure = categoryKind(category) === "figure";
+  // The Yes or No Test is text, not pictures: its 96 pairs are built here,
+  // so the paper is complete the moment it is made.
+  const yesNo = category === "yesno";
+  const seed = Math.floor(Date.now() / 1000);
 
   // A fresh Following Directions paper starts with a generated diagram and a
   // full set of questions, so it is usable immediately rather than an empty
@@ -182,7 +187,7 @@ export async function createPaper(formData: FormData) {
   // pictures the institute uploads, so it starts with the real test's
   // instructions and nothing else.
   const { tables, questions } = generateQuestions({
-    seed: Math.floor(Date.now() / 1000),
+    seed,
     count: 20,
     tableCount: 1,
   });
@@ -196,11 +201,11 @@ export async function createPaper(formData: FormData) {
       title: String(formData.get("title") ?? "").trim() || categoryTitle(category),
       display_name: displayName,
       instruction_time_min: 5,
-      time_limit_min: figure ? 5 : 10,
+      time_limit_min: yesNo ? 4 : figure ? 5 : 10,
       cells: figure ? [] : tables[0].cells,
       example_cells: figure ? [] : tables[0].cells,
-      instructions: figure ? pictureInstructions(category, figure ? 5 : 10, 5, 1) : [],
-      example_text: figure ? (category === "figure" ? FIGURE_EXAMPLE_TEXT : []) : undefined,
+      instructions: figure ? pictureInstructions(category, yesNo ? 4 : 5, 5, 1) : [],
+      example_text: figure ? (category === "figure" ? FIGURE_EXAMPLE_TEXT : yesNo ? YESNO_EXAMPLE_TEXT : []) : undefined,
       // The picture tests are answered with the mouse, in parts, and have
       // no question-paper page; the keyboard-only rules of the Following
       // Directions engine do not apply to them. The Memory Test runs on a
@@ -210,7 +215,7 @@ export async function createPaper(formData: FormData) {
             showQuestionPaperButton: false,
             lockScroll: true,
             overflowQuestions: false,
-            questionsPerPart: category === "figure" ? 10 : category === "memory" ? 3 : 2,
+            questionsPerPart: category === "figure" ? 10 : category === "memory" ? 3 : yesNo ? 24 : 2,
             ...(category === "memory" ? { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1 } : {}),
           }
         : {},
@@ -227,7 +232,9 @@ export async function createPaper(formData: FormData) {
     );
   }
 
-  const { error: questionError } = figure
+  const { error: questionError } = yesNo
+    ? await questionStore().from("watch_questions").insert(yesNoRows(data.id, seed, 96))
+    : figure
     ? { error: null }
     : await questionStore().from("watch_questions").insert(
     questions.map((q, i) => ({
@@ -362,7 +369,7 @@ export async function saveSettings(
     }
 
     const publish = formData.get("is_published") === "on";
-    if (publish && categoryKind(category) === "figure") {
+    if (publish && categoryKind(category) === "figure" && category !== "yesno") {
       // A picture question is saved before its answer is known; a paper
       // with one still unanswered must not reach a student, since every
       // candidate would then be marked wrong on it.
@@ -589,6 +596,57 @@ export async function regenerateQuestions(
   paperChanged(slug);
   if (error) throw new Error(error);
   return `${chosen.length} built from the diagram`;
+  });
+}
+
+/** The rows of a Yes or No paper: its pairs, built from the seed. */
+function yesNoRows(paperId: string, seed: number, count: number): Record<string, unknown>[] {
+  return yesNoQuestions({ seed, count }).map((q, i) => ({
+    paper_id: paperId,
+    position: i,
+    prompt_en: q.prompt.en,
+    prompt_hi: q.prompt.hi,
+    options: q.options,
+    answer: q.answer,
+    topic: q.topic,
+    working_en: q.working.en,
+    working_hi: q.working.hi,
+  }));
+}
+
+/**
+ * Builds a Yes or No paper's pairs afresh: as many as asked, from a seed
+ * (any number; the same seed gives the same pairs again). Replaces what
+ * is there.
+ */
+export async function regenerateYesNo(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Pairs", async () => {
+    await requireEditor();
+    const supabase = await createClient();
+
+    const slug = String(formData.get("slug"));
+    const count = wholeNumber(formData.get("count"), 96);
+    if (count < 1 || count > 200) throw new Error("Ask for between 1 and 200 pairs");
+    const seedRaw = String(formData.get("seed") ?? "").trim();
+    const seed = seedRaw ? Math.abs(Math.floor(Number(seedRaw))) : Math.floor(Date.now() / 1000);
+    if (!Number.isFinite(seed)) throw new Error("The seed must be a whole number");
+
+    const { data: paper, error: readError } = await supabase
+      .from("watch_papers")
+      .select("id, category")
+      .eq("slug", slug)
+      .single();
+    if (readError) throw new Error(readError.message);
+    if (paper.category !== "yesno") throw new Error("Only a Yes or No paper builds its pairs");
+
+    const { error } = await replaceQuestions(paper.id, yesNoRows(paper.id, seed, count));
+    revalidatePath(`/admin/papers/${slug}`);
+    paperChanged(slug);
+    if (error) throw new Error(error);
+    return `${count} pairs built (seed ${seed})`;
   });
 }
 

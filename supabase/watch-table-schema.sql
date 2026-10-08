@@ -637,12 +637,13 @@ grant select on public.watch_questions_public to anon, authenticated;
 -- Memory, Depth Perception and Power of Observation: picture papers on the
 -- same engine as the Perceptual Speed Test. Nothing new is stored for them
 -- beyond the category; what each shows before or beside its questions is
--- kept with the paper's features.
+-- kept with the paper's features. The Yes or No Test (yesno) rides the
+-- same engine with text questions: a pair of numbers, answered Y or N.
 -- ---------------------------------------------------------------------------
 alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
 alter table public.watch_papers
   add constraint watch_papers_category_ck
-  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation'));
+  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation', 'yesno'));
 
 -- ---------------------------------------------------------------------------
 -- Portal settings (added later)

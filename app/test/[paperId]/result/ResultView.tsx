@@ -359,7 +359,7 @@ export function ResultView({
           </h2>
           <p className="mt-1 text-[13px]" style={{ color: "var(--text-secondary)" }}>
             {kind === "figure"
-              ? "Each question is shown with its figure, your answer and the correct one."
+              ? "Each question is shown as it was, with your answer and the correct one."
               : "The diagram stays beside the questions, so each one can be worked through again against it."}
           </p>
 
