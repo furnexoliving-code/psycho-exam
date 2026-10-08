@@ -106,8 +106,12 @@ export function sectionOf(series: string, category: string): Section | undefined
   const key = sectionKey(series);
   const named = SECTIONS.find((s) => sectionKey(s.name) === key);
   if (named) return named;
-  const categoryTitle = CATEGORIES.find((c) => c.id === category)?.title ?? "";
-  if (!series.trim() || sectionKey(categoryTitle) === key) return sectionByCode(DEFAULT_SECTION[category] ?? "");
+  const own = CATEGORIES.find((c) => c.id === category);
+  const categoryTitle = own?.title ?? "";
+  // The battery's own name too: the four original picture tests were once
+  // named after their battery, and papers may still carry that as a series.
+  const batteryTitle = BATTERIES.find((b) => b.id === own?.battery)?.title ?? "";
+  if (!series.trim() || sectionKey(categoryTitle) === key || sectionKey(batteryTitle) === key) return sectionByCode(DEFAULT_SECTION[category] ?? "");
   return undefined;
 }
 
