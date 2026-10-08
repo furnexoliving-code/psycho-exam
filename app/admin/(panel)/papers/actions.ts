@@ -12,7 +12,7 @@ import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-ques
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
 import { BATTERIES, CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
-import { matchingExampleText, pictureInstructions, sheetExampleText, sheetOf } from "@/lib/wt/figure-sample";
+import { matchingExampleText, memorySchedule, pictureInstructions, sheetExampleText, sheetOf } from "@/lib/wt/figure-sample";
 import { builtQuestions, builtSpec } from "@/lib/wt/built";
 import { syncScheduleClock } from "./figure-actions";
 import { scheduleMinutes } from "@/lib/wt/schedule";
@@ -222,8 +222,10 @@ export async function createPaper(formData: FormData) {
             showQuestionPaperButton: false,
             lockScroll: true,
             overflowQuestions: false,
-            questionsPerPart: built ? built.perPart : matching ? 10 : sheet ? sheet.prompts.length : category === "memory" ? 3 : 2,
-            ...(category === "memory" ? { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1 } : {}),
+            questionsPerPart: built ? built.perPart : matching ? 10 : sheet ? sheet.prompts.length : memorySchedule(category)?.questionsPerPart ?? 2,
+            // The Memory battery runs on a schedule: a study screen, then
+            // that part's questions, part by part, with a break between.
+            ...(memorySchedule(category) ?? {}),
           }
         : {},
       category,

@@ -62,6 +62,10 @@ export const SECTIONS: readonly Section[] = [
 
 /** The section a paper with no series name belongs to, by its category. */
 const DEFAULT_SECTION: Record<string, string> = {
+  house: "1a",
+  fignum: "1b",
+  railway: "1c",
+  figfig: "1d",
   memory: "1e",
   letter: "2a",
   watch: "2b",

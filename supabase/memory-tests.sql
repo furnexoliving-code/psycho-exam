@@ -1,10 +1,12 @@
 -- ---------------------------------------------------------------------------
--- Octagonal Test (5b) and Same Circle Test (5d) — run once in the Supabase
--- SQL editor before making the first paper of either.
+-- House Position (1a), Figure to Number (1b), Railway Track Route (1c) and
+-- Figure to Figure (1d) Tests — run once in the Supabase SQL editor before
+-- making the first paper of any of them.
 --
--- Their categories are 'octagonal' and 'circle'. They ride the Same
--- Figure Test's engine: picture questions the institute uploads, answered
--- by a letter. Nothing else is new in the database.
+-- Their categories are 'house', 'fignum', 'railway' and 'figfig'. They
+-- ride the picture engine on the Memory Test's schedule (a study screen,
+-- then the part's questions, with a break between parts). Nothing else is
+-- new in the database.
 -- ---------------------------------------------------------------------------
 alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
 alter table public.watch_papers

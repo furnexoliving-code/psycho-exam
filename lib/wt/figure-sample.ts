@@ -64,6 +64,38 @@ export function pictureInstructions(
         },
         ...timing,
       ];
+    case "house":
+      return [
+        {
+          en: `This is a test of memory, in two parts. In each part there is a Study screen and a Test screen. On the Study screen you will see a map with houses and other structures on it for ${min(studyMin || 2, true)}. Your task is to memorise where each house stands. After the allotted time the Test screen will appear: the same map with the letters A, B, C, D and E in place of the houses, and the houses numbered below it. For each numbered house, find the letter that shows where it stood on the Study map. Mark your answer by clicking the mouse.`,
+          hi: `यह स्मृति का परीक्षण है, दो भागों में। प्रत्येक भाग में एक अध्ययन स्क्रीन और एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर आपको ${min(studyMin || 2, false)} के लिए एक नक्शा दिखेगा जिस पर मकान और अन्य आकृतियाँ अंकित हैं। आपको याद करना है कि हर मकान कहाँ है। नियत समय के बाद परीक्षण स्क्रीन आएगी: वही नक्शा जिसमें मकानों की जगह A, B, C, D और E अक्षर हैं, और नीचे नंबर लगे मकान। हर नंबर वाले मकान के लिए वह अक्षर खोजें जो अध्ययन नक्शे में उसकी जगह दिखाता है। उत्तर माउस क्लिक करके दें।`,
+        },
+        ...timing,
+      ];
+    case "fignum":
+      return [
+        {
+          en: `This is a test of memory, in two parts. In each part there is a Study screen and a Test screen. On the Study screen you will be given picture and number pairs to memorise for ${min(studyMin || 3, true)}. After the allotted time the Test screen will appear, showing the pictures in a different order. For each picture, pick the number that went with it out of the four options given. Mark your answer by clicking the mouse.`,
+          hi: `यह स्मृति का परीक्षण है, दो भागों में। प्रत्येक भाग में एक अध्ययन स्क्रीन और एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर आपको ${min(studyMin || 3, false)} के लिए चित्र-अंक के जोड़े याद करने को दिए जाएँगे। नियत समय के बाद परीक्षण स्क्रीन आएगी जिस पर चित्र अलग क्रम में होंगे। हर चित्र के लिए दिए गए चार विकल्पों में से वह अंक चुनें जो उसके साथ था। उत्तर माउस क्लिक करके दें।`,
+        },
+        ...timing,
+      ];
+    case "railway":
+      return [
+        {
+          en: `This is a test of memory, in two parts. In each part there is a Study screen and a Test screen. On the Study screen you will see a railway map with the names of some railway stations for ${min(studyMin || 2, true)}. Your task is to memorise the location of the stations. After the allotted time the Test screen will appear: the same railway map with the English letters A, B, C, D and E in place of the stations, and the names of the stations beside it. For each station, the letter that shows its position on the map is your answer. Mark your answer by clicking the mouse.`,
+          hi: `यह स्मृति का परीक्षण है, दो भागों में। प्रत्येक भाग में एक अध्ययन स्क्रीन और एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर आपको ${min(studyMin || 2, false)} के लिए एक रेलवे मानचित्र दिखेगा जिसमें कुछ स्टेशनों के नाम हैं। आपको स्टेशनों की स्थिति याद करनी है। नियत समय के बाद परीक्षण स्क्रीन आएगी: वही रेलवे मानचित्र जिसमें स्टेशनों की जगह अंग्रेज़ी अक्षर A, B, C, D और E हैं, और पास में स्टेशनों के नाम। हर स्टेशन के लिए वह अक्षर जो मानचित्र में उसकी स्थिति दिखाता है, आपका उत्तर है। उत्तर माउस क्लिक करके दें।`,
+        },
+        ...timing,
+      ];
+    case "figfig":
+      return [
+        {
+          en: `This is a test of memory, in two parts. In each part there is a Memory screen and an Answer screen. On the Memory screen you will be given pairs of pictures to memorise for ${min(studyMin || 3, true)}. After the allotted time the Answer screen will appear. Against each picture you will find four pictures A, B, C and D; your task is to find the one that was paired with it on the Memory screen. Mark your answer by clicking the mouse.`,
+          hi: `यह स्मृति का परीक्षण है, दो भागों में। प्रत्येक भाग में एक स्मृति स्क्रीन और एक उत्तर स्क्रीन है। स्मृति स्क्रीन पर आपको ${min(studyMin || 3, false)} के लिए आकृतियों के जोड़े याद करने को दिए जाएँगे। नियत समय के बाद उत्तर स्क्रीन आएगी। हर आकृति के सामने चार आकृतियाँ A, B, C और D मिलेंगी; आपको वह खोजनी है जो स्मृति स्क्रीन पर उसके साथ जुड़ी थी। उत्तर माउस क्लिक करके दें।`,
+        },
+        ...timing,
+      ];
     case "brick":
       return [
         {
@@ -190,7 +222,11 @@ export function optionValues(style: OptionStyle, count: number): (string | numbe
 
 /** How large a picture test draws its pictures when the paper does not say: percent of the usual size. */
 export function defaultPictureScale(category: string | undefined): number {
-  return category === "depth" || category === "brick" || category === "similarity" || category === "similarity2" ? 225 : category === "memory" ? 140 : 100;
+  return category === "depth" || category === "brick" || category === "similarity" || category === "similarity2" || category === "house" || category === "railway"
+    ? 225
+    : category === "memory" || category === "fignum" || category === "figfig"
+      ? 140
+      : 100;
 }
 
 /** The sizes offered in the settings. */
@@ -205,6 +241,9 @@ export function defaultOptionsFor(category: string): { style: OptionStyle; count
     case "similarity":
     case "similarity2":
       return { style: "letters", count: 5 };
+    case "fignum":
+    case "figfig":
+      return { style: "letters", count: 4 };
     case "observation":
       return { style: "letters", count: 4 };
     default:
@@ -298,6 +337,57 @@ const SHEETS: Record<string, SheetSpec> = {
   similarity: { noun: "sheet", prompts: ["a", "b", "c", "d"], topicPrefix: "Figure", style: "letters", count: 5, pictures: 18, timeMin: 6 },
   similarity2: { noun: "sheet", prompts: ["a", "b", "c", "d"], topicPrefix: "Figure", style: "letters", count: 5, pictures: 18, timeMin: 6 },
 };
+
+/**
+ * The map tests of the Memory battery (House Position, Railway Track
+ * Route): after the study screen, one picture per part at the left (the
+ * map lettered A to E) and its questions at the right, each a label (a
+ * house's number, a station's name) answered by a letter. The labels are
+ * the admin's, typed with the picture.
+ */
+export interface MapSpec {
+  noun: string;
+  /** What the questions are called: "house", "station". */
+  item: string;
+  /** The labels a part starts with, when they are always the same; null when the admin types them. */
+  defaultLabels: string[] | null;
+  topicPrefix: string;
+  /** Questions per part, and the hall's clock per part. */
+  perPart: number;
+  studyMin: number;
+  partMin: number;
+}
+
+const MAPS: Record<string, MapSpec> = {
+  house: { noun: "map", item: "house", defaultLabels: Array.from({ length: 12 }, (_, i) => String(i + 1)), topicPrefix: "House", perPart: 12, studyMin: 2, partMin: 2 },
+  railway: { noun: "map", item: "station", defaultLabels: null, topicPrefix: "Station", perPart: 12, studyMin: 2, partMin: 2 },
+};
+
+export function mapOf(category: string | null | undefined): MapSpec | null {
+  return category ? (MAPS[category] ?? null) : null;
+}
+
+/** The Memory battery's schedule per test: study, then questions, part by part, with a break between. */
+export function memorySchedule(category: string): { studyTimeMin: number; partTimeMin: number; breakTimeMin: number; questionsPerPart: number } | null {
+  switch (category) {
+    case "memory":
+      return { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1, questionsPerPart: 3 };
+    case "house":
+    case "railway":
+      return { studyTimeMin: 2, partTimeMin: 2, breakTimeMin: 1, questionsPerPart: 12 };
+    case "fignum":
+      return { studyTimeMin: 3, partTimeMin: 3, breakTimeMin: 1, questionsPerPart: 21 };
+    case "figfig":
+      return { studyTimeMin: 3, partTimeMin: 3, breakTimeMin: 1, questionsPerPart: 20 };
+    default:
+      return null;
+  }
+}
+
+/** True for a test of the Memory battery: a study screen before each part's questions. */
+export function isMemoryTest(category: string | null | undefined): boolean {
+  return memorySchedule(category ?? "") !== null;
+}
 
 /** The sheet spec of a category, or null for a test whose pictures are one question each. */
 export function sheetOf(category: string | null | undefined): SheetSpec | null {
@@ -670,6 +760,122 @@ export function similaritySamplePaper(category: "similarity" | "similarity2") {
     instructionTimeLimitMin: 5,
     instructions: pictureInstructions(category, 1, 5),
     example: { table: { label: "Example", cells: [] }, text: sheetExampleText(category) },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions,
+    resultView: {},
+  };
+}
+
+/** Samples of the four new Memory tests, on the Memory sample's short clock, for seeing each screen before a database exists. */
+export const HOUSE_SAMPLE_ID = "house-position-sample";
+export const RAILWAY_SAMPLE_ID = "railway-route-sample";
+export const FIGNUM_SAMPLE_ID = "figure-number-sample";
+export const FIGFIG_SAMPLE_ID = "figure-figure-sample";
+
+const SHORT_CLOCK = { studyTimeMin: 0.05, partTimeMin: 0.05, breakTimeMin: 0.05 };
+
+/** A map: a few dots on a track, each with a name (study) or a letter (test). */
+function mapSvg(labels: string[], houses: boolean): string {
+  const spots = [[60, 40], [150, 90], [240, 40], [330, 90], [420, 40]];
+  const dots = spots.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="7" fill="#222"/><text x="${x}" y="${y - 12}" font-size="13" text-anchor="middle" fill="#111">${labels[i] ?? ""}</text>`).join("");
+  const track = `<polyline points="${spots.map(([x, y]) => `${x},${y}`).join(" ")}" fill="none" stroke="#444" stroke-width="3"/>`;
+  const strip = houses
+    ? Array.from({ length: 3 }, (_, i) => `<g transform="translate(${60 + i * 120} 130)"><rect x="0" y="10" width="40" height="30" fill="#fff" stroke="#111" stroke-width="2"/><path d="M-4 10 L20 -8 L44 10z" fill="#fff" stroke="#111" stroke-width="2"/><text x="20" y="60" font-size="13" text-anchor="middle" fill="#111">${i + 1}</text></g>`).join("")
+    : "";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="${houses ? 200 : 120}" viewBox="0 0 480 ${houses ? 200 : 120}"><rect x="1" y="1" width="478" height="${houses ? 198 : 118}" fill="#fff" stroke="#999"/>${track}${dots}${strip}</svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+export function mapSamplePaper(category: "house" | "railway") {
+  const house = category === "house";
+  const spec = mapOf(category)!;
+  const letters = OPTION_LETTERS.slice(0, 5);
+  // Two parts: on each, three questions on the lettered map.
+  const parts = house
+    ? [{ names: ["1", "2", "3", "", ""], answers: ["B", "D", "A"] }, { names: ["", "1", "", "2", "3"], answers: ["E", "C", "B"] }]
+    : [{ names: ["SOK", "DET", "PIR", "", ""], answers: ["C", "A", "B"] }, { names: ["", "PMK", "TMP", "", "OLW"], answers: ["D", "E", "A"] }];
+  const lettered = [["E", "B", "C", "D", "A"], ["A", "C", "B", "E", "D"]];
+  const study = parts.map((p) => mapSvg(p.names, false));
+  const questions = parts.flatMap((p, pi) => {
+    const labels = house ? ["1", "2", "3"] : p.names.filter(Boolean);
+    const image = mapSvg(lettered[pi], house);
+    return labels.map((label, li) => ({
+      id: `${category}-q${pi * 3 + li + 1}`,
+      tableIndex: 0,
+      prompt: { en: label, hi: "" },
+      options: [...letters],
+      answer: p.answers[li],
+      working: { en: "", hi: "" },
+      topic: `${spec.topicPrefix} ${label}`,
+      image,
+    }));
+  });
+  return {
+    id: house ? HOUSE_SAMPLE_ID : RAILWAY_SAMPLE_ID,
+    kind: "figure" as const,
+    category,
+    title: house ? "House Position Test" : "Railway Track Route Test",
+    displayName: house ? "House Position Test - Sample" : "Railway Track Route Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 3, ...SHORT_CLOCK, studyImages: study },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions(category, 1, 5, 1),
+    example: { table: { label: "Example", cells: [] }, text: [] },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions,
+    resultView: {},
+  };
+}
+
+/** A box with a number in it, as the Figure to Number Test's options are. */
+function numberBox(n: number): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="60" height="40" viewBox="0 0 60 40"><rect x="1" y="1" width="58" height="38" fill="#fff" stroke="#333" stroke-width="2"/><text x="30" y="27" font-size="18" text-anchor="middle" fill="#111">${n}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+export function rowMemorySamplePaper(category: "fignum" | "figfig") {
+  const fignum = category === "fignum";
+  const letters = OPTION_LETTERS.slice(0, 4);
+  const numbers = [39, 93, 58, 24];
+  // The study screen: the pairs (a figure with its number, or with its partner).
+  const studyOf = (ids: number[]) => {
+    const cells = ids.map((k, i) => `<g transform="translate(${20 + i * 150} 10) scale(0.6)">${SHAPES[k]}</g>` + (fignum
+      ? `<text x="${20 + i * 150 + 95}" y="60" font-size="18" fill="#111">${numbers[i]}</text>`
+      : `<g transform="translate(${20 + i * 150 + 75} 10) scale(0.6)">${SHAPES[(k + 2) % SHAPES.length]}</g>`)).join("");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="100" viewBox="0 0 480 100"><rect x="1" y="1" width="478" height="98" fill="#fff" stroke="#999"/>${cells}</svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+  const study = [studyOf([0, 1, 2]), studyOf([3, 4, 0])];
+  const questions = [[0, 1, 2], [3, 4, 0]].flatMap((ids, pi) =>
+    ids.map((k, i) => {
+      const options = fignum
+        ? numbers.map((_, j) => numberBox(numbers[(j + i) % 4]))
+        : letters.map((_, j) => figureSvg(SHAPES[(k + 2 + j) % SHAPES.length]));
+      const answerIndex = fignum ? (4 - i) % 4 : 0;
+      return {
+        id: `${category}-q${pi * 3 + i + 1}`,
+        tableIndex: 0,
+        prompt: { en: "", hi: "" },
+        options: [...letters],
+        answer: letters[answerIndex],
+        working: { en: "", hi: "" },
+        topic: fignum ? "Figure to number" : "Figure to figure",
+        image: figureSvg(SHAPES[k]),
+        optionImages: options,
+      };
+    }),
+  );
+  return {
+    id: fignum ? FIGNUM_SAMPLE_ID : FIGFIG_SAMPLE_ID,
+    kind: "figure" as const,
+    category,
+    title: fignum ? "Figure to Number Test" : "Figure to Figure Test",
+    displayName: fignum ? "Figure to Number Test - Sample" : "Figure to Figure Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 3, ...SHORT_CLOCK, studyImages: study },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions(category, 1, 5, 1),
+    example: { table: { label: "Example", cells: [] }, text: [] },
     tables: [{ label: "No. 1", cells: [] }],
     questions,
     resultView: {},

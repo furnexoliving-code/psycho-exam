@@ -25,6 +25,38 @@ export type PaperKind = "directions" | "figure";
 
 export const CATEGORIES = [
   {
+    id: "house",
+    battery: 1,
+    kind: "figure",
+    title: "House Position Test",
+    hindi: "मकान स्थिति परीक्षण",
+    blurb: "Memorise a map of houses; then, on the same map lettered A to E, say where each numbered house stood. 2 parts of 12.",
+  },
+  {
+    id: "fignum",
+    battery: 1,
+    kind: "figure",
+    title: "Figure to Number Test",
+    hindi: "आकृति-अंक परीक्षण",
+    blurb: "Memorise picture and number pairs; then pick each picture's number from four. 2 parts of 21.",
+  },
+  {
+    id: "railway",
+    battery: 1,
+    kind: "figure",
+    title: "Railway Track Route Test",
+    hindi: "रेलवे ट्रैक रूट परीक्षण",
+    blurb: "Memorise the stations on a railway map; then, on the same map lettered A to E, say where each station was. 2 parts of 12.",
+  },
+  {
+    id: "figfig",
+    battery: 1,
+    kind: "figure",
+    title: "Figure to Figure Test",
+    hindi: "आकृति-आकृति परीक्षण",
+    blurb: "Memorise pairs of shapes; then, for each shape, pick the one that went with it from four. 2 parts of 20.",
+  },
+  {
     id: "memory",
     battery: 1,
     kind: "figure",

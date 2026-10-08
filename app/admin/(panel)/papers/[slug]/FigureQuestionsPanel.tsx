@@ -14,6 +14,7 @@ import {
   OPTION_LETTERS,
   defaultOptionsFor,
   optionValues,
+  mapOf,
   sheetOf,
   type OptionStyle,
 } from "@/lib/wt/figure-sample";
@@ -73,6 +74,35 @@ export function FigureQuestionsPanel({
   // A sheet test (Brick, Similarity): one picture makes several questions.
   const sheet = sheetOf(category);
   const piles = sheet !== null;
+  // A map test (House Position, Railway Track Route): one picture per part,
+  // with the part's questions typed as labels beside it.
+  const map = mapOf(category);
+  const [labels, setLabels] = useState((map?.defaultLabels ?? []).join("\n"));
+  const mapPicker = useRef<HTMLInputElement | null>(null);
+
+  const addMapPart = async (list: FileList | null) => {
+    const file = list?.[0];
+    if (!file || !map) return;
+    const names = labels.split("\n").map((l) => l.trim()).filter(Boolean);
+    const state: Run = { done: 0, total: 1, error: null, running: true };
+    setRun({ ...state });
+    try {
+      if (names.length === 0) throw new Error(`Type the ${map.item}s of this part first, one per line`);
+      if (names.length > 60) throw new Error("At most 60 questions on one map");
+      const url = await uploadPicture(file);
+      state.done = 1;
+      setRun({ ...state });
+      const outcome = await addFigureQuestions(slug, [{ image: url }], optionCount, optionStyle, { prompts: names, topicPrefix: map.topicPrefix });
+      if (outcome.error) throw new Error(outcome.error);
+      if (!map.defaultLabels) setLabels("");
+    } catch (e) {
+      state.error = e instanceof Error ? e.message : String(e);
+    } finally {
+      state.running = false;
+      setRun({ ...state });
+      if (mapPicker.current) mapPicker.current.value = "";
+    }
+  };
 
   const addPictures = async (list: FileList | null) => {
     const files = sortByName(Array.from(list ?? []));
@@ -142,7 +172,58 @@ export function FigureQuestionsPanel({
         )}
       </div>
 
-      {/* ------------------------- Add pictures ------------------------- */}
+      {/* --------------------------- Add a map part --------------------------- */}
+      {map ? (
+      <div className="mt-4 rounded border border-gray-300 bg-gray-50 p-4">
+        <p className="text-[13px] font-semibold text-gray-800">Add a part: the test map and its {map.item}s</p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
+          <li>
+            Each part has two pictures: the <strong>study map</strong> (set in the Study screens section above) and the
+            <strong> test map</strong>, the same map with the letters A to E in place of the {map.item}s{category === "house" ? ", and the houses numbered below it" : ""}.
+          </li>
+          <li>
+            Type the {map.item}s of this part below, one per line, in the order the questions should come
+            {map.defaultLabels ? " (the house numbers are filled in)" : " (the station names, as the candidate reads them)"}; then choose the test map.
+            The part&apos;s questions are made on it, {map.perPart} per part in the hall.
+          </li>
+          <li>Afterwards type the answer key in one line (one letter per question, in order), or set each answer by hand.</li>
+        </ul>
+        <div className="mt-3 flex flex-wrap items-start gap-4">
+          <label className="block">
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">{map.item[0].toUpperCase() + map.item.slice(1)}s of this part, one per line</span>
+            <textarea
+              value={labels}
+              onChange={(e) => setLabels(e.target.value)}
+              rows={6}
+              disabled={run?.running}
+              placeholder={map.defaultLabels ? "1\n2\n3 …" : "SOK\nDET\nPIR …"}
+              className="w-[220px] rounded border border-gray-400 px-2 py-1.5 font-mono text-[12px]"
+            />
+          </label>
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-[12px] text-gray-700">
+              Options
+              <select value={choice} disabled={run?.running} onChange={(e) => setChoice(e.target.value)} className="rounded border border-gray-400 px-2 py-1 text-[12px]">
+                {OPTION_CHOICES.filter((c) => c.style === "letters").map((c) => (
+                  <option key={choiceKey(c)} value={choiceKey(c)}>Letters {OPTION_LETTERS.slice(0, c.count).join(" ")}</option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              disabled={run?.running}
+              onClick={() => mapPicker.current?.click()}
+              className="rounded bg-indigo-800 px-5 py-2 text-[13px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60"
+            >
+              {run?.running ? "Uploading…" : "Choose the test map…"}
+            </button>
+            <input ref={mapPicker} type="file" accept="image/*" className="hidden" onChange={(e) => void addMapPart(e.target.files)} />
+            {run && !run.running && !run.error && <span className="text-[12px] font-semibold text-green-700">✓ part added</span>}
+            {run?.error && <p className="text-[12px] font-semibold text-red-700">✕ {run.error}</p>}
+          </div>
+        </div>
+      </div>
+      ) : (
       <div className="mt-4 rounded border border-gray-300 bg-gray-50 p-4">
         <p className="text-[13px] font-semibold text-gray-800">{sheet ? `Add ${sheet.noun}s from pictures` : "Add questions from pictures"}</p>
         {sheet ? (
@@ -238,6 +319,8 @@ export function FigureQuestionsPanel({
           <p className="mt-2 text-[12px] font-semibold text-red-700">✕ {run.error}</p>
         )}
       </div>
+
+      )}
 
       {/* --------------------------- Answer key --------------------------- */}
       {questions.length > 0 && (

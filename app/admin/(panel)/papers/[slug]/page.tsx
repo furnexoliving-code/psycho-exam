@@ -16,7 +16,7 @@ import { QuestionsPanel } from "./QuestionsPanel";
 import { FigureQuestionsPanel } from "./FigureQuestionsPanel";
 import { StudyPictures } from "./StudyPictures";
 import { scheduleMinutes } from "@/lib/wt/schedule";
-import { PICTURE_SCALES, defaultPictureScale } from "@/lib/wt/figure-sample";
+import { PICTURE_SCALES, defaultPictureScale, isMemoryTest } from "@/lib/wt/figure-sample";
 
 const STUDY_SCALES = [40, 50, 60, 70, 80, 90, 100];
 import { CATEGORIES, categoryTitle } from "@/lib/wt/categories";
@@ -627,7 +627,7 @@ export default async function EditWatchPaper({
       )}
 
       {/* ----------------------------- Questions ------------------------------ */}
-      {figure && paper.category === "memory" && (
+      {figure && isMemoryTest(paper.category) && (
         <section className="mt-6 rounded border border-gray-300 bg-white p-5">
           <h2 className="text-[15px] font-bold text-gray-900">Study screens</h2>
           <p className="mt-1 text-[12px] text-gray-600">

@@ -84,7 +84,7 @@ export function PapersAdminView({
         </div>
         <p className="mt-2 text-[11px] text-gray-600">
           A Following Directions paper starts with a sample diagram and twenty questions; a Yes or No, Find 6 or Find 9 paper with all its questions built and ready;
-          a picture paper (Memory, Brick, Hidden Cube, Observation, Similarity, Speed) with the real instructions and no questions, so add its pictures on the next page.
+          a picture paper (every Memory test, Brick, Hidden Cube, Observation, Similarity, Speed) with the real instructions and no questions, so add its pictures on the next page.
           Every new paper starts as a draft.
         </p>
       </form>

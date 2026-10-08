@@ -5,7 +5,7 @@ import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
 import { useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { phaseAt, scheduleOf, shownTimeLimitMin } from "@/lib/wt/schedule";
-import { defaultPictureScale, sheetOf } from "@/lib/wt/figure-sample";
+import { defaultPictureScale, mapOf, sheetOf } from "@/lib/wt/figure-sample";
 import { PortalBanner } from "./PortalBanner";
 import { ExamTop, SectionChip } from "./ExamTop";
 import { Instructions, InstructionsDialog } from "./Instructions";
@@ -57,11 +57,11 @@ export function FigureExam({
   // row per question, the number at the left, then the figure, then the
   // five option pictures with their letters beneath, then the radios; no
   // "Question No" heading. The Same Figure Test keeps its figure above.
-  const sideBySide = paper.category === "octagonal" || paper.category === "circle";
+  const sideBySide = paper.category === "octagonal" || paper.category === "circle" || paper.category === "fignum" || paper.category === "figfig";
   // The sheet tests (Brick, Similarity), as the RDSO mock draws the Brick
   // Test: the part's picture at the left, its questions at the right, each
   // a row of radios.
-  const brick = sheetOf(paper.category) !== null;
+  const brick = sheetOf(paper.category) !== null || mapOf(paper.category) !== null;
   // A paper of text questions only (the Yes or No Test): the rows are
   // short, so they sit closer than picture questions do.
   const textPaper = paper.questions.length > 0 && paper.questions.every((q) => !q.image && !q.optionImages);
@@ -374,10 +374,16 @@ export function FigureExam({
               // down a line.
               <div className="flex min-h-full flex-col gap-4 lg:flex-row lg:gap-0">
                 <div className="lg:w-1/2 lg:shrink-0 lg:border-r lg:border-[#dcdcdc] lg:pr-4">
+                  {scheduled && (
+                    <p className="mb-2 text-[0.95em] font-semibold text-[#222]">
+                      Test Screen Part {part + 1} /{" "}
+                      <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
+                    </p>
+                  )}
                   {reminderLines}
                   {parts[part]?.[0]?.image && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={parts[part][0].image} alt={`${paper.category === "brick" ? "Pile" : "Sheet"} ${part + 1}`} className="mt-3 w-auto max-w-full" style={{ height: Math.round(figureH * 1.6) }} draggable={false} />
+                    <img src={parts[part][0].image} alt={`${paper.category === "brick" ? "Pile" : mapOf(paper.category) ? "Map" : "Sheet"} ${part + 1}`} className="mt-3 w-auto max-w-full" style={{ height: Math.round(figureH * 1.6) }} draggable={false} />
                   )}
                 </div>
                 <div className="relative min-w-0 flex-1 pb-3">
