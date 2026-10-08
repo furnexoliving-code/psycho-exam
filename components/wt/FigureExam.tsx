@@ -53,9 +53,10 @@ export function FigureExam({
   // first picture on screen, so they sit over its halves whatever size
   // the pictures were uploaded at.
   const twoSets = paper.category === "observation";
-  // The Octagonal and Same Circle Tests: the figure stands at the left of
-  // its five options on one line, as the guideline draws them; the Same
-  // Figure Test keeps its figure above the options.
+  // The Octagonal and Same Circle Tests, as the RDSO mock draws them: one
+  // row per question, the number at the left, then the figure, then the
+  // five option pictures with their letters beneath, then the radios; no
+  // "Question No" heading. The Same Figure Test keeps its figure above.
   const sideBySide = paper.category === "octagonal" || paper.category === "circle";
   // A paper of text questions only (the Yes or No Test): the rows are
   // short, so they sit closer than picture questions do.
@@ -380,8 +381,8 @@ export function FigureExam({
                 // distance, as on every other paper.
                 const textOnly = !q.image && !q.optionImages;
                 return (
-                  <li key={q.id} className={`border-b border-[#ececec] ${textOnly ? "pb-3" : "pb-8"}`} style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
-                    <p className="text-[0.95em] font-bold text-[#222]">Question No : {number}</p>
+                  <li key={q.id} className={`border-b border-[#ececec] ${textOnly ? "pb-3" : sideBySide ? "pb-4" : "pb-8"}`} style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                    {!sideBySide && <p className="text-[0.95em] font-bold text-[#222]">Question No : {number}</p>}
                     {!textOnly && (q.prompt.en || q.prompt.hi) && (
                       <div className="mt-2 text-[1em] text-[#494949]">
                         {q.prompt.en && <p>{q.prompt.en}</p>}
@@ -446,14 +447,41 @@ export function FigureExam({
                       </div>
                     ) : (
                       // A figure with option pictures (Perceptual Speed): the
-                      // figure above, then "A [picture]" per option; or, side
-                      // by side, the figure at the left of the same line.
-                      <div className={sideBySide ? "mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2" : undefined}>
+                      // figure above, then "A [picture]" per option.
+                      sideBySide ? (
+                      <div className="flex flex-wrap items-center gap-x-[40px] gap-y-2">
+                        <span className="w-[28px] shrink-0 text-[0.95em] text-[#222]">{number}.</span>
                         {q.image && (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={q.image} alt={`Question ${number}`} className={sideBySide ? "w-auto max-w-full" : "mt-2 w-auto max-w-full"} style={{ height: figureH }} draggable={false} />
+                          <img src={q.image} alt={`Question ${number}`} className="w-auto max-w-full" style={{ height: figureH }} draggable={false} />
                         )}
-                        <div className={`flex flex-wrap items-center gap-x-[52px] gap-y-2 ${sideBySide ? "" : "mt-2"}`}>
+                        <span className="flex items-end gap-x-3">
+                          {q.options.map((option, oi) => {
+                            const picture = q.optionImages?.[oi];
+                            return (
+                              <span key={oi} className="flex flex-col items-center gap-0.5">
+                                {picture && (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={picture} alt={`Option ${String(option)}`} className="w-auto" style={{ height: optionH }} draggable={false} />
+                                )}
+                                <span className="text-[0.8em] leading-none text-[#333]">{String(option)}</span>
+                              </span>
+                            );
+                          })}
+                        </span>
+                        <span className="flex flex-wrap items-center gap-x-[52px]">
+                          {q.options.map((option, oi) => (
+                            <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                          ))}
+                        </span>
+                      </div>
+                      ) : (
+                      <>
+                        {q.image && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={q.image} alt={`Question ${number}`} className="mt-2 w-auto max-w-full" style={{ height: figureH }} draggable={false} />
+                        )}
+                        <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
                           {q.options.map((option, oi) => {
                             const id = `${q.id}-opt-${oi}`;
                             const picture = q.optionImages?.[oi];
@@ -468,7 +496,8 @@ export function FigureExam({
                             );
                           })}
                         </div>
-                      </div>
+                      </>
+                      )
                     )}
                   </li>
                 );
