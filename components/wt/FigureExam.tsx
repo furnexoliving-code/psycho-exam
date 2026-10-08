@@ -14,7 +14,6 @@ import { ExamSummaryList } from "./ExamSummary";
 import { useExamChrome } from "./ExamChrome";
 import { testNameOf } from "@/lib/wt/categories";
 import { ScrollRail } from "./ScrollRail";
-import { splitPair } from "@/lib/wt/yesno";
 
 /**
  * The Perceptual Speed Test screen: the paper in parts, each question a
@@ -53,10 +52,6 @@ export function FigureExam({
   // first picture on screen, so they sit over its halves whatever size
   // the pictures were uploaded at.
   const twoSets = paper.category === "observation";
-  // The Yes or No Test: no pictures at all; each question is a pair of
-  // numbers on one line, answered Y or N, drawn as the hall's numbered
-  // table rather than as a picture question with space around it.
-  const textRows = paper.questions.length > 0 && paper.questions.every((q) => !q.image && !q.optionImages);
   const [setsWidth, setSetsWidth] = useState(0);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
@@ -367,42 +362,19 @@ export function FigureExam({
               </div>
             )}
 
-            {textRows ? (
-            <ol className="mt-3 inline-block min-w-[420px] border border-[#999]" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
-              {parts[part]?.map((q, i) => {
-                const number = part * perPart + i + 1;
-                const chosen = state.answers[q.id];
-                const pair = splitPair(q.prompt.en);
-                return (
-                  <li key={q.id} className="flex items-center border-b border-[#999] last:border-b-0">
-                    <span className="w-[56px] shrink-0 border-r border-[#999] px-2 py-1.5 text-center text-[0.95em] text-[#222]">{number}</span>
-                    {pair ? (
-                      <>
-                        <span className="w-[150px] shrink-0 border-r border-[#999] px-3 py-1.5 text-right text-[1.05em] tabular-nums text-[#222]">{pair.left}</span>
-                        <span className="w-[40px] shrink-0 border-r border-[#999] py-1.5 text-center text-[1.05em] text-[#222]">=</span>
-                        <span className="w-[150px] shrink-0 border-r border-[#999] px-3 py-1.5 text-left text-[1.05em] tabular-nums text-[#222]">{pair.right}</span>
-                      </>
-                    ) : (
-                      <span className="min-w-[340px] flex-1 border-r border-[#999] px-3 py-1.5 text-[1em] text-[#222]">{q.prompt.en}{q.prompt.hi ? <span className="ml-2 text-[#494949]" lang="hi">{q.prompt.hi}</span> : null}</span>
-                    )}
-                    <span className="flex items-center gap-x-6 px-4 py-1.5">
-                      {q.options.map((option, oi) => (
-                        <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
-                      ))}
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
-            ) : (
             <ol className="mt-3 space-y-10">
               {parts[part]?.map((q, i) => {
                 const number = part * perPart + i + 1;
                 const chosen = state.answers[q.id];
+                // A question with no picture at all (the Yes or No Test's
+                // pair of numbers): the text stands where the picture would,
+                // and the radios follow it on the same line, at the same
+                // distance, as on every other paper.
+                const textOnly = !q.image && !q.optionImages;
                 return (
                   <li key={q.id} className="border-b border-[#ececec] pb-8" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
                     <p className="text-[0.95em] font-bold text-[#222]">Question No : {number}</p>
-                    {(q.prompt.en || q.prompt.hi) && (
+                    {!textOnly && (q.prompt.en || q.prompt.hi) && (
                       <div className="mt-2 text-[1em] text-[#494949]">
                         {q.prompt.en && <p>{q.prompt.en}</p>}
                         {q.prompt.hi && <p lang="hi">{q.prompt.hi}</p>}
@@ -412,7 +384,19 @@ export function FigureExam({
                     {/* Three layouts, as the real portal draws them. Every
                         picture is drawn small, at a fixed height, whatever
                         size was uploaded. */}
-                    {q.optionImages && !q.image ? (
+                    {textOnly ? (
+                      <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
+                        <span className="text-[1.05em] tabular-nums text-[#222]">
+                          {q.prompt.en}
+                          {q.prompt.hi && <span className="ml-3 text-[#494949]" lang="hi">{q.prompt.hi}</span>}
+                        </span>
+                        <span className="flex flex-wrap items-center gap-x-[52px]">
+                          {q.options.map((option, oi) => (
+                            <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                          ))}
+                        </span>
+                      </div>
+                    ) : q.optionImages && !q.image ? (
                       // Option pictures with no figure (Memory): a strip of
                       // the pictures, each with its letter in the corner,
                       // then the radios in a row after the strip.
@@ -482,7 +466,6 @@ export function FigureExam({
                 );
               })}
             </ol>
-            )}
             </>
             )}
           </div>
