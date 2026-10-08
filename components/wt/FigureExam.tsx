@@ -52,6 +52,9 @@ export function FigureExam({
   // first picture on screen, so they sit over its halves whatever size
   // the pictures were uploaded at.
   const twoSets = paper.category === "observation";
+  // A paper of text questions only (the Yes or No Test): the rows are
+  // short, so they sit closer than picture questions do.
+  const textPaper = paper.questions.length > 0 && paper.questions.every((q) => !q.image && !q.optionImages);
   const [setsWidth, setSetsWidth] = useState(0);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
@@ -362,7 +365,7 @@ export function FigureExam({
               </div>
             )}
 
-            <ol className="mt-3 space-y-10">
+            <ol className={`mt-3 ${textPaper ? "space-y-3" : "space-y-10"}`}>
               {parts[part]?.map((q, i) => {
                 const number = part * perPart + i + 1;
                 const chosen = state.answers[q.id];
@@ -372,7 +375,7 @@ export function FigureExam({
                 // distance, as on every other paper.
                 const textOnly = !q.image && !q.optionImages;
                 return (
-                  <li key={q.id} className="border-b border-[#ececec] pb-8" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                  <li key={q.id} className={`border-b border-[#ececec] ${textOnly ? "pb-3" : "pb-8"}`} style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
                     <p className="text-[0.95em] font-bold text-[#222]">Question No : {number}</p>
                     {!textOnly && (q.prompt.en || q.prompt.hi) && (
                       <div className="mt-2 text-[1em] text-[#494949]">
@@ -385,8 +388,10 @@ export function FigureExam({
                         picture is drawn small, at a fixed height, whatever
                         size was uploaded. */}
                     {textOnly ? (
-                      <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
-                        <span className="text-[1.05em] tabular-nums text-[#222]">
+                      // The text in a column of one width, so the radios of
+                      // every question stand in the same place down the page.
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-[52px] gap-y-2">
+                        <span className="inline-block min-w-[300px] text-[1.25em] tabular-nums text-[#222]" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
                           {q.prompt.en}
                           {q.prompt.hi && <span className="ml-3 text-[#494949]" lang="hi">{q.prompt.hi}</span>}
                         </span>
