@@ -151,13 +151,15 @@ export interface WatchFeatures {
 
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   showInstructionsButton: true,
-  showQuestionPaperButton: true,
+  // Off: the institute's standard paper has no question-paper page.
+  showQuestionPaperButton: false,
   // Off: the hall has no pause button, and a paper whose clock can be
   // stopped is a paper whose time the server cannot vouch for.
   allowPause: false,
   allowFullscreen: true,
   lockScroll: true,
-  overflowQuestions: true,
+  // Off: the questions fit the panel, as the institute's standard paper has them.
+  overflowQuestions: false,
   questionsPerPart: 10,
   studyTimeMin: 0,
   studyImages: [],
@@ -210,11 +212,14 @@ const RESULT_VIEW_DEFAULTS: Required<ResultView> = {
   tScoreStats: false,
   cutOff: true,
   cutOffMarks: false,
-  rank: true,
+  // The institute's standard result: T-Score, verdict, percentile,
+  // accuracy, time, attempts and the review with the key; no rank, no
+  // expert's comment, no topic breakdown unless the admin turns them on.
+  rank: false,
   percentile: true,
   accuracy: true,
-  expertComment: true,
-  topicBreakdown: true,
+  expertComment: false,
+  topicBreakdown: false,
   timeAnalysis: true,
   attemptHistory: true,
   review: true,
