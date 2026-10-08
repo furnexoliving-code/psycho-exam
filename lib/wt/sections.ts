@@ -72,7 +72,9 @@ const DEFAULT_SECTION: Record<string, string> = {
   find6: "4b",
   find9: "4c",
   observation: "4d",
+  similarity: "5a",
   octagonal: "5b",
+  similarity2: "5c",
   circle: "5d",
   figure: "5e",
 };

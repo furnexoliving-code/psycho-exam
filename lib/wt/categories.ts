@@ -105,12 +105,28 @@ export const CATEGORIES = [
     blurb: "A picture stays on screen; each question asks what can be seen in it.",
   },
   {
+    id: "similarity",
+    battery: 5,
+    kind: "figure",
+    title: "Similarity Test",
+    hindi: "समानता परीक्षण",
+    blurb: "A sheet of four figures a to d, each against five: find the one most nearly like it. 18 sheets, 6 minutes.",
+  },
+  {
     id: "octagonal",
     battery: 5,
     kind: "figure",
     title: "Octagonal Test",
     hindi: "अष्टकोण परीक्षण",
     blurb: "A figure on the left and five on the right: find the identical one. 96 questions in 5 minutes.",
+  },
+  {
+    id: "similarity2",
+    battery: 5,
+    kind: "figure",
+    title: "Similarity Test Type-II",
+    hindi: "समानता परीक्षण प्रकार-II",
+    blurb: "A sheet of four objects a to d, each against five: find the one most nearly like it. 18 sheets, 6 minutes.",
   },
   {
     id: "circle",

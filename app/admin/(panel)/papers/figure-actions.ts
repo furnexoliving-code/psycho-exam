@@ -12,7 +12,6 @@ import {
   MAX_OPTION_COUNT,
   optionValues,
   type OptionStyle,
-  BRICK_LETTERS,
 } from "@/lib/wt/figure-sample";
 import { parseOption } from "@/lib/wt/parse-questions";
 import { scheduleMinutes } from "@/lib/wt/schedule";
@@ -72,8 +71,8 @@ export async function addFigureQuestions(
   items: (string | { image?: string | null; options?: string[] })[],
   optionCount: number,
   optionStyle: OptionStyle = "letters",
-  /** The Brick Test: each picture is a pile, and makes five questions, A to E, on that one picture. */
-  piles = false,
+  /** A sheet test (Brick, Similarity): each picture makes several questions, labelled as on it, on that one picture. */
+  sheet: { prompts: readonly string[]; topicPrefix: string } | null = null,
 ): Promise<{ added: number; error?: string }> {
   try {
     await requireEditor();
@@ -109,16 +108,16 @@ export async function addFigureQuestions(
       .maybeSingle();
     const start = ((last?.position as number | undefined) ?? -1) + 1;
 
-    const rows = piles
+    const rows = sheet
       ? links.flatMap((q, i) =>
-          BRICK_LETTERS.map((letter, li) => ({
+          sheet.prompts.map((label, li) => ({
             paper_id: paperId,
-            position: start + i * BRICK_LETTERS.length + li,
-            prompt_en: letter,
+            position: start + i * sheet.prompts.length + li,
+            prompt_en: label,
             prompt_hi: "",
             options: optionValues(style, count),
             answer: "",
-            topic: `Brick ${letter}`,
+            topic: `${sheet.topicPrefix} ${label}`,
             image_url: q.image,
             option_images: null,
           })),

@@ -1,10 +1,12 @@
 -- ---------------------------------------------------------------------------
--- Octagonal Test (5b) and Same Circle Test (5d) — run once in the Supabase
--- SQL editor before making the first paper of either.
+-- Brick Test (3a), Similarity Test (5a) and Similarity Test Type-II (5c) —
+-- run once in the Supabase SQL editor before making the first paper of
+-- any of them.
 --
--- Their categories are 'octagonal' and 'circle'. They ride the Same
--- Figure Test's engine: picture questions the institute uploads, answered
--- by a letter. Nothing else is new in the database.
+-- Their categories are 'brick', 'similarity' and 'similarity2'. They ride
+-- the picture engine: one picture per part, several questions on each
+-- (A to E answered by a number on a pile; a to d answered by a letter on
+-- a sheet). Nothing else is new in the database.
 -- ---------------------------------------------------------------------------
 alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
 alter table public.watch_papers

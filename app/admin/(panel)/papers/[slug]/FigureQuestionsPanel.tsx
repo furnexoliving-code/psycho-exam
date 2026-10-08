@@ -14,6 +14,7 @@ import {
   OPTION_LETTERS,
   defaultOptionsFor,
   optionValues,
+  sheetOf,
   type OptionStyle,
 } from "@/lib/wt/figure-sample";
 import { deleteQuestion } from "../actions";
@@ -69,8 +70,9 @@ export function FigureQuestionsPanel({
   const picker = useRef<HTMLInputElement | null>(null);
 
   const unanswered = questions.filter((q) => q.answer === "").length;
-  // The Brick Test: one picture is a pile, and makes five questions (A to E).
-  const piles = category === "brick";
+  // A sheet test (Brick, Similarity): one picture makes several questions.
+  const sheet = sheetOf(category);
+  const piles = sheet !== null;
 
   const addPictures = async (list: FileList | null) => {
     const files = sortByName(Array.from(list ?? []));
@@ -115,7 +117,7 @@ export function FigureQuestionsPanel({
         }
       }
       for (let i = 0; i < items.length; i += FIGURE_BATCH) {
-        const outcome = await addFigureQuestions(slug, items.slice(i, i + FIGURE_BATCH), optionCount, optionStyle, piles);
+        const outcome = await addFigureQuestions(slug, items.slice(i, i + FIGURE_BATCH), optionCount, optionStyle, sheet ? { prompts: sheet.prompts, topicPrefix: sheet.topicPrefix } : null);
         if (outcome.error) throw new Error(outcome.error);
       }
       state.total = groups.length;
@@ -142,17 +144,18 @@ export function FigureQuestionsPanel({
 
       {/* ------------------------- Add pictures ------------------------- */}
       <div className="mt-4 rounded border border-gray-300 bg-gray-50 p-4">
-        <p className="text-[13px] font-semibold text-gray-800">{piles ? "Add piles from pictures" : "Add questions from pictures"}</p>
-        {piles ? (
+        <p className="text-[13px] font-semibold text-gray-800">{sheet ? `Add ${sheet.noun}s from pictures` : "Add questions from pictures"}</p>
+        {sheet ? (
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
           <li>
-            <strong>One picture per pile</strong>, with its bricks lettered A to E: name the files in order (pile01.png,
-            pile02.png …) and choose them all at once. Each pile becomes five questions, A to E, in that order; the hall
-            gives 10 piles, so 50 questions.
+            <strong>One picture per {sheet.noun}</strong>, with its {sheet.prompts.length} questions labelled {sheet.prompts.join(", ")} on it:
+            name the files in order ({sheet.noun}01.png, {sheet.noun}02.png …) and choose them all at once. Each {sheet.noun} becomes
+            {" "}{sheet.prompts.length} questions, {sheet.prompts[0]} to {sheet.prompts[sheet.prompts.length - 1]}, in that order; the hall gives {sheet.pictures} {sheet.noun}s,
+            so {sheet.pictures * sheet.prompts.length} questions.
           </li>
           <li>
-            Afterwards type the answer key in one line, five numbers per pile in A to E order
-            (for example <code>2 3 3 4 4  1 2 2 3 1 …</code>), or set each question&apos;s answer by hand.
+            Afterwards type the answer key in one line, {sheet.prompts.length} answers per {sheet.noun} in {sheet.prompts[0]} to {sheet.prompts[sheet.prompts.length - 1]} order
+            (for example <code>{sheet.style === "numbers" ? "2 3 3 4 4  1 2 2 3 1 …" : "D C B A  B C A D …"}</code>), or set each question&apos;s answer by hand.
           </li>
           <li>Nothing is uploaded until the whole set of names adds up.</li>
         </ul>
@@ -219,7 +222,7 @@ export function FigureQuestionsPanel({
           />
           {run && !run.running && !run.error && (
             <span className="text-[12px] font-semibold text-green-700">
-              ✓ {run.total} {piles ? "pile" : "question"}{run.total === 1 ? "" : "s"} added
+              ✓ {run.total} {sheet ? sheet.noun : "question"}{run.total === 1 ? "" : "s"} added
             </span>
           )}
         </div>

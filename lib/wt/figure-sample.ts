@@ -107,6 +107,22 @@ export function pictureInstructions(
         },
         ...timing,
       ];
+    case "similarity":
+      return [
+        {
+          en: "This is a test of how rapidly you can see figures in order to match them. On each sheet four figures, a, b, c and d, are given at the left. For each one, look at the five figures A, B, C, D and E at its right and find the one that is most nearly like it. Give your answer by clicking the mouse.",
+          hi: "यह आकृतियों के दो सेटों का शीघ्रता से मिलान करने की योग्यता का परीक्षण है। प्रत्येक पृष्ठ पर बाईं ओर चार आकृतियाँ a, b, c और d दी गई हैं। हर एक के लिए दाईं ओर बनी पाँच आकृतियों A, B, C, D और E में से वह आकृति खोजें जो उससे सबसे अधिक मिलती है। अपना उत्तर माउस क्लिक करके दें।",
+        },
+        ...timing,
+      ];
+    case "similarity2":
+      return [
+        {
+          en: "This is a test of how rapidly you can see objects in order to match them. On each sheet four objects, a, b, c and d, are given at the left. For each one, look at the five objects A, B, C, D and E at its right and find the one that is most nearly like it. Give your answer by clicking the mouse.",
+          hi: "यह वस्तुओं के दो सेटों का शीघ्रता से मिलान करने की योग्यता का परीक्षण है। प्रत्येक पृष्ठ पर बाईं ओर चार वस्तुएँ a, b, c और d दी गई हैं। हर एक के लिए दाईं ओर बनी पाँच वस्तुओं A, B, C, D और E में से वह खोजें जो उससे सबसे अधिक मिलती है। अपना उत्तर माउस क्लिक करके दें।",
+        },
+        ...timing,
+      ];
     case "octagonal":
       return [
         {
@@ -174,7 +190,7 @@ export function optionValues(style: OptionStyle, count: number): (string | numbe
 
 /** How large a picture test draws its pictures when the paper does not say: percent of the usual size. */
 export function defaultPictureScale(category: string | undefined): number {
-  return category === "depth" || category === "brick" ? 225 : category === "memory" ? 140 : 100;
+  return category === "depth" || category === "brick" || category === "similarity" || category === "similarity2" ? 225 : category === "memory" ? 140 : 100;
 }
 
 /** The sizes offered in the settings. */
@@ -186,6 +202,9 @@ export function defaultOptionsFor(category: string): { style: OptionStyle; count
     case "depth":
     case "brick":
       return { style: "numbers", count: 10 };
+    case "similarity":
+    case "similarity2":
+      return { style: "letters", count: 5 };
     case "observation":
       return { style: "letters", count: 4 };
     default:
@@ -231,8 +250,59 @@ export const BRICK_EXAMPLE_TEXT: InstructionBlock[] = [
   },
 ];
 
+/** The worked examples the Similarity Tests' instruction screens give: the institute adds the example sheet's picture above them. */
+export const SIMILARITY_EXAMPLE_TEXT: InstructionBlock[] = [
+  {
+    en: "Look at the first figure 'a' at the left. Which one of the five at the right is most nearly like it? Figure D is the one, so the answer for 'a' is D. For the second figure 'b' the answer is C. For 'c' it is B, and for 'd' it is A.",
+    hi: "बाईं ओर बनी पहली आकृति 'a' को देखें। दाईं ओर की पाँच आकृतियों में से कौन सी उससे सबसे अधिक मिलती है? आकृति D मिलती है, अतः 'a' का उत्तर D है। दूसरी आकृति 'b' का उत्तर C है। 'c' का उत्तर B और 'd' का उत्तर A है।",
+  },
+];
+export const SIMILARITY2_EXAMPLE_TEXT: InstructionBlock[] = [
+  {
+    en: "Look at the first radio 'a' at the left. Which one of the five at the right is most nearly like it? Radio B is the one. For the second radio 'b' the answer is C. For 'c' it is A, and for 'd' it is D.",
+    hi: "बाईं ओर बने पहले रेडियो 'a' को देखें। दाईं ओर के पाँच रेडियो में से कौन सा उससे सबसे अधिक मिलता है? रेडियो B मिलता है। दूसरे रेडियो 'b' का उत्तर C है। 'c' का उत्तर A और 'd' का उत्तर D है।",
+  },
+];
+
+/** The example paragraphs a sheet test starts with. */
+export function sheetExampleText(category: string): InstructionBlock[] {
+  return category === "similarity" ? SIMILARITY_EXAMPLE_TEXT : category === "similarity2" ? SIMILARITY2_EXAMPLE_TEXT : BRICK_EXAMPLE_TEXT;
+}
+
 /** The lettered bricks of one pile: the five questions each pile asks, in order. */
 export const BRICK_LETTERS = ["A", "B", "C", "D", "E"] as const;
+
+/**
+ * The sheet tests: one picture carries several questions. The Brick Test
+ * (a pile, five lettered bricks A to E, answered by a number) and the two
+ * Similarity Tests (a sheet of four figures a to d, each matched against
+ * five, answered by a letter). The picture stands at the left of the
+ * screen and its questions at the right.
+ */
+export interface SheetSpec {
+  /** What one picture is called in the admin panel. */
+  noun: string;
+  /** The questions each picture asks, in order, as they are labelled on it. */
+  prompts: readonly string[];
+  /** What the result's topic breakdown calls a question: "Brick A", "Figure a". */
+  topicPrefix: string;
+  style: OptionStyle;
+  count: number;
+  /** How many pictures the hall gives, and its clock. */
+  pictures: number;
+  timeMin: number;
+}
+
+const SHEETS: Record<string, SheetSpec> = {
+  brick: { noun: "pile", prompts: BRICK_LETTERS, topicPrefix: "Brick", style: "numbers", count: 10, pictures: 10, timeMin: 5 },
+  similarity: { noun: "sheet", prompts: ["a", "b", "c", "d"], topicPrefix: "Figure", style: "letters", count: 5, pictures: 18, timeMin: 6 },
+  similarity2: { noun: "sheet", prompts: ["a", "b", "c", "d"], topicPrefix: "Figure", style: "letters", count: 5, pictures: 18, timeMin: 6 },
+};
+
+/** The sheet spec of a category, or null for a test whose pictures are one question each. */
+export function sheetOf(category: string | null | undefined): SheetSpec | null {
+  return category ? (SHEETS[category] ?? null) : null;
+}
 
 /** The most pictures the panel sends the server in one call. */
 export const FIGURE_BATCH = 50;
@@ -548,6 +618,58 @@ export function brickSamplePaper() {
     instructionTimeLimitMin: 5,
     instructions: pictureInstructions("brick", 1, 5),
     example: { table: { label: "Example", cells: [] }, text: BRICK_EXAMPLE_TEXT },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions,
+    resultView: {},
+  };
+}
+
+/** A Similarity Test of two sheets, drawn in the portal, for seeing the two-column screen before a database exists. */
+export const SIMILARITY_SAMPLE_ID = "similarity-sample";
+export const SIMILARITY2_SAMPLE_ID = "similarity-2-sample";
+
+export function similaritySamplePaper(category: "similarity" | "similarity2") {
+  // A sheet: four rows, each a figure at the left and five at the right,
+  // lettered A to E; the figures are the Same Figure sample's stars.
+  const rowSvg = (y: number, label: string, target: number, order: number[]) => {
+    const cell = (x: number, k: number) => `<g transform="translate(${x} ${y}) scale(0.42)">${SHAPES[k]}</g>`;
+    const letters = order.map((_, i) => `<text x="${150 + i * 64 + 25}" y="${y + 62}" font-size="12" text-anchor="middle" fill="#111">${OPTION_LETTERS[i]}</text>`).join("");
+    return `<text x="20" y="${y + 32}" font-size="16" fill="#111">${label}</text>${cell(40, target)}${order.map((k, i) => cell(150 + i * 64, k)).join("")}${letters}`;
+  };
+  const sheet = (rows: { target: number; order: number[] }[]) => {
+    const body = rows.map((r, i) => rowSvg(10 + i * 72, ["a", "b", "c", "d"][i], r.target, r.order)).join("");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300" viewBox="0 0 480 300"><rect x="1" y="1" width="478" height="298" fill="#fff" stroke="#999"/>${body}</svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+  const sheets = [
+    { rows: [{ target: 0, order: [3, 1, 0, 2, 4] }, { target: 2, order: [2, 4, 1, 0, 3] }, { target: 4, order: [1, 0, 3, 4, 2] }, { target: 1, order: [1, 2, 4, 3, 0] }] },
+    { rows: [{ target: 3, order: [0, 3, 2, 1, 4] }, { target: 1, order: [4, 2, 0, 1, 3] }, { target: 0, order: [2, 1, 4, 3, 0] }, { target: 2, order: [3, 0, 1, 2, 4] }] },
+  ];
+  const spec = sheetOf(category)!;
+  const questions = sheets.flatMap((sh, si) =>
+    sh.rows.map((r, ri) => ({
+      id: `${category}-q${si * 4 + ri + 1}`,
+      tableIndex: 0,
+      prompt: { en: spec.prompts[ri], hi: "" },
+      options: optionValues("letters", 5),
+      answer: OPTION_LETTERS[r.order.indexOf(r.target)],
+      working: { en: "", hi: "" },
+      topic: `${spec.topicPrefix} ${spec.prompts[ri]}`,
+      image: sheet(sh.rows),
+    })),
+  );
+  const two = category === "similarity2";
+  return {
+    id: two ? SIMILARITY2_SAMPLE_ID : SIMILARITY_SAMPLE_ID,
+    kind: "figure" as const,
+    category,
+    title: two ? "Similarity Test Type-II" : "Similarity Test",
+    displayName: two ? "Similarity Test Type-II - Sample" : "Similarity Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 4 },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions(category, 1, 5),
+    example: { table: { label: "Example", cells: [] }, text: sheetExampleText(category) },
     tables: [{ label: "No. 1", cells: [] }],
     questions,
     resultView: {},

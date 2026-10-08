@@ -10,4 +10,4 @@
 alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
 alter table public.watch_papers
   add constraint watch_papers_category_ck
-  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation', 'yesno', 'find6', 'find9', 'octagonal', 'circle', 'brick'));
+  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation', 'yesno', 'find6', 'find9', 'octagonal', 'circle', 'brick', 'similarity', 'similarity2'));
