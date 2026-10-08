@@ -381,12 +381,14 @@ export function FigureExam({
                   )}
                 </div>
                 <div className="relative min-w-0 flex-1 pb-3">
-                <ol ref={brickPane} className="wt-scroll-host w-full space-y-5 lg:pl-4" style={{ fontFamily: "Georgia, 'Times New Roman', serif", overflowY: "hidden" }}>
+                {/* Each row padded and ruled as the Following Directions list is, so the
+                    questions sit as far apart as on every other paper. */}
+                <ol ref={brickPane} className="wt-scroll-host w-full lg:pl-4" style={{ fontFamily: "Georgia, 'Times New Roman', serif", overflowY: "hidden" }}>
                   {parts[part]?.map((q, i) => {
                     const number = part * perPart + i + 1;
                     const chosen = state.answers[q.id];
                     return (
-                      <li key={q.id} className="flex items-center gap-x-5">
+                      <li key={q.id} className="flex items-center gap-x-5 border-b border-[#ececec] py-5 first:pt-1">
                         <span className="w-[56px] shrink-0 whitespace-nowrap text-[1em] text-[#222]">{number}. {q.prompt.en} -</span>
                         <span className="flex items-center gap-x-[52px] whitespace-nowrap">
                           {q.options.map((option, oi) => (
