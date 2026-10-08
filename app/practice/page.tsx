@@ -5,7 +5,7 @@ import { photoUrlOf } from "@/lib/photo";
 import { examSettings } from "@/lib/settings";
 import { listPublishedPapers } from "@/lib/wt/db";
 import { attemptsFor } from "@/lib/wt/history";
-import { batteryProgress } from "@/lib/wt/progress";
+import { batteryProgress, paperBestT } from "@/lib/wt/progress";
 import { groupPapers } from "@/lib/wt/series";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { STAGES } from "@/lib/wt/plan";
@@ -41,6 +41,8 @@ export default async function PracticePage() {
   const papers = allPapers.filter((p) => openToStudents(p.category, hidden));
   const satSlugs = new Set(attempts.map((a) => a.paperSlug));
   const sat = new Set(papers.filter((p) => satSlugs.has(p.slug)).map((p) => p.id));
+  // The best T-score of each paper sat, so every test type can show its own.
+  const bestT = await paperBestT(profile.id, [...sat]);
 
   return (
     <PracticeView
@@ -49,6 +51,7 @@ export default async function PracticePage() {
       hidden={hidden}
       progress={progress}
       sat={sat}
+      bestT={bestT}
       stages={{ pass: exam.passT, average: STAGES.average, target: exam.targetT }}
     />
   );

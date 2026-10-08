@@ -21,6 +21,8 @@ export interface PracticeInput {
   progress: BatteryProgress[];
   /** Paper ids the student has sat at least once. */
   sat: Set<string>;
+  /** The best T-score per paper sat, by paper id; a paper not yet measured is absent. */
+  bestT: Map<string, number>;
   stages: { pass: number; average: number; target: number };
 }
 
@@ -59,7 +61,7 @@ function cardsOf(battery: number, series: Series[]): Card[] {
   return [...indexed, ...extra];
 }
 
-export function PracticeView({ profile, groups, hidden, progress, sat, stages }: PracticeInput) {
+export function PracticeView({ profile, groups, hidden, progress, sat, bestT, stages }: PracticeInput) {
   const batteries = BATTERIES.filter((b) => !hidden.includes(b.id));
   const allPapers = [...groups.values()].flat().flatMap((s) => s.papers);
   const satCount = allPapers.filter((p) => sat.has(p.id)).length;
@@ -135,7 +137,7 @@ export function PracticeView({ profile, groups, hidden, progress, sat, stages }:
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {cards.map((c) => (c.series ? <OpenCard key={c.code ?? c.series.slug} card={c} series={c.series} battery={b.id} sat={sat} /> : <SoonCard key={c.code ?? c.name} card={c} />))}
+                  {cards.map((c) => (c.series ? <OpenCard key={c.code ?? c.series.slug} card={c} series={c.series} battery={b.id} sat={sat} bestT={bestT} stages={stages} /> : <SoonCard key={c.code ?? c.name} card={c} />))}
                 </div>
               </div>
             </section>
@@ -173,14 +175,35 @@ function TChip({ t, stages }: { t: number | null; stages: { pass: number; target
   );
 }
 
+/** The test type's own best T-score, on its card: the best of its papers. */
+function BestT({ t, done, stages }: { t: number | null; done: boolean; stages: { pass: number; target: number } }) {
+  if (t === null) {
+    return (
+      <span className="shrink-0 rounded-[10px] border border-gray-200 bg-gray-50 px-2 py-1 text-center leading-tight text-gray-400" title={done ? "Too few students on these papers yet to measure a T-score" : "Not attempted yet"}>
+        <span className="block text-[14px] font-extrabold">—</span>
+        <span className="block text-[8.5px] font-semibold uppercase tracking-wide">best T</span>
+      </span>
+    );
+  }
+  const style = t >= stages.target ? "border-green-200 bg-green-50 text-green-700" : t >= stages.pass ? "border-amber-200 bg-amber-50 text-amber-700" : "border-red-200 bg-red-50 text-red-700";
+  return (
+    <span className={`shrink-0 rounded-[10px] border px-2 py-1 text-center leading-tight ${style}`}>
+      <span className="block text-[14px] font-extrabold tabular-nums">{t.toFixed(0)}</span>
+      <span className="block text-[8.5px] font-semibold uppercase tracking-wide">best T</span>
+    </span>
+  );
+}
+
 function Chip({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
   return <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${muted ? "bg-gray-100 text-gray-500" : "bg-[#eef2fb] text-[#0d2a6b]"}`}>{children}</span>;
 }
 
-function OpenCard({ card, series, battery, sat }: { card: Card; series: Series; battery: number; sat: Set<string> }) {
+function OpenCard({ card, series, battery, sat, bestT, stages }: { card: Card; series: Series; battery: number; sat: Set<string>; bestT: Map<string, number>; stages: { pass: number; target: number } }) {
   const tone = TONE[battery] ?? TONE[2];
   const done = series.papers.filter((p) => sat.has(p.id)).length;
   const pct = series.papers.length ? Math.round((done / series.papers.length) * 100) : 0;
+  const ts = series.papers.map((p) => bestT.get(p.id)).filter((t): t is number => t !== undefined);
+  const t = ts.length ? Math.max(...ts) : null;
   return (
     <Link href={`/practice/${battery}/${series.slug}`} className={`group flex flex-col rounded-[14px] border border-gray-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${tone.ring}`}>
       <div className="flex items-start gap-2.5">
@@ -189,6 +212,7 @@ function OpenCard({ card, series, battery, sat }: { card: Card; series: Series; 
           <div className="text-[14px] font-extrabold leading-tight text-gray-900">{card.name}</div>
           {card.hindi && <div className="text-[11px] leading-tight text-gray-500" lang="hi">{card.hindi}</div>}
         </div>
+        <BestT t={t} done={done > 0} stages={stages} />
       </div>
       {card.questions && (
         <div className="mt-3 flex flex-wrap gap-1.5">
