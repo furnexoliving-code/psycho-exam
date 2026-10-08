@@ -399,6 +399,7 @@ export function PublicFooter() {
             <li><a href="#test-series" className="hover:underline">Test series</a></li>
             <li><a href="#faq" className="hover:underline">FAQ</a></li>
             <li><Link href="/packages" className="hover:underline">Packages & prices</Link></li>
+            <li><Link href="/blog" className="hover:underline">Articles & guides</Link></li>
             <li><Link href="/terms" className="hover:underline">Terms of Use</Link></li>
             <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>
             <li><Link href="/refund-policy" className="hover:underline">Refund Policy</Link></li>
