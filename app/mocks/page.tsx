@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { batteryOf } from "@/lib/wt/series";
 import { batteryProgress, clearedBar } from "@/lib/wt/progress";
 import { currentMockStep, listPublishedMocks, mockResultsFor, mockStatus, scoreOutOf30 } from "@/lib/wt/mock";
+import { accessFor, canSitMock } from "@/lib/packages";
 
 export default async function MocksPage({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
   if (!isConfigured()) redirect("/dashboard");
@@ -15,12 +16,13 @@ export default async function MocksPage({ searchParams }: { searchParams: Promis
   const { show } = await searchParams;
   const filter = ["open", "upcoming", "done", "closed"].includes(show ?? "") ? (show as string) : "all";
 
-  const [mocks, results, inMock, progress, exam] = await Promise.all([
+  const [mocks, results, inMock, progress, exam, access] = await Promise.all([
     listPublishedMocks(),
     mockResultsFor(profile.id, 500),
     currentMockStep(profile.id),
     batteryProgress(profile.id),
     examSettings(),
+    accessFor(profile.id, profile.role),
   ]);
 
   // Which batteries each mock holds, in one query over every paper named.
@@ -43,10 +45,13 @@ export default async function MocksPage({ searchParams }: { searchParams: Promis
       used: mine.length,
       latest: mine[0] ?? null,
       best,
-      unlocked: batteries.length > 0 && clearedBar(progress, batteries, exam.passT),
+      // The free mock is there to be tried on day one; the others open once
+      // every battery is past the bar in practice.
+      unlocked: mock.isFree || (batteries.length > 0 && clearedBar(progress, batteries, exam.passT)),
       inProgress: inMock?.mock.id === mock.id,
+      inPackage: canSitMock(access, mock),
     };
   });
 
-  return <MocksView profile={{ full_name: profile.full_name, photoUrl: photoUrlOf(profile) }} cards={cards} passT={exam.passT} filter={filter} />;
+  return <MocksView profile={{ full_name: profile.full_name, photoUrl: photoUrlOf(profile) }} cards={cards} passT={exam.passT} filter={filter} hasPackage={access.all || access.full.has("alp")} />;
 }

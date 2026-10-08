@@ -39,7 +39,7 @@ export function AuthForm({ next }: { next: string }) {
           maxLength={15}
           placeholder="10-digit mobile number"
           required
-          className="w-full rounded border border-gray-400 bg-blue-50 px-3 py-2.5 text-[15px]
+          className="w-full rounded border border-gray-400 bg-white px-3 py-2.5 text-[15px]
                      focus:border-rrb-banner focus:outline-none focus:ring-1 focus:ring-rrb-banner"
         />
       </label>
@@ -53,7 +53,7 @@ export function AuthForm({ next }: { next: string }) {
           type="password"
           autoComplete="current-password"
           required
-          className="w-full rounded border border-gray-400 bg-blue-50 px-3 py-2.5 text-[15px]
+          className="w-full rounded border border-gray-400 bg-white px-3 py-2.5 text-[15px]
                      focus:border-rrb-banner focus:outline-none focus:ring-1 focus:ring-rrb-banner"
         />
       </label>
@@ -67,8 +67,8 @@ export function AuthForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending || state?.ok === true}
-        className="w-full rounded bg-indigo-800 px-4 py-2.5 text-[15px] font-semibold text-white
-                   hover:bg-indigo-900 disabled:opacity-60"
+        className="w-full rounded-md bg-[#0d2a6b] px-4 py-3 text-[15px] font-bold text-white
+                   hover:bg-[#0a2158] disabled:opacity-60"
       >
         {pending || state?.ok ? "Signing in…" : "Sign in"}
       </button>

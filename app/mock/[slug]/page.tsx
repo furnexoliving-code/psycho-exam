@@ -9,6 +9,7 @@ import { currentMockStep, latestMockResult, loadMock, mockAttemptsUsed, mockMinu
 import { STAGES } from "@/lib/wt/plan";
 import { leaveMock } from "../actions";
 import { examSettings } from "@/lib/settings";
+import { accessFor, canSitMock } from "@/lib/packages";
 
 /**
  * The door to a Full Mock: what it holds, how long it runs, what is left,
@@ -28,12 +29,16 @@ export default async function MockPage({
   if (!loaded || !loaded.mock.isPublished) notFound();
   const { mock, papers } = loaded;
 
-  const [current, used, latest, unlocked] = await Promise.all([
+  const [current, used, latest, cleared, access] = await Promise.all([
     currentMockStep(who.id),
     mockAttemptsUsed(mock.id, who.id),
     latestMockResult(mock.id, who.id),
     mockUnlockedFor(who.id, papers),
+    accessFor(who.id, who.role),
   ]);
+  const inPackage = canSitMock(access, mock);
+  // The free mock is there to be tried on day one; the others wait for the practice bar.
+  const unlocked = mock.isFree || cleared;
   const status = mockStatus(mock);
   const exam = await examSettings();
   const inThis = current && current.mock.id === mock.id ? current : null;
@@ -154,6 +159,12 @@ export default async function MockPage({
             <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
               You are in the middle of <b>{inOther.mock.name}</b>.{" "}
               <Link href={`/mock/${inOther.mock.slug}`} className="font-semibold underline">Finish it first</Link>.
+            </p>
+          ) : status === "live" && !spent && !inPackage ? (
+            <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
+              🔒 This Full Mock is part of the <b>Full Mock package</b>.{" "}
+              <Link href="/packages#full" className="font-semibold underline">See packages and prices</Link>.
+              <span className="block text-[12px]" lang="hi">यह फुल मॉक फुल मॉक पैकेज में है। पैकेज और कीमत देखें।</span>
             </p>
           ) : status === "live" && !spent && !unlocked ? (
             <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">

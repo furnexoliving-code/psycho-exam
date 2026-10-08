@@ -10,6 +10,7 @@ import { examSettings } from "@/lib/settings";
 import { STAGES } from "@/lib/wt/plan";
 import { groupPapers } from "@/lib/wt/series";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
+import { accessFor, canPractice } from "@/lib/packages";
 
 export default async function SeriesPage({ params }: { params: Promise<{ battery: string; series: string }> }) {
   if (!isConfigured()) redirect("/dashboard");
@@ -18,7 +19,8 @@ export default async function SeriesPage({ params }: { params: Promise<{ battery
   const profile = await requireUser(`/practice/${rawBattery}/${slug}`);
   if (profile.role !== "student" && profile.role !== "admin") redirect(panelHome(profile.role));
 
-  const [allPapers, hidden] = await Promise.all([listPublishedPapers(), hiddenBatteries()]);
+  const [allPapers, hidden, access] = await Promise.all([listPublishedPapers(), hiddenBatteries(), accessFor(profile.id, profile.role)]);
+  if (!canPractice(access, "alp")) redirect("/practice");
   if (hidden.includes(battery)) notFound();
   const papers = allPapers.filter((p) => openToStudents(p.category, hidden));
   const list = groupPapers(papers).get(battery) ?? [];

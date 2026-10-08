@@ -9,7 +9,7 @@ import { abandonMock, advanceMock, openMockSitting, type MockSummaryTest } from 
 export async function startMock(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug") ?? "");
   const who = await requireUser(`/mock/${slug}`);
-  const opened = await openMockSitting(slug, who.id);
+  const opened = await openMockSitting(slug, who.id, who.role);
   if (!opened.ok) redirect(`/mock/${slug}?error=${encodeURIComponent(opened.reason)}`);
   redirect(`/test/${opened.step.paper.slug}`);
 }

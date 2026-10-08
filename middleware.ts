@@ -45,11 +45,11 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  // The front door goes straight to the right place, without a page render
-  // whose only job was to decide this.
-  if (path === "/") {
+  // The front page is the public one; a signed-in student goes straight to
+  // their dashboard instead.
+  if (path === "/" && user) {
     const to = request.nextUrl.clone();
-    to.pathname = user ? "/dashboard" : "/login";
+    to.pathname = "/dashboard";
     to.search = "";
     return NextResponse.redirect(to);
   }

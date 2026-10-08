@@ -32,12 +32,14 @@ export interface DashboardInput {
   mocksToday: number;
   allowances: Map<string, AttemptAllowance>;
   leaders: LeaderRow[];
+  /** What the student's packages open; both true for a Kautilya student. */
+  access?: { sectional: boolean; full: boolean };
 }
 
 const BATTERY_ICON: Record<number, string> = { 1: "🧠", 2: "🧭", 3: "🧊", 4: "👁️", 5: "🔍" };
 const BATTERY_SOFT: Record<number, string> = { 1: "bg-violet-50", 2: "bg-sky-50", 3: "bg-cyan-50", 4: "bg-lime-50", 5: "bg-rose-50" };
 
-export function DashboardView({ profile, now, today, notices, papers, hidden, progress, mocks, mockResults, inMock, exam, mocksToday, allowances, leaders }: DashboardInput) {
+export function DashboardView({ profile, now, today, notices, papers, hidden, progress, mocks, mockResults, inMock, exam, mocksToday, allowances, leaders, access = { sectional: true, full: true } }: DashboardInput) {
   const stages = { pass: exam.passT, average: STAGES.average, target: exam.targetT };
   const daysLeft = exam.examDate ? daysUntil(exam.examDate, today) : null;
 
@@ -85,6 +87,8 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
   for (const r of mockResults) if (!latestByMock.has(r.mockId)) latestByMock.set(r.mockId, r);
   const openMocks = mocks.filter((m) => mockStatus(m) === "live" || mockStatus(m) === "scheduled");
   const featured = (inMock && mocks.find((m) => m.id === inMock.mock.id)) || openMocks.find((m) => !latestByMock.has(m.id)) || openMocks[0] || null;
+  // The free mock is open from day one, bar or no bar.
+  const freeMock = mocks.find((m) => m.isFree && mockStatus(m) === "live") ?? null;
   const newest = mockResults[0] ?? null;
   const trend = mockResults.filter((r) => r.composite !== null).slice().reverse().slice(-8);
 
@@ -94,6 +98,29 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-5">
         <NoticeBoard notices={notices} />
+
+        {(!access.sectional || !access.full) && (
+          <section className="mb-4 flex flex-wrap items-center gap-3 rounded-[14px] border border-amber-300 bg-amber-50 px-5 py-4">
+            <span className="text-[24px]" aria-hidden="true">🎁</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-bold text-amber-900">
+                {!access.sectional && !access.full
+                  ? "Welcome! The free Full Mock is open to try. Practice papers and the other Full Mocks come with a package."
+                  : !access.sectional
+                    ? "Practice papers come with the Sectional package. Your Full Mocks are open."
+                    : "Full Mocks come with the Full Mock package. Your practice papers are open."}
+              </p>
+              <p className="text-[12px] text-amber-800" lang="hi">
+                {!access.sectional && !access.full
+                  ? "स्वागत है! फ्री फुल मॉक अभी खोल सकते हैं। प्रैक्टिस पेपर और बाकी फुल मॉक पैकेज के साथ मिलते हैं।"
+                  : !access.sectional
+                    ? "प्रैक्टिस पेपर सेक्शनल पैकेज के साथ मिलते हैं।"
+                    : "फुल मॉक टेस्ट फुल मॉक पैकेज के साथ मिलते हैं।"}
+              </p>
+            </div>
+            <Link href="/packages" className="rounded-lg bg-[#0d2a6b] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#0a2158]">See packages →</Link>
+          </section>
+        )}
 
         {/* ------------------------------ Hero ------------------------------ */}
         <section
@@ -171,6 +198,10 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                   plan.mocksUnlocked ? (
                     <Link href={`/mock/${featured.slug}`} className="rounded-[10px] border border-white/35 bg-white/10 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-white/20">
                       {mockStatus(featured) === "live" ? `Start ${featured.name}` : `${featured.name} · opens ${featured.opensAt ? formatDateTime(featured.opensAt) : "soon"}`}
+                    </Link>
+                  ) : freeMock ? (
+                    <Link href={`/mock/${freeMock.slug}`} className="rounded-[10px] border border-white/35 bg-white/10 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-white/20">
+                      🎁 Start the free Full Mock
                     </Link>
                   ) : (
                     <span className="rounded-[10px] border border-white/35 bg-white/10 px-4 py-2.5 text-[13px] font-semibold text-white/90">
@@ -264,7 +295,7 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                             {" →"}
                           </Link>
                         ) : (
-                          <span className="text-gray-400">No paper with attempts left</span>
+                          <span className="text-gray-400">{access.sectional ? "No paper with attempts left" : <Link href="/packages#sectional" className="font-semibold text-[#1d4ed8] hover:underline">In the Sectional package →</Link>}</span>
                         )}
                       </td>
                     </tr>
@@ -391,6 +422,8 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                 <div className="mt-3 flex-1 text-[12px]">
                   {inMock ? (
                     <p className="text-gray-700"><span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">⏵ In progress</span> <b>{inMock.mock.name}</b> · Test {inMock.step + 1} of {inMock.papers.length}</p>
+                  ) : !plan.mocksUnlocked && freeMock ? (
+                    <p className="text-gray-700">🎁 <b>{freeMock.name}</b> is free and open now. <Link href={`/mock/${freeMock.slug}`} className="font-semibold text-[#1d4ed8] hover:underline">Start →</Link> The others unlock at T-Score: {stages.pass}+ in every battery.</p>
                   ) : !plan.mocksUnlocked ? (
                     <p className="text-gray-600">🔒 Unlocks when every battery is at T-Score: {stages.pass}+. {inPlay.filter((p) => p.bestT === null || p.bestT < stages.pass).length === 1 ? "1 battery" : `${inPlay.filter((p) => p.bestT === null || p.bestT < stages.pass).length} batteries`} to go.</p>
                   ) : featured ? (

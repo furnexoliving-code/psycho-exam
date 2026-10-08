@@ -12,7 +12,7 @@ export function StudentHeader({
   photoUrl = null,
 }: {
   name: string;
-  active?: "dashboard" | "mocks" | "practice" | "results" | "profile";
+  active?: "dashboard" | "mocks" | "practice" | "results" | "profile" | "packages";
   /** The candidate's own photo, when they have given one. */
   photoUrl?: string | null;
 }) {
@@ -21,6 +21,7 @@ export function StudentHeader({
     { id: "mocks", label: "Full Mocks", href: "/mocks" },
     { id: "practice", label: "Practice", href: "/practice" },
     { id: "results", label: "My results", href: "/results" },
+    { id: "packages", label: "Packages", href: "/packages" },
   ] as const;
 
   return (

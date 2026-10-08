@@ -11,6 +11,7 @@ import { listPublishedPapers } from "@/lib/wt/db";
 import { allowancesFor } from "@/lib/wt/attempts";
 import { batteryProgress } from "@/lib/wt/progress";
 import { currentMockStep, listPublishedMocks, mockLeaderboard, mockResultsFor, mocksFinishedToday } from "@/lib/wt/mock";
+import { accessFor, canPractice } from "@/lib/packages";
 
 export default async function DashboardPage() {
   if (!isConfigured()) {
@@ -34,7 +35,7 @@ export default async function DashboardPage() {
   const today = indianDay(now);
   const dayStart = new Date(`${today}T00:00:00+05:30`).toISOString();
 
-  const [allPapers, hidden, progress, mocks, mockResults, inMock, exam, mocksToday, allNotices] = await Promise.all([
+  const [allPapers, hidden, progress, mocks, mockResults, inMock, exam, mocksToday, allNotices, access] = await Promise.all([
     listPublishedPapers(),
     hiddenBatteries(),
     batteryProgress(profile.id),
@@ -44,9 +45,12 @@ export default async function DashboardPage() {
     examSettings(),
     mocksFinishedToday(profile.id, dayStart),
     listNotices(),
+    accessFor(profile.id, profile.role),
   ]);
-  // Papers of a battery the admin has not opened yet are not on offer.
-  const papers = allPapers.filter((p) => openToStudents(p.category, hidden));
+  // Papers of a battery the admin has not opened yet are not on offer, and
+  // none are without the sectional package.
+  const practice = canPractice(access, "alp");
+  const papers = practice ? allPapers.filter((p) => openToStudents(p.category, hidden)) : [];
   const [allowances, leaders] = await Promise.all([
     allowancesFor(papers, profile.id),
     mockResults[0] ? mockLeaderboard(mockResults[0].mockId, 5) : Promise.resolve([]),
@@ -68,6 +72,7 @@ export default async function DashboardPage() {
       mocksToday={mocksToday}
       allowances={allowances}
       leaders={leaders}
+      access={{ sectional: practice, full: access.all || access.full.has("alp") }}
     />
   );
 }

@@ -12,6 +12,9 @@ import { RowForm } from "@/components/admin/RowForm";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { PendingButton } from "@/components/admin/PendingButton";
 import { deleteStudent, removeStudentPhoto, resetPassword, setActive, setStudentPhoto } from "../actions";
+import { enrollStudent, unenrollStudent } from "../../packages/actions";
+import { enrollmentActive, enrollmentsOf, KIND_LABEL, listAllPackages } from "@/lib/packages";
+import { formatDate } from "@/lib/format-time";
 
 /**
  * One student, in full: the account and its switches, the photo, how each
@@ -40,7 +43,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
     last_seen_at: string | null;
   };
 
-  const [progress, attempts, mocks] = await Promise.all([batteryProgress(id), attemptsFor(id, 40), mockResultsFor(id, 20)]);
+  const [progress, attempts, mocks, enrollments, packages] = await Promise.all([batteryProgress(id), attemptsFor(id, 40), mockResultsFor(id, 20), enrollmentsOf(id), listAllPackages()]);
   const photo = photoUrlOf(student);
   const passed = progress.filter((b) => (b.bestT ?? 0) >= STAGES.pass).length;
 
@@ -136,6 +139,69 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
           </RowForm>
         </section>
       </div>
+
+      <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h2 className="text-[14px] font-bold text-gray-900">Packages</h2>
+        <p className="mt-1 text-[12px] text-gray-600">What this student&apos;s account opens. A Kautilya student gets the package from here; an outside student buys it online.</p>
+        {enrollments.length === 0 ? (
+          <p className="mt-2 text-[12px] text-amber-800">No package: only the free mock is open.</p>
+        ) : (
+          <table className="mt-2 w-full border-collapse text-[12px]">
+            <thead>
+              <tr className="bg-gray-100 text-left text-gray-700">
+                <th className="border border-gray-300 px-2 py-1.5">Package</th>
+                <th className="border border-gray-300 px-2 py-1.5">Opens</th>
+                <th className="border border-gray-300 px-2 py-1.5">From</th>
+                <th className="border border-gray-300 px-2 py-1.5">Till</th>
+                <th className="border border-gray-300 px-2 py-1.5">Source</th>
+                <th className="border border-gray-300 px-2 py-1.5"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {enrollments.map((e) => (
+                <tr key={e.id} className="bg-white even:bg-gray-50">
+                  <td className="border border-gray-300 px-2 py-1.5 font-semibold text-gray-900">{e.package.name}</td>
+                  <td className="border border-gray-300 px-2 py-1.5">{KIND_LABEL[e.package.kind]}</td>
+                  <td className="border border-gray-300 px-2 py-1.5">{formatDate(e.startsAt)}</td>
+                  <td className="border border-gray-300 px-2 py-1.5">
+                    {e.expiresAt ? formatDate(e.expiresAt) : "No expiry"}
+                    {!enrollmentActive(e) && <span className="ml-1 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-800">EXPIRED</span>}
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1.5">{e.source === "purchase" ? "Paid online" : "Institute"}{e.note ? <span className="block text-[11px] text-gray-500">{e.note}</span> : null}</td>
+                  <td className="border border-gray-300 px-2 py-1.5">
+                    <RowForm action={unenrollStudent}>
+                      <input type="hidden" name="enrollment_id" value={e.id} />
+                      <input type="hidden" name="user_id" value={id} />
+                      <PendingButton pendingLabel="…" confirm={`Remove ${e.package.name} from this student?`} className="text-[11px] font-semibold text-red-700 hover:underline">Remove</PendingButton>
+                    </RowForm>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <RowForm action={enrollStudent} className="mt-3 flex flex-wrap items-end gap-2">
+          <input type="hidden" name="user_id" value={id} />
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-semibold text-gray-700">Add a package</span>
+            <select name="package" required className="rounded border border-gray-400 px-2 py-1.5 text-[12px]">
+              <option value="">— choose —</option>
+              {packages.map((p) => (
+                <option key={p.id} value={p.slug}>{p.name} · {KIND_LABEL[p.kind]}{p.isPublished ? "" : " (hidden)"}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-semibold text-gray-700">Till (blank: no expiry)</span>
+            <input name="expires_on" type="date" className="rounded border border-gray-400 px-2 py-1.5 text-[12px]" />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-semibold text-gray-700">Note</span>
+            <input name="note" placeholder="Paid at office ₹699" className="rounded border border-gray-400 px-2 py-1.5 text-[12px]" />
+          </label>
+          <PendingButton pendingLabel="Adding…" className="rounded bg-indigo-800 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60">Add</PendingButton>
+        </RowForm>
+      </section>
 
       <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <h2 className="text-[14px] font-bold text-gray-900">Batteries</h2>

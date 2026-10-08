@@ -16,6 +16,7 @@ import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { currentMockStep, mockSummary as mockSummaryOf, type MockStep } from "@/lib/wt/mock";
 import { photoUrlOf } from "@/lib/photo";
+import { accessFor, canPractice } from "@/lib/packages";
 
 
 /** The window's title while a paper is open: the test's name, as the hall writes it. */
@@ -84,6 +85,23 @@ export default async function WatchTablePage({
   if (isConfigured() && !editor && !mockHere && paper.mockOnly) {
     if (preview) return <PreviewShut reason="This paper is kept for Full Mocks only; students reach it inside a mock, not from the lists." paperId={paperId} />;
     notFound();
+  }
+  // A practice paper is in the sectional package; inside a mock the mock's
+  // own package was checked when it began.
+  if (who && isConfigured() && !editor && !mockHere && !canPractice(await accessFor(who.id, who.role), paper.exam ?? "alp")) {
+    if (preview) return <PreviewShut reason="Students need the Sectional package for this paper (Packages)." paperId={paperId} />;
+    return (
+      <main className="mx-auto max-w-lg px-5 py-16 text-center">
+        <h1 className="text-lg font-bold text-gray-900">This paper is in the Sectional package</h1>
+        <p className="mt-2 text-[14px] text-gray-600">
+          Practice papers open with the Sectional or the Sectional + Full Mock package.
+          <span className="mt-1 block" lang="hi">प्रैक्टिस पेपर सेक्शनल या सेक्शनल + फुल मॉक पैकेज से खुलते हैं।</span>
+        </p>
+        <Link href="/packages#sectional" className="mt-5 inline-block rounded bg-[#0d2a6b] px-5 py-2 text-sm font-semibold text-white hover:bg-[#0a2158]">
+          See packages and prices
+        </Link>
+      </main>
+    );
   }
   if (paper.questions.length === 0) {
     return (

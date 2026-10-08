@@ -1,5 +1,6 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { accessFor, canSitMock } from "@/lib/packages";
 import { BATTERIES, CATEGORIES, categoryKind } from "./categories";
 import { resolveFeatures, type WatchFeatures } from "./types";
 import { cohortFromMoments } from "./cohort";
@@ -35,6 +36,10 @@ export interface MockTest {
   isPublished: boolean;
   sortOrder: number;
   createdAt: string;
+  /** Open to every signed-in student, no package needed. */
+  isFree: boolean;
+  /** Which exam's series the mock belongs to. */
+  exam: string;
 }
 
 export interface MockPaper {
@@ -107,10 +112,23 @@ interface MockRow {
   is_published: boolean;
   sort_order: number;
   created_at: string;
+  is_free?: boolean | null;
+  exam?: string | null;
 }
 
 const MOCK_COLUMNS =
-  "id, slug, name, paper_ids, gap_min, opens_at, closes_at, max_attempts, cut_off_tscore, is_published, sort_order, created_at";
+  "id, slug, name, paper_ids, gap_min, opens_at, closes_at, max_attempts, cut_off_tscore, is_published, sort_order, created_at, is_free, exam";
+/** The same columns on a database the packages SQL has not reached yet. */
+const MOCK_COLUMNS_OLD = MOCK_COLUMNS.replace(", is_free, exam", "");
+
+/** Reads mocks with the package columns, or without them on an older database. */
+async function selectMocks(shape: (q: ReturnType<ReturnType<ReturnType<typeof createAdminClient>["from"]>["select"]>) => PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<{ data: MockRow[] | null; error: { message: string } | null }> {
+  const first = await shape(createAdminClient().from("mock_tests").select(MOCK_COLUMNS));
+  if (!first.error) return first as { data: MockRow[] | null; error: null };
+  if (!/is_free|exam/i.test(first.error.message)) return first as { data: MockRow[] | null; error: { message: string } };
+  const second = await shape(createAdminClient().from("mock_tests").select(MOCK_COLUMNS_OLD));
+  return second as { data: MockRow[] | null; error: { message: string } | null };
+}
 
 function toMock(row: MockRow): MockTest {
   return {
@@ -126,6 +144,8 @@ function toMock(row: MockRow): MockTest {
     isPublished: row.is_published,
     sortOrder: Number(row.sort_order ?? 0),
     createdAt: row.created_at,
+    isFree: row.is_free === true,
+    exam: row.exam ?? "alp",
   };
 }
 
@@ -139,11 +159,7 @@ export function mockStatus(mock: MockTest, now = Date.now()): MockStatus {
 
 /** Every mock, for the panel. Empty on a database without the table. */
 export async function listMocksForAdmin(): Promise<MockTest[]> {
-  const { data, error } = await createAdminClient()
-    .from("mock_tests")
-    .select(MOCK_COLUMNS)
-    .order("sort_order")
-    .order("created_at", { ascending: false });
+  const { data, error } = await selectMocks((q) => q.order("sort_order").order("created_at", { ascending: false }));
   if (error) return [];
   return (data as MockRow[]).map(toMock);
 }
@@ -152,12 +168,7 @@ export async function listMocksForAdmin(): Promise<MockTest[]> {
 export async function listPublishedMocks(): Promise<MockTest[]> {
   return unstable_cache(
     async () => {
-      const { data, error } = await createAdminClient()
-        .from("mock_tests")
-        .select(MOCK_COLUMNS)
-        .eq("is_published", true)
-        .order("sort_order")
-        .order("created_at", { ascending: false });
+      const { data, error } = await selectMocks((q) => q.eq("is_published", true).order("sort_order").order("created_at", { ascending: false }));
       if (error) return [];
       return (data as MockRow[]).map(toMock);
     },
@@ -168,13 +179,9 @@ export async function listPublishedMocks(): Promise<MockTest[]> {
 
 /** One mock by slug, with its papers in order. Null when there is none. */
 export async function loadMock(slug: string): Promise<{ mock: MockTest; papers: MockPaper[] } | null> {
-  const { data, error } = await createAdminClient()
-    .from("mock_tests")
-    .select(MOCK_COLUMNS)
-    .eq("slug", slug)
-    .maybeSingle();
+  const { data, error } = await selectMocks((q) => q.eq("slug", slug).maybeSingle());
   if (error || !data) return null;
-  const mock = toMock(data as MockRow);
+  const mock = toMock(data as unknown as MockRow);
   return { mock, papers: await papersOf(mock.paperIds) };
 }
 
@@ -280,9 +287,9 @@ export async function currentMockStep(userId: string): Promise<MockStep | null> 
   if (error || !data) return null;
   const sitting = data as SittingRow;
 
-  const { data: mockRow } = await supabase.from("mock_tests").select(MOCK_COLUMNS).eq("id", sitting.mock_id).maybeSingle();
+  const { data: mockRow } = await selectMocks((q) => q.eq("id", sitting.mock_id).maybeSingle());
   if (!mockRow) return null;
-  const mock = toMock(mockRow as MockRow);
+  const mock = toMock(mockRow as unknown as MockRow);
   const papers = await papersOf(mock.paperIds);
   const paper = papers[sitting.step];
   if (!paper) return null;
@@ -382,6 +389,7 @@ export async function mockAttemptsUsed(mockId: string, userId: string): Promise<
 export async function openMockSitting(
   slug: string,
   userId: string,
+  role = "student",
 ): Promise<{ ok: true; step: MockStep } | { ok: false; reason: string }> {
   const loaded = await loadMock(slug);
   if (!loaded || !loaded.mock.isPublished) return { ok: false, reason: "This mock is not available." };
@@ -402,9 +410,14 @@ export async function openMockSitting(
   if (mock.maxAttempts !== null && (await mockAttemptsUsed(mock.id, userId)) >= mock.maxAttempts) {
     return { ok: false, reason: "You have used every attempt of this mock." };
   }
+  // The mock is in a package, unless it is the free one.
+  if (!canSitMock(await accessFor(userId, role), mock)) {
+    return { ok: false, reason: "This Full Mock is part of a package. Buy the Full Mock package to sit it." };
+  }
   // The institute's rule: a Full Mock opens only once every battery in it
-  // has reached the pass bar in sectional practice.
-  if (!(await mockUnlockedFor(userId, papers))) {
+  // has reached the pass bar in sectional practice. The free mock is the
+  // exception: it is there to be tried on day one.
+  if (!mock.isFree && !(await mockUnlockedFor(userId, papers))) {
     return { ok: false, reason: `Full Mocks open once every battery is at T-Score: ${STAGES.pass} or above in sectional practice.` };
   }
 

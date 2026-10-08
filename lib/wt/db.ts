@@ -39,6 +39,7 @@ export function paperChanged(slug?: string): void {
 
 interface PaperRow {
   mock_only?: boolean | null;
+  exam?: string | null;
   id: string;
   slug: string;
   title: string;
@@ -97,6 +98,7 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
     dbId: row.id,
     maxAttempts: row.max_attempts ?? null,
     mockOnly: row.mock_only === true,
+    exam: row.exam ?? "alp",
     title: row.title,
     displayName: row.display_name,
     features: row.features ?? {},

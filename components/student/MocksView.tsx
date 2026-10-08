@@ -20,6 +20,8 @@ export interface MockCard {
   latest: (MockResult & { mockName: string; mockSlug: string }) | null;
   unlocked: boolean;
   inProgress: boolean;
+  /** False when the student's packages do not cover this mock (and it is not the free one). */
+  inPackage: boolean;
 }
 
 export interface MocksInput {
@@ -28,6 +30,8 @@ export interface MocksInput {
   passT: number;
   /** The filter in force: all | open | upcoming | done | closed. */
   filter: string;
+  /** True when a package covers the Full Mocks; false shows the way to buy one. */
+  hasPackage?: boolean;
 }
 
 const GROUPS: { id: string; label: string; hindi: string; pick: (c: MockCard) => boolean }[] = [
@@ -38,7 +42,7 @@ const GROUPS: { id: string; label: string; hindi: string; pick: (c: MockCard) =>
   { id: "closed", label: "Closed", hindi: "बंद", pick: (c) => c.status === "closed" && c.latest === null },
 ];
 
-export function MocksView({ profile, cards, passT, filter }: MocksInput) {
+export function MocksView({ profile, cards, passT, filter, hasPackage = true }: MocksInput) {
   const inProgress = cards.find((c) => c.inProgress) ?? null;
   const groups = GROUPS.map((g) => ({ ...g, cards: cards.filter(g.pick) })).filter((g) => filter === "all" ? g.cards.length > 0 : g.id === filter);
   const done = cards.filter((c) => c.latest).length;
@@ -83,6 +87,17 @@ export function MocksView({ profile, cards, passT, filter }: MocksInput) {
           ))}
         </nav>
 
+        {!hasPackage && (
+          <div className="mt-5 flex flex-wrap items-center gap-3 rounded-[14px] border border-amber-300 bg-amber-50 px-5 py-4">
+            <span className="text-[22px]" aria-hidden="true">🔒</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-bold text-amber-900">Full Mocks are in the Full Mock package. The free mock is open to try.</p>
+              <p className="text-[12px] text-amber-800" lang="hi">फुल मॉक टेस्ट फुल मॉक पैकेज में हैं। फ्री मॉक अभी खोल सकते हैं।</p>
+            </div>
+            <Link href="/packages#full" className="rounded-lg bg-[#0d2a6b] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#0a2158]">See packages →</Link>
+          </div>
+        )}
+
         {cards.length === 0 && (
           <p className="mt-6 rounded-[14px] border border-dashed border-gray-300 bg-white p-10 text-center text-[14px] text-gray-500">
             Full Mocks will appear here when the institute opens them.
@@ -112,7 +127,7 @@ export function MocksView({ profile, cards, passT, filter }: MocksInput) {
 }
 
 function MockRow({ card, passT }: { card: MockCard; passT: number }) {
-  const { mock, status, latest, best, used, unlocked, inProgress } = card;
+  const { mock, status, latest, best, used, unlocked, inProgress, inPackage } = card;
   const out30 = latest ? scoreOutOf30(latest.tests) : null;
   const bestOut = best ? scoreOutOf30(best.tests) : null;
   const left = mock.maxAttempts === null ? null : Math.max(0, mock.maxAttempts - used);
@@ -124,7 +139,10 @@ function MockRow({ card, passT }: { card: MockCard; passT: number }) {
         M{mock.sortOrder || ""}
       </span>
       <div className="min-w-0">
-        <Link href={`/mock/${mock.slug}`} className="block truncate text-[14px] font-bold text-gray-900 hover:underline">{mock.name}</Link>
+        <Link href={`/mock/${mock.slug}`} className="block truncate text-[14px] font-bold text-gray-900 hover:underline">
+          {mock.name}
+          {mock.isFree && <span className="ml-2 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-green-800">Free</span>}
+        </Link>
         <div className="text-[11px] text-gray-500">
           {mock.paperIds.length} tests · {when}
           {left !== null && <> · {left} of {mock.maxAttempts} attempt{mock.maxAttempts === 1 ? "" : "s"} left</>}
@@ -162,6 +180,8 @@ function MockRow({ card, passT }: { card: MockCard; passT: number }) {
               <Link href={`/mock/${mock.slug}/result`} className="text-[11px] font-semibold text-[#1d4ed8] hover:underline">Scorecard →</Link>
             </span>
           </span>
+        ) : status === "live" && !inPackage ? (
+          <Link href="/packages#full" className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 hover:bg-amber-200">🔒 In the Full Mock package</Link>
         ) : status === "live" && !unlocked ? (
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">🔒 Locked · {passT}+ needed</span>
         ) : status === "live" ? (

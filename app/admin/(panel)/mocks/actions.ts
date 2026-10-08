@@ -60,6 +60,7 @@ export async function saveMock(_prev: SaveState | null, formData: FormData): Pro
     // simply not in this mock.
     const paperIds = BATTERIES.map((b) => String(formData.get(`paper_${b.id}`) ?? "")).filter(Boolean);
     const publish = formData.get("is_published") === "on";
+    const isFree = formData.get("is_free") === "on";
     const papers = await papersOf(paperIds);
     if (publish) {
       if (papers.length === 0) throw new Error("Choose the papers before publishing");
@@ -96,10 +97,11 @@ export async function saveMock(_prev: SaveState | null, formData: FormData): Pro
         is_published: publish,
         sort_order: sortOrder,
         updated_at: new Date().toISOString(),
+        is_free: isFree,
       })
       .eq("slug", slug)
       .select("id");
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(/is_free/i.test(error.message) ? "Run supabase/packages.sql first: the free-mock switch needs it" : error.message);
     if (!data?.length) throw new Error("That mock no longer exists");
 
     mocksChanged();

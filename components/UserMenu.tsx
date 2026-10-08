@@ -81,6 +81,9 @@ export function UserMenu({ name, photoUrl }: { name: string; photoUrl: string | 
           <Link href="/profile#password" role="menuitem" className={item} onClick={() => setOpen(false)}>
             <span aria-hidden="true">🔑</span> Change password <span className="text-gray-400" lang="hi">/ पासवर्ड</span>
           </Link>
+          <Link href="/profile#packages" role="menuitem" className={item} onClick={() => setOpen(false)}>
+            <span aria-hidden="true">🎫</span> My packages <span className="text-gray-400" lang="hi">/ पैकेज</span>
+          </Link>
           <button type="button" role="menuitem" onClick={signOut} className={`${item} w-full border-t border-gray-100 text-red-700 hover:bg-red-50`}>
             <span aria-hidden="true">⏻</span> Sign out <span className="text-red-400" lang="hi">/ लॉग आउट</span>
           </button>

@@ -133,6 +133,10 @@ export default async function MockEditor({
           <input type="checkbox" name="is_published" defaultChecked={mock.isPublished} className="h-4 w-4" />
           Published — students see it on their dashboard (within the window above)
         </label>
+        <label className="mt-2 flex items-center gap-2 text-[13px] text-gray-800">
+          <input type="checkbox" name="is_free" defaultChecked={mock.isFree} className="h-4 w-4" />
+          Free mock — open to every signed-in student without a package, and without the practice bar (the one to try before buying)
+        </label>
       </SaveForm>
 
       {who.role === "admin" && (
