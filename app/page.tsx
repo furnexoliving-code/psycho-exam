@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LandingPage, FAQ, CONTACT } from "@/components/landing/LandingPage";
+import { LandingPage, FAQ } from "@/components/landing/LandingPage";
 import { listPackages } from "@/lib/packages";
 
 /** Prices change rarely; the page is rebuilt every few minutes at most. */
@@ -47,7 +47,7 @@ export default async function Home() {
       name: "Kautilya Classes",
       url: "https://kautilyaonline.com/",
       logo: "https://kautilyaonline.com/kautilya-logo.png",
-      email: CONTACT.email,
+      telephone: "+919982222301",
       description: "Railway Psycho Test Portal: RRB ALP CBAT practice as per RDSO pattern.",
     },
     {

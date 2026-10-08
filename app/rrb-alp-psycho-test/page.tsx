@@ -28,7 +28,7 @@ const FAQ = [
   { q: "Is there negative marking in the CBAT?", a: "No. Attempt every question in every test." },
   { q: "What language is the test in?", a: "Hindi and English together, on the instruction screens and the questions." },
   { q: "How should I prepare?", a: "Practise on a screen that works like the hall: each test with its own instruction screen and clock, in the hall's order. Start with a Full Mock to find the weak tests, practise those daily until every test is at T-Score 42 or more, then rehearse with Full Mocks." },
-  { q: "Can I practise free?", a: "The two-minute sample on this site needs no login. The full papers and the Full Mocks come with a Kautilya Classes package: message the team on WhatsApp to join." },
+  { q: "How do I practise on the portal?", a: "The practice papers and the Full Mocks come with a Kautilya Classes package: message the team on WhatsApp to join. Kautilya Classes students get their login from the institute." },
 ];
 
 export default async function AlpGuidePage() {
@@ -112,10 +112,10 @@ export default async function AlpGuidePage() {
 
         <h2 className="mt-12 text-[26px] font-extrabold">Practise on the real screen</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-4">
-          <div className="rounded-xl border-2 border-dashed border-green-400 bg-green-50 p-5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">Free</p>
-            <h3 className="mt-1 text-[18px] font-extrabold">2-minute sample, no login</h3>
-            <Link href="/demo" className="mt-3 inline-block rounded-md bg-green-600 px-4 py-2 text-[13px] font-bold text-white">Try now →</Link>
+          <div className="rounded-xl border-2 border-dashed border-[#0d2a6b]/40 bg-[#eef2fb] p-5">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#0d2a6b]">Kautilya student?</p>
+            <h3 className="mt-1 text-[18px] font-extrabold">Sign in and start</h3>
+            <Link href="/login" className="mt-3 inline-block rounded-md bg-[#0d2a6b] px-4 py-2 text-[13px] font-bold text-white">Student Login →</Link>
           </div>
           <div className="rounded-xl border-2 border-dashed border-green-400 bg-green-50 p-5">
             <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">New student?</p>

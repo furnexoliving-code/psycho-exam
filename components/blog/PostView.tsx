@@ -164,11 +164,11 @@ export function PostView({ post, packages, upsell, saving, related, signedIn, fr
               </section>
             ) : (
               <section className={`${packages.length ? "mt-4" : ""} rounded-2xl border-2 border-dashed border-green-400 bg-green-50 p-5`}>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">{signedIn ? "Try it first" : "New student?"}</p>
-                <h3 className="mt-0.5 text-[18px] font-extrabold text-gray-900">{signedIn ? "2-minute sample test" : "Join on WhatsApp"}</h3>
-                <p className="mt-1 text-[13px] text-gray-700">{signedIn ? "A short Memory and Perceptual Speed sample, scored at once." : "Send your name and mobile number; our team sets up your login and package the same day."}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">{signedIn ? "Your portal" : "New student?"}</p>
+                <h3 className="mt-0.5 text-[18px] font-extrabold text-gray-900">{signedIn ? "Open your dashboard" : "Join on WhatsApp"}</h3>
+                <p className="mt-1 text-[13px] text-gray-700">{signedIn ? "Today's plan names the paper to open next." : "Send your name and mobile number; our team sets up your login and package the same day."}</p>
                 {signedIn ? (
-                  <Link href="/demo" className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Try the sample</Link>
+                  <Link href="/dashboard" className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Open dashboard</Link>
                 ) : (
                   <a href={CONTACT.whatsapp} className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Message our team</a>
                 )}

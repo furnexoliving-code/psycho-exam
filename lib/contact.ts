@@ -3,8 +3,8 @@
  * Kautilya Classes supplies the real numbers.
  */
 export const CONTACT = {
-  phone: "+91 XXXXX XXXXX",
-  whatsapp: "https://wa.me/91XXXXXXXXXX",
+  phone: "+91 99822 22301",
+  whatsapp: "https://wa.me/919982222301",
   email: "info@kautilyaonline.com",
-  address: "Kautilya Classes, [address line], [city], Rajasthan",
+  address: "Kautilya Classes",
 };

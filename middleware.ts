@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { LAUNCH } from "@/lib/launch";
 
 /**
  * Refreshes the Supabase session on every request and guards the private
@@ -7,6 +8,12 @@ import { NextResponse, type NextRequest } from "next/server";
  * middleware is a convenience redirect, never the only gate.
  */
 export async function middleware(request: NextRequest) {
+  // The sample test, while closed, is a real 404: the page's own
+  // notFound() cannot set the status once the loading shell has streamed.
+  if (!LAUNCH.sampleTest && request.nextUrl.pathname.startsWith("/demo")) {
+    return NextResponse.rewrite(new URL("/sample-test-closed", request.url), { status: 404 });
+  }
+
   let response = NextResponse.next({ request });
 
   // Without configuration the site still runs; only the signed-in areas are off.

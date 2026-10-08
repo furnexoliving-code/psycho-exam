@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CONTACT, PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import exam from "@/public/landing/exam.jpg";
 import { TEST_PAGES, type TestPage } from "@/lib/seo-tests";
+import { LAUNCH } from "@/lib/launch";
 import { KIND_LABEL, rupees, type Package } from "@/lib/packages";
 
 const Y = "#ff9933";
@@ -51,7 +52,7 @@ export function TestPageView({ page, packages }: { page: TestPage; packages: Pac
               ))}
             </ol>
 
-            {page.demo && (
+            {LAUNCH.sampleTest && page.demo && (
               <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-[#0d2a6b]/20 bg-[#eef2fb] p-5">
                 <div className="min-w-0 flex-1">
                   <p className="text-[15px] font-bold text-gray-900">Try a 1-minute sample of this test, no login</p>

@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: "https://kautilyaonline.com/packages", lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     ...(LAUNCH.signup ? [{ url: "https://kautilyaonline.com/signup", lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 }] : []),
     { url: "https://kautilyaonline.com/rrb-alp-psycho-test", lastModified: now, changeFrequency: "monthly", priority: 0.9 },
-    { url: "https://kautilyaonline.com/demo", lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    ...(LAUNCH.sampleTest ? [{ url: "https://kautilyaonline.com/demo", lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 }] : []),
     ...TEST_PAGES.map((t) => ({ url: `https://kautilyaonline.com/psycho-test/${t.slug}`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 })),
     { url: "https://kautilyaonline.com/blog", lastModified: posts[0] ? new Date(posts[0].updatedAt) : now, changeFrequency: "weekly", priority: 0.8 },
     ...posts.map((p) => ({ url: `https://kautilyaonline.com/blog/${p.slug}`, lastModified: new Date(p.updatedAt), changeFrequency: "monthly" as const, priority: 0.7 })),

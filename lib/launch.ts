@@ -10,4 +10,6 @@ export const LAUNCH = {
   onlineBuy: false,
   /** A mock marked free is advertised as the no-login first step. */
   freeMock: false,
+  /** The two-minute sample test at /demo, open without a login. */
+  sampleTest: false,
 } as const;

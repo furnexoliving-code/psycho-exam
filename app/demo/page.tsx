@@ -2,17 +2,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import { SampleTest } from "@/components/demo/SampleTest";
+import { notFound } from "next/navigation";
+import { LAUNCH } from "@/lib/launch";
 
 export const metadata: Metadata = {
   title: "Free RRB ALP Psycho Test Sample Online, No Login | Kautilya Classes",
   description: "Try the RRB ALP psycho test (CBAT) free in two minutes: a short Memory Test and a Perceptual Speed Test on a screen like the exam hall, scored at once. No login. Then practise the full papers with Kautilya Classes.",
   keywords: ["free psycho test online", "ALP psycho test sample", "RRB ALP CBAT demo", "psycho test practice free", "memory test online free"],
-  robots: { index: true, follow: true },
+  robots: LAUNCH.sampleTest ? { index: true, follow: true } : { index: false, follow: false },
   alternates: { canonical: "https://kautilyaonline.com/demo" },
   openGraph: { title: "Free RRB ALP psycho test sample, no login", description: "Two minutes on a screen like the exam hall, scored at once.", url: "https://kautilyaonline.com/demo", images: [{ url: "/og.jpg" }] },
 };
 
+/** Decided per request, so a closed sample answers with a real 404. */
+export const dynamic = "force-dynamic";
+
 export default async function DemoPage({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
+  if (!LAUNCH.sampleTest) notFound();
   const { t } = await searchParams;
   const initial = t === "memory" || t === "speed" ? t : null;
   return (

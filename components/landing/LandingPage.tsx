@@ -75,7 +75,7 @@ export const FAQ = [
   },
   {
     q: "What does it cost?",
-    a: "Choose a package: Sectional tests, Full Mock Tests, or both together (the Combo). Prices are on the packages page; admission and payment are through the Kautilya Classes team on WhatsApp. Kautilya Classes ALP students get their package from the institute. The two-minute sample test on this site is free and needs no login.",
+    a: "Choose a package: Sectional tests, Full Mock Tests, or both together (the Combo). Prices are on the packages page; admission and payment are through the Kautilya Classes team on WhatsApp. Kautilya Classes ALP students get their package from the institute.",
   },
 ];
 
@@ -107,12 +107,12 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
               <li className="flex gap-2"><Check /> Instructions in Hindi and English</li>
             </ul>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/demo" className="rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b] shadow hover:brightness-95" style={{ background: Y }}>
-                Try a 2-minute sample test · no login
-              </Link>
-              <Link href="/login" className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
+              <Link href="/login" className="rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b] shadow hover:brightness-95" style={{ background: Y }}>
                 Student Login
               </Link>
+              <a href={CONTACT.whatsapp} className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
+                New student? Message our team on WhatsApp
+              </a>
             </div>
             <p className="mt-4 text-[13px] text-[#9fb0d4]">Packages from {packages.length ? rupees(Math.min(...packages.map((p) => p.priceInr))) : "₹399"} · New papers every week · Admission on WhatsApp</p>
           </div>
@@ -390,8 +390,7 @@ export function PublicFooter() {
         <div className="text-[13px] text-gray-700">
           <div className="font-bold text-gray-900">Contact</div>
           <p className="mt-1">{CONTACT.address}</p>
-          <p>Phone / WhatsApp: {CONTACT.phone}</p>
-          <p>Email: {CONTACT.email}</p>
+          <p>WhatsApp: <a href={CONTACT.whatsapp} className="font-semibold hover:underline">{CONTACT.phone}</a></p>
         </div>
         <div className="text-[13px] text-gray-700">
           <div className="font-bold text-gray-900">Links</div>
@@ -401,7 +400,6 @@ export function PublicFooter() {
             <li><a href="#faq" className="hover:underline">FAQ</a></li>
             <li><Link href="/packages" className="hover:underline">Packages & prices</Link></li>
             <li><Link href="/rrb-alp-psycho-test" className="hover:underline">RRB ALP psycho test guide</Link></li>
-            <li><Link href="/demo" className="hover:underline">2-minute sample test</Link></li>
             <li><Link href="/blog" className="hover:underline">Articles & guides</Link></li>
             <li><Link href="/terms" className="hover:underline">Terms of Use</Link></li>
             <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>
