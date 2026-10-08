@@ -8,7 +8,7 @@ import { attemptsFor } from "@/lib/wt/history";
 import { paperBestT } from "@/lib/wt/progress";
 import { examSettings } from "@/lib/settings";
 import { STAGES } from "@/lib/wt/plan";
-import { groupPapers } from "@/lib/wt/series";
+import { findSeries, groupPapers } from "@/lib/wt/series";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { accessFor, canPractice } from "@/lib/packages";
 
@@ -24,7 +24,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ battery
   if (hidden.includes(battery)) notFound();
   const papers = allPapers.filter((p) => openToStudents(p.category, hidden));
   const list = groupPapers(papers).get(battery) ?? [];
-  const series = list.find((s) => s.slug === slug);
+  const series = findSeries(list, slug);
   if (!series) notFound();
 
   const [allowances, attempts, bestT, exam] = await Promise.all([
