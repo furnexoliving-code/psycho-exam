@@ -83,7 +83,7 @@ export function PapersAdminView({
           </PendingButton>
         </div>
         <p className="mt-2 text-[11px] text-gray-600">
-          A Following Directions paper starts with a sample diagram and twenty questions; a Yes or No paper with its 96 pairs built and ready;
+          A Following Directions paper starts with a sample diagram and twenty questions; a Yes or No, Find 6 or Find 9 paper with all its questions built and ready;
           a picture paper (Memory, Depth, Observation, Speed) with the real instructions and no questions, so add its pictures on the next page.
           Every new paper starts as a draft.
         </p>

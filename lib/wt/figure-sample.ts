@@ -1,5 +1,6 @@
 import type { InstructionBlock } from "./types";
 import { yesNoQuestions } from "./yesno";
+import { findDigitOf, findQuestions } from "./find";
 
 /**
  * The instruction screen a new Perceptual Speed paper starts with: the
@@ -79,6 +80,17 @@ export function pictureInstructions(
         },
         ...timing,
       ];
+    case "find6":
+    case "find9": {
+      const d = findDigitOf(category) ?? "6";
+      return [
+        {
+          en: `In this test you will find four groups (A, B, C and D) of digits. Your task is to find out the group of digits which contains a '${d}' and indicate your answer by clicking the mouse. In case the digit '${d}' appears in more than one group, your answer will be 'E'.`,
+          hi: `इस परीक्षण के प्रत्येक प्रश्न में अंकों के चार समूह (A, B, C और D) दिये गये हैं। आपको यह पता करना है कि किस अंक समूह में '${d}' का अंक आया है तथा माउस से क्लिक करके उत्तर देना है। यदि किसी प्रश्न में एक से अधिक अंक समूहों में '${d}' आता है तो आपका उत्तर 'E' होगा।`,
+        },
+        ...timing,
+      ];
+    }
     case "observation":
       return [
         {
@@ -147,6 +159,24 @@ export const YESNO_EXAMPLE_TEXT: InstructionBlock[] = [
     en: "The answers for the above questions are 'Y', 'N', 'N', 'Y' and 'N'.",
     hi: "ऊपर दिये गये प्रश्नों के सही उत्तर क्रमशः 'Y', 'N', 'N', 'Y' और 'N' हैं।",
   },
+];
+
+/** The worked examples the Find tests' instruction screens show: the guideline's own rows. */
+export const FIND6_EXAMPLE_TEXT: InstructionBlock[] = [
+  { en: "1.  A 72383514  B 98734521  C 12947685  D 39587421", hi: "1.  A 72383514  B 98734521  C 12947685  D 39587421" },
+  { en: "2.  A 1354931582  B 2943587138  C 7823945125  D 4793268251", hi: "2.  A 1354931582  B 2943587138  C 7823945125  D 4793268251" },
+  { en: "3.  A 7938210435  B 5938204751  C 8475210239  D 3897104652", hi: "3.  A 7938210435  B 5938204751  C 8475210239  D 3897104652" },
+  { en: "4.  A 250389417  B 984057213  C 358164072  D 280157943", hi: "4.  A 250389417  B 984057213  C 358164072  D 280157943" },
+  { en: "5.  A 47854323179  B 98423563172  C 31792428534  D 21374894579", hi: "5.  A 47854323179  B 98423563172  C 31792428534  D 21374894579" },
+  { en: "The answers for the above questions are C, D, D, C and B.", hi: "ऊपर दिये गये प्रश्नों के सही उत्तर क्रमशः C, D, D, C और B हैं।" },
+];
+export const FIND9_EXAMPLE_TEXT: InstructionBlock[] = [
+  { en: "1.  A 5462  B 5927  C 4282  D 2821", hi: "1.  A 5462  B 5927  C 4282  D 2821" },
+  { en: "2.  A 73457  B 24674  C 32985  D 54838", hi: "2.  A 73457  B 24674  C 32985  D 54838" },
+  { en: "3.  A 482942  B 2541248  C 2532184  D 5421482", hi: "3.  A 482942  B 2541248  C 2532184  D 5421482" },
+  { en: "4.  A 2834  B 4382  C 8341  D 2932", hi: "4.  A 2834  B 4382  C 8341  D 2932" },
+  { en: "5.  A 89537  B 38567  C 58974  D 28378", hi: "5.  A 89537  B 38567  C 58974  D 28378" },
+  { en: "The answers for the above questions are B, C, A, D and E.", hi: "ऊपर दिये गये प्रश्नों के सही उत्तर क्रमशः B, C, A, D और E हैं।" },
 ];
 
 /** The most pictures the panel sends the server in one call. */
@@ -370,6 +400,29 @@ export function yesNoSamplePaper() {
     example: { table: { label: "Example", cells: [] }, text: YESNO_EXAMPLE_TEXT },
     tables: [{ label: "No. 1", cells: [] }],
     questions: yesNoQuestions({ seed: 20200101, count: 96 }, "yn"),
+    resultView: {},
+  };
+}
+
+/** Find 6 and Find 9 papers at the hall's size, built from a fixed seed, for seeing the screen before a database exists. */
+export const FIND6_SAMPLE_ID = "find-6-sample";
+export const FIND9_SAMPLE_ID = "find-9-sample";
+
+export function findSamplePaper(category: "find6" | "find9") {
+  const digit = findDigitOf(category) ?? "6";
+  return {
+    id: category === "find6" ? FIND6_SAMPLE_ID : FIND9_SAMPLE_ID,
+    kind: "figure" as const,
+    category,
+    title: `Find ${digit} Test`,
+    displayName: `Find ${digit} Test - Sample`,
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 25 },
+    timeLimitMin: 4,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions(category, 4, 5),
+    example: { table: { label: "Example", cells: [] }, text: category === "find6" ? FIND6_EXAMPLE_TEXT : FIND9_EXAMPLE_TEXT },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions: findQuestions(digit, { seed: 20200101, count: 75 }, category),
     resultView: {},
   };
 }

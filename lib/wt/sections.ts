@@ -68,6 +68,8 @@ const DEFAULT_SECTION: Record<string, string> = {
   number: "2c",
   depth: "3b",
   yesno: "4a",
+  find6: "4b",
+  find9: "4c",
   observation: "4d",
   figure: "5e",
 };

@@ -14,6 +14,7 @@ import { ExamSummaryList } from "./ExamSummary";
 import { useExamChrome } from "./ExamChrome";
 import { testNameOf } from "@/lib/wt/categories";
 import { ScrollRail } from "./ScrollRail";
+import { splitGroups } from "@/lib/wt/find";
 
 /**
  * The Perceptual Speed Test screen: the paper in parts, each question a
@@ -391,10 +392,7 @@ export function FigureExam({
                       // The text in a column of one width, so the radios of
                       // every question stand in the same place down the page.
                       <div className="mt-1.5 flex flex-wrap items-center gap-x-[52px] gap-y-2">
-                        <span className="inline-block min-w-[300px] text-[1.25em] tabular-nums text-[#222]" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-                          {q.prompt.en}
-                          {q.prompt.hi && <span className="ml-3 text-[#494949]" lang="hi">{q.prompt.hi}</span>}
-                        </span>
+                        <TextQuestion en={q.prompt.en} hi={q.prompt.hi} />
                         <span className="flex flex-wrap items-center gap-x-[52px]">
                           {q.options.map((option, oi) => (
                             <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
@@ -584,6 +582,35 @@ export function FigureExam({
         onCancel={() => setConfirmSubmit(false)}
       />
     </div>
+  );
+}
+
+/**
+ * A question that is text: a pair of numbers ("48426 = 38436"), or
+ * lettered groups of digits ("A 7238   B 9873   C 1294   D 3958"), each
+ * group in a column of one width. Either way the block is one width, so
+ * the radios after it stand in the same place on every question.
+ */
+function TextQuestion({ en, hi }: { en: string; hi: string }) {
+  const groups = splitGroups(en);
+  const serif = { fontFamily: "'Times New Roman', Times, serif" };
+  if (groups) {
+    return (
+      <span className="inline-flex text-[1.25em] tabular-nums text-[#222]" style={serif}>
+        {groups.map((g) => (
+          <span key={g.letter} className="inline-block w-[190px]">
+            <b className="mr-2 font-bold">{g.letter}</b>
+            {g.digits}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-block min-w-[300px] text-[1.25em] tabular-nums text-[#222]" style={serif}>
+      {en}
+      {hi && <span className="ml-3 text-[#494949]" lang="hi">{hi}</span>}
+    </span>
   );
 }
 

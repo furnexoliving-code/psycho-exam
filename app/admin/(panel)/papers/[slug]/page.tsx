@@ -20,6 +20,7 @@ import { PICTURE_SCALES, defaultPictureScale } from "@/lib/wt/figure-sample";
 
 const STUDY_SCALES = [40, 50, 60, 70, 80, 90, 100];
 import { CATEGORIES, categoryTitle } from "@/lib/wt/categories";
+import { isBuilt } from "@/lib/wt/built";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
 export default async function EditWatchPaper({
@@ -637,8 +638,8 @@ export default async function EditWatchPaper({
         </section>
       )}
 
-      {paper.category === "yesno" ? (
-        <QuestionsPanel slug={slug} questions={paper.questions} generator="yesno" />
+      {isBuilt(paper.category) ? (
+        <QuestionsPanel slug={slug} questions={paper.questions} generator={paper.category === "yesno" ? "yesno" : "find"} />
       ) : figure ? (
         <FigureQuestionsPanel slug={slug} questions={paper.questions} category={paper.category} />
       ) : (

@@ -8,7 +8,7 @@ import {
   deleteQuestion,
   importQuestions,
   regenerateQuestions,
-  regenerateYesNo,
+  regenerateBuilt,
   saveQuestion,
 } from "../actions";
 
@@ -26,6 +26,9 @@ Which letter is directly above the letter in row 2, column 3? | पंक्त�
 const YESNO_FORMAT_HELP = `# left number = right number | (Hindi, leave empty) | Y,N | answer | topic
 48426 = 38436 | | Y,N | N | One digit differs
 591075 = 591075 | | Y,N | Y | Same numbers`;
+const FIND_FORMAT_HELP = `# A digits   B digits   C digits   D digits (three spaces between groups) | (Hindi, leave empty) | A,B,C,D,E | answer | topic
+A 72383514   B 98734521   C 12947685   D 39587421 | | A,B,C,D,E | C | In group C
+A 5462   B 5927   C 4282   D 2821 | | A,B,C,D,E | E | In more than one group (E)`;
 
 export function QuestionsPanel({
   slug,
@@ -35,9 +38,10 @@ export function QuestionsPanel({
   slug: string;
   questions: WatchQuestion[];
   /** What "build a set" builds: questions from the diagram, or the Yes or No Test's pairs of numbers. */
-  generator?: "diagram" | "yesno";
+  generator?: "diagram" | "yesno" | "find";
 }) {
   const yesNo = generator === "yesno";
+  const built = generator === "yesno" || generator === "find";
   const [tab, setTab] = useState<"upload" | "list">("upload");
   const [bulk, setBulk] = useState("");
   const [editing, setEditing] = useState<WatchQuestion | null>(null);
@@ -93,7 +97,7 @@ export function QuestionsPanel({
               One question per line, four fields separated by <code>|</code>
             </p>
             <pre className="mt-2 overflow-x-auto rounded bg-white p-3 text-[11px] leading-relaxed text-gray-700">
-{yesNo ? YESNO_FORMAT_HELP : FORMAT_HELP}
+{yesNo ? YESNO_FORMAT_HELP : generator === "find" ? FIND_FORMAT_HELP : FORMAT_HELP}
             </pre>
             <ul className="mt-2 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
               <li>Leave the Hindi field empty if you do not need it — keep the two bars.</li>
@@ -173,21 +177,21 @@ export function QuestionsPanel({
 
           </SaveForm>
 
-          {yesNo ? (
+          {built ? (
           <SaveForm
-            action={regenerateYesNo}
-            submitLabel="Build the pairs"
+            action={regenerateBuilt}
+            submitLabel={yesNo ? "Build the pairs" : "Build the questions"}
             buttonClassName="rounded bg-indigo-800 px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60"
             className="mt-6 border-t border-gray-200 pt-4"
           >
             <input type="hidden" name="slug" value={slug} />
             <p className="text-[12px] font-semibold text-gray-800">
-              Build the pairs of numbers
+              {yesNo ? "Build the pairs of numbers" : "Build the groups of digits"}
             </p>
             <p className="mt-0.5 text-[11px] text-gray-600">
-              The portal makes the pairs itself: about half the same, the rest one digit off, two digits off,
-              two digits swapped, or the first or last digit changed, as the guideline&apos;s practice set is.
-              Every answer is worked out. Replaces whatever is there. The hall gives 96 pairs in 4 minutes.
+              {yesNo
+                ? "The portal makes the pairs itself: about half the same, the rest one digit off, two digits off, two digits swapped, or the first or last digit changed, as the guideline's practice set is. Every answer is worked out. Replaces whatever is there. The hall gives 96 pairs in 4 minutes."
+                : "The portal makes the questions itself: four groups of digits, the digit sought in exactly one of them (spread evenly over A to D), and in about one question in six in two or three of them, so the answer is E. Every answer is worked out. Replaces whatever is there. The hall gives 75 questions in 4 minutes."}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-4 text-[12px] text-gray-700">
               <label className="flex items-center gap-2">
@@ -197,7 +201,7 @@ export function QuestionsPanel({
                   type="number"
                   min={1}
                   max={200}
-                  defaultValue={96}
+                  defaultValue={yesNo ? 96 : 75}
                   className="w-[80px] rounded border border-gray-400 px-2 py-1.5 text-center text-[13px]"
                 />
               </label>

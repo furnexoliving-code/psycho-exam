@@ -73,6 +73,22 @@ export const CATEGORIES = [
     blurb: "Two numbers side by side: Y when they are the same, N when they are not. 96 pairs in 4 minutes.",
   },
   {
+    id: "find6",
+    battery: 4,
+    kind: "figure",
+    title: "Find 6 Test",
+    hindi: "6 खोजो परीक्षण",
+    blurb: "Four groups of digits: which one holds a 6? In more than one, answer E. 75 questions in 4 minutes.",
+  },
+  {
+    id: "find9",
+    battery: 4,
+    kind: "figure",
+    title: "Find 9 Test",
+    hindi: "9 खोजो परीक्षण",
+    blurb: "Four groups of digits: which one holds a 9? In more than one, answer E. 75 questions in 4 minutes.",
+  },
+  {
     id: "observation",
     battery: 4,
     kind: "figure",
