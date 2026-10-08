@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getProfile, isConfigured } from "@/lib/auth";
 import { AuthForm } from "./AuthForm";
 import { SetupNotice } from "./SetupNotice";
+import { CONTACT } from "@/components/landing/LandingPage";
 
 export const metadata: Metadata = {
   title: "Student Login | Kautilya Classes Railway Psycho Test Portal",
@@ -100,8 +101,8 @@ export default async function LoginPage({
           </div>
 
           <p className="mt-5 text-center text-[14px] text-gray-700">
-            New here? <Link href="/signup" className="font-bold text-[#0d2a6b] underline">Create a free account</Link>
-            <span className="block text-[12px] text-gray-500" lang="hi">नए हैं? फ्री अकाउंट बनाएँ।</span>
+            New here? <a href={CONTACT.whatsapp} className="font-bold text-[#0d2a6b] underline">Message our team on WhatsApp</a> for your login.
+            <span className="block text-[12px] text-gray-500" lang="hi">नए हैं? लॉगिन के लिए WhatsApp पर टीम से संपर्क करें।</span>
           </p>
           <p className="mt-4 rounded-xl border border-gray-200 bg-white px-4 py-3 text-center text-[12px] text-gray-600">
             Kautilya Classes student? Your login is issued by the institute: ask at the office for your mobile number and password.

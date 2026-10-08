@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
+import { CONTACT, PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import exam from "@/public/landing/exam.jpg";
 import { TEST_PAGES, type TestPage } from "@/lib/seo-tests";
 import { KIND_LABEL, rupees, type Package } from "@/lib/packages";
@@ -80,10 +80,10 @@ export function TestPageView({ page, packages }: { page: TestPage; packages: Pac
 
             <aside className="mt-10 rounded-2xl bg-[#0d2a6b] px-6 py-6 text-white">
               <p className="text-[12px] font-bold uppercase tracking-[0.25em]" style={{ color: Y }}>Practise it on the real screen</p>
-              <h2 className="mt-1 text-[24px] font-extrabold">Sit a full {page.name} paper free, inside the free Full Mock</h2>
-              <p className="mt-1 text-[15px] text-[#c9d3e6]">All 5 tests in one sitting, real timing, your T-Score at the end. Just a free account.</p>
+              <h2 className="mt-1 text-[24px] font-extrabold">Full {page.name} papers, every week, with your T-Score at once</h2>
+              <p className="mt-1 text-[15px] text-[#c9d3e6]">Up to 3 attempts per paper, the best T-Score per paper, and Full Mocks with all 5 tests. Message our team to join.</p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <Link href="/signup" className="rounded-md px-5 py-2.5 text-[14px] font-bold text-[#0d2a6b]" style={{ background: Y }}>Create free account →</Link>
+                <a href={CONTACT.whatsapp} className="rounded-md px-5 py-2.5 text-[14px] font-bold text-[#0d2a6b]" style={{ background: Y }}>Join on WhatsApp →</a>
                 <Link href="/packages" className="rounded-md border border-white/40 px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-white/10">Packages & prices</Link>
               </div>
             </aside>
@@ -128,10 +128,10 @@ export function TestPageView({ page, packages }: { page: TestPage; packages: Pac
                 </section>
               ))}
               <section className="rounded-2xl border-2 border-dashed border-green-400 bg-green-50 p-5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">Free · ₹0</p>
-                <h3 className="mt-0.5 text-[18px] font-extrabold">One Full Mock Test</h3>
-                <p className="mt-1 text-[13px] text-gray-700">All 5 tests, hall order, real timing, your T-Score. Just a free account.</p>
-                <Link href="/signup" className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Create free account</Link>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">New student?</p>
+                <h3 className="mt-0.5 text-[18px] font-extrabold">Join on WhatsApp</h3>
+                <p className="mt-1 text-[13px] text-gray-700">Send your name and mobile number; our team sets up your login and package the same day.</p>
+                <a href={CONTACT.whatsapp} className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Message our team</a>
               </section>
             </div>
           </aside>

@@ -91,8 +91,8 @@ export function MocksView({ profile, cards, passT, filter, hasPackage = true }: 
           <div className="mt-5 flex flex-wrap items-center gap-3 rounded-[14px] border border-amber-300 bg-amber-50 px-5 py-4">
             <span className="text-[22px]" aria-hidden="true">🔒</span>
             <div className="min-w-0 flex-1">
-              <p className="text-[14px] font-bold text-amber-900">Full Mocks are in the Full Mock package. The free mock is open to try.</p>
-              <p className="text-[12px] text-amber-800" lang="hi">फुल मॉक टेस्ट फुल मॉक पैकेज में हैं। फ्री मॉक अभी खोल सकते हैं।</p>
+              <p className="text-[14px] font-bold text-amber-900">Full Mocks are in the Full Mock package.{cards.some((c) => c.mock.isFree) ? " The free mock is open to try." : " Ask at the institute to add it."}</p>
+              <p className="text-[12px] text-amber-800" lang="hi">फुल मॉक टेस्ट फुल मॉक पैकेज में हैं।{cards.some((c) => c.mock.isFree) ? " फ्री मॉक अभी खोल सकते हैं।" : " संस्थान से पूछें।"}</p>
             </div>
             <Link href="/packages#full" className="rounded-lg bg-[#0d2a6b] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#0a2158]">See packages →</Link>
           </div>

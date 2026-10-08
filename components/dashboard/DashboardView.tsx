@@ -105,14 +105,14 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-bold text-amber-900">
                 {!access.sectional && !access.full
-                  ? "Welcome! The free Full Mock is open to try. Practice papers and the other Full Mocks come with a package."
+                  ? (freeMock ? "Welcome! The free Full Mock is open to try. Practice papers and the other Full Mocks come with a package." : "Practice papers and Full Mocks come with a package. Ask at the institute, or see the packages.")
                   : !access.sectional
                     ? "Practice papers come with the Sectional package. Your Full Mocks are open."
                     : "Full Mocks come with the Full Mock package. Your practice papers are open."}
               </p>
               <p className="text-[12px] text-amber-800" lang="hi">
                 {!access.sectional && !access.full
-                  ? "स्वागत है! फ्री फुल मॉक अभी खोल सकते हैं। प्रैक्टिस पेपर और बाकी फुल मॉक पैकेज के साथ मिलते हैं।"
+                  ? (freeMock ? "स्वागत है! फ्री फुल मॉक अभी खोल सकते हैं। प्रैक्टिस पेपर और बाकी फुल मॉक पैकेज के साथ मिलते हैं।" : "प्रैक्टिस पेपर और फुल मॉक पैकेज के साथ मिलते हैं। संस्थान से पूछें।")
                   : !access.sectional
                     ? "प्रैक्टिस पेपर सेक्शनल पैकेज के साथ मिलते हैं।"
                     : "फुल मॉक टेस्ट फुल मॉक पैकेज के साथ मिलते हैं।"}

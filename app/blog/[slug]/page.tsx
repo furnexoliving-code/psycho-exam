@@ -5,6 +5,7 @@ import { getProfile, isConfigured, isVerifiedEditor } from "@/lib/auth";
 import { listPublishedPosts, loadPostLive, loadPublishedPost, sidebarPackages } from "@/lib/blog";
 import { listPackages } from "@/lib/packages";
 import { listPublishedMocks } from "@/lib/wt/mock";
+import { LAUNCH } from "@/lib/launch";
 
 const SITE = "https://kautilyaonline.com";
 
@@ -50,7 +51,7 @@ export default async function BlogPostPage({ params, searchParams }: { params: P
   ]);
   const { packages, upsell, saving } = sidebarPackages(post, all);
   const related = posts.filter((p) => p.slug !== post.slug && p.exam === post.exam).slice(0, 3);
-  const freeMock = mocks.find((m) => m.isFree) ?? null;
+  const freeMock = LAUNCH.freeMock ? (mocks.find((m) => m.isFree) ?? null) : null;
 
   const jsonLd: Record<string, unknown>[] = [
     {

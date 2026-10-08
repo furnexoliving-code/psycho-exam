@@ -14,12 +14,8 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
  *
  * Contact details are placeholders until the institute supplies them.
  */
-export const CONTACT = {
-  phone: "+91 XXXXX XXXXX",
-  whatsapp: "https://wa.me/91XXXXXXXXXX",
-  email: "info@kautilyaonline.com",
-  address: "Kautilya Classes, [address line], [city], Rajasthan",
-};
+import { CONTACT } from "@/lib/contact";
+export { CONTACT };
 
 export const TESTS = [
   { n: 1, slug: "memory-test", en: "Memory Test", hi: "स्मृति परीक्षण", what: "Study pictures for a minute, then recall them from memory." },
@@ -36,7 +32,7 @@ export const SERIES = [
     hi: "असिस्टेंट लोको पायलट",
     exam: "CBAT · 5 test batteries",
     status: "live" as const,
-    note: "Sectional, Full Mock or Combo package · one free Full Mock",
+    note: "Sectional, Full Mock or Combo package · admission through Kautilya Classes",
   },
   {
     slug: "asm",
@@ -71,7 +67,7 @@ export const FAQ = [
   },
   {
     q: "How do I get a login?",
-    a: "Create a free account on kautilyaonline.com with your mobile number: it becomes your login ID. Kautilya Classes students get their login from the office instead. Add your photo and set your own password from My profile.",
+    a: "Accounts are issued by Kautilya Classes. Message our team on WhatsApp with your name and mobile number; the number becomes your login ID and you get your first password the same day. Kautilya Classes students get it from the office. Then add your photo and set your own password from My profile.",
   },
   {
     q: "Does it work on a mobile phone?",
@@ -79,7 +75,7 @@ export const FAQ = [
   },
   {
     q: "What does it cost?",
-    a: "One Full Mock Test is free for every account. Then choose a package: Sectional tests, Full Mock Tests, or both together (the Combo). Prices are on the packages page. Kautilya Classes ALP students get their package from the institute.",
+    a: "Choose a package: Sectional tests, Full Mock Tests, or both together (the Combo). Prices are on the packages page; admission and payment are through the Kautilya Classes team on WhatsApp. Kautilya Classes ALP students get their package from the institute. The two-minute sample test on this site is free and needs no login.",
   },
 ];
 
@@ -111,14 +107,14 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
               <li className="flex gap-2"><Check /> Instructions in Hindi and English</li>
             </ul>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/signup" className="rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b] shadow hover:brightness-95" style={{ background: Y }}>
-                Create free account · try a Full Mock
+              <Link href="/demo" className="rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b] shadow hover:brightness-95" style={{ background: Y }}>
+                Try a 2-minute sample test · no login
               </Link>
-              <Link href="/demo" className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
-                Try a 2-minute sample test, no login
+              <Link href="/login" className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
+                Student Login
               </Link>
             </div>
-            <p className="mt-4 text-[13px] text-[#9fb0d4]">One free Full Mock for every account · Packages from {packages.length ? rupees(Math.min(...packages.map((p) => p.priceInr))) : "₹399"} · New papers every week</p>
+            <p className="mt-4 text-[13px] text-[#9fb0d4]">Packages from {packages.length ? rupees(Math.min(...packages.map((p) => p.priceInr))) : "₹399"} · New papers every week · Admission on WhatsApp</p>
           </div>
           <div className="relative">
             <Image src={exam} alt="The portal's exam screen for the Memory Test, laid out like the RRB CBAT hall screen" priority className="rounded-lg border border-white/20 shadow-2xl" sizes="(min-width: 768px) 560px, 100vw" />
@@ -163,7 +159,7 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
               <p className="mt-3 text-[14px] text-gray-700">{s.note}</p>
               {s.status === "live" ? (
                 <Link href="/packages" className="mt-5 inline-block rounded-md bg-[#0d2a6b] px-4 py-2 text-[14px] font-semibold text-white hover:bg-[#0a2158]">
-                  Packages & free mock →
+                  Packages & prices →
                 </Link>
               ) : (
                 <a href={CONTACT.whatsapp} className="mt-5 inline-block rounded-md border border-gray-300 bg-white px-4 py-2 text-[14px] font-semibold text-gray-700 hover:bg-gray-100">
@@ -264,15 +260,15 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
       <section id="pricing" className="bg-[#f4f6fb]">
         <div className="mx-auto max-w-6xl px-5 py-14">
           <Eyebrow>Packages & prices · पैकेज और कीमत</Eyebrow>
-          <h2 className="mt-2 text-[28px] font-extrabold text-gray-900 sm:text-[34px]">Try a Full Mock free. Then pick a package.</h2>
-          <p className="mt-2 max-w-2xl text-[15px] text-gray-600">Every account gets one free Full Mock Test. Kautilya Classes students get their package from the institute.</p>
+          <h2 className="mt-2 text-[28px] font-extrabold text-gray-900 sm:text-[34px]">Pick a package. Admission on WhatsApp.</h2>
+          <p className="mt-2 max-w-2xl text-[15px] text-gray-600">Kautilya Classes students get their package from the institute. New students: message our team, and your login and package are set up the same day.</p>
           <div className="mt-8 grid gap-5 md:grid-cols-4">
             <div className="flex flex-col rounded-xl border-2 border-dashed border-green-400 bg-green-50 p-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-green-700">Free</p>
-              <h3 className="mt-1 text-[20px] font-extrabold text-gray-900">1 Full Mock Test</h3>
-              <div className="mt-3 text-[32px] font-extrabold text-green-700">₹0</div>
-              <p className="mt-2 flex-1 text-[13px] text-gray-700">All 5 tests in one sitting, real timing, your T-Score at the end. Just a free account.</p>
-              <Link href="/signup" className="mt-4 rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Create free account</Link>
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-green-700">New student?</p>
+              <h3 className="mt-1 text-[20px] font-extrabold text-gray-900">Join on WhatsApp</h3>
+              <p className="mt-3 flex-1 text-[13px] text-gray-700">Send your name and mobile number. Our team sets up your login and the package you choose, the same day.</p>
+              <p className="text-[12px] text-gray-500" lang="hi">नाम और मोबाइल नंबर भेजें, टीम उसी दिन लॉगिन और पैकेज चालू कर देगी।</p>
+              <a href={CONTACT.whatsapp} className="mt-4 rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Message our team</a>
             </div>
             {packages.map((p) => (
               <div key={p.id} className={`flex flex-col rounded-xl border bg-white p-6 ${p.kind === "combo" ? "border-[#0d2a6b] shadow-md" : "border-gray-200"}`}>
@@ -285,7 +281,7 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
                 <p className="text-[12px] text-gray-500">{p.validityDays ? `${p.validityDays} days` : "No expiry"}</p>
                 <p className="mt-2 flex-1 text-[13px] text-gray-700">{p.description}</p>
                 <Link href="/packages" className={`mt-4 rounded-md px-4 py-2.5 text-center text-[14px] font-bold ${p.kind === "combo" ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>
-                  {p.kind === "combo" ? "Best value · Buy" : "Buy"}
+                  {p.kind === "combo" ? "Best value · Details" : "Details"}
                 </Link>
               </div>
             ))}
@@ -304,8 +300,8 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
         <h2 className="mt-2 text-[28px] font-extrabold text-gray-900 sm:text-[34px]">Three steps and the first test is running</h2>
         <ol className="mt-8 grid gap-5 md:grid-cols-3">
           {[
-            ["Create a free account", "Your mobile number is your ID. Kautilya Classes students get their login from the office.", "फ्री अकाउंट बनाएँ, या ऑफिस से लॉगिन लें।"],
-            ["Try the free mock, pick a package", "Sit the free Full Mock, then buy Sectional, Full Mock or Combo. Pay by UPI or card.", "फ्री मॉक दें, फिर पैकेज चुनें।"],
+            ["Message our team on WhatsApp", "Send your name and mobile number. The team sets up your login and package the same day. Kautilya Classes students get theirs from the office.", "WhatsApp पर नाम और मोबाइल नंबर भेजें।"],
+            ["Sign in and set up", "Open kautilyaonline.com, sign in with your mobile number, upload your photo and set your own password.", "साइन इन करें, फोटो लगाएँ, पासवर्ड बदलें।"],
             ["Follow Today's plan", "Open the paper the dashboard points to, every day, until all five tests are green.", "रोज़ आज का प्लान खोलें।"],
           ].map(([t, d, h], i) => (
             <li key={t} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -405,7 +401,7 @@ export function PublicFooter() {
             <li><a href="#faq" className="hover:underline">FAQ</a></li>
             <li><Link href="/packages" className="hover:underline">Packages & prices</Link></li>
             <li><Link href="/rrb-alp-psycho-test" className="hover:underline">RRB ALP psycho test guide</Link></li>
-            <li><Link href="/demo" className="hover:underline">Free sample test</Link></li>
+            <li><Link href="/demo" className="hover:underline">2-minute sample test</Link></li>
             <li><Link href="/blog" className="hover:underline">Articles & guides</Link></li>
             <li><Link href="/terms" className="hover:underline">Terms of Use</Link></li>
             <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>

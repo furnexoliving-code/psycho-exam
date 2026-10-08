@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
+import { CONTACT, PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import { Markdown, headingsOf } from "@/components/blog/Markdown";
 import { formatDate } from "@/lib/format-time";
 import { readingMinutes, type Post, type PostSummary } from "@/lib/blog";
@@ -29,7 +29,7 @@ export interface PostInput {
  */
 export function PostView({ post, packages, upsell, saving, related, signedIn, freeMock }: PostInput) {
   const headings = headingsOf(post.content);
-  const buyHref = signedIn ? "/packages" : "/signup?next=/packages";
+  const buyHref = signedIn ? "/packages" : CONTACT.whatsapp;
   return (
     <div className="bg-white text-gray-900">
       <PublicHeader />
@@ -70,14 +70,16 @@ export function PostView({ post, packages, upsell, saving, related, signedIn, fr
             {/* In-text cross-sell: the free mock, where the reader is warmest. */}
             <aside className="mt-10 rounded-2xl bg-[#0d2a6b] px-6 py-6 text-white">
               <p className="text-[12px] font-bold uppercase tracking-[0.25em]" style={{ color: Y }}>Try it on the real screen</p>
-              <h2 className="mt-1 text-[24px] font-extrabold">Sit one Full Mock free, today</h2>
+              <h2 className="mt-1 text-[24px] font-extrabold">Practise all 5 tests on a screen like the hall</h2>
               <p className="mt-1 text-[15px] text-[#c9d3e6]">
-                All 5 tests of the CBAT in one sitting with the real timing, and your T-Score at the end. No package needed.
-                <span className="block" lang="hi">पाँचों टेस्ट एक बार में, असली समय के साथ। कोई पैकेज नहीं।</span>
+                Practice papers of every test, Full Mocks in the hall&apos;s order with the real timing, and your T-Score the moment you submit.
+                <span className="block" lang="hi">हर टेस्ट के प्रैक्टिस पेपर, असली क्रम में फुल मॉक, और तुरंत T-Score।</span>
               </p>
-              <Link href={signedIn ? "/mocks" : "/signup"} className="mt-4 inline-block rounded-md px-5 py-2.5 text-[14px] font-bold text-[#0d2a6b]" style={{ background: Y }}>
-                {signedIn ? "Open the free mock →" : "Create free account →"}
-              </Link>
+              {signedIn ? (
+                <Link href="/mocks" className="mt-4 inline-block rounded-md px-5 py-2.5 text-[14px] font-bold text-[#0d2a6b]" style={{ background: Y }}>Open Full Mocks →</Link>
+              ) : (
+                <a href={CONTACT.whatsapp} className="mt-4 inline-block rounded-md px-5 py-2.5 text-[14px] font-bold text-[#0d2a6b]" style={{ background: Y }}>Join · message our team on WhatsApp →</a>
+              )}
             </aside>
 
             {post.faq.length > 0 && (
@@ -136,23 +138,42 @@ export function PostView({ post, packages, upsell, saving, related, signedIn, fr
                         <p className="mt-1 text-[12px] font-semibold text-green-700">Save {rupees(saving)} against buying both separately</p>
                       )}
                       {p.description && <p className="mt-2 text-[13px] text-gray-600">{p.description}</p>}
-                      <Link href={buyHref} className={`mt-3 block rounded-md px-4 py-2.5 text-center text-[14px] font-bold ${pushed ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>
-                        {pushed ? "Get this package" : "See package"}
-                      </Link>
+                      {signedIn ? (
+                        <Link href={buyHref} className={`mt-3 block rounded-md px-4 py-2.5 text-center text-[14px] font-bold ${pushed ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>
+                          {pushed ? "Get this package" : "See package"}
+                        </Link>
+                      ) : (
+                        <a href={buyHref} className={`mt-3 block rounded-md px-4 py-2.5 text-center text-[14px] font-bold ${pushed ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>
+                          {pushed ? "Ask for this package on WhatsApp" : "Ask on WhatsApp"}
+                        </a>
+                      )}
                     </section>
                   );
                 })}
               </div>
             )}
 
-            <section className={`${packages.length ? "mt-4" : ""} rounded-2xl border-2 border-dashed border-green-400 bg-green-50 p-5`}>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">Free · ₹0</p>
-              <h3 className="mt-0.5 text-[18px] font-extrabold text-gray-900">{freeMock?.name ?? "One Full Mock Test"}</h3>
-              <p className="mt-1 text-[13px] text-gray-700">All 5 tests, hall order, real timing, your T-Score. Just a free account.</p>
-              <Link href={signedIn ? "/mocks" : "/signup"} className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">
-                {signedIn ? "Open the free mock" : "Create free account"}
-              </Link>
-            </section>
+            {freeMock ? (
+              <section className={`${packages.length ? "mt-4" : ""} rounded-2xl border-2 border-dashed border-green-400 bg-green-50 p-5`}>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">Free · ₹0</p>
+                <h3 className="mt-0.5 text-[18px] font-extrabold text-gray-900">{freeMock.name}</h3>
+                <p className="mt-1 text-[13px] text-gray-700">All 5 tests, hall order, real timing, your T-Score.</p>
+                <Link href={signedIn ? "/mocks" : "/login"} className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">
+                  {signedIn ? "Open the free mock" : "Sign in"}
+                </Link>
+              </section>
+            ) : (
+              <section className={`${packages.length ? "mt-4" : ""} rounded-2xl border-2 border-dashed border-green-400 bg-green-50 p-5`}>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">{signedIn ? "Try it first" : "New student?"}</p>
+                <h3 className="mt-0.5 text-[18px] font-extrabold text-gray-900">{signedIn ? "2-minute sample test" : "Join on WhatsApp"}</h3>
+                <p className="mt-1 text-[13px] text-gray-700">{signedIn ? "A short Memory and Perceptual Speed sample, scored at once." : "Send your name and mobile number; our team sets up your login and package the same day."}</p>
+                {signedIn ? (
+                  <Link href="/demo" className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Try the sample</Link>
+                ) : (
+                  <a href={CONTACT.whatsapp} className="mt-3 block rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Message our team</a>
+                )}
+              </section>
+            )}
 
             <p className="mt-4 text-[12px] text-gray-500">
               Kautilya Classes · Railway Psycho Test Portal · as per RDSO pattern. <Link href="/packages" className="underline">All packages</Link>.

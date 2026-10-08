@@ -117,15 +117,26 @@ export async function loadPackage(slug: string): Promise<Package | null> {
   return toPackage(data as PackageRow);
 }
 
-/** What one student holds, newest first, expired ones included (marked by the date). */
-export async function enrollmentsOf(userId: string): Promise<Enrollment[]> {
+/**
+ * What one student holds, newest first, expired ones included (marked by
+ * the date). Null when the packages SQL has not been run on this database
+ * yet: the portal then works as before packages existed, everything open.
+ */
+export async function enrollmentsOf(userId: string): Promise<Enrollment[] | null> {
   try {
     const { data, error } = await createAdminClient()
       .from("enrollments")
       .select(`id, user_id, source, starts_at, expires_at, note, package:packages(${COLUMNS})`)
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
-    if (error || !data) return [];
+    if (error) {
+      if (/enrollments|packages|schema cache|does not exist/i.test(error.message)) {
+        console.error(`packages not set up yet (${error.message}); everything stays open`);
+        return null;
+      }
+      return [];
+    }
+    if (!data) return [];
     return (data as unknown as { id: string; user_id: string; source: "institute" | "purchase"; starts_at: string; expires_at: string | null; note: string; package: PackageRow | null }[])
       .filter((r) => r.package)
       .map((r) => ({ id: r.id, userId: r.user_id, package: toPackage(r.package as PackageRow), source: r.source, startsAt: r.starts_at, expiresAt: r.expires_at, note: r.note ?? "" }));
@@ -150,8 +161,10 @@ export interface Access {
 }
 
 export async function accessFor(userId: string, role: string): Promise<Access> {
-  const enrollments = role === "admin" ? [] : await enrollmentsOf(userId);
-  const access: Access = { sectional: new Set(), full: new Set(), enrollments, all: role === "admin" };
+  const held = role === "admin" ? [] : await enrollmentsOf(userId);
+  // No packages table yet: nothing is locked, as before packages existed.
+  const enrollments = held ?? [];
+  const access: Access = { sectional: new Set(), full: new Set(), enrollments, all: role === "admin" || held === null };
   for (const e of enrollments) {
     if (!enrollmentActive(e)) continue;
     if (e.package.kind === "sectional" || e.package.kind === "combo") access.sectional.add(e.package.exam);

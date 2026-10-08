@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
+import { CONTACT, PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import plan from "@/public/landing/plan.jpg";
 import { listPackages } from "@/lib/packages";
 import { KIND_LABEL, rupees } from "@/lib/packages";
@@ -14,11 +14,11 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "RRB ALP Psycho Test 2026 (CBAT): 5 tests, T-Score 42, pattern, practice",
-  description: "Complete guide to the RRB ALP Computer Based Aptitude Test: the five tests in the hall's order, questions and time for each, the T-Score 42 rule, 30% weight in merit, how to prepare, and free practice on a screen like the exam.",
+  description: "Complete guide to the RRB ALP Computer Based Aptitude Test: the five tests in the hall's order, questions and time for each, the T-Score 42 rule, 30% weight in merit, how to prepare, and practice on a screen like the exam.",
   keywords: ["RRB ALP psycho test", "ALP CBAT 2026", "computer based aptitude test ALP", "ALP psycho test pattern", "T-score 42 ALP", "ALP psycho test practice online", "RDSO psycho test"],
   robots: { index: true, follow: true },
   alternates: { canonical: `${SITE}/rrb-alp-psycho-test` },
-  openGraph: { type: "article", url: `${SITE}/rrb-alp-psycho-test`, title: "RRB ALP Psycho Test (CBAT): the complete guide", description: "Five tests, T-Score 42 in each, 30% of the final merit. Pattern, tips and free practice.", images: [{ url: "/og.jpg" }], locale: "en_IN" },
+  openGraph: { type: "article", url: `${SITE}/rrb-alp-psycho-test`, title: "RRB ALP Psycho Test (CBAT): the complete guide", description: "Five tests, T-Score 42 in each, 30% of the final merit. Pattern, tips and practice.", images: [{ url: "/og.jpg" }], locale: "en_IN" },
 };
 
 const FAQ = [
@@ -27,8 +27,8 @@ const FAQ = [
   { q: "How much does the CBAT count in the final merit?", a: "30%. The final merit for ALP is 70% CBT 2 Part A plus 30% CBAT." },
   { q: "Is there negative marking in the CBAT?", a: "No. Attempt every question in every test." },
   { q: "What language is the test in?", a: "Hindi and English together, on the instruction screens and the questions." },
-  { q: "How should I prepare?", a: "Practise on a screen that works like the hall: each test with its own instruction screen and clock, in the hall's order. Start with a free Full Mock to find the weak tests, practise those daily until every test is at T-Score 42 or more, then rehearse with Full Mocks." },
-  { q: "Can I practise free?", a: "Yes. The two-minute sample on this site needs no login, and every free account on kautilyaonline.com gets one Full Mock with all five tests." },
+  { q: "How should I prepare?", a: "Practise on a screen that works like the hall: each test with its own instruction screen and clock, in the hall's order. Start with a Full Mock to find the weak tests, practise those daily until every test is at T-Score 42 or more, then rehearse with Full Mocks." },
+  { q: "Can I practise free?", a: "The two-minute sample on this site needs no login. The full papers and the Full Mocks come with a Kautilya Classes package: message the team on WhatsApp to join." },
 ];
 
 export default async function AlpGuidePage() {
@@ -54,7 +54,7 @@ export default async function AlpGuidePage() {
         <p className="mt-6 text-[12px] font-bold uppercase tracking-[0.25em] text-[#c8102e]">Complete guide · पूरी जानकारी</p>
         <h1 className="mt-2 text-[32px] font-extrabold leading-[1.15] sm:text-[42px]">RRB ALP Psycho Test (CBAT): the five tests, the T-Score 42 rule, and how to prepare</h1>
         <p className="mt-4 max-w-3xl text-[17px] leading-relaxed text-gray-800">
-          After CBT 2, every Assistant Loco Pilot candidate sits the Computer Based Aptitude Test, conducted on the RDSO pattern. It is a qualifying test with five batteries. You need a <b>T-Score of 42 or more in every one</b>, and the CBAT carries <b>30% of the final merit</b> (CBT 2 carries 70%). Most candidates meet the real screen for the first time in the hall; this page, and the free practice on this site, change that.
+          After CBT 2, every Assistant Loco Pilot candidate sits the Computer Based Aptitude Test, conducted on the RDSO pattern. It is a qualifying test with five batteries. You need a <b>T-Score of 42 or more in every one</b>, and the CBAT carries <b>30% of the final merit</b> (CBT 2 carries 70%). Most candidates meet the real screen for the first time in the hall; this page, and the practice on this site, change that.
         </p>
         <p className="mt-2 max-w-3xl text-[15px] text-gray-600" lang="hi">CBT 2 के बाद हर ALP उम्मीदवार को CBAT (साइको टेस्ट) देना होता है। पाँच टेस्ट, हर एक में T-Score 42 ज़रूरी, और फाइनल मेरिट में 30% वज़न।</p>
 
@@ -100,7 +100,7 @@ export default async function AlpGuidePage() {
         <div className="mt-4 grid gap-6 md:grid-cols-[1fr_1fr] md:items-center">
           <ol className="space-y-3">
             {[
-              ["Days 1 to 3", "Sit the free Full Mock. It shows your T-Score in each of the five tests: the weak ones are now known, not guessed."],
+              ["Days 1 to 3", "Sit a Full Mock. It shows your T-Score in each of the five tests: the weak ones are now known, not guessed."],
               ["Days 4 to 20", "Practise the weakest two tests daily, two or three papers each. The dashboard's Today's plan names the paper to open. Aim: every test at 42 or more."],
               ["Days 21 to 30", "A Full Mock every second day, in the hall's order, with the real timing. Review every wrong question. Aim: 60 in every test."],
             ].map(([h, p], i) => (
@@ -118,9 +118,9 @@ export default async function AlpGuidePage() {
             <Link href="/demo" className="mt-3 inline-block rounded-md bg-green-600 px-4 py-2 text-[13px] font-bold text-white">Try now →</Link>
           </div>
           <div className="rounded-xl border-2 border-dashed border-green-400 bg-green-50 p-5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">Free</p>
-            <h3 className="mt-1 text-[18px] font-extrabold">1 Full Mock, all 5 tests</h3>
-            <Link href="/signup" className="mt-3 inline-block rounded-md bg-green-600 px-4 py-2 text-[13px] font-bold text-white">Create free account →</Link>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-green-700">New student?</p>
+            <h3 className="mt-1 text-[18px] font-extrabold">Join on WhatsApp</h3>
+            <a href={CONTACT.whatsapp} className="mt-3 inline-block rounded-md bg-green-600 px-4 py-2 text-[13px] font-bold text-white">Message our team →</a>
           </div>
           {packages.map((p) => (
             <div key={p.id} className={`rounded-xl border bg-white p-5 ${p.kind === "combo" ? "border-[#0d2a6b] shadow-md" : "border-gray-200"}`}>

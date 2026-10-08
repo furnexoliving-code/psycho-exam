@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidPhone, normalisePhone, phoneToEmail } from "@/lib/phone";
 import { DEVICE_COOKIE } from "@/lib/login-guard";
 import { logAction } from "@/lib/audit";
+import { LAUNCH } from "@/lib/launch";
 
 export type SignUpResult = { ok: true } | { ok: false; error: string };
 
@@ -25,6 +26,7 @@ const PER_HOUR = 5;
  * records that the student made it themselves.
  */
 export async function signUp(_prev: SignUpResult | null, formData: FormData): Promise<SignUpResult> {
+  if (!LAUNCH.signup) return { ok: false, error: "Sign-up is not open yet. Accounts are issued by Kautilya Classes: message our team on WhatsApp." };
   // A field people never see; a script filling every field trips it.
   if (String(formData.get("website") ?? "")) return { ok: false, error: "Could not create the account." };
 

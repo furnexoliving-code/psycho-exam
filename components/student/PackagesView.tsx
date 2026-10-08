@@ -3,6 +3,7 @@ import { BuyButton } from "@/components/BuyButton";
 import { CONTACT } from "@/components/landing/LandingPage";
 import { formatDate } from "@/lib/format-time";
 import { KIND_LABEL, rupees, type Enrollment, type Package } from "@/lib/packages";
+import { LAUNCH } from "@/lib/launch";
 
 const Y = "#ff9933";
 
@@ -40,11 +41,25 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid, 
       <p className="text-[12px] font-bold uppercase tracking-[0.25em] text-[#c8102e]">RRB ALP Psycho Test · Packages</p>
       <h1 className="mt-2 text-[30px] font-extrabold text-gray-900 sm:text-[38px]">Pick what you need. Start today.</h1>
       <p className="mt-2 max-w-2xl text-[15px] text-gray-600">
-        Sectional tests for daily practice, Full Mock Tests for exam-day rehearsal, or both together. Every account gets one free Full Mock to try first.
-        <span className="block text-[14px] text-gray-500" lang="hi">रोज़ के अभ्यास के लिए सेक्शनल, परीक्षा जैसी रिहर्सल के लिए फुल मॉक, या दोनों। हर अकाउंट को एक फ्री फुल मॉक।</span>
+        Sectional tests for daily practice, Full Mock Tests for exam-day rehearsal, or both together.{LAUNCH.freeMock ? " Every account gets one free Full Mock to try first." : " Admission and payment are through the Kautilya Classes team."}
+        <span className="block text-[14px] text-gray-500" lang="hi">रोज़ के अभ्यास के लिए सेक्शनल, परीक्षा जैसी रिहर्सल के लिए फुल मॉक, या दोनों।{LAUNCH.freeMock ? " हर अकाउंट को एक फ्री फुल मॉक।" : " दाखिला कौटिल्य क्लासेज़ की टीम से।"}</span>
       </p>
 
+      {/* How to get a package, until online buying opens */}
+      {!LAUNCH.onlineBuy && !profile && (
+        <section className="mt-8 flex flex-wrap items-center gap-5 rounded-2xl border-2 border-dashed border-green-400 bg-green-50 p-6">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-green-600 text-[24px]" aria-hidden="true">💬</div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[20px] font-extrabold text-gray-900">New student? Message our team on WhatsApp</h2>
+            <p className="mt-1 text-[14px] text-gray-700">Send your name, mobile number and the package you want. Your login and package are set up the same day. Kautilya Classes students get theirs from the institute.</p>
+            <p className="text-[13px] text-gray-500" lang="hi">नाम, मोबाइल नंबर और पैकेज का नाम भेजें। उसी दिन लॉगिन और पैकेज चालू।</p>
+          </div>
+          <a href={CONTACT.whatsapp} className="rounded-md bg-green-600 px-5 py-3 text-[14px] font-bold text-white hover:bg-green-700">Message our team →</a>
+        </section>
+      )}
+
       {/* Free mock */}
+      {LAUNCH.freeMock && (
       <section id="free" className="mt-8 flex flex-wrap items-center gap-5 rounded-2xl border-2 border-dashed border-green-400 bg-green-50 p-6">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-green-600 text-[24px]" aria-hidden="true">🎁</div>
         <div className="min-w-0 flex-1">
@@ -66,8 +81,10 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid, 
           </Link>
         )}
       </section>
+      )}
 
       {/* Coupon */}
+      {online && (
       <form method="get" action="/packages" className="mt-6 flex flex-wrap items-end gap-2">
         <label className="block">
           <span className="mb-1 block text-[12px] font-semibold text-gray-700">Have a coupon code? <span lang="hi">कूपन कोड?</span></span>
@@ -80,6 +97,7 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid, 
           </span>
         )}
       </form>
+      )}
 
       {/* Packages */}
       <div className="mt-6 grid gap-5 md:grid-cols-3">
@@ -131,17 +149,19 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid, 
                   <p className="rounded-md bg-green-50 px-4 py-3 text-center text-[13px] font-bold text-green-800">
                     ✓ Active{mine.expiresAt ? ` till ${formatDate(mine.expiresAt.slice(0, 10))}` : ""}
                   </p>
-                ) : !profile ? (
+                ) : !online ? (
+                  <p className="rounded-md border border-dashed border-gray-300 px-4 py-3 text-center text-[12px] text-gray-600">Admission through the Kautilya Classes team</p>
+                ) : !profile && LAUNCH.signup ? (
                   <Link href={`/signup?next=/packages`} className={`block rounded-md px-4 py-3 text-center text-[14px] font-bold ${best ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>
                     Create account to buy
                   </Link>
+                ) : !profile ? (
+                  <Link href="/login?next=/packages" className={`block rounded-md px-4 py-3 text-center text-[14px] font-bold ${best ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>
+                    Sign in to buy
+                  </Link>
                 ) : online ? (
                   <BuyButton slug={p.slug} coupon={off ? coupon?.code : ""} label={`Buy · ${rupees(price)}`} className={`w-full rounded-md px-4 py-3 text-center text-[14px] font-bold disabled:opacity-60 ${best ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`} />
-                ) : (
-                  <a href={CONTACT.whatsapp} className={`block rounded-md px-4 py-3 text-center text-[14px] font-bold ${best ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>
-                    Buy on WhatsApp · {rupees(price)}
-                  </a>
-                )}
+                ) : null}
               </div>
             </section>
           );
@@ -152,7 +172,7 @@ export function PackagesView({ profile, packages, freeMock, online, held, paid, 
         {online ? (
           <>Pay securely by UPI, card or net banking through Razorpay. The package is added the moment the payment goes through.</>
         ) : (
-          <>Pay at the Kautilya Classes office or on WhatsApp ({CONTACT.phone}); the package is added to your account the same day.</>
+          <>Admission and payment are handled by the Kautilya Classes team: message us on WhatsApp ({CONTACT.phone}) with your name and mobile number, and the package is added to your account the same day.</>
         )}
         <span className="block text-[12px] text-gray-500">Kautilya Classes students get their package from the institute. See the <Link href="/refund-policy" className="underline">refund policy</Link>.</span>
       </p>

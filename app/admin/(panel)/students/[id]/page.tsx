@@ -43,7 +43,8 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
     last_seen_at: string | null;
   };
 
-  const [progress, attempts, mocks, enrollments, packages] = await Promise.all([batteryProgress(id), attemptsFor(id, 40), mockResultsFor(id, 20), enrollmentsOf(id), listAllPackages()]);
+  const [progress, attempts, mocks, held, packages] = await Promise.all([batteryProgress(id), attemptsFor(id, 40), mockResultsFor(id, 20), enrollmentsOf(id), listAllPackages()]);
+  const enrollments = held ?? [];
   const photo = photoUrlOf(student);
   const passed = progress.filter((b) => (b.bestT ?? 0) >= STAGES.pass).length;
 

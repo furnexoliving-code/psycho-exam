@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { CONTACT } from "@/lib/contact";
 
 /**
  * A two-minute taste of the psycho test, with no login: a short Memory
@@ -356,12 +357,13 @@ export function SampleTest({ initial = null }: { initial?: Which | null }) {
               </p>
             </div>
             <p className="mt-4 text-[13px] text-gray-600">
-              This sample is not scored as a T-Score: a T-Score compares you with everyone who sat the same paper. The free Full Mock does that, with all five tests.
-              <span className="block" lang="hi">यह सैंपल T-Score नहीं देता। फ्री फुल मॉक पाँचों टेस्ट के साथ T-Score देता है।</span>
+              This sample is not scored as a T-Score: a T-Score compares you with everyone who sat the same paper. The portal&apos;s full papers and Full Mocks do that, with all five tests.
+              <span className="block" lang="hi">यह सैंपल T-Score नहीं देता। पोर्टल के पूरे पेपर और फुल मॉक T-Score देते हैं।</span>
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/signup" className="rounded-md bg-[#0d2a6b] px-5 py-3 text-[14px] font-bold text-white hover:bg-[#0a2158]">Create free account · sit the free Full Mock</Link>
+              <a href={CONTACT.whatsapp} className="rounded-md bg-[#0d2a6b] px-5 py-3 text-[14px] font-bold text-white hover:bg-[#0a2158]">Join · message our team on WhatsApp</a>
               <Link href="/packages" className="rounded-md border border-[#0d2a6b] px-5 py-3 text-[14px] font-bold text-[#0d2a6b] hover:bg-[#eef2fb]">See packages</Link>
+              <Link href="/login" className="rounded-md border border-gray-300 px-5 py-3 text-[14px] font-semibold text-gray-700 hover:bg-gray-50">Student Login</Link>
               <button type="button" onClick={() => { setPhase("choose"); setWhich(null); }} className="rounded-md border border-gray-300 px-5 py-3 text-[14px] font-semibold text-gray-700 hover:bg-gray-50">Try the other test</button>
             </div>
           </div>

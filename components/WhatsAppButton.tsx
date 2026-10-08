@@ -1,4 +1,4 @@
-import { CONTACT } from "@/components/landing/LandingPage";
+import { CONTACT } from "@/lib/contact";
 
 /**
  * The floating WhatsApp button on every public page: Indian students ask

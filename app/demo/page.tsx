@@ -5,7 +5,7 @@ import { SampleTest } from "@/components/demo/SampleTest";
 
 export const metadata: Metadata = {
   title: "Free RRB ALP Psycho Test Sample Online, No Login | Kautilya Classes",
-  description: "Try the RRB ALP psycho test (CBAT) free in two minutes: a short Memory Test and a Perceptual Speed Test on a screen like the exam hall, scored at once. No login. Then sit a full free mock.",
+  description: "Try the RRB ALP psycho test (CBAT) free in two minutes: a short Memory Test and a Perceptual Speed Test on a screen like the exam hall, scored at once. No login. Then practise the full papers with Kautilya Classes.",
   keywords: ["free psycho test online", "ALP psycho test sample", "RRB ALP CBAT demo", "psycho test practice free", "memory test online free"],
   robots: { index: true, follow: true },
   alternates: { canonical: "https://kautilyaonline.com/demo" },
@@ -31,8 +31,8 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
         <section className="mt-10 grid gap-4 md:grid-cols-3">
           {[
             ["This sample", "A taste: a few questions, your own clock, scored in the browser."],
-            ["The free Full Mock", "All 5 tests in one sitting with the real timing and your T-Score. Needs a free account."],
-            ["A package", "Every practice paper of the 5 tests and every Full Mock, with Today's plan on the dashboard."],
+            ["Join Kautilya Classes", "Message our team on WhatsApp with your name and mobile number; your login and package are set up the same day."],
+            ["Practise daily", "Every practice paper of the 5 tests and every Full Mock, with Today's plan on the dashboard and your T-Score at once."],
           ].map(([h, p], i) => (
             <div key={h} className={`rounded-xl border p-5 ${i === 1 ? "border-green-400 bg-green-50" : "border-gray-200 bg-white"}`}>
               <div className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Step {i + 1}</div>

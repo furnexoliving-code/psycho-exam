@@ -18,7 +18,7 @@ export default async function ProfilePage() {
   const profile = await requireUser("/profile");
   if (profile.role !== "student" && profile.role !== "admin") redirect(panelHome(profile.role));
   const name = profile.full_name || "Candidate";
-  const enrollments = await enrollmentsOf(profile.id);
+  const enrollments = (await enrollmentsOf(profile.id)) ?? [];
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
