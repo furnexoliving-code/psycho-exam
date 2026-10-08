@@ -69,6 +69,8 @@ export function FigureQuestionsPanel({
   const picker = useRef<HTMLInputElement | null>(null);
 
   const unanswered = questions.filter((q) => q.answer === "").length;
+  // The Brick Test: one picture is a pile, and makes five questions (A to E).
+  const piles = category === "brick";
 
   const addPictures = async (list: FileList | null) => {
     const files = sortByName(Array.from(list ?? []));
@@ -113,7 +115,7 @@ export function FigureQuestionsPanel({
         }
       }
       for (let i = 0; i < items.length; i += FIGURE_BATCH) {
-        const outcome = await addFigureQuestions(slug, items.slice(i, i + FIGURE_BATCH), optionCount, optionStyle);
+        const outcome = await addFigureQuestions(slug, items.slice(i, i + FIGURE_BATCH), optionCount, optionStyle, piles);
         if (outcome.error) throw new Error(outcome.error);
       }
       state.total = groups.length;
@@ -140,7 +142,21 @@ export function FigureQuestionsPanel({
 
       {/* ------------------------- Add pictures ------------------------- */}
       <div className="mt-4 rounded border border-gray-300 bg-gray-50 p-4">
-        <p className="text-[13px] font-semibold text-gray-800">Add questions from pictures</p>
+        <p className="text-[13px] font-semibold text-gray-800">{piles ? "Add piles from pictures" : "Add questions from pictures"}</p>
+        {piles ? (
+        <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
+          <li>
+            <strong>One picture per pile</strong>, with its bricks lettered A to E: name the files in order (pile01.png,
+            pile02.png …) and choose them all at once. Each pile becomes five questions, A to E, in that order; the hall
+            gives 10 piles, so 50 questions.
+          </li>
+          <li>
+            Afterwards type the answer key in one line, five numbers per pile in A to E order
+            (for example <code>2 3 3 4 4  1 2 2 3 1 …</code>), or set each question&apos;s answer by hand.
+          </li>
+          <li>Nothing is uploaded until the whole set of names adds up.</li>
+        </ul>
+        ) : (
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
           <li>
             <strong>One picture per question</strong>, showing the figure and its options
@@ -165,6 +181,7 @@ export function FigureQuestionsPanel({
           </li>
           <li>Nothing is uploaded until the whole set of names adds up, so a missing file cannot leave half a paper behind.</li>
         </ul>
+        )}
 
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-[12px] text-gray-700">
@@ -202,7 +219,7 @@ export function FigureQuestionsPanel({
           />
           {run && !run.running && !run.error && (
             <span className="text-[12px] font-semibold text-green-700">
-              ✓ {run.total} question{run.total === 1 ? "" : "s"} added
+              ✓ {run.total} {piles ? "pile" : "question"}{run.total === 1 ? "" : "s"} added
             </span>
           )}
         </div>

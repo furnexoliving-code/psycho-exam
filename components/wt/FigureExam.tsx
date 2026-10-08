@@ -58,6 +58,9 @@ export function FigureExam({
   // five option pictures with their letters beneath, then the radios; no
   // "Question No" heading. The Same Figure Test keeps its figure above.
   const sideBySide = paper.category === "octagonal" || paper.category === "circle";
+  // The Brick Test, as the RDSO mock draws it: the part's pile at the left,
+  // its five questions (A to E) at the right, each a row of numbered radios.
+  const brick = paper.category === "brick";
   // A paper of text questions only (the Yes or No Test): the rows are
   // short, so they sit closer than picture questions do.
   const textPaper = paper.questions.length > 0 && paper.questions.every((q) => !q.image && !q.optionImages);
@@ -65,6 +68,8 @@ export function FigureExam({
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
   const column = useRef<HTMLDivElement | null>(null);
+  // The Brick Test's question pane, which scrolls sideways under its own rail.
+  const brickPane = useRef<HTMLOListElement | null>(null);
 
   const onTest = state.phase === "test";
   const features = resolveFeatures(paper.features);
@@ -181,6 +186,29 @@ export function FigureExam({
       keepalive: true,
     }).catch(() => undefined);
   }, [state, paper.id]);
+
+  // The lines above the questions: the way back to the instructions, and
+  // the prompt to answer. Drawn once here, since the Brick Test's two-column
+  // screen puts them in its left column.
+  const reminderLines = (
+    <>
+            {features.showInstructionsButton && (
+              <p className="mb-2 text-[0.85em] text-[#333]">
+                <span lang="hi">
+                  यदि आप परीक्षण के निर्देशों को पुनः देखना चाहते हैं तो{" "}
+                  <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} /> पर क्लिक करें
+                </span>
+                {" / "}
+                If you want to see the test instructions again please click on{" "}
+                <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} />
+              </p>
+            )}
+            <p className="text-[0.9em] text-[#494949]">
+              Please Select Correct Answer /{" "}
+              <span lang="hi">कृपया सही उत्तर चुनें</span>
+            </p>
+    </>
+  );
 
   const unanswered = paper.questions.length - answered;
   const lastPart = part >= partCount - 1;
@@ -337,6 +365,40 @@ export function FigureExam({
                   </p>
                 </div>
               </div>
+            ) : brick ? (
+              // Two halves, as the hall's screen: the pile at the left, the
+              // questions at the right. Ten options at the hall's spacing run
+              // past the right edge; the pane scrolls sideways under its own
+              // rail, as the hall's panes do, so no option is ever dropped
+              // down a line.
+              <div className="flex min-h-full flex-col gap-4 lg:flex-row lg:gap-0">
+                <div className="lg:w-1/2 lg:shrink-0 lg:border-r lg:border-[#dcdcdc] lg:pr-4">
+                  {reminderLines}
+                  {parts[part]?.[0]?.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={parts[part][0].image} alt={`Pile ${part + 1}`} className="mt-3 w-auto max-w-full" style={{ height: Math.round(figureH * 1.6) }} draggable={false} />
+                  )}
+                </div>
+                <div className="relative min-w-0 flex-1 pb-3">
+                <ol ref={brickPane} className="wt-scroll-host w-full space-y-5 lg:pl-4" style={{ fontFamily: "Georgia, 'Times New Roman', serif", overflowY: "hidden" }}>
+                  {parts[part]?.map((q, i) => {
+                    const number = part * perPart + i + 1;
+                    const chosen = state.answers[q.id];
+                    return (
+                      <li key={q.id} className="flex items-center gap-x-5">
+                        <span className="w-[56px] shrink-0 whitespace-nowrap text-[1em] text-[#222]">{number}. {q.prompt.en} -</span>
+                        <span className="flex items-center gap-x-[52px] whitespace-nowrap">
+                          {q.options.map((option, oi) => (
+                            <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                          ))}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+                <ScrollRail target={brickPane} axis="horizontal" />
+                </div>
+              </div>
             ) : (
             <>
             {scheduled && (
@@ -345,21 +407,7 @@ export function FigureExam({
                 <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
               </p>
             )}
-            {features.showInstructionsButton && (
-              <p className="mb-2 text-[0.85em] text-[#333]">
-                <span lang="hi">
-                  यदि आप परीक्षण के निर्देशों को पुनः देखना चाहते हैं तो{" "}
-                  <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} /> पर क्लिक करें
-                </span>
-                {" / "}
-                If you want to see the test instructions again please click on{" "}
-                <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} />
-              </p>
-            )}
-            <p className="text-[0.9em] text-[#494949]">
-              Please Select Correct Answer /{" "}
-              <span lang="hi">कृपया सही उत्तर चुनें</span>
-            </p>
+            {reminderLines}
 
             {twoSets && (
               <div

@@ -57,6 +57,14 @@ export const CATEGORIES = [
     blurb: "Follow the directions across a table of numbers.",
   },
   {
+    id: "brick",
+    battery: 3,
+    kind: "figure",
+    title: "Brick Test",
+    hindi: "ईंट परीक्षण",
+    blurb: "A pile of bricks, some lettered A to E: count the bricks touching each lettered one. 10 piles, 5 questions each, 5 minutes.",
+  },
+  {
     id: "depth",
     battery: 3,
     kind: "figure",

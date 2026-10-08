@@ -12,6 +12,7 @@ import {
   MAX_OPTION_COUNT,
   optionValues,
   type OptionStyle,
+  BRICK_LETTERS,
 } from "@/lib/wt/figure-sample";
 import { parseOption } from "@/lib/wt/parse-questions";
 import { scheduleMinutes } from "@/lib/wt/schedule";
@@ -71,6 +72,8 @@ export async function addFigureQuestions(
   items: (string | { image?: string | null; options?: string[] })[],
   optionCount: number,
   optionStyle: OptionStyle = "letters",
+  /** The Brick Test: each picture is a pile, and makes five questions, A to E, on that one picture. */
+  piles = false,
 ): Promise<{ added: number; error?: string }> {
   try {
     await requireEditor();
@@ -106,24 +109,37 @@ export async function addFigureQuestions(
       .maybeSingle();
     const start = ((last?.position as number | undefined) ?? -1) + 1;
 
-    const { error } = await questionStore().from("watch_questions").insert(
-      links.map((q, i) => ({
-        paper_id: paperId,
-        position: start + i,
-        prompt_en: "",
-        prompt_hi: "",
-        options: optionValues(style, count),
-        answer: "",
-        image_url: q.image,
-        option_images: q.options,
-      })),
-    );
+    const rows = piles
+      ? links.flatMap((q, i) =>
+          BRICK_LETTERS.map((letter, li) => ({
+            paper_id: paperId,
+            position: start + i * BRICK_LETTERS.length + li,
+            prompt_en: letter,
+            prompt_hi: "",
+            options: optionValues(style, count),
+            answer: "",
+            topic: `Brick ${letter}`,
+            image_url: q.image,
+            option_images: null,
+          })),
+        )
+      : links.map((q, i) => ({
+          paper_id: paperId,
+          position: start + i,
+          prompt_en: "",
+          prompt_hi: "",
+          options: optionValues(style, count),
+          answer: "",
+          image_url: q.image,
+          option_images: q.options,
+        }));
+    const { error } = await questionStore().from("watch_questions").insert(rows);
     if (error) throw new Error(error.message);
 
     await syncScheduleClock(slug);
     revalidatePath(`/admin/papers/${slug}`);
     paperChanged(slug);
-    return { added: links.length };
+    return { added: rows.length };
   } catch (error) {
     if (typeof (error as { digest?: unknown })?.digest === "string") throw error;
     return { added: 0, error: error instanceof Error ? error.message : String(error) };

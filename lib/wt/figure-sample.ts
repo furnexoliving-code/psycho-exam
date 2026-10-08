@@ -64,6 +64,14 @@ export function pictureInstructions(
         },
         ...timing,
       ];
+    case "brick":
+      return [
+        {
+          en: "In this test you will see a pile of bricks with some bricks labelled A, B, C, D and E. Your task is to count the number of bricks that are touching the brick of the pile that has any one of the letters on it. All bricks are of the same size and shape.",
+          hi: "आप इस परीक्षण में ईंटों का एक समूह देखेंगे जिसमें कुछ ईंटों पर A, B, C, D एवं E लिखा होगा। आपको उन ईंटों की गणना करनी है जो समूह में उन ईंटों को छू रही हैं जिन पर इनमें से कोई एक अक्षर दिया गया है। सभी ईंटें समान आकार एवं माप की हैं।",
+        },
+        ...timing,
+      ];
     case "depth":
       return [
         {
@@ -166,7 +174,7 @@ export function optionValues(style: OptionStyle, count: number): (string | numbe
 
 /** How large a picture test draws its pictures when the paper does not say: percent of the usual size. */
 export function defaultPictureScale(category: string | undefined): number {
-  return category === "depth" ? 225 : category === "memory" ? 140 : 100;
+  return category === "depth" || category === "brick" ? 225 : category === "memory" ? 140 : 100;
 }
 
 /** The sizes offered in the settings. */
@@ -176,6 +184,7 @@ export const PICTURE_SCALES = [75, 100, 125, 140, 150, 200, 225, 250] as const;
 export function defaultOptionsFor(category: string): { style: OptionStyle; count: number } {
   switch (category) {
     case "depth":
+    case "brick":
       return { style: "numbers", count: 10 };
     case "observation":
       return { style: "letters", count: 4 };
@@ -213,6 +222,17 @@ export const FIND9_EXAMPLE_TEXT: InstructionBlock[] = [
   { en: "5.  A 89537  B 38567  C 58974  D 28378", hi: "5.  A 89537  B 38567  C 58974  D 28378" },
   { en: "The answers for the above questions are B, C, A, D and E.", hi: "ऊपर दिये गये प्रश्नों के सही उत्तर क्रमशः B, C, A, D और E हैं।" },
 ];
+
+/** The worked example the Brick Test's instruction screen gives: the institute adds the example pile's picture above it. */
+export const BRICK_EXAMPLE_TEXT: InstructionBlock[] = [
+  {
+    en: "For example, in the pile above the brick with an 'A' on it touches two other bricks, viz., 'D' and 'E', hence the answer will be 2. Similarly bricks B, C and D and E touch 3, 3, 4 and 4 bricks respectively.",
+    hi: "उदाहरण के लिए उपरोक्त समूह में 'A' वाली ईंट दो अन्य ईंटों 'D' और 'E' को छू रही है अतः उत्तर 2 होगा। इसी प्रकार B, C, D एवं E अक्षर वाली ईंटें क्रमशः 3, 3, 4 और 4 ईंटों को छू रही हैं।",
+  },
+];
+
+/** The lettered bricks of one pile: the five questions each pile asks, in order. */
+export const BRICK_LETTERS = ["A", "B", "C", "D", "E"] as const;
 
 /** The most pictures the panel sends the server in one call. */
 export const FIGURE_BATCH = 50;
@@ -478,5 +498,58 @@ export function matchingSamplePaper(category: "octagonal" | "circle") {
     instructions: pictureInstructions(category, 1, 5),
     example: { table: { label: "Example", cells: [] }, text: matchingExampleText(category) },
     questions: base.questions.map((q) => ({ ...q, id: `${category}-${q.id}` })),
+  };
+}
+
+/** A Brick Test of two piles, drawn in the portal, for seeing the two-column screen before a database exists. */
+export const BRICK_SAMPLE_ID = "brick-sample";
+
+export function brickSamplePaper() {
+  // A pile drawn flat: rows of bricks, five of them lettered.
+  const pile = (letters: [number, number][]) => {
+    const w = 60, h = 28;
+    const rows = [[0, 1, 2], [0.5, 1.5], [0, 1, 2]];
+    let rects = "";
+    rows.forEach((row, r) => {
+      row.forEach((c) => {
+        const x = 20 + c * w, y = 20 + (rows.length - 1 - r) * h;
+        const tag = letters.find(([lr, lc]) => lr === r && lc === c);
+        rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff" stroke="#111" stroke-width="2"/>`;
+        if (tag) rects += `<text x="${x + w / 2}" y="${y + h / 2 + 6}" font-size="16" text-anchor="middle" fill="#111">${BRICK_LETTERS[letters.indexOf(tag)]}</text>`;
+      });
+    });
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">${rects}</svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+  const piles: { image: string; answers: number[] }[] = [
+    { image: pile([[0, 0], [0, 2], [1, 0.5], [2, 1], [2, 2]]), answers: [2, 2, 4, 3, 2] },
+    { image: pile([[0, 1], [1, 1.5], [2, 0], [2, 1], [0, 2]]), answers: [4, 4, 2, 3, 2] },
+  ];
+  const questions = piles.flatMap((p, pi) =>
+    BRICK_LETTERS.map((letter, li) => ({
+      id: `br-q${pi * 5 + li + 1}`,
+      tableIndex: 0,
+      prompt: { en: letter, hi: "" },
+      options: optionValues("numbers", 10),
+      answer: p.answers[li],
+      working: { en: "", hi: "" },
+      topic: `Brick ${letter}`,
+      image: p.image,
+    })),
+  );
+  return {
+    id: BRICK_SAMPLE_ID,
+    kind: "figure" as const,
+    category: "brick",
+    title: "Brick Test",
+    displayName: "Brick Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 5 },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions("brick", 1, 5),
+    example: { table: { label: "Example", cells: [] }, text: BRICK_EXAMPLE_TEXT },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions,
+    resultView: {},
   };
 }

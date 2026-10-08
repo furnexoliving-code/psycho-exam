@@ -11,6 +11,7 @@ import {
   FIND9_SAMPLE_ID,
   OCTAGONAL_SAMPLE_ID,
   CIRCLE_SAMPLE_ID,
+  BRICK_SAMPLE_ID,
   figureSamplePaper,
   memorySamplePaper,
   observationSamplePaper,
@@ -18,6 +19,7 @@ import {
   yesNoSamplePaper,
   findSamplePaper,
   matchingSamplePaper,
+  brickSamplePaper,
 } from "./figure-sample";
 
 /**
@@ -39,6 +41,7 @@ export function getBundledPaper(paperId: string): WatchPaper | undefined {
   if (paperId === FIND9_SAMPLE_ID) return findSamplePaper("find9") as WatchPaper;
   if (paperId === OCTAGONAL_SAMPLE_ID) return matchingSamplePaper("octagonal") as WatchPaper;
   if (paperId === CIRCLE_SAMPLE_ID) return matchingSamplePaper("circle") as WatchPaper;
+  if (paperId === BRICK_SAMPLE_ID) return brickSamplePaper() as WatchPaper;
   return undefined;
 }
 

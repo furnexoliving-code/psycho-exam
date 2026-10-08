@@ -66,6 +66,7 @@ const DEFAULT_SECTION: Record<string, string> = {
   letter: "2a",
   watch: "2b",
   number: "2c",
+  brick: "3a",
   depth: "3b",
   yesno: "4a",
   find6: "4b",
