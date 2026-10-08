@@ -99,9 +99,44 @@ export function pictureInstructions(
         },
         ...timing,
       ];
+    case "octagonal":
+      return [
+        {
+          en: "This is a test of your ability to match figures quickly. A figure is given on the left side. On the right side there are five other figures. You are required to find out which of the five figures is identical to the figure given on the left.",
+          hi: "यह आकृतियों के शीघ्रतापूर्वक मिलान करने की योग्यता का परीक्षण है। बाईं तरफ एक आकृति दी गयी है; दाहिनी तरफ पाँच अन्य आकृतियाँ दी गयी हैं। आपको यह पता करना है कि पाँचों आकृतियों में से कौन सी आकृति बाईं ओर दी गयी आकृति के समान है।",
+        },
+        ...timing,
+      ];
+    case "circle":
+      return [
+        {
+          en: "This is a test of your ability to match figures quickly and accurately. In each problem a figure is given at the left followed by figures A, B, C, D and E on the right hand side. You are to find out which of these five figures is exactly similar to the figure given on the left. Indicate your answers by clicking the mouse.",
+          hi: "यह आकृतियों के शीघ्रतापूर्वक सही मिलान करने की योग्यता का परीक्षण है। प्रत्येक समस्या में बाईं ओर एक आकृति मिलेगी जिसके दाईं ओर A, B, C, D एवं E आकृतियाँ दी हुई हैं। आपको ज्ञात करना है कि इन पाँच आकृतियों में से कौन सी आकृति बाईं ओर दी आकृति से पूर्णतया मिलती है। आपको माउस से क्लिक करके उत्तर देना होगा।",
+        },
+        ...timing,
+      ];
     default:
       return figureInstructions(testMin, instructionMin);
   }
+}
+
+/** The worked-example paragraphs of the Octagonal and Same Circle Tests; the institute adds its example pictures under them. */
+export const OCTAGONAL_EXAMPLE_TEXT: InstructionBlock[] = [
+  {
+    en: "For the first example the correct answer is 'D'. Similarly the correct answers for examples 2 and 3 are 'A' and 'D' respectively.",
+    hi: "पहले उदाहरण के लिए सही उत्तर 'D' है। इसी प्रकार अभ्यास 2 एवं 3 का सही उत्तर क्रमशः 'A' एवं 'D' है।",
+  },
+];
+export const CIRCLE_EXAMPLE_TEXT: InstructionBlock[] = [
+  {
+    en: "The correct answer for practice problem 1 is 'C', and for 2 it is 'B'.",
+    hi: "अभ्यास समस्या 1 का सही उत्तर 'C', 2 का 'B' है।",
+  },
+];
+
+/** The example paragraphs a picture-matching test starts with. */
+export function matchingExampleText(category: string): InstructionBlock[] {
+  return category === "octagonal" ? OCTAGONAL_EXAMPLE_TEXT : category === "circle" ? CIRCLE_EXAMPLE_TEXT : FIGURE_EXAMPLE_TEXT;
 }
 
 /** The worked-example paragraphs; the institute adds its example pictures under them. */
@@ -424,5 +459,24 @@ export function findSamplePaper(category: "find6" | "find9") {
     tables: [{ label: "No. 1", cells: [] }],
     questions: findQuestions(digit, { seed: 20200101, count: 75 }, category),
     resultView: {},
+  };
+}
+
+/** The Octagonal and Same Circle Tests ride the Same Figure engine; a sample of each shows its instruction screen before a database exists. */
+export const OCTAGONAL_SAMPLE_ID = "octagonal-sample";
+export const CIRCLE_SAMPLE_ID = "same-circle-sample";
+
+export function matchingSamplePaper(category: "octagonal" | "circle") {
+  const base = figureSamplePaper();
+  const octagonal = category === "octagonal";
+  return {
+    ...base,
+    id: octagonal ? OCTAGONAL_SAMPLE_ID : CIRCLE_SAMPLE_ID,
+    category,
+    title: octagonal ? "Octagonal Test" : "Same Circle Test",
+    displayName: octagonal ? "Octagonal Test - Sample" : "Same Circle Test - Sample",
+    instructions: pictureInstructions(category, 1, 5),
+    example: { table: { label: "Example", cells: [] }, text: matchingExampleText(category) },
+    questions: base.questions.map((q) => ({ ...q, id: `${category}-${q.id}` })),
   };
 }

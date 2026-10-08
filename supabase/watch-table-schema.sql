@@ -640,12 +640,13 @@ grant select on public.watch_questions_public to anon, authenticated;
 -- kept with the paper's features. The Yes or No Test (yesno) and the Find
 -- 6 and Find 9 Tests (find6, find9) ride the same engine with text
 -- questions the portal builds: a pair of numbers, or four lettered groups
--- of digits.
+-- of digits. The Octagonal and Same Circle Tests (octagonal, circle) are
+-- picture papers on the Same Figure engine.
 -- ---------------------------------------------------------------------------
 alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
 alter table public.watch_papers
   add constraint watch_papers_category_ck
-  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation', 'yesno', 'find6', 'find9'));
+  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation', 'yesno', 'find6', 'find9', 'octagonal', 'circle'));
 
 -- ---------------------------------------------------------------------------
 -- Portal settings (added later)

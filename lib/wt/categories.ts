@@ -97,6 +97,22 @@ export const CATEGORIES = [
     blurb: "A picture stays on screen; each question asks what can be seen in it.",
   },
   {
+    id: "octagonal",
+    battery: 5,
+    kind: "figure",
+    title: "Octagonal Test",
+    hindi: "अष्टकोण परीक्षण",
+    blurb: "A figure on the left and five on the right: find the identical one. 96 questions in 5 minutes.",
+  },
+  {
+    id: "circle",
+    battery: 5,
+    kind: "figure",
+    title: "Same Circle Test",
+    hindi: "समान वृत्त परीक्षण",
+    blurb: "A circle figure on the left and A to E on the right: find the exactly similar one. 60 questions in 8 minutes.",
+  },
+  {
     id: "figure",
     battery: 5,
     kind: "figure",

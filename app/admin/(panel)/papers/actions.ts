@@ -12,7 +12,7 @@ import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-ques
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged } from "@/lib/wt/db";
 import { BATTERIES, CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
-import { FIGURE_EXAMPLE_TEXT, pictureInstructions } from "@/lib/wt/figure-sample";
+import { matchingExampleText, pictureInstructions } from "@/lib/wt/figure-sample";
 import { builtQuestions, builtSpec } from "@/lib/wt/built";
 import { syncScheduleClock } from "./figure-actions";
 import { scheduleMinutes } from "@/lib/wt/schedule";
@@ -180,6 +180,11 @@ export async function createPaper(formData: FormData) {
   // questions are made here, so the paper is complete the moment it is made.
   const built = builtSpec(category);
   const seed = Math.floor(Date.now() / 1000);
+  // The picture-matching tests, on one engine: a figure against five.
+  // Same Figure (5e), Octagonal (5b) and Same Circle (5d), each with the
+  // hall's own clock.
+  const matching = category === "figure" || category === "octagonal" || category === "circle";
+  const pictureMin = category === "circle" ? 8 : 5;
 
   // A fresh Following Directions paper starts with a generated diagram and a
   // full set of questions, so it is usable immediately rather than an empty
@@ -201,11 +206,11 @@ export async function createPaper(formData: FormData) {
       title: String(formData.get("title") ?? "").trim() || categoryTitle(category),
       display_name: displayName,
       instruction_time_min: 5,
-      time_limit_min: built ? built.timeMin : figure ? 5 : 10,
+      time_limit_min: built ? built.timeMin : figure ? pictureMin : 10,
       cells: figure ? [] : tables[0].cells,
       example_cells: figure ? [] : tables[0].cells,
-      instructions: figure ? pictureInstructions(category, built ? built.timeMin : 5, 5, 1) : [],
-      example_text: figure ? (category === "figure" ? FIGURE_EXAMPLE_TEXT : built ? built.example : []) : undefined,
+      instructions: figure ? pictureInstructions(category, built ? built.timeMin : pictureMin, 5, 1) : [],
+      example_text: figure ? (matching ? matchingExampleText(category) : built ? built.example : []) : undefined,
       // The picture tests are answered with the mouse, in parts, and have
       // no question-paper page; the keyboard-only rules of the Following
       // Directions engine do not apply to them. The Memory Test runs on a
@@ -215,7 +220,7 @@ export async function createPaper(formData: FormData) {
             showQuestionPaperButton: false,
             lockScroll: true,
             overflowQuestions: false,
-            questionsPerPart: built ? built.perPart : category === "figure" ? 10 : category === "memory" ? 3 : 2,
+            questionsPerPart: built ? built.perPart : matching ? 10 : category === "memory" ? 3 : 2,
             ...(category === "memory" ? { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1 } : {}),
           }
         : {},

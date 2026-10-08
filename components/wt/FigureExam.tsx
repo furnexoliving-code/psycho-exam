@@ -53,6 +53,10 @@ export function FigureExam({
   // first picture on screen, so they sit over its halves whatever size
   // the pictures were uploaded at.
   const twoSets = paper.category === "observation";
+  // The Octagonal and Same Circle Tests: the figure stands at the left of
+  // its five options on one line, as the guideline draws them; the Same
+  // Figure Test keeps its figure above the options.
+  const sideBySide = paper.category === "octagonal" || paper.category === "circle";
   // A paper of text questions only (the Yes or No Test): the rows are
   // short, so they sit closer than picture questions do.
   const textPaper = paper.questions.length > 0 && paper.questions.every((q) => !q.image && !q.optionImages);
@@ -442,13 +446,14 @@ export function FigureExam({
                       </div>
                     ) : (
                       // A figure with option pictures (Perceptual Speed): the
-                      // figure above, then "A [picture]" per option.
-                      <>
+                      // figure above, then "A [picture]" per option; or, side
+                      // by side, the figure at the left of the same line.
+                      <div className={sideBySide ? "mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2" : undefined}>
                         {q.image && (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={q.image} alt={`Question ${number}`} className="mt-2 w-auto max-w-full" style={{ height: figureH }} draggable={false} />
+                          <img src={q.image} alt={`Question ${number}`} className={sideBySide ? "w-auto max-w-full" : "mt-2 w-auto max-w-full"} style={{ height: figureH }} draggable={false} />
                         )}
-                        <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
+                        <div className={`flex flex-wrap items-center gap-x-[52px] gap-y-2 ${sideBySide ? "" : "mt-2"}`}>
                           {q.options.map((option, oi) => {
                             const id = `${q.id}-opt-${oi}`;
                             const picture = q.optionImages?.[oi];
@@ -463,7 +468,7 @@ export function FigureExam({
                             );
                           })}
                         </div>
-                      </>
+                      </div>
                     )}
                   </li>
                 );
