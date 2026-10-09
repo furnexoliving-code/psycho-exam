@@ -263,17 +263,31 @@ export async function enrollNewStudent(userId: string, slug: string, validUntil:
 export async function studentsWithoutPackage(): Promise<{ id: string; fullName: string; validUntil: string | null }[]> {
   try {
     const supabase = createAdminClient();
-    const { data: enrolled, error } = await supabase.from("enrollments").select("user_id");
-    if (error) return [];
-    const has = new Set((enrolled ?? []).map((e) => e.user_id as string));
-    const { data: students } = await supabase
-      .from("profiles")
-      .select("id, full_name, valid_until")
-      .eq("role", "student")
-      .eq("is_active", true)
-      .order("created_at")
-      .limit(5000);
-    return (students ?? [])
+    // Page by page: the database hands back at most a thousand rows per
+    // call, and both lists have grown past that. A list cut short would
+    // count enrolled students as having none.
+    const enrolled: { user_id: string }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await supabase.from("enrollments").select("user_id").order("id").range(from, from + 999);
+      if (error) return [];
+      enrolled.push(...((data ?? []) as { user_id: string }[]));
+      if ((data ?? []).length < 1000) break;
+    }
+    const has = new Set(enrolled.map((e) => e.user_id));
+    const students: Record<string, unknown>[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, valid_until")
+        .eq("role", "student")
+        .eq("is_active", true)
+        .order("created_at")
+        .order("id")
+        .range(from, from + 999);
+      students.push(...((data ?? []) as Record<string, unknown>[]));
+      if ((data ?? []).length < 1000) break;
+    }
+    return students
       .filter((s) => !has.has(s.id as string))
       .map((s) => ({ id: s.id as string, fullName: (s.full_name as string) || "Unnamed", validUntil: (s.valid_until as string | null) ?? null }));
   } catch {
@@ -285,8 +299,8 @@ export async function studentsWithoutPackage(): Promise<{ id: string; fullName: 
  * Gives one package to many students at once, in a few inserts rather
  * than one round trip per student: hundreds of accounts in seconds, well
  * inside the time a server action is allowed. Each runs till the
- * account's validity date, or without expiry. Only for students who hold
- * no enrollment of the package yet; the caller picks them.
+ * account's validity date, or without expiry. A student who already
+ * holds the package is left as they are and not counted.
  */
 export async function grantToMany(students: { id: string; validUntil: string | null }[], pkg: Package, note: string): Promise<number> {
   const supabase = createAdminClient();
@@ -300,7 +314,12 @@ export async function grantToMany(students: { id: string; validUntil: string | n
       order_id: null,
       note,
     }));
-    const { data, error } = await supabase.from("enrollments").insert(rows).select("id");
+    // A student who already holds the package is skipped, not an error:
+    // one such row must not stop the whole batch.
+    const { data, error } = await supabase
+      .from("enrollments")
+      .upsert(rows, { onConflict: "user_id,package_id", ignoreDuplicates: true })
+      .select("id");
     if (error) throw new Error(error.message);
     given += data?.length ?? 0;
   }
