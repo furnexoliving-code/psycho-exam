@@ -23,6 +23,9 @@ import { CATEGORIES, categoryTitle } from "@/lib/wt/categories";
 import { isBuilt } from "@/lib/wt/built";
 import { FEATURE_LABELS, FONT_STEPS, IMAGE_WIDTHS, RESULT_VIEW_LABELS } from "./labels";
 
+/** Forty seconds for this page's actions, as the admin layout allows; the default is fifteen. */
+export const maxDuration = 40;
+
 export default async function EditWatchPaper({
   params,
   searchParams,

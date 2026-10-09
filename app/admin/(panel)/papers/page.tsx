@@ -3,6 +3,9 @@ import { hiddenBatteries } from "@/lib/wt/visibility";
 import { listPapersForAdmin } from "@/lib/wt/db";
 import { PapersAdminView } from "./PapersAdminView";
 
+/** Forty seconds for this page's actions, as the admin layout allows; the default is fifteen. */
+export const maxDuration = 40;
+
 export default async function TestPapersPage({
   searchParams,
 }: {

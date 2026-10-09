@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white antialiased">{children}</body>
+      <body className="min-h-screen bg-white antialiased">
+        {children}
+        {/* How fast pages open for students, by page and device, measured in
+            their browsers: one page view in five, which keeps it inside the
+            plan's included quota. It runs on the live site only. */}
+        <SpeedInsights sampleRate={0.2} />
+      </body>
     </html>
   );
 }

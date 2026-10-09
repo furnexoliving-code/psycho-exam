@@ -4,6 +4,14 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SignOutButton } from "@/components/SignOutButton";
 import { isConfigured, mayOpen, missingConfig, requirePanel, type Section } from "@/lib/auth";
 
+/**
+ * The admin's heavy work (an import of thousands, a package given to every
+ * student, a paper regenerated) may run up to forty seconds before the
+ * platform cuts it off; the default is fifteen. A ceiling, not a cost: a
+ * request pays only for the time it actually runs.
+ */
+export const maxDuration = 40;
+
 /** Every tab, with the section it belongs to; an account sees only its own. */
 const NAV: { href: string; label: string; section: Section }[] = [
   { href: "/admin", label: "Home", section: "admin" },

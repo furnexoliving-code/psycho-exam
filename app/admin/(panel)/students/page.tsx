@@ -9,6 +9,9 @@ import { PendingButton } from "@/components/admin/PendingButton";
 import { Admissions } from "./Admissions";
 import { defaultPackage, listPackages, studentsWithoutPackage } from "@/lib/packages";
 
+/** Forty seconds for this page's actions, as the admin layout allows; the default is fifteen. */
+export const maxDuration = 40;
+
 /** Students shown per page. Thousands on one page is a page nobody can use. */
 const PAGE_SIZE = 50;
 
