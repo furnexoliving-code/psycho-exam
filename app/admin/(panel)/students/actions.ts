@@ -10,7 +10,7 @@ import { HELPER_ROLES, isHelperRole } from "./helpers";
 import { logAction } from "@/lib/audit";
 import { indianDay } from "@/lib/format-time";
 import { removePhoto, savePhoto } from "@/lib/photo";
-import { defaultPackage, enrollNewStudent, studentsWithoutPackage } from "@/lib/packages";
+import { defaultPackage, enrollNewStudent, grantToMany, studentsWithoutPackage } from "@/lib/packages";
 
 /** A validity date off a form: YYYY-MM-DD, or null for none. */
 function validityOf(raw: FormDataEntryValue | null): string | null {
@@ -106,10 +106,9 @@ export async function givePackageToAll(
     if (!pkg) throw new Error("No published package to give. Make one under Packages first.");
     const missing = await studentsWithoutPackage();
     if (missing.length === 0) return "every student already has a package";
-    let given = 0;
-    for (const s of missing) {
-      if (await enrollNewStudent(s.id, pkg.slug, s.validUntil)) given++;
-    }
+    // One insert per two hundred, not one per student: hundreds of
+    // accounts must finish inside the time a server action is allowed.
+    const given = await grantToMany(missing, pkg, "Given to all students without a package");
     await logAction("Package given to all", `${pkg.name} to ${given} student${given === 1 ? "" : "s"} who had none`);
     revalidatePath(BACK);
     return `${pkg.name} given to ${given} student${given === 1 ? "" : "s"}`;

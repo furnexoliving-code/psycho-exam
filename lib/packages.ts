@@ -280,3 +280,29 @@ export async function studentsWithoutPackage(): Promise<{ id: string; fullName: 
     return [];
   }
 }
+
+/**
+ * Gives one package to many students at once, in a few inserts rather
+ * than one round trip per student: hundreds of accounts in seconds, well
+ * inside the time a server action is allowed. Each runs till the
+ * account's validity date, or without expiry. Only for students who hold
+ * no enrollment of the package yet; the caller picks them.
+ */
+export async function grantToMany(students: { id: string; validUntil: string | null }[], pkg: Package, note: string): Promise<number> {
+  const supabase = createAdminClient();
+  let given = 0;
+  for (let i = 0; i < students.length; i += 200) {
+    const rows = students.slice(i, i + 200).map((s) => ({
+      user_id: s.id,
+      package_id: pkg.id,
+      source: "institute",
+      expires_at: s.validUntil ? new Date(`${s.validUntil}T23:59:59+05:30`).toISOString() : null,
+      order_id: null,
+      note,
+    }));
+    const { data, error } = await supabase.from("enrollments").insert(rows).select("id");
+    if (error) throw new Error(error.message);
+    given += data?.length ?? 0;
+  }
+  return given;
+}
