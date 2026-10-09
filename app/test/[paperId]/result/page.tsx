@@ -80,6 +80,7 @@ export default async function ResultPage({
       studyImages={paper.studyImages}
       questionsPerPart={paper.questionsPerPart}
       category={paper.category}
+      candidate={who ? { name: who.full_name || "", photoUrl: photoUrlOf(who) } : null}
       storageOwner={who?.id ?? "guest"}
     />
     </NoPrint>

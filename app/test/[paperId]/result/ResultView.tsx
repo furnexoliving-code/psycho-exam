@@ -77,6 +77,7 @@ export function ResultView({
   studyImages = [],
   questionsPerPart = 10,
   category,
+  candidate,
   storageOwner = "guest",
   mock,
 }: {
@@ -95,6 +96,8 @@ export function ResultView({
   questionsPerPart?: number;
   /** The paper's kind of test: a sheet test's review shows each pile, sheet or map once, above its questions. */
   category?: string | null;
+  /** The student, named on the scorecard so a shared picture says whose it is. */
+  candidate?: { name: string; photoUrl: string | null } | null;
   /** Whose attempt to look for in this browser. */
   storageOwner?: string;
   /** Set when this test was sat as part of a Full Mock: the mock moves on from here. */
@@ -225,6 +228,10 @@ export function ResultView({
     };
   }, [paperId, allowedSec, storageOwner]);
 
+  // When this sitting was recorded: the newest attempt on record, which the
+  // server lists last; failing that, now.
+  const satAt = history.length > 0 ? history[history.length - 1].at : Date.now();
+
   if (state === "missing" || state === "error") {
     return (
       <Shell>
@@ -299,10 +306,20 @@ export function ResultView({
           style={{ background: "linear-gradient(120deg,#1565b0 0%,#1668b0 45%,#0f766e 100%)" }}
         >
           <div className="flex items-center gap-4">
-            <span aria-hidden="true" className="text-[40px] leading-none">📊</span>
+            {candidate?.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={candidate.photoUrl} alt="" className="h-14 w-14 shrink-0 rounded-full border-2 border-white/70 object-cover" draggable={false} />
+            ) : (
+              <span aria-hidden="true" className="text-[40px] leading-none">📊</span>
+            )}
             <div>
-              <h1 className="text-[26px] font-extrabold leading-tight">Your Result</h1>
-              <p className="mt-0.5 text-[13px] text-white/85">{displayName}</p>
+              <h1 className="text-[26px] font-extrabold leading-tight">
+                {candidate?.name ? candidate.name : "Your Result"}
+              </h1>
+              <p className="mt-0.5 text-[13px] text-white/85">
+                {displayName}
+                {candidate?.name && <span className="ml-2 text-white/70">· {new Date(satAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -312,6 +329,31 @@ export function ResultView({
             <ShareResult targetId="result-capture" fileName={`${displayName} - result`.replace(/[^\w\- ]+/g, "").trim() || "result"} title={`${displayName} result`} />
           </div>
         </header>
+
+        {/* The way on, right under the scorecard rather than below a long
+            review; left out of the shared picture and the print. */}
+        <div className="no-capture no-print mt-3 flex gap-3">
+          <Link
+            href={`/test/${paperId}`}
+            className="rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+            style={{ background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
+          >
+            🔁 Re-attempt
+          </Link>
+          {/* The candidate's own page, not the public front door — after a
+              test, "home" means where their tests and results are. */}
+          <Link
+            href="/dashboard"
+            className="rounded-xl px-6 py-2.5 text-sm font-bold"
+            style={{
+              background: "var(--surface-1)",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--hairline)",
+            }}
+          >
+            🏠 Home
+          </Link>
+        </div>
 
         {/* The hero figure, with the expert's word beside it when there is one. */}
         <div className={`mt-5 grid gap-4 ${comment && view.expertComment ? "lg:grid-cols-2" : ""}`}>
@@ -606,28 +648,6 @@ export function ResultView({
         </div>
         )}
 
-        <div className="mt-8 flex gap-3">
-          <Link
-            href={`/test/${paperId}`}
-            className="rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
-            style={{ background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
-          >
-            🔁 Re-attempt
-          </Link>
-          {/* The candidate's own page, not the public front door — after a
-              test, "home" means where their tests and results are. */}
-          <Link
-            href="/dashboard"
-            className="rounded-xl px-6 py-2.5 text-sm font-bold"
-            style={{
-              background: "var(--surface-1)",
-              color: "var(--text-secondary)",
-              border: "1px solid var(--hairline)",
-            }}
-          >
-            🏠 Home
-          </Link>
-        </div>
       </main>
     </div>
   );
