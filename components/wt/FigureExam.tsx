@@ -62,6 +62,9 @@ export function FigureExam({
   // Test: the part's picture at the left, its questions at the right, each
   // a row of radios.
   const brick = sheetOf(paper.category) !== null || mapOf(paper.category) !== null;
+  // The Brick and Similarity Tests show no Part chips: the hall's screen
+  // has none, and the sheets follow one another on Previous and Save & Next.
+  const sheetTest = sheetOf(paper.category) !== null;
   // A paper of text questions only (the Yes or No Test): the rows are
   // short, so they sit closer than picture questions do.
   const textPaper = paper.questions.length > 0 && paper.questions.every((q) => !q.image && !q.optionImages);
@@ -71,6 +74,9 @@ export function FigureExam({
   const column = useRef<HTMLDivElement | null>(null);
   // The Brick Test's question pane, which scrolls sideways under its own rail.
   const brickPane = useRef<HTMLOListElement | null>(null);
+  // Its picture pane, which scrolls either way under rails of its own when
+  // the pile or sheet is drawn larger than the half-screen.
+  const picturePane = useRef<HTMLDivElement | null>(null);
 
   const onTest = state.phase === "test";
   const features = resolveFeatures(paper.features);
@@ -261,7 +267,9 @@ export function FigureExam({
         // real test names it ("Memory Test (Part 1)"); otherwise a chip per
         // part. No counts: the hall shows none.
         sections={
-          onTest
+          onTest && sheetTest
+            ? undefined
+            : onTest
             ? (scheduled ? [parts[part] ?? []] : parts).map((_, i) => {
                 const p = scheduled ? part : i;
                 return (
@@ -372,24 +380,31 @@ export function FigureExam({
               // past the right edge; the pane scrolls sideways under its own
               // rail, as the hall's panes do, so no option is ever dropped
               // down a line.
-              <div className="flex min-h-full flex-col gap-4 lg:flex-row lg:gap-0">
-                <div className="lg:w-1/2 lg:shrink-0 lg:border-r lg:border-[#dcdcdc] lg:pr-4">
-                  {scheduled && (
-                    <p className="mb-2 text-[0.95em] font-semibold text-[#222]">
-                      Test Screen Part {part + 1} /{" "}
-                      <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
-                    </p>
-                  )}
-                  {reminderLines}
-                  {parts[part]?.[0]?.image && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={parts[part][0].image} alt={`${paper.category === "brick" ? "Pile" : mapOf(paper.category) ? "Map" : "Sheet"} ${part + 1}`} className="mt-3 w-auto max-w-full" style={{ height: Math.round(figureH * 1.6) }} draggable={false} />
-                  )}
+              <div className="flex min-h-full flex-col gap-4 lg:h-full lg:flex-row lg:gap-0">
+                {/* The picture half: the pile or sheet drawn large, and when
+                    it runs past the half-screen the pane scrolls either way
+                    under rails of its own, as the hall's panes do. */}
+                <div className="relative lg:h-full lg:w-1/2 lg:shrink-0 lg:border-r lg:border-[#dcdcdc]">
+                  <div ref={picturePane} className="wt-scroll-host h-full pb-[14px] pr-[14px] lg:pr-[18px]">
+                    {scheduled && (
+                      <p className="mb-2 text-[0.95em] font-semibold text-[#222]">
+                        Test Screen Part {part + 1} /{" "}
+                        <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
+                      </p>
+                    )}
+                    {reminderLines}
+                    {parts[part]?.[0]?.image && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={parts[part][0].image} alt={`${paper.category === "brick" ? "Pile" : mapOf(paper.category) ? "Map" : "Sheet"} ${part + 1}`} className="mt-3 h-auto max-w-none" style={{ width: Math.round(figureH * (sheetTest ? 3.2 : 3.8)) }} draggable={false} />
+                    )}
+                  </div>
+                  <ScrollRail target={picturePane} axis="vertical" />
+                  <ScrollRail target={picturePane} axis="horizontal" />
                 </div>
-                <div className="relative min-w-0 flex-1 pb-3">
+                <div className="relative min-w-0 flex-1 pb-3 lg:pl-4">
                 {/* Each row padded and ruled as the Following Directions list is, so the
                     questions sit as far apart as on every other paper. */}
-                <ol ref={brickPane} className="wt-scroll-host w-full lg:pl-4" style={{ fontFamily: "Georgia, 'Times New Roman', serif", overflowY: "hidden" }}>
+                <ol ref={brickPane} className="wt-scroll-host w-full" style={{ fontFamily: "Georgia, 'Times New Roman', serif", overflowY: "hidden" }}>
                   {parts[part]?.map((q, i) => {
                     const number = part * perPart + i + 1;
                     const chosen = state.answers[q.id];
@@ -597,6 +612,19 @@ export function FigureExam({
                 Save
               </button>
             ) : (
+            <>
+            {sheetTest && (
+              // With no Part chips, the only way back to an earlier sheet.
+              <button
+                type="button"
+                data-allow-mouse="true"
+                disabled={part === 0}
+                onClick={() => goToPart(part - 1)}
+                className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab] disabled:opacity-40"
+              >
+                Previous
+              </button>
+            )}
             <button
               type="button"
               data-allow-mouse="true"
@@ -606,6 +634,7 @@ export function FigureExam({
             >
               Save &amp; Next
             </button>
+            </>
             )}
             <button
               type="button"
