@@ -32,6 +32,7 @@ import { WatchTableDiagram } from "@/components/wt/WatchTableDiagram";
 import { attemptStorageKey, type AttemptState } from "@/lib/wt/state";
 import { resolveResultView, type ResultView as ResultFlags, type WatchTable } from "@/lib/wt/types";
 import { formatTScore, type TScore } from "@/lib/wt/tscore";
+import { mapOf, sheetOf } from "@/lib/wt/figure-sample";
 
 interface Score {
   total: number;
@@ -75,6 +76,7 @@ export function ResultView({
   kind = "directions",
   studyImages = [],
   questionsPerPart = 10,
+  category,
   storageOwner = "guest",
   mock,
 }: {
@@ -91,6 +93,8 @@ export function ResultView({
   /** A Memory Test paper's study screens: each part's picture is shown again above its questions. */
   studyImages?: string[];
   questionsPerPart?: number;
+  /** The paper's kind of test: a sheet test's review shows each pile, sheet or map once, above its questions. */
+  category?: string | null;
   /** Whose attempt to look for in this browser. */
   storageOwner?: string;
   /** Set when this test was sat as part of a Full Mock: the mock moves on from here. */
@@ -105,6 +109,12 @@ export function ResultView({
     photoUrl: string | null;
   };
 }) {
+  // The Brick, Similarity and map tests: one picture asks a part's whole
+  // group of questions, so the review draws it once, large, with the
+  // group's rows beneath, as the test screen did, rather than a thumbnail
+  // of it on every row.
+  const noun = sheetOf(category)?.noun ?? mapOf(category)?.noun ?? null;
+  const sheetNoun = noun ? noun[0].toUpperCase() + noun.slice(1) : null;
   const [marked, setMarked] = useState<MarkedQuestion[] | null>(null);
   const [score, setScore] = useState<Score | null>(null);
   const [tScore, setTScore] = useState<TScore | null>(null);
@@ -445,6 +455,7 @@ export function ResultView({
               const partNo = Math.floor(i / perPart);
               const previous = vi > 0 ? Math.floor(visible[vi - 1].i / perPart) : -1;
               const study = studyImages.length > 0 && partNo !== previous ? studyImages[partNo] : undefined;
+              const sheet = sheetNoun && q.image && partNo !== previous ? q.image : undefined;
               return (
                 <li
                   key={q.id}
@@ -456,36 +467,62 @@ export function ResultView({
                     borderLeft: `4px solid ${OUTCOME[outcome].color}`,
                   }}
                 >
-                  {study && (
+                  {(study || sheet) && (
                     <div
                       className="-mx-4 -mt-4 mb-4 rounded-t-lg px-4 py-3"
                       style={{ background: "var(--plane)", borderBottom: "1px solid var(--hairline)" }}
                     >
-                      <p className="text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
-                        Study Screen Part {partNo + 1} / <span lang="hi">अध्ययन स्क्रीन भाग -{partNo + 1}</span>
-                      </p>
-                      <div className="mt-2 inline-block border border-[#555] bg-white p-3">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={study}
-                          alt={`Study screen for part ${partNo + 1}`}
-                          className="h-auto max-h-[50vh] max-w-full"
-                          draggable={false}
-                        />
-                      </div>
-                      <p className="mt-3 text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
-                        Test Screen Part {partNo + 1} / <span lang="hi">परीक्षण स्क्रीन भाग -{partNo + 1}</span>
-                      </p>
+                      {study && (
+                        <>
+                          <p className="text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
+                            Study Screen Part {partNo + 1} / <span lang="hi">अध्ययन स्क्रीन भाग -{partNo + 1}</span>
+                          </p>
+                          <div className="mt-2 inline-block border border-[#555] bg-white p-3">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={study}
+                              alt={`Study screen for part ${partNo + 1}`}
+                              className="h-auto max-h-[50vh] max-w-full"
+                              draggable={false}
+                            />
+                          </div>
+                          <p className="mt-3 text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
+                            Test Screen Part {partNo + 1} / <span lang="hi">परीक्षण स्क्रीन भाग -{partNo + 1}</span>
+                          </p>
+                        </>
+                      )}
+                      {sheet && (
+                        <>
+                          {!study && (
+                            <p className="text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
+                              {sheetNoun} {partNo + 1} · Questions {partNo * perPart + 1}–{Math.min((partNo + 1) * perPart, numbered.length)}
+                            </p>
+                          )}
+                          <div className="mt-2 inline-block border border-[#555] bg-white p-3">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={sheet}
+                              alt={`${sheetNoun} ${partNo + 1}`}
+                              className="h-auto max-h-[70vh] max-w-full"
+                              style={{ minHeight: 240 }}
+                              draggable={false}
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[12px] font-semibold" style={{ color: "var(--text-muted)" }}>
                       Q. {i + 1}
+                      {sheetNoun && q.promptEn && (
+                        <span className="ml-2 text-[15px] font-bold" style={{ color: "var(--text-primary)" }}>{q.promptEn}</span>
+                      )}
                     </span>
                     <OutcomeTag outcome={outcome} />
                   </div>
 
-                  {q.image && (
+                  {q.image && !sheetNoun && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={q.image}
@@ -526,7 +563,7 @@ export function ResultView({
                       })}
                     </div>
                   )}
-                  {q.promptEn && (
+                  {q.promptEn && !sheetNoun && (
                   <p className="mt-1.5 text-[15px]" style={{ color: "var(--text-primary)" }}>
                     {q.promptEn}
                   </p>

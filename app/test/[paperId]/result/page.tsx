@@ -79,6 +79,7 @@ export default async function ResultPage({
       imageWidthPct={paper.imageWidthPct}
       studyImages={paper.studyImages}
       questionsPerPart={paper.questionsPerPart}
+      category={paper.category}
       storageOwner={who?.id ?? "guest"}
     />
     </NoPrint>
