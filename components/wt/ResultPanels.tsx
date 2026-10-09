@@ -2,6 +2,7 @@
 
 import { formatDayMonth } from "@/lib/format-time";
 import type { CutOff, StandingWire, TopicRow } from "@/app/api/watch-table/score/route";
+import { paceOf, secs } from "@/lib/wt/verdict";
 import type { TScore } from "@/lib/wt/tscore";
 
 /**
@@ -581,12 +582,16 @@ export function TimeAnalysis({
   takenSec,
   allowedSec,
   attempted,
+  total = 0,
 }: {
   takenSec: number | null;
   allowedSec: number;
   attempted: number;
+  /** Questions on the paper, for the pace the hall asks. */
+  total?: number;
 }) {
   if (takenSec === null) return null;
+  const pace2 = paceOf(takenSec, allowedSec, attempted, total);
 
   const used = Math.min(100, (takenSec / allowedSec) * 100);
   const perQuestion = attempted > 0 ? takenSec / attempted : null;
@@ -626,6 +631,27 @@ export function TimeAnalysis({
         <span aria-hidden="true">{pace.emoji}</span>
         {pace.text} · {used.toFixed(0)}% of the allowed time
       </p>
+      {pace2 && pace2.mine !== null && (
+        // Speed against accuracy, the thing these tests are about: what the
+        // hall's clock asks per question, what this sitting took, and how far
+        // down the paper that pace reaches.
+        <div className="mt-3 rounded-lg px-3 py-2 text-[12px]" style={{ background: "var(--plane)", color: "var(--text-secondary)" }}>
+          <p>
+            <strong style={{ color: "var(--text-primary)" }}>Hall pace:</strong> {total} questions in {duration(allowedSec)} = <strong style={{ color: "var(--text-primary)" }}>{secs(pace2.need)}</strong> per question.{" "}
+            <strong style={{ color: "var(--text-primary)" }}>Your pace:</strong> {attempted} in {duration(takenSec)} = <strong style={{ color: "var(--text-primary)" }}>{secs(pace2.mine)}</strong> per question.
+          </p>
+          <p className="mt-1 font-semibold" style={{ color: pace2.reach !== null && pace2.reach < total ? "#b45309" : "#047857" }}>
+            {pace2.reach !== null && pace2.reach < total
+              ? `At this pace the clock lets you reach ${pace2.reach} of ${total}. Speed up: aim for ${secs(pace2.need)} per question.`
+              : `At this pace you reach all ${total} inside the clock. Now keep the accuracy up.`}
+          </p>
+          <p className="mt-0.5" lang="hi">
+            {pace2.reach !== null && pace2.reach < total
+              ? `इस गति से समय में ${total} में से ${pace2.reach} प्रश्न ही हो पाएँगे। गति बढ़ाएँ: हर प्रश्न ${secs(pace2.need)} में।`
+              : `इस गति से समय के अंदर सभी ${total} प्रश्न हो जाएँगे। अब शुद्धता बनाए रखें।`}
+          </p>
+        </div>
+      )}
     </Card>
   );
 }

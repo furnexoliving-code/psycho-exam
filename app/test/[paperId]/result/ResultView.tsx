@@ -33,6 +33,8 @@ import { attemptStorageKey, type AttemptState } from "@/lib/wt/state";
 import { resolveResultView, type ResultView as ResultFlags, type WatchTable } from "@/lib/wt/types";
 import { formatTScore, type TScore } from "@/lib/wt/tscore";
 import { mapOf, sheetOf } from "@/lib/wt/figure-sample";
+import { ShareCard } from "@/components/ShareCard";
+import { paceOf, secs, verdictOf } from "@/lib/wt/verdict";
 
 interface Score {
   total: number;
@@ -78,6 +80,7 @@ export function ResultView({
   questionsPerPart = 10,
   category,
   candidate,
+  nav,
   storageOwner = "guest",
   mock,
 }: {
@@ -98,6 +101,8 @@ export function ResultView({
   category?: string | null;
   /** The student, named on the scorecard so a shared picture says whose it is. */
   candidate?: { name: string; photoUrl: string | null } | null;
+  /** Where to go next: the next paper of this kind, and this kind's page under Practice. */
+  nav?: { nextSlug: string | null; nextName: string | null; seriesHref: string; seriesName: string } | null;
   /** Whose attempt to look for in this browser. */
   storageOwner?: string;
   /** Set when this test was sat as part of a Full Mock: the mock moves on from here. */
@@ -231,6 +236,42 @@ export function ResultView({
   // When this sitting was recorded: the newest attempt on record, which the
   // server lists last; failing that, now.
   const satAt = history.length > 0 ? history[history.length - 1].at : Date.now();
+  const satOn = new Date(satAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  // The attempt before this one, for the "last time" line.
+  const previous = history.length > 1 ? history[history.length - 2] : null;
+  const verdict = score ? verdictOf(cutOff, tScore?.value ?? null, score.correct) : null;
+  const band = tScore
+    ? tScore.value >= 60
+      ? "🌟 Well above average"
+      : tScore.value >= 50
+        ? "👍 Above average"
+        : tScore.value >= 40
+          ? "💪 A little below average"
+          : "📚 Below average"
+    : "";
+  const paceNow = score && view.timeAnalysis ? paceOf(takenSec, allowedSec, score.attempted, score.total) : null;
+  const cardPace =
+    paceNow && paceNow.mine !== null && score
+      ? {
+          need: secs(paceNow.need),
+          mine: secs(paceNow.mine),
+          verdict:
+            paceNow.reach !== null && paceNow.reach < score.total
+              ? `At this pace the clock reaches ${paceNow.reach} of ${score.total}: speed up.`
+              : `At this pace all ${score.total} fit inside the clock.`,
+        }
+      : null;
+  // The line that goes with the picture, and on WhatsApp by itself.
+  const shareText = score
+    ? [
+        `🎯 ${candidate?.name ? `${candidate.name} · ` : ""}${displayName}`,
+        `${tScore && view.tScore ? `T-Score ${tScore.value.toFixed(1)} · ` : ""}Score ${score.correct}/${score.total} · Attempted ${score.attempted}${view.accuracy ? ` · Accuracy ${score.accuracy.toFixed(0)}%` : ""}`,
+        verdict ? `${verdict.ok ? "✅" : "📈"} ${verdict.label} (${verdict.note})` : "",
+        "",
+        "RRB ALP Psycho Test की असली RDSO pattern में practice, T-Score तुरंत 👉 https://kautilyaonline.com",
+        "Kautilya Classes · Railway Psycho Test Portal",
+      ].filter((l, i) => l !== "" || i === 3).join("\n")
+    : "";
 
   if (state === "missing" || state === "error") {
     return (
@@ -300,6 +341,22 @@ export function ResultView({
       </div>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
+        <ShareCard
+          id="share-card"
+          name={candidate?.name ?? ""}
+          paper={displayName}
+          date={satOn}
+          tScore={view.tScore && tScore ? tScore.value : null}
+          band={view.tScore ? band : ""}
+          marks={score.correct}
+          total={score.total}
+          attempted={score.attempted}
+          accuracy={view.accuracy ? score.accuracy : null}
+          percentile={view.percentile && standing?.percentile !== undefined ? standing.percentile : null}
+          verdict={verdict}
+          previous={previous ? previous.marks : null}
+          pace={cardPace}
+        />
         <div id="result-capture" className="rounded-2xl p-1" style={{ background: "var(--plane)" }}>
         <header
           className="flex flex-wrap items-center justify-between gap-4 rounded-2xl px-6 py-5 text-white shadow-lg"
@@ -318,7 +375,7 @@ export function ResultView({
               </h1>
               <p className="mt-0.5 text-[13px] text-white/85">
                 {displayName}
-                {candidate?.name && <span className="ml-2 text-white/70">· {new Date(satAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
+                {candidate?.name && <span className="ml-2 text-white/70">· {satOn}</span>}
               </p>
             </div>
           </div>
@@ -326,19 +383,66 @@ export function ResultView({
             <span className="rounded-full bg-white/15 px-4 py-1.5 text-[12px] font-semibold">
               ✨ {score.correct} of {score.total} correct
             </span>
-            <ShareResult targetId="result-capture" fileName={`${displayName} - result`.replace(/[^\w\- ]+/g, "").trim() || "result"} title={`${displayName} result`} />
+            {verdict && (
+              // One word on the result against the bar: the institute's own
+              // cut-off when set, else the hall's T-score of 42.
+              <span
+                className="rounded-full px-4 py-1.5 text-[12px] font-bold"
+                style={{ background: verdict.ok ? "#d1fae5" : "#fee2e2", color: verdict.ok ? "#047857" : "#b91c1c" }}
+                title={verdict.note}
+              >
+                {verdict.ok ? "✓ " : "▲ "}{verdict.label} · {verdict.note}
+              </span>
+            )}
+            {previous && (
+              <span className="rounded-full bg-white/15 px-4 py-1.5 text-[12px] font-semibold" title="Your last attempt of this paper">
+                Last time {previous.marks}/{previous.total} → now {score.correct}/{score.total}{" "}
+                <strong style={{ color: score.correct > previous.marks ? "#a7f3d0" : score.correct < previous.marks ? "#fecaca" : "#ffffff" }}>
+                  ({score.correct > previous.marks ? "+" : ""}{score.correct - previous.marks})
+                </strong>
+              </span>
+            )}
+            <ShareResult targetId="share-card" fileName={`${displayName} - result`.replace(/[^\w\- ]+/g, "").trim() || "result"} title={`${displayName} result`} text={shareText} />
           </div>
         </header>
 
         {/* The way on, right under the scorecard rather than below a long
             review; left out of the shared picture and the print. */}
-        <div className="no-capture no-print mt-3 flex gap-3">
+        <div className="no-capture no-print mt-3 flex flex-wrap gap-3">
+          {nav?.nextSlug ? (
+            // The next paper of this kind first: the way a student keeps
+            // going. Sitting this one again is the second button.
+            <Link
+              href={`/test/${nav.nextSlug}`}
+              className="rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+              style={{ background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
+              title={nav.nextName ?? undefined}
+            >
+              ▶ Next paper
+            </Link>
+          ) : null}
           <Link
             href={`/test/${paperId}`}
-            className="rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
-            style={{ background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
+            className={`rounded-xl px-6 py-2.5 text-sm font-bold ${nav?.nextSlug ? "" : "text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"}`}
+            style={nav?.nextSlug ? { background: "var(--surface-1)", color: "var(--text-primary)", border: "1px solid var(--hairline)" } : { background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
           >
             🔁 Re-attempt
+          </Link>
+          {nav && (
+            <Link
+              href={nav.seriesHref}
+              className="rounded-xl px-6 py-2.5 text-sm font-bold"
+              style={{ background: "var(--surface-1)", color: "var(--text-primary)", border: "1px solid var(--hairline)" }}
+            >
+              📄 All {nav.seriesName} papers
+            </Link>
+          )}
+          <Link
+            href="/practice"
+            className="rounded-xl px-6 py-2.5 text-sm font-bold"
+            style={{ background: "var(--surface-1)", color: "var(--text-secondary)", border: "1px solid var(--hairline)" }}
+          >
+            📚 Practice
           </Link>
           {/* The candidate's own page, not the public front door — after a
               test, "home" means where their tests and results are. */}
@@ -394,6 +498,7 @@ export function ResultView({
                 takenSec={takenSec}
                 allowedSec={allowedSec}
                 attempted={score.attempted}
+                total={score.total}
               />
             )}
             {view.attemptHistory && <AttemptHistory attempts={history} />}

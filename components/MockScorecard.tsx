@@ -59,7 +59,18 @@ export function MockScorecard({
             About this mock →
           </Link>
           <div className="rounded-lg bg-[#0d2a6b] px-2 py-1">
-            <ShareResult targetId="scorecard-capture" fileName={`${mockName} - ${candidate}`.replace(/[^\w\- ]+/g, "").trim() || "scorecard"} title={`${mockName} scorecard`} />
+            <ShareResult
+              targetId="scorecard-capture"
+              fileName={`${mockName} - ${candidate}`.replace(/[^\w\- ]+/g, "").trim() || "scorecard"}
+              title={`${mockName} scorecard`}
+              text={[
+                `🎯 ${candidate} · ${mockName}`,
+                `${verdict}${out30 === null ? "" : ` · ${out30.toFixed(1)} / 30`}${result.composite === null ? "" : ` · Composite T ${result.composite.toFixed(1)}`}`,
+                "",
+                "RRB ALP Psycho Test की असली RDSO pattern में practice, T-Score तुरंत 👉 https://kautilyaonline.com",
+                "Kautilya Classes · Railway Psycho Test Portal",
+              ].join("\n")}
+            />
           </div>
         </div>
       </div>

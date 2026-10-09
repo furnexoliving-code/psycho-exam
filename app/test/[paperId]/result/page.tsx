@@ -5,6 +5,8 @@ import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { headerOf, loadPaperHeader, loadPaperHeaderLive } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { ResultView } from "./ResultView";
+import { listPublishedPapers } from "@/lib/wt/db";
+import { groupPapers } from "@/lib/wt/series";
 import { NoPrint } from "@/components/NoPrint";
 import { currentMockStep } from "@/lib/wt/mock";
 import { photoUrlOf } from "@/lib/photo";
@@ -48,6 +50,11 @@ export default async function ResultPage({
 
   if (!paper) notFound();
 
+  // Where to go next: the next paper of the same kind of test, and that
+  // kind's page under Practice. Read from the published list; a result
+  // still shows without it.
+  const nav = await nextPaper(paperId).catch(() => null);
+
   // A test just sat inside a Full Mock: the result page moves the mock on
   // instead of showing this test's own marks, which wait for the scorecard.
   const inMock = who ? await currentMockStep(who.id) : null;
@@ -81,8 +88,23 @@ export default async function ResultPage({
       questionsPerPart={paper.questionsPerPart}
       category={paper.category}
       candidate={who ? { name: who.full_name || "", photoUrl: photoUrlOf(who) } : null}
+      nav={nav}
       storageOwner={who?.id ?? "guest"}
     />
     </NoPrint>
   );
+}
+
+async function nextPaper(slug: string): Promise<{ nextSlug: string | null; nextName: string | null; seriesHref: string; seriesName: string } | null> {
+  if (!isConfigured()) return null;
+  const papers = (await listPublishedPapers()).filter((p) => !p.mockOnly);
+  for (const [battery, list] of groupPapers(papers)) {
+    for (const series of list) {
+      const at = series.papers.findIndex((p) => p.slug === slug);
+      if (at < 0) continue;
+      const next = series.papers[at + 1] ?? null;
+      return { nextSlug: next?.slug ?? null, nextName: next?.displayName ?? null, seriesHref: `/practice/${battery}/${series.slug}`, seriesName: series.name };
+    }
+  }
+  return null;
 }
