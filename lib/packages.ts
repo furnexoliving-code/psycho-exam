@@ -229,3 +229,54 @@ export async function revokeEnrollment(enrollmentId: string): Promise<void> {
 export function rupees(n: number): string {
   return `₹${n.toLocaleString("en-IN")}`;
 }
+
+/** What a new institute student starts with: the published Sectional + Full Mock package of the exam, else its first published package. */
+export async function defaultPackage(exam = "alp"): Promise<Package | null> {
+  const all = await listPackages(exam);
+  return all.find((p) => p.kind === "combo") ?? all[0] ?? null;
+}
+
+/** The value of the package field that gives a new student nothing. */
+export const NO_PACKAGE = "none";
+
+/**
+ * Gives a new institute student their starting package: the one named by
+ * slug, the default when the slug is blank, nothing for NO_PACKAGE. The
+ * package runs till the account's validity date when it has one, else
+ * without expiry: the institute decides, not the package's own days. A
+ * database without the packages tables is left alone.
+ */
+export async function enrollNewStudent(userId: string, slug: string, validUntil: string | null): Promise<Package | null> {
+  if (slug === NO_PACKAGE) return null;
+  try {
+    const pkg = slug ? await loadPackage(slug) : await defaultPackage();
+    if (!pkg) return null;
+    const expiresAt = validUntil ? new Date(`${validUntil}T23:59:59+05:30`).toISOString() : null;
+    await grantEnrollment(userId, pkg, { source: "institute", expiresAt, note: "Given with the account" });
+    return pkg;
+  } catch {
+    return null;
+  }
+}
+
+/** Every switched-on student with no package at all, oldest first; empty when the tables are missing. */
+export async function studentsWithoutPackage(): Promise<{ id: string; fullName: string; validUntil: string | null }[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data: enrolled, error } = await supabase.from("enrollments").select("user_id");
+    if (error) return [];
+    const has = new Set((enrolled ?? []).map((e) => e.user_id as string));
+    const { data: students } = await supabase
+      .from("profiles")
+      .select("id, full_name, valid_until")
+      .eq("role", "student")
+      .eq("is_active", true)
+      .order("created_at")
+      .limit(5000);
+    return (students ?? [])
+      .filter((s) => !has.has(s.id as string))
+      .map((s) => ({ id: s.id as string, fullName: (s.full_name as string) || "Unnamed", validUntil: (s.valid_until as string | null) ?? null }));
+  } catch {
+    return [];
+  }
+}

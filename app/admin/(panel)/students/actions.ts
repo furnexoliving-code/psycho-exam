@@ -10,6 +10,7 @@ import { HELPER_ROLES, isHelperRole } from "./helpers";
 import { logAction } from "@/lib/audit";
 import { indianDay } from "@/lib/format-time";
 import { removePhoto, savePhoto } from "@/lib/photo";
+import { defaultPackage, enrollNewStudent, studentsWithoutPackage } from "@/lib/packages";
 
 /** A validity date off a form: YYYY-MM-DD, or null for none. */
 function validityOf(raw: FormDataEntryValue | null): string | null {
@@ -81,9 +82,37 @@ export async function createStudent(
       .update({ full_name: fullName, phone, is_active: true, valid_until: validUntil })
       .eq("id", created.user.id);
 
-    await logAction("Student created", `${fullName} (${phone})${validUntil ? `, valid till ${validUntil}` : ""}`);
+    // The package comes with the account, so nothing is left to give one by one.
+    const pkg = await enrollNewStudent(created.user.id, String(formData.get("package") ?? ""), validUntil);
+
+    await logAction("Student created", `${fullName} (${phone})${validUntil ? `, valid till ${validUntil}` : ""}${pkg ? `, ${pkg.name}` : ", no package"}`);
     revalidatePath(BACK);
-    return `${fullName} — ${phone}`;
+    return `${fullName} — ${phone}${pkg ? ` · ${pkg.name}` : ""}`;
+  });
+}
+
+/**
+ * Gives the default package to every switched-on student who has none:
+ * the accounts made before packages existed, or made without one. Each
+ * runs till the account's validity date, or without expiry.
+ */
+export async function givePackageToAll(
+  _prev: SaveState | null,
+  _formData: FormData,
+): Promise<SaveState> {
+  return attempt("Packages", async () => {
+    await requireAdmin();
+    const pkg = await defaultPackage();
+    if (!pkg) throw new Error("No published package to give. Make one under Packages first.");
+    const missing = await studentsWithoutPackage();
+    if (missing.length === 0) return "every student already has a package";
+    let given = 0;
+    for (const s of missing) {
+      if (await enrollNewStudent(s.id, pkg.slug, s.validUntil)) given++;
+    }
+    await logAction("Package given to all", `${pkg.name} to ${given} student${given === 1 ? "" : "s"} who had none`);
+    revalidatePath(BACK);
+    return `${pkg.name} given to ${given} student${given === 1 ? "" : "s"}`;
   });
 }
 
@@ -236,6 +265,8 @@ export async function importStudentBatch(
   final = true,
   /** The validity date for every account in the run, or none. */
   validUntilRaw = "",
+  /** The package every account in the run starts with: a slug, blank for the default, "none" for nothing. */
+  packageSlug = "",
 ): Promise<ImportOutcome> {
   const outcome: ImportOutcome = { made: 0, skipped: [], failed: [] };
   try {
@@ -285,6 +316,7 @@ export async function importStudentBatch(
               valid_until: validUntil,
             })
             .eq("id", created.user.id);
+          await enrollNewStudent(created.user.id, packageSlug, validUntil);
 
           outcome.made++;
         }),

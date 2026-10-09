@@ -3,11 +3,11 @@ import { formatDate, formatDateTime } from "@/lib/format-time";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { normalisePhone } from "@/lib/phone";
-import { createStudent, deleteStudent, resetPassword, setActive } from "./actions";
+import { deleteStudent, resetPassword, setActive } from "./actions";
 import { RowForm } from "@/components/admin/RowForm";
-import { SaveForm } from "@/components/admin/SaveForm";
 import { PendingButton } from "@/components/admin/PendingButton";
-import { BulkStudents } from "./BulkStudents";
+import { Admissions } from "./Admissions";
+import { defaultPackage, listPackages, studentsWithoutPackage } from "@/lib/packages";
 
 /** Students shown per page. Thousands on one page is a page nobody can use. */
 const PAGE_SIZE = 50;
@@ -56,6 +56,7 @@ export default async function StudentsPage({
       .limit(50),
     supabase.from("watch_papers").select("id, display_name"),
   ]);
+  const [packages, starter, missing] = await Promise.all([listPackages("alp"), defaultPackage(), studentsWithoutPackage()]);
   const total = studentCount ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const paperName = new Map((papers ?? []).map((p) => [p.id, p.display_name]));
@@ -74,48 +75,7 @@ export default async function StudentsPage({
     <>
       <h1 className="text-xl font-bold text-gray-900">Students</h1>
 
-      <section className="mt-4 rounded border border-gray-300 bg-white p-5">
-        <h2 className="text-[15px] font-bold text-gray-900">Add a student</h2>
-        <p className="mt-1 text-[12px] text-gray-600">
-          Students cannot sign themselves up. Give them the mobile number and
-          password you set here — that is how they sign in.
-        </p>
-
-        <SaveForm
-          action={createStudent}
-          submitLabel="Create the account"
-          className="mt-3"
-        >
-          <div className="grid gap-3 sm:grid-cols-3">
-          <label className="block">
-            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Name</span>
-            <input name="full_name" required className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]" />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Mobile number</span>
-            <input
-              name="phone"
-              required
-              inputMode="numeric"
-              placeholder="10 digits"
-              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[12px] font-semibold text-gray-700">Password</span>
-            <input
-              name="password"
-              required
-              minLength={6}
-              placeholder="at least 6 characters"
-              className="w-full rounded border border-gray-400 px-3 py-2 text-[13px]"
-            />
-          </label>
-          </div>
-        </SaveForm>
-      </section>
-
-      <BulkStudents />
+      <Admissions packages={packages} defaultSlug={starter?.slug ?? ""} missing={missing} />
 
       <section className="mt-6" id="list">
         <div className="flex flex-wrap items-center gap-3">
