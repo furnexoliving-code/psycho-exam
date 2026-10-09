@@ -216,6 +216,9 @@ export function ResultView({
         if (typeof data.durationSec === "number") setTakenSec(data.durationSec);
         setHistory(data.history ?? []);
         setMarked(data.questions);
+        // The wrong ones first: on a paper of seventy questions that is
+        // what a student opens the review for. All stays one tap away.
+        if ((data.questions as MarkedQuestion[]).some((q) => groupOf(q) === "incorrect")) setFilter("incorrect");
         setScore(data.score);
         setTScore(data.tScore);
         setTopics(data.topics ?? []);
@@ -518,6 +521,12 @@ export function ResultView({
             {kind === "figure"
               ? "Each question is shown as it was, with your answer and the correct one."
               : "The diagram stays beside the questions, so each one can be worked through again against it."}
+            {filter === "incorrect" && counts.incorrect > 0 && (
+              <span className="ml-1 font-semibold" style={{ color: "var(--text-primary)" }}>
+                Showing the {counts.incorrect} you got wrong; tap All for every question.
+                <span className="ml-1 font-normal" lang="hi">गलत वाले दिख रहे हैं; सभी के लिए All दबाएँ।</span>
+              </span>
+            )}
           </p>
 
           <div className="mt-3 flex flex-wrap gap-2">
