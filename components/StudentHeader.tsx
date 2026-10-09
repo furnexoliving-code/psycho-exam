@@ -61,6 +61,10 @@ export function StudentHeader({
         style={{ background: "linear-gradient(90deg,#ff9933 33%,#ffffff 33% 66%,#138808 66%)" }}
         aria-hidden="true"
       />
+      {/* On a phone only: the portal runs here, but the hall is a desktop. */}
+      <p className="border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-center text-[11px] text-amber-900 md:hidden">
+        For the real exam feel, sit the tests on a laptop or desktop. <span lang="hi">असली परीक्षा जैसा अनुभव लैपटॉप/डेस्कटॉप पर ही मिलता है।</span>
+      </p>
     </header>
   );
 }

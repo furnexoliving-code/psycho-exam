@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { TestPageView } from "@/components/seo/TestPageView";
 import { listPackages } from "@/lib/packages";
 import { TEST_PAGES, testPage } from "@/lib/seo-tests";
+import { DEVICE_FAQ } from "@/lib/seo-sections";
 
 const SITE = "https://kautilyaonline.com";
 
@@ -53,7 +54,7 @@ export default async function TestSeoPage({ params }: { params: Promise<{ slug: 
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: page.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+      mainEntity: [...page.faq, DEVICE_FAQ].map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
     },
   ];
   return (

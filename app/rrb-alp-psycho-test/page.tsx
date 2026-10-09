@@ -6,6 +6,7 @@ import plan from "@/public/landing/plan.jpg";
 import { listPackages } from "@/lib/packages";
 import { KIND_LABEL, rupees } from "@/lib/packages";
 import { TEST_PAGES } from "@/lib/seo-tests";
+import { sectionUrl, sectionsOfBattery } from "@/lib/seo-sections";
 
 const SITE = "https://kautilyaonline.com";
 const Y = "#ff9933";
@@ -14,7 +15,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "RRB ALP Psycho Test 2026 (CBAT): 5 tests, T-Score 42, pattern, practice",
-  description: "Complete guide to the RRB ALP Computer Based Aptitude Test: the five tests in the hall's order, questions and time for each, the T-Score 42 rule, 30% weight in merit, how to prepare, and practice on a screen like the exam.",
+  description: "RRB ALP psycho test (CBAT) 2026: the 5 tests and their 19 kinds of question, the T-Score 42 rule, pattern and timing, and practice on a screen like the hall.",
   keywords: ["RRB ALP psycho test", "ALP CBAT 2026", "computer based aptitude test ALP", "ALP psycho test pattern", "T-score 42 ALP", "ALP psycho test practice online", "RDSO psycho test"],
   robots: { index: true, follow: true },
   alternates: { canonical: `${SITE}/rrb-alp-psycho-test` },
@@ -77,7 +78,14 @@ export default async function AlpGuidePage() {
               {TEST_PAGES.map((t) => (
                 <tr key={t.slug} className="border-b border-gray-200 even:bg-gray-50">
                   <td className="px-3 py-3 font-bold text-[#c8102e]">{t.battery}</td>
-                  <td className="px-3 py-3"><Link href={`/psycho-test/${t.slug}`} className="font-bold text-[#0d2a6b] hover:underline">{t.name}</Link><span className="block text-[12px] text-gray-500" lang="hi">{t.hindi}</span></td>
+                  <td className="px-3 py-3">
+                    <Link href={`/psycho-test/${t.slug}`} className="font-bold text-[#0d2a6b] hover:underline">{t.name}</Link><span className="block text-[12px] text-gray-500" lang="hi">{t.hindi}</span>
+                    <span className="mt-1 block text-[12px] text-gray-600">
+                      {sectionsOfBattery(t.battery).map((k, i) => (
+                        <span key={k.slug}>{i > 0 && " · "}<Link href={sectionUrl(k)} className="hover:underline">{k.code} {k.name}</Link></span>
+                      ))}
+                    </span>
+                  </td>
                   <td className="px-3 py-3 text-gray-700">{t.what.split(". ")[0]}.</td>
                   <td className="px-3 py-3 tabular-nums">{t.questions}</td>
                   <td className="px-3 py-3 tabular-nums">{t.minutes} min</td>
