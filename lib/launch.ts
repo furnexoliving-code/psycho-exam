@@ -8,8 +8,8 @@ export const LAUNCH = {
   signup: false,
   /** Packages are bought online on the packages page. */
   onlineBuy: false,
-  /** A mock marked free is advertised as the no-login first step. */
-  freeMock: false,
+  /** A mock marked free is advertised on the packages page and the blog: every account's first step. */
+  freeMock: true,
   /** The two-minute sample test at /demo, open without a login. */
   sampleTest: false,
 } as const;
