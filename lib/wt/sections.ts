@@ -60,6 +60,14 @@ export const SECTIONS: readonly Section[] = [
   { code: "5e", battery: 5, name: "Same Figure Test", hindi: "समान आकृति परीक्षण", questions: 72, questionsNote: "", timeMin: 8, timeNote: "", blurb: "Find which of the five figures is identical to the one given.", blurbHi: "दी गई आकृति से बिल्कुल मिलती आकृति पाँच में से खोजें।" },
 ];
 
+/**
+ * The kinds of test the last exam gave, one per battery: the ones every
+ * candidate must have practised. Marked on the practice page.
+ */
+export const LAST_EXAM_CODES: readonly string[] = ["1e", "2b", "3b", "4d", "5e"];
+/** Which exam that was, as the notice names it. */
+export const LAST_EXAM_LABEL = "CEN 01/2024";
+
 /** The section a paper with no series name belongs to, by its category. */
 const DEFAULT_SECTION: Record<string, string> = {
   house: "1a",

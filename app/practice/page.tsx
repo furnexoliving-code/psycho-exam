@@ -41,6 +41,13 @@ export default async function PracticePage() {
   const papers = allPapers.filter((p) => openToStudents(p.category, hidden));
   const satSlugs = new Set(attempts.map((a) => a.paperSlug));
   const sat = new Set(papers.filter((p) => satSlugs.has(p.slug)).map((p) => p.id));
+  // When each paper was last sat: the attempts come newest first.
+  const idBySlug = new Map(papers.map((p) => [p.slug, p.id]));
+  const lastAt = new Map<string, string>();
+  for (const a of attempts) {
+    const id = idBySlug.get(a.paperSlug);
+    if (id && !lastAt.has(id)) lastAt.set(id, a.submittedAt);
+  }
   // The best T-score of each paper sat, so every test type can show its own.
   const bestT = await paperBestT(profile.id, [...sat]);
 
@@ -52,6 +59,8 @@ export default async function PracticePage() {
       progress={progress}
       sat={sat}
       bestT={bestT}
+      lastAt={lastAt}
+      now={Date.now()}
       stages={{ pass: exam.passT, average: STAGES.average, target: exam.targetT }}
     />
   );
