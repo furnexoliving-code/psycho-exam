@@ -29,7 +29,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ battery
 
   const [allowances, attempts, bestT, exam] = await Promise.all([
     allowancesFor(series.papers, profile.id),
-    attemptsFor(profile.id, 1000),
+    attemptsFor(profile.id, 1000, series.papers.map((p) => p.id)),
     paperBestT(profile.id, series.papers.map((p) => p.id)),
     examSettings(),
   ]);

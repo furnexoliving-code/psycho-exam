@@ -19,15 +19,18 @@ export interface PastAttemptRow {
  * none. Read with the service-role client because the paper's name lives on
  * watch_papers and the join is simpler than two policy-guarded reads.
  */
-export async function attemptsFor(userId: string, limit = 20): Promise<PastAttemptRow[]> {
+export async function attemptsFor(userId: string, limit = 20, paperIds?: string[]): Promise<PastAttemptRow[]> {
   const supabase = createAdminClient();
+  if (paperIds && paperIds.length === 0) return [];
 
-  const { data } = await supabase
+  // Only the papers named, when a page is about a few of them: a series
+  // page used to read every attempt the student ever made.
+  let query = supabase
     .from("watch_attempts")
     .select("id, paper_id, marks, total, attempted, submitted_at")
-    .eq("user_id", userId)
-    .order("submitted_at", { ascending: false })
-    .limit(limit);
+    .eq("user_id", userId);
+  if (paperIds) query = query.in("paper_id", paperIds);
+  const { data } = await query.order("submitted_at", { ascending: false }).limit(limit);
 
   if (!data?.length) return [];
 

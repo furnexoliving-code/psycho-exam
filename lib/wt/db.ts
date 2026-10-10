@@ -20,7 +20,7 @@ import { resolveFeatures, type OptionValue, type WatchCell, type WatchPaper, typ
  */
 
 /** Every cached read of published papers carries this tag. */
-const PAPERS_TAG = "papers";
+export const PAPERS_TAG = "papers";
 /** ...and each paper its own, so one edit empties one paper. */
 const paperTag = (slug: string) => `paper:${slug}`;
 

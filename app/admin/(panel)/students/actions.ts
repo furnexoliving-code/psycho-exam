@@ -11,6 +11,7 @@ import { logAction } from "@/lib/audit";
 import { indianDay } from "@/lib/format-time";
 import { removePhoto, savePhoto } from "@/lib/photo";
 import { defaultPackage, enrollNewStudent, grantToMany, studentsWithoutPackage } from "@/lib/packages";
+import { cohortsChanged } from "@/lib/wt/cohorts";
 
 /** A validity date off a form: YYYY-MM-DD, or null for none. */
 function validityOf(raw: FormDataEntryValue | null): string | null {
@@ -207,6 +208,8 @@ export async function deleteStudent(
     const { error: sittings } = await supabase.from("watch_sessions").delete().eq("user_id", id);
     if (sittings) throw new Error(sittings.message);
     const { error: attempts } = await supabase.from("watch_attempts").delete().eq("user_id", id);
+    // Their attempts counted in every paper's cohort until now.
+    cohortsChanged();
     if (attempts) throw new Error(attempts.message);
 
     // The profile row goes with the auth user (on delete cascade).

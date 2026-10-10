@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { indianDay } from "@/lib/format-time";
 import { BATTERIES, CATEGORIES } from "./categories";
 import { cohortFromMoments } from "./cohort";
+import { cohortsFor, paperStats } from "./cohorts";
 import { tScore } from "./tscore";
 
 export interface DayScore {
@@ -62,12 +63,9 @@ export async function batteryProgress(userId: string): Promise<BatteryProgress[]
   if (!attempts?.length) return [...byBattery.values()];
 
   const paperIds = [...new Set(attempts.map((a) => a.paper_id as string))];
-  const [{ data: papers }, { data: cohorts }] = await Promise.all([
-    supabase.from("watch_papers").select("id, category, stats_min_attempts, reference_mean, reference_sd").in("id", paperIds),
-    supabase.rpc("watch_cohorts", { p_papers: paperIds }),
-  ]);
-  const paperById = new Map((papers ?? []).map((p) => [p.id as string, p]));
-  const cohortRows = (cohorts as { paper_id: string; total: number; n: number; mean: number; sd: number }[] | null) ?? [];
+  // The papers' settings and every cohort come from the caches: one read of
+  // the student's attempts is this page's only query of its own.
+  const [paperById, cohortRows] = await Promise.all([paperStats(), cohortsFor(paperIds)]);
 
   const papersPerBattery = new Map<number, Set<string>>();
   for (const a of attempts) {
@@ -87,9 +85,9 @@ export async function batteryProgress(userId: string): Promise<BatteryProgress[]
     const cohort = cohortFromMoments(
       c ? { n: Number(c.n), mean: Number(c.mean), sd: Number(c.sd) } : { n: 0, mean: 0, sd: 0 },
       {
-        stats_min_attempts: paper.stats_min_attempts as number | null,
-        reference_mean: paper.reference_mean as number | null,
-        reference_sd: paper.reference_sd as number | null,
+        stats_min_attempts: paper.stats_min_attempts,
+        reference_mean: paper.reference_mean,
+        reference_sd: paper.reference_sd,
       },
     );
     const t = tScore(Number(a.marks), cohort);
@@ -131,13 +129,11 @@ export async function paperBestT(userId: string, paperIds: string[]): Promise<Ma
   const out = new Map<string, number>();
   if (paperIds.length === 0) return out;
   const supabase = createAdminClient();
-  const [{ data: attempts }, { data: papers }, { data: cohorts }] = await Promise.all([
+  const [{ data: attempts }, paperById, cohortRows] = await Promise.all([
     supabase.from("watch_attempts").select("paper_id, marks, total").eq("user_id", userId).in("paper_id", paperIds).limit(3000),
-    supabase.from("watch_papers").select("id, stats_min_attempts, reference_mean, reference_sd").in("id", paperIds),
-    supabase.rpc("watch_cohorts", { p_papers: paperIds }),
+    paperStats(),
+    cohortsFor(paperIds),
   ]);
-  const paperById = new Map((papers ?? []).map((p) => [p.id as string, p]));
-  const cohortRows = (cohorts as { paper_id: string; total: number; n: number; mean: number; sd: number }[] | null) ?? [];
   for (const a of attempts ?? []) {
     const paper = paperById.get(a.paper_id as string);
     if (!paper) continue;
@@ -146,9 +142,9 @@ export async function paperBestT(userId: string, paperIds: string[]): Promise<Ma
     const cohort = cohortFromMoments(
       c ? { n: Number(c.n), mean: Number(c.mean), sd: Number(c.sd) } : { n: 0, mean: 0, sd: 0 },
       {
-        stats_min_attempts: paper.stats_min_attempts as number | null,
-        reference_mean: paper.reference_mean as number | null,
-        reference_sd: paper.reference_sd as number | null,
+        stats_min_attempts: paper.stats_min_attempts,
+        reference_mean: paper.reference_mean,
+        reference_sd: paper.reference_sd,
       },
     );
     const t = tScore(Number(a.marks), cohort);

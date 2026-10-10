@@ -31,7 +31,10 @@ export interface DashboardInput {
   exam: ExamSettings;
   mocksToday: number;
   allowances: Map<string, AttemptAllowance>;
-  leaders: LeaderRow[];
+  /** The newest mock's leaderboard, when the page fetched it itself. */
+  leaders?: LeaderRow[];
+  /** The leaderboard rendered elsewhere, streamed in after the page under a Suspense boundary. */
+  leadersSlot?: React.ReactNode;
   /** What the student's packages open; both true for a Kautilya student. */
   access?: { sectional: boolean; full: boolean };
 }
@@ -39,7 +42,7 @@ export interface DashboardInput {
 const BATTERY_ICON: Record<number, string> = { 1: "🧠", 2: "🧭", 3: "🧊", 4: "👁️", 5: "🔍" };
 const BATTERY_SOFT: Record<number, string> = { 1: "bg-violet-50", 2: "bg-sky-50", 3: "bg-cyan-50", 4: "bg-lime-50", 5: "bg-rose-50" };
 
-export function DashboardView({ profile, now, today, notices, papers, hidden, progress, mocks, mockResults, inMock, exam, mocksToday, allowances, leaders, access = { sectional: true, full: true } }: DashboardInput) {
+export function DashboardView({ profile, now, today, notices, papers, hidden, progress, mocks, mockResults, inMock, exam, mocksToday, allowances, leaders = [], leadersSlot, access = { sectional: true, full: true } }: DashboardInput) {
   const stages = { pass: exam.passT, average: STAGES.average, target: exam.targetT };
   const daysLeft = exam.examDate ? daysUntil(exam.examDate, today) : null;
 
@@ -505,23 +508,9 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
               </ul>
             </section>
 
-            {newest && leaders.length > 0 && (
-              <section className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
-                <h2 className="text-[14px] font-bold text-gray-900">
-                  Leaderboard <span className="font-normal text-gray-500">· {newest.mockName}</span>
-                  <Link href={`/mock/${newest.mockSlug}/result`} className="float-right text-[11px] font-semibold text-[#1d4ed8] hover:underline">Full →</Link>
-                </h2>
-                <ol className="mt-2 divide-y divide-gray-100">
-                  {leaders.map((row) => (
-                    <li key={row.userId} className={`flex items-center gap-2 py-1.5 text-[12px] ${row.userId === profile.id ? "-mx-2 rounded-lg bg-blue-50 px-2 font-bold" : ""}`}>
-                      <span className="w-5 text-gray-500">{row.rank}</span>
-                      <span className="flex-1 truncate text-gray-900">{row.name}{row.userId === profile.id ? " (you)" : ""}</span>
-                      <span className="whitespace-nowrap font-bold tabular-nums">{((row.composite * 5) / 400 * 30).toFixed(1)} / 30</span>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
+            {leadersSlot !== undefined
+              ? leadersSlot
+              : newest && leaders.length > 0 && <LeaderBoard leaders={leaders} mockName={newest.mockName} mockSlug={newest.mockSlug} myId={profile.id} />}
 
           </aside>
         </div>
@@ -530,6 +519,27 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
   );
 }
 
+
+/** The newest mock's top five, with the student's own row marked. */
+export function LeaderBoard({ leaders, mockName, mockSlug, myId }: { leaders: LeaderRow[]; mockName: string; mockSlug: string; myId: string }) {
+  return (
+    <section className="rounded-[14px] border border-gray-200 bg-white p-4 shadow-sm">
+      <h2 className="text-[14px] font-bold text-gray-900">
+        Leaderboard <span className="font-normal text-gray-500">· {mockName}</span>
+        <Link href={`/mock/${mockSlug}/result`} className="float-right text-[11px] font-semibold text-[#1d4ed8] hover:underline">Full →</Link>
+      </h2>
+      <ol className="mt-2 divide-y divide-gray-100">
+        {leaders.map((row) => (
+          <li key={row.userId} className={`flex items-center gap-2 py-1.5 text-[12px] ${row.userId === myId ? "-mx-2 rounded-lg bg-blue-50 px-2 font-bold" : ""}`}>
+            <span className="w-5 text-gray-500">{row.rank}</span>
+            <span className="flex-1 truncate text-gray-900">{row.name}{row.userId === myId ? " (you)" : ""}</span>
+            <span className="whitespace-nowrap font-bold tabular-nums">{((row.composite * 5) / 400 * 30).toFixed(1)} / 30</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 function mockWindow(mock: { opensAt: string | null; closesAt: string | null }, status: MockStatus): string {
   if (status === "scheduled" && mock.opensAt) return `Opens ${formatDateTime(mock.opensAt)}`;

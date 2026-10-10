@@ -3,6 +3,7 @@ import { getProfile, isConfigured, isVerifiedEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { readQuestionRows } from "@/lib/wt/db";
+import { cohortsChanged } from "@/lib/wt/cohorts";
 import { tScore, type Cohort } from "@/lib/wt/tscore";
 import {
   resolveFeatures,
@@ -477,6 +478,8 @@ async function statsFor({
     // Counted into the figures below only once it is actually on record.
     if (made) {
       recorded = true;
+      // Every overview page's cohort figures are stale now.
+      cohortsChanged();
       history.push({
         at: new Date(made.submitted_at as string).getTime(),
         marks,
