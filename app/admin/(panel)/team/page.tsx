@@ -3,6 +3,8 @@ import { formatDate, formatDateTime } from "@/lib/format-time";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recentActions } from "@/lib/audit";
 import { examSettings } from "@/lib/settings";
+import { paymentsMode, razorpayKeyStatus, WEBHOOK_URL } from "@/lib/payments";
+import { PaymentsSettings } from "@/components/admin/PaymentsSettings";
 import { listNotices } from "@/lib/notices";
 import { addNotice, removeNotice, updateExamSettings } from "./actions";
 import { RowForm } from "@/components/admin/RowForm";
@@ -18,7 +20,11 @@ export default async function TeamPage() {
   await requireAdmin("/admin/team");
   const supabase = createAdminClient();
 
-  const exam = await examSettings();
+  const [exam, payMode, paidOrders] = await Promise.all([
+    examSettings(),
+    paymentsMode(),
+    supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "paid"),
+  ]);
   const notices = await listNotices();
   const [{ data: helpers }, log] = await Promise.all([
     supabase
@@ -69,6 +75,8 @@ export default async function TeamPage() {
           </div>
         </SaveForm>
       </section>
+
+      <PaymentsSettings status={razorpayKeyStatus()} mode={payMode} webhookUrl={WEBHOOK_URL} paidOrders={paidOrders.count ?? 0} />
 
       {/* ----------------------------- Notice board ----------------------------- */}
       <section className="mt-4 rounded border border-gray-300 bg-white p-5">

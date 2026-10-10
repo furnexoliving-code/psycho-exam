@@ -5,6 +5,7 @@ import { attempt, type SaveState } from "@/lib/admin-result";
 import { requireAdmin } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { saveExamSettings } from "@/lib/settings";
+import { isPaymentsMode, razorpayKeyKind, razorpayKeyStatus, savePaymentsMode } from "@/lib/payments";
 import { listNotices, MAX_NOTICES, saveNotices } from "@/lib/notices";
 
 /** The real exam's date and the T-score target every battery should reach. */
@@ -20,6 +21,25 @@ export async function updateExamSettings(_prev: SaveState | null, formData: Form
     revalidatePath("/dashboard");
     await logAction("Exam settings changed", `exam ${date || "not set"}, target T ${target}`);
     return `exam ${date || "not set"}, target T ${target}`;
+  });
+}
+
+/** Who may pay online: nobody, the team (to test), or everyone. */
+export async function updatePaymentsMode(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
+  return attempt("Online payment", async () => {
+    await requireAdmin("/admin/team");
+    const mode = String(formData.get("mode") ?? "");
+    if (!isPaymentsMode(mode)) throw new Error("Choose off, team only or everyone");
+    const keys = razorpayKeyStatus();
+    if (mode !== "off" && (!keys.keyId || !keys.secretSet)) throw new Error("The Razorpay keys are not in Vercel yet, so there is nothing to switch on");
+    if (mode === "on" && razorpayKeyKind() !== "live") throw new Error("These are test keys: a student could \"buy\" with a test card for nothing. Put the live keys in Vercel, then open it to everyone");
+    await savePaymentsMode(mode);
+    revalidatePath("/admin/team");
+    revalidatePath("/admin/packages");
+    revalidatePath("/packages");
+    const said = mode === "off" ? "off for everyone" : mode === "team" ? "team only (testing)" : "on for everyone";
+    await logAction("Online payment", said);
+    return said;
   });
 }
 

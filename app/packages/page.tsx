@@ -5,7 +5,7 @@ import { getProfile, isConfigured } from "@/lib/auth";
 import { photoUrlOf } from "@/lib/photo";
 import { accessFor, enrollmentActive, listPackages } from "@/lib/packages";
 import { PackagesView } from "@/components/student/PackagesView";
-import { razorpayConfigured } from "@/lib/razorpay";
+import { onlineBuyingFor } from "@/lib/payments";
 import { couponProblem, discounted, loadCoupon, normaliseCode } from "@/lib/coupons";
 import { listPublishedMocks } from "@/lib/wt/mock";
 
@@ -31,7 +31,7 @@ export default async function PackagesPage({ searchParams }: { searchParams: Pro
     profile ? accessFor(profile.id, profile.role) : Promise.resolve(null),
   ]);
   const freeMock = mocks.find((m) => m.isFree) ?? null;
-  const online = razorpayConfigured();
+  const online = await onlineBuyingFor(profile?.role ?? null);
   const held = new Map((access?.enrollments ?? []).filter(enrollmentActive).map((e) => [e.package.id, e]));
 
   // A code typed on the page: the price it gives each package, or why not.

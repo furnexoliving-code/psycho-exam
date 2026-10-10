@@ -3,7 +3,8 @@
 import { requireUser } from "@/lib/auth";
 import { loadPackage } from "@/lib/packages";
 import { createOrder, loadOrder, setGatewayOrder, settlePaidOrder } from "@/lib/orders";
-import { createRazorpayOrder, razorpayConfigured, razorpayKeyId, verifyPaymentSignature } from "@/lib/razorpay";
+import { createRazorpayOrder, razorpayKeyId, verifyPaymentSignature } from "@/lib/razorpay";
+import { onlineBuyingFor } from "@/lib/payments";
 import { logAction } from "@/lib/audit";
 import { applyCoupon } from "@/lib/coupons";
 
@@ -14,7 +15,7 @@ export type CheckoutStart =
 /** Makes the order, here and at Razorpay, and hands the checkout what it needs. */
 export async function startCheckout(slug: string, couponCode = ""): Promise<CheckoutStart> {
   const who = await requireUser(`/packages`);
-  if (!razorpayConfigured()) return { ok: false, error: "Online payment is not switched on yet. Pay at the office or on WhatsApp." };
+  if (!(await onlineBuyingFor(who.role))) return { ok: false, error: "Online payment is not switched on yet. Pay at the office or on WhatsApp." };
   const pkg = await loadPackage(slug);
   if (!pkg || !pkg.isPublished) return { ok: false, error: "This package is not on sale." };
   // The code is checked again here: the price the student saw is not trusted.

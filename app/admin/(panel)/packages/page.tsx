@@ -3,14 +3,14 @@ import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll } from "@/lib/wt/cohort";
 import { KIND_LABEL, listAllPackages, rupees } from "@/lib/packages";
-import { razorpayConfigured } from "@/lib/razorpay";
+import { paymentsSummary } from "@/lib/payments";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { PackageFields } from "./PackageFields";
 import { createPackage } from "./actions";
 
 export default async function PackagesAdminPage() {
   await requireAdmin("/admin/packages");
-  const packages = await listAllPackages();
+  const [packages, payments] = await Promise.all([listAllPackages(), paymentsSummary()]);
   // How many students hold each package, in one read.
   const supabase = createAdminClient();
   const rows = await fetchAll<{ package_id: string; expires_at: string | null }>((from, to) => supabase.from("enrollments").select("package_id, expires_at").order("id").range(from, to));
@@ -34,10 +34,8 @@ export default async function PackagesAdminPage() {
         What a student buys, or the institute gives: sectional tests, Full Mock Tests, or both, for one exam&apos;s series.
         A student sees only what their packages open; the free mock (ticked on the mock itself) is open to everyone.
       </p>
-      <p className={`mt-3 rounded border px-4 py-2 text-[12px] ${razorpayConfigured() ? "border-green-300 bg-green-50 text-green-800" : "border-amber-300 bg-amber-50 text-amber-900"}`}>
-        {razorpayConfigured()
-          ? "Online payment is on (Razorpay). Paid packages are added to the student's account automatically."
-          : "Online payment is off: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET and RAZORPAY_WEBHOOK_SECRET are not set in Vercel. The packages page shows \"Buy on WhatsApp\" and you add the package from the student's page after payment."}
+      <p className={`mt-3 rounded border px-4 py-2 text-[12px] ${payments.tone === "ok" ? "border-green-300 bg-green-50 text-green-800" : payments.tone === "warn" ? "border-amber-300 bg-amber-50 text-amber-900" : "border-gray-300 bg-gray-50 text-gray-700"}`}>
+        {payments.text} <Link href="/admin/team#payments" className="font-semibold underline">Payment settings</Link>
       </p>
 
       <table className="mt-5 w-full border-collapse text-[13px]">
