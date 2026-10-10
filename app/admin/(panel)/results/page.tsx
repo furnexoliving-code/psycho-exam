@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireResults } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { attemptCounts } from "@/lib/wt/cohorts";
 import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
 import { listPapersForAdmin } from "@/lib/wt/db";
 
@@ -13,13 +13,8 @@ export default async function ResultsHome() {
   await requireResults("/admin/results");
   const papers = await listPapersForAdmin();
 
-  // How many attempts each paper has, in one query.
-  const { data: counts } = await createAdminClient()
-    .from("watch_attempts")
-    .select("paper_id")
-    .limit(100000);
-  const attempts = new Map<string, number>();
-  for (const row of counts ?? []) attempts.set(row.paper_id, (attempts.get(row.paper_id) ?? 0) + 1);
+  // How many attempts, and how many students, each paper has: counted by the database.
+  const counts = await attemptCounts();
 
   return (
     <>
@@ -61,6 +56,7 @@ export default async function ResultsHome() {
                   <th className="px-3 py-2 font-semibold">Paper</th>
                   <th className="px-3 py-2 font-semibold">Questions</th>
                   <th className="px-3 py-2 font-semibold">Attempts</th>
+                  <th className="px-3 py-2 font-semibold">Students</th>
                   <th className="px-3 py-2 font-semibold">Status</th>
                   <th className="px-3 py-2" />
                 </tr>
@@ -70,7 +66,8 @@ export default async function ResultsHome() {
                   <tr key={paper.slug} className="border-t border-gray-200 bg-white">
                     <td className="px-3 py-2 font-semibold text-gray-900">{paper.displayName}</td>
                     <td className="px-3 py-2 tabular-nums">{paper.questionCount}</td>
-                    <td className="px-3 py-2 tabular-nums">{attempts.get(paper.id) ?? 0}</td>
+                    <td className="px-3 py-2 tabular-nums">{(counts.get(paper.id)?.attempts ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="px-3 py-2 tabular-nums">{(counts.get(paper.id)?.students ?? 0).toLocaleString("en-IN")}</td>
                     <td className="px-3 py-2">
                       <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${paper.isPublished ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"}`}>
                         {paper.isPublished ? "Published" : "Draft"}

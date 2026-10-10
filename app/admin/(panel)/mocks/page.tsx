@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireEditor } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format-time";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAll } from "@/lib/wt/cohort";
 import { listMocksForAdmin, mockStatus, type MockStatus } from "@/lib/wt/mock";
 import { createMock } from "./actions";
 
@@ -21,12 +22,12 @@ export default async function MocksPage({
   const [mocks, { error, saved }] = await Promise.all([listMocksForAdmin(), searchParams]);
 
   // Attempted counts and the average composite, in one read.
-  const { data: results } = await createAdminClient()
-    .from("mock_results")
-    .select("mock_id, user_id, composite, qualified")
-    .limit(100000);
+  const supabase = createAdminClient();
+  const results = await fetchAll<{ mock_id: string; user_id: string | null; composite: number | string | null; qualified: boolean | null }>((from, to) =>
+    supabase.from("mock_results").select("mock_id, user_id, composite, qualified").order("id").range(from, to),
+  );
   const stats = new Map<string, { attempts: number; users: Set<string>; sum: number; n: number; qualified: number }>();
-  for (const r of results ?? []) {
+  for (const r of results) {
     const s = stats.get(r.mock_id) ?? { attempts: 0, users: new Set<string>(), sum: 0, n: 0, qualified: 0 };
     s.attempts++;
     if (r.user_id) s.users.add(r.user_id);

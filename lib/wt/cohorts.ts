@@ -1,7 +1,7 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PAPERS_TAG } from "./db";
-import { cohortFromMoments } from "./cohort";
+import { cohortFromMoments, fetchAll } from "./cohort";
 import { tScore } from "./tscore";
 
 const COHORTS_TAG = "wt-cohorts";
@@ -81,6 +81,45 @@ export async function paperStats(): Promise<Map<string, PaperStat>> {
     { tags: [PAPERS_TAG, COHORTS_TAG], revalidate: 300 },
   )();
   return new Map(rows.map((p) => [p.id, p]));
+}
+
+/** How many attempts, and how many different students, each paper has. */
+export interface AttemptCount {
+  attempts: number;
+  students: number;
+}
+
+/**
+ * Every paper's attempt count, by the database's own view, or by paging
+ * through the attempts until supabase/attempt-counts.sql has been run.
+ * The Results page used to ask for every attempt row at once, and the
+ * API answers at most a thousand, so the later papers read 0.
+ */
+export async function attemptCounts(): Promise<Map<string, AttemptCount>> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("watch_attempt_counts").select("paper_id, attempts, students");
+  if (!error && data) {
+    return new Map((data as { paper_id: string; attempts: number; students: number }[]).map((r) => [r.paper_id, { attempts: Number(r.attempts), students: Number(r.students) }]));
+  }
+  const rows = await fetchAll<{ paper_id: string; user_id: string | null }>((from, to) =>
+    supabase.from("watch_attempts").select("paper_id, user_id").order("id").range(from, to),
+  );
+  const seen = new Map<string, Set<string>>();
+  const counts = new Map<string, AttemptCount>();
+  for (const r of rows) {
+    const c = counts.get(r.paper_id) ?? { attempts: 0, students: 0 };
+    c.attempts += 1;
+    if (r.user_id) {
+      const s = seen.get(r.paper_id) ?? new Set<string>();
+      if (!s.has(r.user_id)) {
+        s.add(r.user_id);
+        c.students += 1;
+      }
+      seen.set(r.paper_id, s);
+    }
+    counts.set(r.paper_id, c);
+  }
+  return counts;
 }
 
 /** A result was recorded, or attempts were removed: the cohorts are read afresh on the next visit. */

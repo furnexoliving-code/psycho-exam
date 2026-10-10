@@ -1,3 +1,4 @@
+import { fetchAll } from "./cohort";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { accessFor, canSitMock } from "@/lib/packages";
@@ -673,14 +674,11 @@ export async function mockStanding(mockId: string, userId: string): Promise<{ ra
 /** Each candidate's best composite of this mock. */
 async function bestComposites(mockId: string): Promise<Map<string, number>> {
   const best = new Map<string, number>();
-  const { data } = await createAdminClient()
-    .from("mock_results")
-    .select("user_id, composite")
-    .eq("mock_id", mockId)
-    .not("composite", "is", null)
-    .not("user_id", "is", null)
-    .limit(100000);
-  for (const r of data ?? []) {
+  const supabase = createAdminClient();
+  const data = await fetchAll<{ user_id: string | null; composite: number | string | null }>((from, to) =>
+    supabase.from("mock_results").select("user_id, composite").eq("mock_id", mockId).not("composite", "is", null).not("user_id", "is", null).order("id").range(from, to),
+  );
+  for (const r of data) {
     const c = Number(r.composite);
     const u = r.user_id as string;
     if (!best.has(u) || (best.get(u) as number) < c) best.set(u, c);
@@ -716,13 +714,20 @@ export async function mockLeaderboard(mockId: string, limit = 10): Promise<Leade
 
 /** Every result of a mock, for the panel's table. */
 export async function mockResultsOf(mockId: string): Promise<MockResult[]> {
-  const { data, error } = await createAdminClient()
-    .from("mock_results")
-    .select(RESULT_COLUMNS)
-    .eq("mock_id", mockId)
-    .order("composite", { ascending: false, nullsFirst: false })
-    .order("submitted_at", { ascending: false })
-    .limit(100000);
-  if (error) return [];
-  return (data as ResultRow[]).map(toResult);
+  const supabase = createAdminClient();
+  try {
+    const data = await fetchAll<ResultRow>((from, to) =>
+      supabase
+        .from("mock_results")
+        .select(RESULT_COLUMNS)
+        .eq("mock_id", mockId)
+        .order("composite", { ascending: false, nullsFirst: false })
+        .order("submitted_at", { ascending: false })
+        .order("id")
+        .range(from, to),
+    );
+    return data.map(toResult);
+  } catch {
+    return [];
+  }
 }

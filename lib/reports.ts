@@ -1,3 +1,4 @@
+import { fetchAll } from "@/lib/wt/cohort";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -49,13 +50,9 @@ export async function openReports(): Promise<OpenReport[]> {
   const supabase = createAdminClient();
   let rows: { paper_id: string; question_id: string; note: string; created_at: string }[] = [];
   try {
-    const { data } = await supabase
-      .from("question_reports")
-      .select("paper_id, question_id, note, created_at")
-      .is("resolved_at", null)
-      .order("created_at", { ascending: false })
-      .limit(2000);
-    rows = (data ?? []) as typeof rows;
+    rows = await fetchAll<(typeof rows)[number]>((from, to) =>
+      supabase.from("question_reports").select("paper_id, question_id, note, created_at").is("resolved_at", null).order("created_at", { ascending: false }).order("id").range(from, to),
+    );
   } catch {
     return [];
   }
@@ -94,8 +91,9 @@ export async function openReports(): Promise<OpenReport[]> {
 /** How many questions have open flags; 0 on a database without the table. */
 export async function openReportCount(): Promise<number> {
   try {
-    const { data } = await createAdminClient().from("question_reports").select("question_id").is("resolved_at", null).limit(5000);
-    return new Set((data ?? []).map((r) => r.question_id as string)).size;
+    const supabase = createAdminClient();
+    const rows = await fetchAll<{ question_id: string }>((from, to) => supabase.from("question_reports").select("question_id").is("resolved_at", null).order("id").range(from, to));
+    return new Set(rows.map((r) => r.question_id)).size;
   } catch {
     return 0;
   }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAll } from "@/lib/wt/cohort";
 import { KIND_LABEL, listAllPackages, rupees } from "@/lib/packages";
 import { razorpayConfigured } from "@/lib/razorpay";
 import { SaveForm } from "@/components/admin/SaveForm";
@@ -11,9 +12,10 @@ export default async function PackagesAdminPage() {
   await requireAdmin("/admin/packages");
   const packages = await listAllPackages();
   // How many students hold each package, in one read.
-  const { data: rows } = await createAdminClient().from("enrollments").select("package_id, expires_at").limit(100000);
+  const supabase = createAdminClient();
+  const rows = await fetchAll<{ package_id: string; expires_at: string | null }>((from, to) => supabase.from("enrollments").select("package_id, expires_at").order("id").range(from, to));
   const holders = new Map<string, { all: number; active: number }>();
-  for (const r of rows ?? []) {
+  for (const r of rows) {
     const h = holders.get(r.package_id) ?? { all: 0, active: 0 };
     h.all++;
     if (!r.expires_at || new Date(r.expires_at as string).getTime() > Date.now()) h.active++;
