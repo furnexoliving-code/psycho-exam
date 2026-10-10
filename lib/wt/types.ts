@@ -102,6 +102,12 @@ export interface WatchQuestion {
   image?: string;
   /** A picture per option, in option order, when the options are pictures rather than letters. */
   optionImages?: string[];
+  /**
+   * A map test's question as a picture (the House Position Test: the house
+   * to find), shown in place of the prompt's text. `image` is then the
+   * part's map, as on every map test.
+   */
+  promptImage?: string;
 }
 
 /**

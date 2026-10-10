@@ -10,7 +10,7 @@ import { generateQuestions, optionValues } from "@/lib/wt/generate";
 import { phrase, solve, type QuestionKind } from "@/lib/wt/engine";
 import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-questions";
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
-import { paperChanged } from "@/lib/wt/db";
+import { paperChanged, readQuestionRows } from "@/lib/wt/db";
 import { BATTERIES, CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
 import { matchingExampleText, memorySchedule, pictureInstructions, sheetExampleText, sheetOf } from "@/lib/wt/figure-sample";
 import { builtQuestions, builtSpec } from "@/lib/wt/built";
@@ -976,11 +976,12 @@ export async function duplicatePaper(formData: FormData) {
 
     if (insErr || !copy) throw new Error(insErr?.message ?? "Could not create the copy");
 
-    const { data: questions, error: qErr } = await questionStore()
-      .from("watch_questions")
-      .select("position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic")
-      .eq("paper_id", source.id)
-      .order("position");
+    // The pictures come too: a copy of a picture paper without them was a
+    // paper with no pictures.
+    const { data: questions, error: qErr } = await readQuestionRows<Record<string, unknown>>(
+      (columns) => questionStore().from("watch_questions").select(columns).eq("paper_id", source.id).order("position") as unknown as PromiseLike<{ data: Record<string, unknown>[] | null; error: { message: string } | null }>,
+      "position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic, image_url, option_images, prompt_image",
+    );
 
     if (qErr) throw new Error(qErr.message);
 

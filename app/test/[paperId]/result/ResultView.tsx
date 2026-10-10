@@ -671,9 +671,12 @@ export function ResultView({
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[12px] font-semibold" style={{ color: "var(--text-muted)" }}>
                       Q. {i + 1}
-                      {sheetNoun && q.promptEn && (
+                      {q.promptImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={q.promptImage} alt="" className="ml-2 inline-block h-12 w-auto align-middle" draggable={false} />
+                      ) : sheetNoun && q.promptEn ? (
                         <span className="ml-2 text-[15px] font-bold" style={{ color: "var(--text-primary)" }}>{q.promptEn}</span>
-                      )}
+                      ) : null}
                     </span>
                     <OutcomeTag outcome={outcome} />
                   </div>
@@ -719,7 +722,7 @@ export function ResultView({
                       })}
                     </div>
                   )}
-                  {q.promptEn && !sheetNoun && (
+                  {q.promptEn && !sheetNoun && !q.promptImage && (
                   <p className="mt-1.5 text-[15px]" style={{ color: "var(--text-primary)" }}>
                     {q.promptEn}
                   </p>

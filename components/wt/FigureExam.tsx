@@ -89,6 +89,8 @@ export function FigureExam({
   const figureH = Math.round(72 * scale);
   const optionH = Math.round(64 * scale);
   const stripH = Math.round(52 * scale);
+  // A question that is a picture (a house to find): drawn small, one row high.
+  const promptH = Math.round(28 * scale);
 
   // The same switch as the Following Directions paper: with the wheel off,
   // the scrollbar still drags and the Part tabs still move; only the wheel
@@ -414,7 +416,17 @@ export function FigureExam({
                     const chosen = state.answers[q.id];
                     return (
                       <li key={q.id} className="flex items-center gap-x-5 border-b border-[#ececec] py-5 first:pt-1">
-                        <span className="w-[56px] shrink-0 whitespace-nowrap text-[1em] text-[#222]">{number}. {q.prompt.en} -</span>
+                        {q.promptImage ? (
+                          // A house test: the question is the house itself.
+                          <span className="flex shrink-0 items-center gap-2 whitespace-nowrap text-[1em] text-[#222]">
+                            {number}.
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={q.promptImage} alt={`${mapOf(paper.category)?.topicPrefix ?? "Picture"} ${number}`} className="w-auto" style={{ height: promptH }} draggable={false} />
+                            -
+                          </span>
+                        ) : (
+                          <span className="w-[56px] shrink-0 whitespace-nowrap text-[1em] text-[#222]">{number}. {q.prompt.en} -</span>
+                        )}
                         <span className="flex items-center gap-x-[52px] whitespace-nowrap">
                           {q.options.map((option, oi) => (
                             <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />

@@ -77,8 +77,12 @@ export function QuestionPaperView({
                               Q. {index + 1}
                             </span>
                             <div className="min-w-0 flex-1">
+                              {q.promptImage && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={q.promptImage} alt="" className="mb-1 h-12 w-auto" draggable={false} />
+                              )}
                               <p className="text-[15px] leading-relaxed text-[#494949]">
-                                {q.prompt.en}
+                                {q.promptImage ? "" : q.prompt.en}
                               </p>
                               <p className="text-[15px] leading-relaxed text-[#494949]" lang="hi">
                                 {q.prompt.hi}

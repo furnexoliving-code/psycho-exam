@@ -67,8 +67,8 @@ export function pictureInstructions(
     case "house":
       return [
         {
-          en: `This is a test of memory, in two parts. In each part there is a Study screen and a Test screen. On the Study screen you will see a map with houses and other structures on it for ${min(studyMin || 2, true)}. Your task is to memorise where each house stands. After the allotted time the Test screen will appear: the same map with the letters A, B, C, D and E in place of the houses, and the houses numbered below it. For each numbered house, find the letter that shows where it stood on the Study map. Mark your answer by clicking the mouse.`,
-          hi: `यह स्मृति का परीक्षण है, दो भागों में। प्रत्येक भाग में एक अध्ययन स्क्रीन और एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर आपको ${min(studyMin || 2, false)} के लिए एक नक्शा दिखेगा जिस पर मकान और अन्य आकृतियाँ अंकित हैं। आपको याद करना है कि हर मकान कहाँ है। नियत समय के बाद परीक्षण स्क्रीन आएगी: वही नक्शा जिसमें मकानों की जगह A, B, C, D और E अक्षर हैं, और नीचे नंबर लगे मकान। हर नंबर वाले मकान के लिए वह अक्षर खोजें जो अध्ययन नक्शे में उसकी जगह दिखाता है। उत्तर माउस क्लिक करके दें।`,
+          en: `This is a test of memory, in two parts. In each part there is a Study screen and a Test screen. On the Study screen you will see a map with houses and other structures on it for ${min(studyMin || 2, true)}. Your task is to memorise where each house stands. After the allotted time the Test screen will appear: the same map with the letters A, B, C, D and E in place of the houses, and beside it the houses one by one as questions. For each house shown, find the letter that marks where it stood on the Study map. Mark your answer by clicking the mouse.`,
+          hi: `यह स्मृति का परीक्षण है, दो भागों में। प्रत्येक भाग में एक अध्ययन स्क्रीन और एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर आपको ${min(studyMin || 2, false)} के लिए एक नक्शा दिखेगा जिस पर मकान और अन्य आकृतियाँ अंकित हैं। आपको याद करना है कि हर मकान कहाँ है। नियत समय के बाद परीक्षण स्क्रीन आएगी: वही नक्शा जिसमें मकानों की जगह A, B, C, D और E अक्षर हैं, और उसके पास प्रश्न के रूप में एक-एक मकान। हर दिखाए गए मकान के लिए वह अक्षर खोजें जो अध्ययन नक्शे में उसकी जगह दिखाता है। उत्तर माउस क्लिक करके दें।`,
         },
         ...timing,
       ];
@@ -351,6 +351,8 @@ export interface MapSpec {
   item: string;
   /** The labels a part starts with, when they are always the same; null when the admin types them. */
   defaultLabels: string[] | null;
+  /** The questions are pictures (the house to find), one uploaded per question, not labels typed. */
+  pictureQuestions: boolean;
   topicPrefix: string;
   /** Questions per part, and the hall's clock per part. */
   perPart: number;
@@ -359,8 +361,8 @@ export interface MapSpec {
 }
 
 const MAPS: Record<string, MapSpec> = {
-  house: { noun: "map", item: "house", defaultLabels: Array.from({ length: 12 }, (_, i) => String(i + 1)), topicPrefix: "House", perPart: 12, studyMin: 2, partMin: 2 },
-  railway: { noun: "map", item: "station", defaultLabels: null, topicPrefix: "Station", perPart: 12, studyMin: 2, partMin: 2 },
+  house: { noun: "map", item: "house", defaultLabels: Array.from({ length: 12 }, (_, i) => String(i + 1)), pictureQuestions: true, topicPrefix: "House", perPart: 12, studyMin: 2, partMin: 2 },
+  railway: { noun: "map", item: "station", defaultLabels: null, pictureQuestions: false, topicPrefix: "Station", perPart: 12, studyMin: 2, partMin: 2 },
 };
 
 export function mapOf(category: string | null | undefined): MapSpec | null {
@@ -774,31 +776,58 @@ export const FIGFIG_SAMPLE_ID = "figure-figure-sample";
 
 const SHORT_CLOCK = { studyTimeMin: 0.05, partTimeMin: 0.05, breakTimeMin: 0.05 };
 
-/** A map: a few dots on a track, each with a name (study) or a letter (test). */
-function mapSvg(labels: string[], houses: boolean): string {
+/** A house, drawn differently each time: the House Position Test's houses, on the study map and as its questions. */
+function houseSvg(kind: number): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">${houseBody(kind)}</svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+/**
+ * A map: a few spots on a track, each with a name (a station's study map),
+ * a house (a house test's study map) or a letter (either test map).
+ */
+function mapSvg(labels: string[], houses: number[] | null): string {
   const spots = [[60, 40], [150, 90], [240, 40], [330, 90], [420, 40]];
   const dots = spots.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="7" fill="#222"/><text x="${x}" y="${y - 12}" font-size="13" text-anchor="middle" fill="#111">${labels[i] ?? ""}</text>`).join("");
   const track = `<polyline points="${spots.map(([x, y]) => `${x},${y}`).join(" ")}" fill="none" stroke="#444" stroke-width="3"/>`;
-  const strip = houses
-    ? Array.from({ length: 3 }, (_, i) => `<g transform="translate(${60 + i * 120} 130)"><rect x="0" y="10" width="40" height="30" fill="#fff" stroke="#111" stroke-width="2"/><path d="M-4 10 L20 -8 L44 10z" fill="#fff" stroke="#111" stroke-width="2"/><text x="20" y="60" font-size="13" text-anchor="middle" fill="#111">${i + 1}</text></g>`).join("")
+  // The study map's houses: a picture at each spot that has one, in place of a name.
+  const drawn = houses
+    ? spots.map(([x, y], i) => (houses[i] === undefined ? "" : `<g transform="translate(${x - 16} ${y - 44}) scale(0.66)">${houseBody(houses[i])}</g>`)).join("")
     : "";
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="${houses ? 200 : 120}" viewBox="0 0 480 ${houses ? 200 : 120}"><rect x="1" y="1" width="478" height="${houses ? 198 : 118}" fill="#fff" stroke="#999"/>${track}${dots}${strip}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120" viewBox="0 0 480 120"><rect x="1" y="1" width="478" height="118" fill="#fff" stroke="#999"/>${track}${dots}${drawn}</svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+/** The house's strokes alone, for drawing it inside another picture. */
+function houseBody(kind: number): string {
+  const roof = kind % 2 === 0 ? `<path d="M2 22 L24 4 L46 22z" fill="#fff" stroke="#111" stroke-width="2"/>` : `<rect x="4" y="8" width="40" height="14" fill="#fff" stroke="#111" stroke-width="2"/>`;
+  const door = kind % 3 === 0 ? `<rect x="19" y="30" width="10" height="16" fill="#111"/>` : kind % 3 === 1 ? `<rect x="8" y="30" width="9" height="16" fill="#111"/>` : `<rect x="31" y="30" width="9" height="16" fill="#111"/>`;
+  const windows = kind < 3 ? `<rect x="10" y="26" width="7" height="7" fill="#fff" stroke="#111" stroke-width="1.5"/>` : `<rect x="10" y="26" width="7" height="7" fill="#fff" stroke="#111" stroke-width="1.5"/><rect x="31" y="26" width="7" height="7" fill="#fff" stroke="#111" stroke-width="1.5"/>`;
+  const chimney = kind % 4 === 1 ? `<rect x="34" y="6" width="6" height="12" fill="#111"/>` : "";
+  return `<rect x="4" y="22" width="40" height="24" fill="#fff" stroke="#111" stroke-width="2"/>${chimney}${roof}${windows}${door}`;
 }
 
 export function mapSamplePaper(category: "house" | "railway") {
   const house = category === "house";
   const spec = mapOf(category)!;
   const letters = OPTION_LETTERS.slice(0, 5);
-  // Two parts: on each, three questions on the lettered map.
+  // Two parts: on each, three questions on the lettered map. A house test's
+  // study map shows the houses themselves, and its questions are those
+  // houses, one by one; a railway test's shows the stations' names.
   const parts = house
-    ? [{ names: ["1", "2", "3", "", ""], answers: ["B", "D", "A"] }, { names: ["", "1", "", "2", "3"], answers: ["E", "C", "B"] }]
-    : [{ names: ["SOK", "DET", "PIR", "", ""], answers: ["C", "A", "B"] }, { names: ["", "PMK", "TMP", "", "OLW"], answers: ["D", "E", "A"] }];
+    ? [{ names: ["", "", "", "", ""], houses: [0, 1, 2], answers: ["B", "D", "A"] }, { names: ["", "", "", "", ""], houses: [3, 4, 5], answers: ["E", "C", "B"] }]
+    : [{ names: ["SOK", "DET", "PIR", "", ""], houses: [], answers: ["C", "A", "B"] }, { names: ["", "PMK", "TMP", "", "OLW"], houses: [], answers: ["D", "E", "A"] }];
   const lettered = [["E", "B", "C", "D", "A"], ["A", "C", "B", "E", "D"]];
-  const study = parts.map((p) => mapSvg(p.names, false));
+  // Where each house stands on its study map: the spot whose letter is the answer.
+  const studyHouses = (pi: number, p: { houses: number[]; answers: string[] }): number[] => {
+    const at: number[] = [];
+    p.houses.forEach((kind, i) => { at[lettered[pi].indexOf(p.answers[i])] = kind; });
+    return at;
+  };
+  const study = parts.map((p, pi) => mapSvg(p.names, house ? studyHouses(pi, p) : null));
   const questions = parts.flatMap((p, pi) => {
     const labels = house ? ["1", "2", "3"] : p.names.filter(Boolean);
-    const image = mapSvg(lettered[pi], house);
+    const image = mapSvg(lettered[pi], null);
     return labels.map((label, li) => ({
       id: `${category}-q${pi * 3 + li + 1}`,
       tableIndex: 0,
@@ -808,6 +837,7 @@ export function mapSamplePaper(category: "house" | "railway") {
       working: { en: "", hi: "" },
       topic: `${spec.topicPrefix} ${label}`,
       image,
+      ...(house ? { promptImage: houseSvg(p.houses[li]) } : {}),
     }));
   });
   return {

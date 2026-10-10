@@ -23,6 +23,7 @@ import {
   addFigureQuestions,
   applyAnswerKey,
   replaceFigureImage,
+  replacePromptImage,
   setFigureAnswer,
   setOptionImages,
 } from "../figure-actions";
@@ -79,28 +80,49 @@ export function FigureQuestionsPanel({
   const map = mapOf(category);
   const [labels, setLabels] = useState((map?.defaultLabels ?? []).join("\n"));
   const mapPicker = useRef<HTMLInputElement | null>(null);
+  // A house test: the part's questions are pictures, chosen before the map.
+  const [housePictures, setHousePictures] = useState<File[]>([]);
+  const housePicker = useRef<HTMLInputElement | null>(null);
 
   const addMapPart = async (list: FileList | null) => {
     const file = list?.[0];
     if (!file || !map) return;
-    const names = labels.split("\n").map((l) => l.trim()).filter(Boolean);
-    const state: Run = { done: 0, total: 1, error: null, running: true };
+    const pictures = map.pictureQuestions ? sortByName(housePictures) : [];
+    // A picture question is numbered, not named: the number is its label in
+    // the key and the topic breakdown, and the screen shows the picture.
+    const names = map.pictureQuestions
+      ? pictures.map((_, i) => String(i + 1))
+      : labels.split("\n").map((l) => l.trim()).filter(Boolean);
+    const state: Run = { done: 0, total: 1 + pictures.length, error: null, running: true };
     setRun({ ...state });
     try {
+      if (map.pictureQuestions && pictures.length === 0) throw new Error(`Choose the ${map.item} pictures of this part first (step 1), one per question`);
       if (names.length === 0) throw new Error(`Type the ${map.item}s of this part first, one per line`);
       if (names.length > 60) throw new Error("At most 60 questions on one map");
+      const promptImages: string[] = [];
+      for (const picture of pictures) {
+        promptImages.push(await uploadPicture(picture));
+        state.done += 1;
+        setRun({ ...state });
+      }
       const url = await uploadPicture(file);
-      state.done = 1;
+      state.done += 1;
       setRun({ ...state });
-      const outcome = await addFigureQuestions(slug, [{ image: url }], optionCount, optionStyle, { prompts: names, topicPrefix: map.topicPrefix });
+      const outcome = await addFigureQuestions(slug, [{ image: url }], optionCount, optionStyle, {
+        prompts: names,
+        topicPrefix: map.topicPrefix,
+        ...(map.pictureQuestions ? { promptImages } : {}),
+      });
       if (outcome.error) throw new Error(outcome.error);
       if (!map.defaultLabels) setLabels("");
+      setHousePictures([]);
     } catch (e) {
       state.error = e instanceof Error ? e.message : String(e);
     } finally {
       state.running = false;
       setRun({ ...state });
       if (mapPicker.current) mapPicker.current.value = "";
+      if (housePicker.current) housePicker.current.value = "";
     }
   };
 
@@ -178,17 +200,43 @@ export function FigureQuestionsPanel({
         <p className="text-[13px] font-semibold text-gray-800">Add a part: the test map and its {map.item}s</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
           <li>
-            Each part has two pictures: the <strong>study map</strong> (set in the Study screens section above) and the
-            <strong> test map</strong>, the same map with the letters A to E in place of the {map.item}s{category === "house" ? ", and the houses numbered below it" : ""}.
+            Each part has two pictures: the <strong>study map</strong> (set in the Study screens section above){map.pictureQuestions ? `, with the ${map.item}s drawn on it,` : ""} and the
+            <strong> test map</strong>, the same map with the letters A to E in place of the {map.item}s.
           </li>
-          <li>
-            Type the {map.item}s of this part below, one per line, in the order the questions should come
-            {map.defaultLabels ? " (the house numbers are filled in)" : " (the station names, as the candidate reads them)"}; then choose the test map.
-            The part&apos;s questions are made on it, {map.perPart} per part in the hall.
-          </li>
+          {map.pictureQuestions ? (
+            <li>
+              The questions are the {map.item}s themselves, one picture each. <strong>Step 1:</strong> choose the part&apos;s {map.item} pictures, named in the
+              order the questions should come ({map.item}01.png, {map.item}02.png …). <strong>Step 2:</strong> choose the test map. Each picture becomes a
+              question, shown beside the map with the options A to E; {map.perPart} per part in the hall.
+            </li>
+          ) : (
+            <li>
+              Type the {map.item}s of this part below, one per line, in the order the questions should come (the station names, as the candidate reads them);
+              then choose the test map. The part&apos;s questions are made on it, {map.perPart} per part in the hall.
+            </li>
+          )}
           <li>Afterwards type the answer key in one line (one letter per question, in order), or set each answer by hand.</li>
         </ul>
         <div className="mt-3 flex flex-wrap items-start gap-4">
+          {map.pictureQuestions ? (
+            <div className="flex flex-col gap-2">
+              <span className="block text-[12px] font-semibold text-gray-700">Step 1 · {map.item[0].toUpperCase() + map.item.slice(1)} pictures of this part, one per question</span>
+              <button
+                type="button"
+                disabled={run?.running}
+                onClick={() => housePicker.current?.click()}
+                className="rounded border border-gray-400 bg-white px-4 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100 disabled:opacity-60"
+              >
+                Choose the {map.item} pictures…
+              </button>
+              <input ref={housePicker} type="file" accept="image/*" multiple className="hidden" onChange={(e) => setHousePictures(sortByName(Array.from(e.target.files ?? [])))} />
+              <span className="max-w-[300px] text-[12px] text-gray-600">
+                {housePictures.length === 0
+                  ? `None chosen yet; ${map.perPart} per part in the hall.`
+                  : `${housePictures.length} chosen, in this order: ${housePictures.slice(0, 4).map((f) => f.name).join(", ")}${housePictures.length > 4 ? " …" : ""}`}
+              </span>
+            </div>
+          ) : (
           <label className="block">
             <span className="mb-1 block text-[12px] font-semibold text-gray-700">{map.item[0].toUpperCase() + map.item.slice(1)}s of this part, one per line</span>
             <textarea
@@ -196,10 +244,11 @@ export function FigureQuestionsPanel({
               onChange={(e) => setLabels(e.target.value)}
               rows={6}
               disabled={run?.running}
-              placeholder={map.defaultLabels ? "1\n2\n3 …" : "SOK\nDET\nPIR …"}
+              placeholder="SOK\nDET\nPIR …"
               className="w-[220px] rounded border border-gray-400 px-2 py-1.5 font-mono text-[12px]"
             />
           </label>
+          )}
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2 text-[12px] text-gray-700">
               Options
@@ -215,7 +264,7 @@ export function FigureQuestionsPanel({
               onClick={() => mapPicker.current?.click()}
               className="rounded bg-indigo-800 px-5 py-2 text-[13px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60"
             >
-              {run?.running ? "Uploading…" : "Choose the test map…"}
+              {run?.running ? `Uploading… ${run.done}/${run.total}` : `${map.pictureQuestions ? "Step 2 · " : ""}Choose the test map…`}
             </button>
             <input ref={mapPicker} type="file" accept="image/*" className="hidden" onChange={(e) => void addMapPart(e.target.files)} />
             {run && !run.running && !run.error && <span className="text-[12px] font-semibold text-green-700">✓ part added</span>}
@@ -378,6 +427,7 @@ function FigureRow({
   const [error, setError] = useState<string | null>(null);
   const optionPicker = useRef<HTMLInputElement | null>(null);
   const figurePicker = useRef<HTMLInputElement | null>(null);
+  const housePicker = useRef<HTMLInputElement | null>(null);
   const unanswered = q.answer === "";
 
   const withPictures = async (what: string, files: FileList | null, apply: (urls: string[]) => Promise<{ ok: boolean; error?: string }>) => {
@@ -396,6 +446,7 @@ function FigureRow({
       setBusy(null);
       if (optionPicker.current) optionPicker.current.value = "";
       if (figurePicker.current) figurePicker.current.value = "";
+      if (housePicker.current) housePicker.current.value = "";
     }
   };
 
@@ -403,6 +454,33 @@ function FigureRow({
     <li className={`px-3 py-3 ${unanswered ? "bg-red-50" : ""}`}>
       <div className="flex flex-wrap items-start gap-4">
         <span className="w-[42px] shrink-0 text-[12px] font-semibold text-gray-700">Q. {index + 1}</span>
+
+        {q.promptImage && (
+          // A house test: the question is this picture; the map is the figure beside it.
+          <div className="shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={q.promptImage} alt="" className="h-[64px] w-auto rounded border border-gray-300 bg-white" />
+            <div className="mt-1">
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => housePicker.current?.click()}
+                className="text-[11px] font-semibold text-rrb-banner hover:underline disabled:opacity-50"
+              >
+                {busy === "house" ? "Uploading…" : "Replace question picture"}
+              </button>
+              <input
+                ref={housePicker}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) =>
+                  void withPictures("house", e.target.files, (urls) => replacePromptImage(slug, q.id, urls[0]))
+                }
+              />
+            </div>
+          </div>
+        )}
 
         <div className="shrink-0">
           {q.image ? (

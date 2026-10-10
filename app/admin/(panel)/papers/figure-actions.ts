@@ -71,8 +71,12 @@ export async function addFigureQuestions(
   items: (string | { image?: string | null; options?: string[] })[],
   optionCount: number,
   optionStyle: OptionStyle = "letters",
-  /** A sheet test (Brick, Similarity): each picture makes several questions, labelled as on it, on that one picture. */
-  sheet: { prompts: readonly string[]; topicPrefix: string } | null = null,
+  /**
+   * A sheet test (Brick, Similarity): each picture makes several questions,
+   * labelled as on it, on that one picture. A map test whose questions are
+   * pictures (House Position) gives one picture per question too.
+   */
+  sheet: { prompts: readonly string[]; topicPrefix: string; promptImages?: string[] } | null = null,
 ): Promise<{ added: number; error?: string }> {
   try {
     await requireEditor();
@@ -108,6 +112,9 @@ export async function addFigureQuestions(
       .maybeSingle();
     const start = ((last?.position as number | undefined) ?? -1) + 1;
 
+    if (sheet?.promptImages && sheet.promptImages.length !== sheet.prompts.length) {
+      throw new Error(`Needs one question picture per question: ${sheet.prompts.length} questions, ${sheet.promptImages.length} pictures`);
+    }
     const rows = sheet
       ? links.flatMap((q, i) =>
           sheet.prompts.map((label, li) => ({
@@ -120,6 +127,7 @@ export async function addFigureQuestions(
             topic: `${sheet.topicPrefix} ${label}`,
             image_url: q.image,
             option_images: null,
+            ...(sheet.promptImages ? { prompt_image: pictureLink(sheet.promptImages[li]) } : {}),
           })),
         )
       : links.map((q, i) => ({
@@ -267,6 +275,30 @@ export async function setOptionImages(
 }
 
 /** Swaps the figure of one question for another picture. */
+/** Replaces a map test's question picture (the house to find). */
+export async function replacePromptImage(
+  slug: string,
+  id: string,
+  url: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    await requireEditor();
+    const paperId = await paperIdOf(slug);
+    const q = await questionOf(id, paperId);
+    const { error } = await questionStore()
+      .from("watch_questions")
+      .update({ prompt_image: pictureLink(url) })
+      .eq("id", q.id);
+    if (error) throw new Error(error.message);
+    revalidatePath(`/admin/papers/${slug}`);
+    paperChanged(slug);
+    return { ok: true };
+  } catch (error) {
+    if (typeof (error as { digest?: unknown })?.digest === "string") throw error;
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 export async function replaceFigureImage(
   slug: string,
   id: string,

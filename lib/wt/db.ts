@@ -72,6 +72,23 @@ interface QuestionRow {
   topic?: string;
   image_url?: string | null;
   option_images?: string[] | null;
+  prompt_image?: string | null;
+}
+
+/**
+ * Reads question rows, and reads again without the newest column on a
+ * database the schema file has not been re-run on: a paper is never
+ * refused for a column it does not have yet.
+ */
+export async function readQuestionRows<T>(
+  query: (columns: string) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+  columns: string,
+): Promise<{ data: T[] | null; error: { message: string } | null }> {
+  const first = await query(columns);
+  if (first.error && columns.includes("prompt_image") && /prompt_image/.test(first.error.message)) {
+    return query(columns.replace(/,\s*prompt_image/, ""));
+  }
+  return first;
 }
 
 function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
@@ -89,6 +106,7 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
     topic: q.topic ?? "",
     ...(q.image_url ? { image: q.image_url } : {}),
     ...(q.option_images?.length ? { optionImages: q.option_images } : {}),
+    ...(q.prompt_image ? { promptImage: q.prompt_image } : {}),
   }));
 
   return {
@@ -125,7 +143,7 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
 
 /** The columns of a question a candidate may see. The key is not among them. */
 const PUBLIC_QUESTION_COLUMNS =
-  "id, position, prompt_en, prompt_hi, options, topic, image_url, option_images";
+  "id, position, prompt_en, prompt_hi, options, topic, image_url, option_images, prompt_image";
 
 /**
  * The paper a candidate sits. Never carries the answer key.
@@ -156,11 +174,10 @@ export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | 
         // must not answer "not found" until the cache turns over.
         if (!row) throw new NotPublished();
 
-        const { data: questions, error } = await supabase
-          .from("watch_questions")
-          .select(PUBLIC_QUESTION_COLUMNS)
-          .eq("paper_id", (row as PaperRow).id)
-          .order("position");
+        const { data: questions, error } = await readQuestionRows<QuestionRow>(
+          (columns) => supabase.from("watch_questions").select(columns).eq("paper_id", (row as PaperRow).id).order("position") as unknown as PromiseLike<{ data: QuestionRow[] | null; error: { message: string } | null }>,
+          PUBLIC_QUESTION_COLUMNS,
+        );
         if (error) throw new Error(`Could not read the questions for "${slug}": ${error.message}`);
 
         return toPaper(row as PaperRow, (questions ?? []) as QuestionRow[]);
@@ -191,11 +208,10 @@ export async function loadPaperLive(slug: string): Promise<WatchPaper | null> {
     .maybeSingle();
   if (!row) return null;
 
-  const { data: questions, error } = await supabase
-    .from("watch_questions_public")
-    .select(PUBLIC_QUESTION_COLUMNS)
-    .eq("paper_id", (row as PaperRow).id)
-    .order("position");
+  const { data: questions, error } = await readQuestionRows<QuestionRow>(
+    (columns) => supabase.from("watch_questions_public").select(columns).eq("paper_id", (row as PaperRow).id).order("position") as unknown as PromiseLike<{ data: QuestionRow[] | null; error: { message: string } | null }>,
+    PUBLIC_QUESTION_COLUMNS,
+  );
 
   // Ignoring this error made a failed read look exactly like a paper with no
   // questions, so the exam said "This paper has no questions yet" over a paper
@@ -224,13 +240,10 @@ export async function loadPaperForAdmin(slug: string): Promise<WatchPaper | null
     .maybeSingle();
   if (!row) return null;
 
-  const { data: questions } = await supabase
-    .from("watch_questions")
-    .select(
-      "id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic, image_url, option_images",
-    )
-    .eq("paper_id", (row as PaperRow).id)
-    .order("position");
+  const { data: questions } = await readQuestionRows<QuestionRow>(
+    (columns) => supabase.from("watch_questions").select(columns).eq("paper_id", (row as PaperRow).id).order("position") as unknown as PromiseLike<{ data: QuestionRow[] | null; error: { message: string } | null }>,
+    "id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic, image_url, option_images, prompt_image",
+  );
 
   return toPaper(row as PaperRow, (questions ?? []) as QuestionRow[]);
 }

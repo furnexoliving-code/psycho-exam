@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getProfile, isConfigured, isVerifiedEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
+import { readQuestionRows } from "@/lib/wt/db";
 import { tScore, type Cohort } from "@/lib/wt/tscore";
 import {
   resolveFeatures,
@@ -72,6 +73,8 @@ export interface MarkedQuestion {
   topic: string;
   /** A Perceptual Speed question's figure, and its option pictures when it has them. */
   image?: string;
+  /** A map test's question picture (the house to find), shown in place of the prompt's text. */
+  promptImage?: string;
   optionImages?: string[];
 }
 
@@ -563,16 +566,16 @@ interface QuestionRow {
   topic: string | null;
   image_url?: string | null;
   option_images?: string[] | null;
+  prompt_image?: string | null;
 }
 
 /** The paper's questions with their key, in order. Service role: the key column is revoked from everyone else. */
 async function fetchQuestions(paperId: string): Promise<QuestionRow[]> {
   const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("watch_questions")
-    .select("id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic, image_url, option_images")
-    .eq("paper_id", paperId)
-    .order("position");
+  const { data } = await readQuestionRows<QuestionRow>(
+    (columns) => supabase.from("watch_questions").select(columns).eq("paper_id", paperId).order("position") as unknown as PromiseLike<{ data: QuestionRow[] | null; error: { message: string } | null }>,
+    "id, position, prompt_en, prompt_hi, options, answer, working_en, working_hi, topic, image_url, option_images, prompt_image",
+  );
   return (data ?? []) as QuestionRow[];
 }
 
@@ -597,6 +600,7 @@ function mark(rows: QuestionRow[], given: Map<string, OptionValue>): MarkedQuest
       topic: q.topic ?? "",
       ...(q.image_url ? { image: q.image_url } : {}),
       ...(q.option_images?.length ? { optionImages: q.option_images } : {}),
+      ...(q.prompt_image ? { promptImage: q.prompt_image } : {}),
     };
   });
 }
@@ -628,6 +632,7 @@ function markFromBundle(
       topic: q.topic ?? "",
       ...(q.image ? { image: q.image } : {}),
       ...(q.optionImages?.length ? { optionImages: q.optionImages } : {}),
+      ...(q.promptImage ? { promptImage: q.promptImage } : {}),
     };
   });
 }
