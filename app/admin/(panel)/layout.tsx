@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { AdminSetupGuide } from "@/components/AdminSetupGuide";
 import { SiteHeader } from "@/components/SiteHeader";
-import { SignOutButton } from "@/components/SignOutButton";
+import { AdminShell } from "@/components/admin/AdminShell";
+import type { NavGroup } from "@/components/admin/AdminNav";
 import { isConfigured, mayOpen, missingConfig, requirePanel, type Section } from "@/lib/auth";
 
 /**
@@ -12,19 +12,35 @@ import { isConfigured, mayOpen, missingConfig, requirePanel, type Section } from
  */
 export const maxDuration = 40;
 
-/** Every tab, with the section it belongs to; an account sees only its own. */
-const NAV: { href: string; label: string; section: Section }[] = [
-  { href: "/admin", label: "Home", section: "admin" },
-  { href: "/admin/students", label: "Students", section: "admin" },
-  { href: "/admin/papers", label: "Test Papers", section: "papers" },
-  { href: "/admin/mocks", label: "Full Mocks", section: "papers" },
-  { href: "/admin/results", label: "Results", section: "results" },
-  { href: "/admin/reports", label: "Question reports", section: "papers" },
-  { href: "/admin/packages", label: "Packages", section: "admin" },
-  { href: "/admin/coupons", label: "Coupons", section: "admin" },
-  { href: "/admin/blog", label: "Blog", section: "admin" },
-  { href: "/admin/passwords", label: "Reset a password", section: "passwords" },
-  { href: "/admin/team", label: "Team & Activity", section: "admin" },
+/** Every page, grouped by what it is about, with the section it belongs to; an account sees only its own. */
+const NAV: { title: string; items: { href: string; label: string; icon: string; section: Section }[] }[] = [
+  { title: "Overview", items: [{ href: "/admin", label: "Home", icon: "🏠", section: "admin" }] },
+  {
+    title: "Students",
+    items: [
+      { href: "/admin/students", label: "Students", icon: "🎓", section: "admin" },
+      { href: "/admin/packages", label: "Packages", icon: "🎟️", section: "admin" },
+      { href: "/admin/coupons", label: "Coupons", icon: "🏷️", section: "admin" },
+      { href: "/admin/orders", label: "Orders & payments", icon: "₹", section: "admin" },
+    ],
+  },
+  {
+    title: "Content",
+    items: [
+      { href: "/admin/papers", label: "Test Papers", icon: "📝", section: "papers" },
+      { href: "/admin/mocks", label: "Full Mocks", icon: "🏁", section: "papers" },
+      { href: "/admin/reports", label: "Question reports", icon: "🚩", section: "papers" },
+      { href: "/admin/blog", label: "Blog", icon: "✍️", section: "admin" },
+    ],
+  },
+  { title: "Results", items: [{ href: "/admin/results", label: "Results", icon: "📊", section: "results" }] },
+  {
+    title: "Settings",
+    items: [
+      { href: "/admin/team", label: "Settings & team", icon: "⚙️", section: "admin" },
+      { href: "/admin/passwords", label: "Reset a password", icon: "🔑", section: "passwords" },
+    ],
+  },
 ];
 
 const ROLE_LABEL = { admin: "Admin", editor: "Test setter", staff: "Staff", viewer: "Result viewer", student: "" };
@@ -45,40 +61,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // a panel role and the second factor. Which SECTION the account may open
   // is checked again by each page, since a request can skip the layout.
   const profile = await requirePanel();
-  const tabs = NAV.filter((item) => mayOpen(profile.role, item.section));
+  const groups: NavGroup[] = NAV.map((g) => ({ title: g.title, items: g.items.filter((item) => mayOpen(profile.role, item.section)) })).filter((g) => g.items.length > 0);
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <SiteHeader
-        right={
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] text-white/80">
-              {profile.full_name || ROLE_LABEL[profile.role]}
-              {profile.role !== "admin" && (
-                <span className="ml-1 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold">
-                  {ROLE_LABEL[profile.role]}
-                </span>
-              )}
-            </span>
-            <SignOutButton />
-          </div>
-        }
-      />
-
-      <nav className="flex gap-1 border-b border-gray-300 bg-white px-4">
-        {tabs.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="border-b-2 border-transparent px-4 py-2.5 text-[13px] font-semibold
-                       text-gray-600 hover:border-rrb-banner hover:text-rrb-banner"
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-6">{children}</main>
-    </div>
+    <AdminShell profile={{ name: profile.full_name || ROLE_LABEL[profile.role], role: ROLE_LABEL[profile.role] }} groups={groups} canSearch={mayOpen(profile.role, "admin")}>
+      {children}
+    </AdminShell>
   );
 }

@@ -34,12 +34,8 @@ export interface Enrollment {
   note: string;
 }
 
-/** The exams the portal knows, for the admin's selects. */
-export const EXAMS = [
-  { id: "alp", name: "RRB ALP" },
-  { id: "asm", name: "RRB ASM / Station Master" },
-  { id: "train-operator", name: "Train Operator" },
-] as const;
+/** The exams the portal knows, for the admin's selects: kept with the exams themselves. */
+export { EXAMS } from "./exams";
 
 export const KIND_LABEL: Record<PackageKind, string> = {
   sectional: "Sectional tests",
