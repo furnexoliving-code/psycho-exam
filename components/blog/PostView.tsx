@@ -1,3 +1,4 @@
+import { FreeMockCta } from "@/components/FreeMockCta";
 import Link from "next/link";
 import { CONTACT, PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import { Markdown, headingsOf } from "@/components/blog/Markdown";
@@ -67,8 +68,12 @@ export function PostView({ post, packages, upsell, saving, related, signedIn, fr
               <Markdown text={post.content} />
             </div>
 
-            {/* In-text cross-sell: the free mock, where the reader is warmest. */}
-            <aside className="mt-10 rounded-2xl bg-[#0d2a6b] px-6 py-6 text-white">
+            {/* The offer every public page makes, where the reader is warmest. */}
+            <div className="mt-10">
+              <FreeMockCta />
+            </div>
+
+            <aside className="mt-6 rounded-2xl bg-[#0d2a6b] px-6 py-6 text-white">
               <p className="text-[12px] font-bold uppercase tracking-[0.25em]" style={{ color: Y }}>Try it on the real screen</p>
               <h2 className="mt-1 text-[24px] font-extrabold">Practise all 5 tests on a screen like the hall</h2>
               <p className="mt-1 text-[15px] text-[#c9d3e6]">

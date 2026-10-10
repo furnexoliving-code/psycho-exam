@@ -1,66 +1,46 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { TestPageView } from "@/components/seo/TestPageView";
+import { BatteryPageView } from "@/components/seo/BatteryPageView";
 import { listPackages } from "@/lib/packages";
-import { TEST_PAGES, testPage } from "@/lib/seo-tests";
-import { DEVICE_FAQ } from "@/lib/seo-sections";
-
-const SITE = "https://kautilyaonline.com";
+import { BATTERY_PAGES, SITE, STANDARD_FAQ, batteryPage } from "@/lib/seo/content";
+import { JsonLd, articleLd, breadcrumbLd, faqLd } from "@/lib/seo/jsonld";
 
 export const revalidate = 3600;
 
 export function generateStaticParams() {
-  return TEST_PAGES.map((t) => ({ slug: t.slug }));
+  return BATTERY_PAGES.map((b) => ({ slug: b.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const page = testPage(slug);
+  const page = batteryPage(slug);
   if (!page) return { robots: { index: false, follow: false } };
+  const url = `${SITE}/psycho-test/${page.slug}`;
   return {
     title: page.title,
     description: page.description,
     keywords: page.keywords,
     robots: { index: true, follow: true },
-    alternates: { canonical: `${SITE}/psycho-test/${page.slug}` },
-    openGraph: { type: "article", url: `${SITE}/psycho-test/${page.slug}`, title: page.title, description: page.description, images: [{ url: "/og.jpg" }], locale: "en_IN" },
+    alternates: { canonical: url },
+    openGraph: { type: "article", url, title: page.title, description: page.description, locale: "en_IN", siteName: "Kautilya Classes · Railway Psycho Test Portal" },
+    twitter: { card: "summary_large_image", title: page.title, description: page.description },
   };
 }
 
-export default async function TestSeoPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BatterySeoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const page = testPage(slug);
+  const page = batteryPage(slug);
   if (!page) notFound();
   const packages = await listPackages("alp");
-  const jsonLd = [
-    {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      headline: page.title,
-      description: page.description,
-      author: { "@type": "Organization", name: "Kautilya Classes" },
-      publisher: { "@type": "Organization", name: "Kautilya Classes", logo: { "@type": "ImageObject", url: `${SITE}/kautilya-logo.png` } },
-      mainEntityOfPage: `${SITE}/psycho-test/${page.slug}`,
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
-        { "@type": "ListItem", position: 2, name: "RRB ALP Psycho Test", item: `${SITE}/rrb-alp-psycho-test` },
-        { "@type": "ListItem", position: 3, name: page.name, item: `${SITE}/psycho-test/${page.slug}` },
-      ],
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: [...page.faq, DEVICE_FAQ].map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
-    },
-  ];
+  const url = `${SITE}/psycho-test/${page.slug}`;
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <TestPageView page={page} packages={packages} />
+      <JsonLd data={[
+        articleLd(url, page.title, page.description, `${page.name} (RRB ALP CBAT, Test ${page.battery})`),
+        breadcrumbLd([{ name: "Home", url: `${SITE}/` }, { name: "RRB ALP Psycho Test", url: `${SITE}/rrb-alp-psycho-test` }, { name: page.name, url }]),
+        faqLd([...page.faq, ...STANDARD_FAQ]),
+      ]} />
+      <BatteryPageView page={page} packages={packages} />
     </>
   );
 }

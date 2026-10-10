@@ -1,0 +1,760 @@
+[
+ {
+  "kind": "battery",
+  "slug": "memory-test",
+  "battery": 1,
+  "name": "Memory Test",
+  "hindi": "स्मृति परीक्षण",
+  "title": "Memory Test for RRB ALP CBAT: Pattern, 5 Kinds, Tips",
+  "description": "Memory Test, Test 1 of the RRB ALP CBAT: five kinds, 24 to 42 questions in 8 or 12 minutes. Method, mistakes, a 7-day plan and a free Full Mock.",
+  "keywords": [
+   "rrb alp memory test",
+   "alp psycho test memory test",
+   "memory test kaise hota hai",
+   "alp memory test kya hai",
+   "cbat test 1 memory test pattern",
+   "smriti parikshan rrb alp",
+   "memory test me kya aata hai",
+   "memory test me kitne sawal",
+   "alp cbat memory test"
+  ],
+  "intro": [
+   "The RRB ALP Memory Test is Test 1 of the CBAT, the psycho test after CBT 2. In the hall it is one of five kinds: House Position Test (1a), Figure to Number Test (1b), Railway Track Route Test (1c), Figure to Figure Test (1d) or Figure Find Test (1e). Each kind has two parts, each with a study stage and then a test stage. Kinds 1a, 1c and 1e give 24 questions in 8 minutes; 1b and 1d give 42 or 40 in 12 minutes. The test measures how much you can hold in mind for a short while.",
+   "The study screen shows a map, picture-number pairs, pairs of shapes or sets of shapes under a Time Left clock. At zero it disappears and the questions open on a fresh screen. Each question offers four or five options; you click one and press Save & Next. This page gives the shared flow, a study method, the costly mistakes, a 7-day plan and common questions. Practice papers on the portal run with the hall's count and clock; one Full Mock is free after login."
+  ],
+  "introHi": "स्मृति परीक्षण RRB ALP के साइको टेस्ट (CBAT) का पहला टेस्ट है, जो CBT 2 के बाद होता है। परीक्षा हॉल में यह पाँच प्रकारों में से किसी एक रूप में आता है: मकान स्थिति परीक्षण (1a), आकृति-अंक परीक्षण (1b), रेलवे ट्रैक रूट परीक्षण (1c), आकृति-आकृति परीक्षण (1d) या आकृति खोज परीक्षण (1e)। हर प्रकार के दो भाग होते हैं और हर भाग में पहले याद करने का समय मिलता है, फिर सवाल आते हैं; 1a, 1c और 1e में 8 मिनट में 24 सवाल और 1b, 1d में 12 मिनट में 42 या 40 सवाल होते हैं।",
+  "kindsIntro": "In the hall, Test 1 appears as one kind only: House Position Test (1a), Figure to Number Test (1b), Railway Track Route Test (1c), Figure to Figure Test (1d) or Figure Find Test (1e). In the last exam (CEN 01/2024) the hall gave the Figure Find Test, as the institute's records show.",
+  "how": [
+   {
+    "h": "Instruction screen",
+    "p": "Each kind opens with its rules in Hindi and English and a worked example. This screen tells you which kind you have. On the portal it allows 5 minutes and can be skipped."
+   },
+   {
+    "h": "Study screen, Part 1",
+    "p": "The material appears under its own Time Left clock. You get 2 minutes in the 24-question kinds and 3 minutes in Figure to Number and Figure to Figure. Nothing can be written. At zero the screen closes and does not come back."
+   },
+   {
+    "h": "Test screen, Part 1",
+    "p": "A fresh clock of the same length starts. Part 1 has 12 questions in the 24-question kinds, 21 in Figure to Number and 20 in Figure to Figure. Map kinds ask the letter now shown at each house's or station's place. Figure to Number gives four options and Figure Find gives five sets to choose from. Click one, press Save & Next."
+   },
+   {
+    "h": "Part 2",
+    "p": "A short break with a summary follows. Then Part 2 opens by itself: a second study screen under a fresh clock of the same length, then its own 12, 21 or 20 questions."
+   },
+   {
+    "h": "Submit and T-Score",
+    "p": "Press Submit, or the clock submits for you at zero. On the portal your T-Score appears at once, with a review of every question and its answer. In a Full Mock a break with a summary follows, then Test 2."
+   }
+  ],
+  "method": [
+   {
+    "h": "Fix a reading order before you look",
+    "p": "Decide the route your eyes will take before the screen opens. On a map go left to right and top to bottom; with pairs or sets, go one after another. Keep it on every pass; a fixed order makes each item's place part of the memory."
+   },
+   {
+    "h": "Name each item, then link it",
+    "p": "Say every item under your breath as you reach it. Name each house by what stands near it, and each picture with its number. For pairs, add a link between the halves, a picture or a short story. A bare pair falls out of memory first."
+   },
+   {
+    "h": "Go round more than once",
+    "p": "Walk every item once in order; walk it again adding each name or link; then return only to what slipped. Let the last round run until Time Left reaches zero."
+   },
+   {
+    "h": "Strike, then pick",
+    "p": "Recall the item's name or link before you look at the options. Strike those you never saw or that break the link. Click the one left, press Save & Next and let it go. At 10 seconds or less a question, there is no room for a second look."
+   }
+  ],
+  "tips": [
+   {
+    "h": "Know your pace",
+    "p": "You get 10 seconds a question in the three 24-question kinds. Figure to Figure gives 9, Figure to Number under 9. Hold that pace from question 1; a slow start cannot be made up later in the part."
+   },
+   {
+    "h": "Tie every place to a landmark",
+    "p": "In the map kinds the letters sit where the houses or stations stood. Fix each place by its neighbours on the map. Note the house beside another house, or the station before and after it on the track. Hold the route, not a list of separate points."
+   },
+   {
+    "h": "Give every pair a reason",
+    "p": "In Figure to Number, read the number as one word with the picture and repeat the pair both ways. In Figure to Figure, see the two shapes as one object. The question asks for the exact partner, so a vague memory is not enough."
+   },
+   {
+    "h": "Keep the order inside a set",
+    "p": "In Figure Find you must pick the set you studied from five options. Give each set a code word, one letter a shape, in the order the shapes stand. Check every option against the code before you click."
+   },
+   {
+    "h": "Treat Part 2 as a new paper",
+    "p": "Part 2 has its own study screen and questions. Do not lean on what you remember from Part 1. Study the second screen from nothing, in the same fixed order."
+   },
+   {
+    "h": "Review where you lose items",
+    "p": "The portal's review shows every question with its answer. After each paper, note where the lost items sat: far side of the map, last pairs, middle of a set. Give that spot an extra round of study next time."
+   }
+  ],
+  "mistakes": [
+   "Taking in the study screen as one picture instead of reading it in a fixed order, then failing the place questions.",
+   "Memorising the pictures of the Figure to Number Test but not their numbers, which every question asks for.",
+   "Feeling ready after one pass and letting the rest of the study clock run unused.",
+   "Leaning on Part 1 in Part 2 instead of studying the second screen from nothing.",
+   "Preparing only the Figure Find Test because the last exam gave it, and meeting a map kind unprepared."
+  ],
+  "plan": [
+   {
+    "day": "Day 1",
+    "task": "Read the instruction screens of all five kinds on the portal. Work each example until you can give its answer without looking at it."
+   },
+   {
+    "day": "Day 2",
+    "task": "Map kinds. Sit one House Position Test paper and one Railway Track Route Test paper without chasing the clock. Tie every house or station to a landmark."
+   },
+   {
+    "day": "Day 3",
+    "task": "Pair kinds. Sit one Figure to Number Test paper and one Figure to Figure Test paper, with a link for every pair. In the review, note which pairs you lost and why."
+   },
+   {
+    "day": "Day 4",
+    "task": "Set kind. Sit one Figure Find Test paper, giving every set a code word, one letter a shape. The last exam gave this kind, so sit a second attempt and compare the two T-Scores."
+   },
+   {
+    "day": "Day 5",
+    "task": "Pace. Sit one paper at full speed and reach the last question of both parts. Halfway through a part, half the clock should still be showing."
+   },
+   {
+    "day": "Day 6",
+    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting, in the hall's order. Compare the Test 1 T-Score on the scorecard with 42, the pass bar, and with 60, the Kautilya Classes target."
+   },
+   {
+    "day": "Day 7",
+    "task": "Second attempt of the kind that scored lowest; a paper allows up to 3 attempts, and the highest T-Score counts. Then rest; memory work needs a fresh head."
+   }
+  ],
+  "faq": [
+   {
+    "q": "Which kind of Memory Test comes in the RRB ALP psycho test?",
+    "a": "One of five; the instruction screen tells you on the day. In the last exam (CEN 01/2024) the hall gave the Figure Find Test, as the institute's records show."
+   },
+   {
+    "q": "How many questions are in the ALP Memory Test?",
+    "a": "House Position, Railway Track Route and Figure Find: 24 questions in 8 minutes, as 12 + 12. Figure to Number: 42 in 12 minutes, as 21 + 21. Figure to Figure: 40 in 12 minutes, as 20 + 20."
+   },
+   {
+    "q": "Memory test kaise hota hai: what does the screen show?",
+    "a": "First a study screen: a map with houses or stations, pictures with numbers, pairs or sets of shapes. Then each question asks for one thing you studied and gives four or five options. Click the one that matches and press Save & Next."
+   },
+   {
+    "q": "Can I see the study screen again, or write anything down?",
+    "a": "No. When its clock reaches zero the study screen is gone for that part. Part 2 has its own study screen with its own clock. Nothing can be written; your memory is the only store."
+   },
+   {
+    "q": "Is the Memory Test the first test of the CBAT?",
+    "a": "Yes. It is Test 1 of five and comes before the Following Directions Test. The free Full Mock runs the five tests in the hall's order."
+   },
+   {
+    "q": "What does the Memory Test measure?",
+    "a": "Short recall under a clock. It asks where a house or station stood, what went with each picture, and which shapes made a set. What you did not fix in the study stage cannot be found later."
+   }
+  ],
+  "summaryHi": "स्मृति परीक्षण RRB ALP साइको टेस्ट का पहला टेस्ट है और परीक्षा हॉल में इसके पाँच प्रकारों में से एक ही आता है। मकान स्थिति, रेलवे ट्रैक रूट और आकृति खोज परीक्षण में 8 मिनट में 24 सवाल होते हैं, आकृति-अंक परीक्षण में 12 मिनट में 42 सवाल और आकृति-आकृति परीक्षण में 12 मिनट में 40 सवाल। हर प्रकार में पहले याद करने की स्क्रीन आती है, जो घड़ी शून्य होते ही बंद हो जाती है और वापस नहीं आती, फिर सवाल आते हैं; यही क्रम दूसरे भाग में अपनी स्क्रीन और अपनी घड़ी के साथ दोहराया जाता है। याद करते समय एक तय क्रम रखें, हर चीज़ का नाम मन में बोलें, जोड़ों को किसी कड़ी से बाँधें और घड़ी का पूरा समय इस्तेमाल करें। संस्थान के रिकॉर्ड के अनुसार पिछली परीक्षा (CEN 01/2024) में आकृति खोज परीक्षण आया था, पर पाँचों की तैयारी करें। पोर्टल पर लॉगइन के बाद एक फुल मॉक मुफ़्त है, हर प्रैक्टिस पेपर में परीक्षा हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का हल मिलता है।"
+ },
+ {
+  "kind": "battery",
+  "slug": "following-directions-test",
+  "battery": 2,
+  "name": "Following Directions Test",
+  "hindi": "निर्देश पालन परीक्षण",
+  "title": "Following Directions Test for RRB ALP: Kinds, Pattern, Tips",
+  "description": "Following Directions Test of the RRB ALP CBAT: Watch Table (20 questions, 10 minutes), Letter Table or Number Table (10 in 5). Method, tips, free Full Mock.",
+  "keywords": [
+   "following directions test rrb alp",
+   "alp psycho test following directions",
+   "alp psycho test 2 kinds",
+   "following directions test questions",
+   "following directions practice paper",
+   "following directions test kya hai",
+   "following directions test kaise hota hai",
+   "nirdesh palan parikshan alp",
+   "alp cbat test 2 pattern"
+  ],
+  "intro": [
+   "The Following Directions Test is Test 2 of the RRB ALP CBAT, the psycho test after CBT 2. The hall gives it as the Letter Table Test (2a), the Watch Table Test (2b) or the Number Table Test (2c). The Letter Table and the Number Table give 10 questions in 5 minutes; the Watch Table gives 20 in 10. Each question is a sentence of directions. The test measures whether you read it once and carry it out exactly, under a clock. Every kind follows the RDSO guideline (ALPs Guidelines CBT, Jan 2020).",
+   "The table or the circle sits at the left, and the questions sit at the right with their options. You read a direction, follow it across the letters or numbers in your head, and click where the path ends. The Time Left clock runs through the whole test; the table stays and only the question changes. This page gives you the three kinds, a step-by-step method, the mistakes that cost marks and a 7-day plan."
+  ],
+  "introHi": "निर्देश पालन परीक्षण RRB ALP के साइको टेस्ट (CBAT) का दूसरा टेस्ट है, जो CBT 2 के बाद होता है। परीक्षा हॉल में यह तीन में से एक रूप में आता है: लेटर टेबल टेस्ट (2a), वॉच टेबल टेस्ट (2b) या नंबर टेबल टेस्ट (2c)। लेटर टेबल और नंबर टेबल में 10 सवाल 5 मिनट में होते हैं और वॉच टेबल में 20 सवाल 10 मिनट में; हर सवाल एक वाक्य का निर्देश होता है, जिसे आपको घड़ी के भीतर ठीक-ठीक मानना होता है।",
+  "kindsIntro": "Test 2 comes as one kind only: Letter Table Test (2a), Watch Table Test (2b) or Number Table Test (2c). The hall does not say which in advance. In the last exam (CEN 01/2024) it gave the Watch Table Test, as the institute's records show.",
+  "how": [
+   {
+    "h": "Instruction screen",
+    "p": "The test opens with an instruction screen in Hindi and English. It shows the table or the circle you are about to get, with a worked question and its answer. On the portal this screen allows 5 minutes and can be skipped."
+   },
+   {
+    "h": "Test screen and clock",
+    "p": "The Time Left clock starts with the first question. The letter table, the number table or the Watch Table's circle sits at the left and stays for the whole test. Each question sits at the right with its options: letters or numbers from the grid, or numbers from the circle's squares."
+   },
+   {
+    "h": "Read, follow, click",
+    "p": "Read one direction, carry it out on the table in your head and click the option the path ends on. The click keeps the answer; the next direction sits below it in the list."
+   },
+   {
+    "h": "Submit, or the clock submits",
+    "p": "Press Submit when the last question is done, or wait and the clock submits for you at zero. Every marked answer counts; a blank question scores nothing."
+   },
+   {
+    "h": "Break, summary and T-Score",
+    "p": "In a Full Mock a short break with a summary follows, and then Test 3. In a practice paper your T-Score appears the moment you submit, with a review of every direction and its correct answer."
+   }
+  ],
+  "method": [
+   {
+    "h": "Fix the frame before the first question",
+    "p": "Learn the layout on the instruction screen. Grid: rows are numbered in Roman numerals from the top, Row I first, and columns run from the left. Circle: North at the top, then North-East, East, South-East, South, South-West, West and North-West, clockwise."
+   },
+   {
+    "h": "Read the whole sentence, then move",
+    "p": "A direction often has two parts, and the second part works on the result of the first. Take the guideline's question: 'Which number appears just opposite to the number between B3 and D2?' First find the number between B3 and D2. Only then go opposite; the answer is 5. Start moving after the question mark, not before."
+   },
+   {
+    "h": "Take the path one step at a time",
+    "p": "Say each step as you make it: between, then opposite. Reverse Rows I and III, then look below C in Row II. Jumping two steps together is where the wrong letter comes from. On a reversal, picture the row read backwards; the middle cell stays where it is."
+   },
+   {
+    "h": "Check the stop, then click",
+    "p": "At the end of the path ask one thing: is this the letter, or the number, the sentence asked for? The Watch Table wants the number in the square, not the letter beside it. Click, and go to the next sentence."
+   },
+   {
+    "h": "Keep the pace",
+    "p": "Thirty seconds a question, in every kind. Give a lost path one re-read, click the likeliest option and go on. Return only after the last question."
+   }
+  ],
+  "tips": [
+   {
+    "h": "Each kind has its own direction words",
+    "p": "The circle speaks in right-handedly and left-handedly, which are clockwise and anticlockwise. The grids speak in directly above, below and reverse order. Learn the words of all three kinds; the instruction screen's example tells you which set the hall chose."
+   },
+   {
+    "h": "Directly above is one cell, not a column",
+    "p": "On the Letter Table and the Number Table, 'directly above A' means the single cell over A, in the same column. In the guideline's example that letter is B. When a number repeats in the grid, find the one the question means before you move."
+   },
+   {
+    "h": "The circle paper runs twice as long",
+    "p": "A grid paper ends in 5 minutes; the Watch Table runs 10, with 20 directions in a row. Attention tends to dip in the second half. Sit the circle paper to its last question at the speed of its first."
+   },
+   {
+    "h": "Count places, not letters",
+    "p": "On the circle the letters mark places, and the squares hold the numbers you answer with. 'Between' means the single place in the middle of the two named. When the question says 'right-handedly' or 'left-handedly', go that way. When it says 'by the shortest route', take the shorter way round. Do not count the starting place as step one."
+   },
+   {
+    "h": "Use the review, then sit the paper again",
+    "p": "After submitting, open the review and reread every direction you got wrong. Note which word misled you: opposite, between, reverse or right-handedly. A practice paper allows up to 3 attempts, and the highest T-Score of the three counts."
+   }
+  ],
+  "mistakes": [
+   "Starting to move before the sentence ends, and missing the twist in its second half.",
+   "Bringing grid habits to the circle, or circle habits to a grid.",
+   "Reversing a row the direction never named, or not reversing the one it did.",
+   "Drifting a column on 'directly above', or stopping beside one end on 'between'.",
+   "Spending two minutes on one direction and leaving the last questions blank when the clock submits."
+  ],
+  "plan": [
+   {
+    "day": "Day 1",
+    "task": "Read the instruction screens of all three kinds on the portal. Work the guideline's examples until each answer is clear. Letter Table: B is directly above A. Watch Table: 5 opposite the number between B3 and D2, and 2 between North and East. Number Table: 2 directly above 1."
+   },
+   {
+    "day": "Day 2",
+    "task": "Sit one Watch Table practice paper without chasing the clock. Say the eight compass points before you begin, and say every step of every path."
+   },
+   {
+    "day": "Day 3",
+    "task": "Sit one Letter Table Test practice paper the same way. Number the rows and columns first; try one reversal on paper, then do the rest in your head."
+   },
+   {
+    "day": "Day 4",
+    "task": "Sit a Watch Table paper at full pace: 20 questions in 10 minutes. In the review, count how many wrong answers came from 'opposite' and how many from 'between'."
+   },
+   {
+    "day": "Day 5",
+    "task": "One timed Number Table paper and one timed Letter Table paper: 10 questions in 5 minutes each. Do every reversal in your head this time, with no rough work."
+   },
+   {
+    "day": "Day 6",
+    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting. Read the Test 2 T-Score on the scorecard and compare it with 42 and with 60."
+   },
+   {
+    "day": "Day 7",
+    "task": "Second attempt of the kind that scored lowest. Compare the T-Score with the first attempt, and rest before the next week."
+   }
+  ],
+  "faq": [
+   {
+    "q": "Which kind of Following Directions Test comes in the ALP psycho test?",
+    "a": "One of three: the Letter Table Test, the Watch Table Test or the Number Table Test. The last exam (CEN 01/2024) gave the Watch Table Test, as the institute's records show. So practise the circle most, and keep both grids ready."
+   },
+   {
+    "q": "How many questions are in the Following Directions Test for ALP?",
+    "a": "The Watch Table Test has 20 questions in 10 minutes. The Letter Table Test and the Number Table Test have 10 questions in 5 minutes. That is 30 seconds a question in every kind."
+   },
+   {
+    "q": "Do I have to memorise the table in the Following Directions Test?",
+    "a": "No. The table or the circle stays on screen from the first question to the last, in every kind. Test 2 measures how exactly you follow a direction under a clock; memory is Test 1's job."
+   },
+   {
+    "q": "What is the difference between the Letter Table and the Number Table?",
+    "a": "Only what fills the grid. Both ask about the cell directly above or below and about reversed rows. The Number Table can repeat a number, so find the right one before you move."
+   },
+   {
+    "q": "Is the Following Directions Test in Hindi?",
+    "a": "Yes. The instruction screen and every question appear in Hindi and English together, in the hall and on the portal. Read the language you read faster; the direction is the same in both."
+   }
+  ],
+  "summaryHi": "निर्देश पालन परीक्षण RRB ALP साइको टेस्ट का दूसरा टेस्ट है और परीक्षा हॉल में लेटर टेबल टेस्ट (2a), वॉच टेबल टेस्ट (2b) या नंबर टेबल टेस्ट (2c) में से एक ही आता है। लेटर टेबल और नंबर टेबल में 10 सवाल 5 मिनट में और वॉच टेबल में 20 सवाल 10 मिनट में होते हैं, यानी हर सवाल के लिए 30 सेकंड। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, वॉच टेबल टेस्ट आया था, इसलिए गोले पर सबसे ज़्यादा अभ्यास करें और दोनों तालिकाएँ भी तैयार रखें। पूरा वाक्य पढ़कर ही चलना शुरू करें, हर कदम एक-एक करके लें और कोई सवाल खाली न छोड़ें। लॉगिन के बाद एक फुल मॉक मुफ़्त है; प्रैक्टिस पेपर में हॉल जितने ही सवाल और वही घड़ी होती है, और जमा करते ही T-Score और हर सवाल का हल दिखता है।"
+ },
+ {
+  "kind": "battery",
+  "slug": "depth-perception-test",
+  "battery": 3,
+  "name": "Depth Perception Test",
+  "hindi": "गहराई बोध परीक्षण",
+  "title": "Depth Perception Test for RRB ALP: Pattern, Kinds, Tips",
+  "description": "Depth Perception Test of the RRB ALP CBAT: Brick Test (50 questions in 5 minutes) or Hidden Cube Test (50 in 10 minutes). Method, tips, free Full Mock.",
+  "keywords": [
+   "depth perception test rrb alp",
+   "alp psycho test depth perception",
+   "rrb alp depth perception test pattern",
+   "depth perception test kaise hota hai",
+   "depth perception test kya hai",
+   "depth perception test questions and time",
+   "gahrai bodh parikshan alp",
+   "alp cbat test 3 pattern"
+  ],
+  "intro": [
+   "The Depth Perception Test is Test 3 of the RRB ALP CBAT, the psycho test after CBT 2. In the hall it comes as the Brick Test (3a) or the Hidden Cube Test (3b). Both show a flat drawing of a pile; you count what the drawing only partly shows. The Brick Test gives 50 questions in 5 minutes; the Hidden Cube Test gives 50 questions in 10 minutes. The test measures how you read depth: what stands in front, what is behind, what must be underneath. Both kinds follow the RDSO guideline (ALPs Guidelines CBT, Jan 2020).",
+   "On screen you see a drawing of bricks or blocks, all the same size and shape. The questions and their number options sit beside it. You count, click a number and press Save & Next while the Time Left clock runs down. The depth must be read from the lines of the drawing alone. This page explains both kinds and gives the counting method, the mistakes that cost marks and a 7-day plan."
+  ],
+  "introHi": "गहराई बोध परीक्षण RRB ALP के साइको टेस्ट (CBAT) का तीसरा टेस्ट है। परीक्षा हॉल में यह दो में से एक रूप में आता है: ईंट परीक्षण (3a), जिसमें 50 सवाल 5 मिनट में होते हैं, या छिपे घन परीक्षण (3b), जिसमें 50 सवाल 10 मिनट में होते हैं। दोनों में ढेर का सपाट चित्र दिखता है और आपको समझना होता है कि कौन सा गुटका आगे है, कौन पीछे, और नीचे कितने गुटके होने ही चाहिए।",
+  "kindsIntro": "Test 3 opens as the Brick Test (3a) or the Hidden Cube Test (3b), and you learn which only then. In the last exam (CEN 01/2024) the hall gave the Hidden Cube Test, as the institute's records show, so prepare both.",
+  "how": [
+   {
+    "h": "Instruction screen",
+    "p": "The test opens with an instruction screen in Hindi and English, with a worked example. Brick Test: one pile with its five answers. Hidden Cube Test: three practice piles, solved as 2, 4 and 3. On the portal this screen allows 5 minutes and can be skipped."
+   },
+   {
+    "h": "Test screen and clock",
+    "p": "The Time Left clock starts with the first question. Brick Test: one pile on the left, its five questions on the right, one for each lettered brick A to E. Each question has numbers to click; options past the right edge need the scrollbar. Hidden Cube Test: the piles come in parts, each pile with its numbered options on one line."
+   },
+   {
+    "h": "Count, mark, Save & Next",
+    "p": "Click a number and it is kept as your answer. Save & Next opens the next pile or the next part; the question numbers run on to 50."
+   },
+   {
+    "h": "The clock submits",
+    "p": "When Time Left reaches zero the test closes and every marked answer counts. A blank question scores nothing, so a quick count on every pile beats a careful count on half of them."
+   },
+   {
+    "h": "Break, summary and T-Score",
+    "p": "In a Full Mock a short break with a summary follows, and then Test 4. In a practice paper your T-Score appears the moment you submit."
+   }
+  ],
+  "method": [
+   {
+    "h": "Fix the rule before the clock starts",
+    "p": "Brick Test: how many bricks touch the lettered brick. Hidden Cube Test: how many blocks have every side and corner covered. Say the rule to yourself in one line on the instruction screen, and do not mix the two."
+   },
+   {
+    "h": "Build the pile from the back and the bottom",
+    "p": "Find the base layer first; every brick or block above it needs something below. In the Hidden Cube Test the RDSO guideline gives you a start: the farthest row's base always has three blocks. Fix that row first, then build forwards and upwards from it."
+   },
+   {
+    "h": "Count in one fixed order",
+    "p": "Brick Test: check the lettered brick's six sides in the same order every time: above, below, left, right, front, back. Hidden Cube Test: go layer by layer from the bottom and ask of each block whether any part shows. One order for every pile; nothing is missed, nothing is counted twice."
+   },
+   {
+    "h": "Mark and move",
+    "p": "Click the number, press Save & Next and start the next pile in the same order. If a count will not settle, mark the closest number and move on."
+   }
+  ],
+  "tips": [
+   {
+    "h": "Count the example before the clock",
+    "p": "The instruction screen shows solved piles: one with five answers in the Brick Test, three in the Hidden Cube Test. Count them yourself before you read the answers. A match means the rule is clear; a miss shows you which rule you had wrong, while it still costs nothing."
+   },
+   {
+    "h": "Hidden is stricter than it sounds",
+    "p": "In the Hidden Cube Test a block that is mostly out of view is still not hidden. Only a block with nothing in view counts. Before you add a block, look for any face, edge or corner of it. If one shows, leave it out."
+   },
+   {
+    "h": "Skip the top layer",
+    "p": "A block with nothing on it shows its top face, so it is never hidden. Hidden blocks sit under the top layer with blocks in front of them and beside them. Start your search one layer down."
+   },
+   {
+    "h": "Know your seconds",
+    "p": "The Brick Test is 50 questions in 5 minutes: 6 seconds a question, or 30 seconds a pile of five. The Hidden Cube Test is 50 questions in 10 minutes: 12 seconds a pile. Count once, click and move; a second look costs the next pile its seconds."
+   },
+   {
+    "h": "Use the review, then sit the paper again",
+    "p": "After submitting, open the review and look at every pile you got wrong, with the correct count beside it. You may sit the same paper up to 3 times; only the highest T-Score of your attempts is kept."
+   }
+  ],
+  "mistakes": [
+   "Starting to count before the instruction screen has told you which of the two kinds the hall has chosen.",
+   "Trusting the first impression of the pile instead of fixing its layers before you count.",
+   "Practising only the kind the last exam gave, and meeting the Brick Test's 5-minute clock unprepared.",
+   "Keeping one pace for both kinds: a Brick Test pile gets 30 seconds, a Hidden Cube Test pile only 12.",
+   "Sitting every practice paper on a phone, so the mouse, the scrollbar and the shared screens feel new on the day.",
+   "Changing your counting order halfway through the paper, so the second half is slower and less sure than the first."
+  ],
+  "plan": [
+   {
+    "day": "Day 1",
+    "task": "Read both instruction screens on the portal. Work through the RDSO guideline's examples until each count is clear. Brick Test: A 2, B 3, C 3, D 4, E 4. Hidden Cube Test: 2, 4 and 3."
+   },
+   {
+    "day": "Day 2",
+    "task": "Sit one Hidden Cube Test practice paper without chasing the clock. Set the three-block back row and build each pile layer by layer."
+   },
+   {
+    "day": "Day 3",
+    "task": "Sit one Brick Test practice paper the same way. Run the six checks in order for each lettered brick, above to back. In the review, check every count against the correct one."
+   },
+   {
+    "day": "Day 4",
+    "task": "First timed Hidden Cube Test paper at full pace: 50 questions in 10 minutes. Open the review at once and note every pile where a visible edge fooled you."
+   },
+   {
+    "day": "Day 5",
+    "task": "First timed Brick Test paper at full pace: 50 questions in 5 minutes. Reach the tenth pile; a close count on a hard brick is worth more than a blank."
+   },
+   {
+    "day": "Day 6",
+    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting. Read the Test 3 T-Score on the scorecard and compare it with 42 and with 60."
+   },
+   {
+    "day": "Day 7",
+    "task": "Second timed paper of the kind that scored lower on Day 4 or Day 5, with the aim of beating that T-Score."
+   }
+  ],
+  "faq": [
+   {
+    "q": "Is the ALP depth perception test the Brick Test or the Hidden Cube Test?",
+    "a": "Either one. The hall decides and does not say in advance, so practise both kinds on the portal, each with its own count and clock."
+   },
+   {
+    "q": "How many questions are in the RRB ALP Depth Perception Test?",
+    "a": "The Brick Test gives 50 questions in 5 minutes: ten piles with five lettered bricks each. The Hidden Cube Test gives 50 questions in 10 minutes."
+   },
+   {
+    "q": "Is there a study part in the Depth Perception Test, like the Memory Test?",
+    "a": "No. Test 3 has no study part. The Time Left clock starts as the first pile appears, right after the instruction screen. Every second of the 5 or 10 minutes is for counting."
+   },
+   {
+    "q": "Do I need maths for the Depth Perception Test?",
+    "a": "No. Every answer is a count of bricks or blocks, and nothing is calculated. The skill is reading depth from a flat drawing: what touches, what is covered, what must stand underneath."
+   },
+   {
+    "q": "Which kind of the Depth Perception Test should I practise first?",
+    "a": "Sit one paper of each at an easy pace, then give more papers to the kind with the lower T-Score. Keep the Brick Test in the mix even when it feels easier. Its 5-minute clock is the faster of the two and needs its own pace."
+   },
+   {
+    "q": "Can I see the solution after a practice paper?",
+    "a": "Yes. The T-Score comes the moment you submit, with a review of every pile and its correct count. A pile you doubt can be reported to the institute from the review screen."
+   }
+  ],
+  "summaryHi": "गहराई बोध परीक्षण RRB ALP साइको टेस्ट का तीसरा टेस्ट है और परीक्षा हॉल में ईंट परीक्षण (3a) या छिपे घन परीक्षण (3b) में से एक ही आता है। ईंट परीक्षण में 50 सवाल 5 मिनट में होते हैं और हर अक्षर वाली ईंट को छूती ईंटें गिननी होती हैं। छिपे घन परीक्षण में 50 सवाल 10 मिनट में होते हैं और वे गुटके गिनने होते हैं जिनका कोई किनारा या कोना नहीं दिखता। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, छिपे घन परीक्षण आया था, इसलिए दोनों की तैयारी करें। ढेर को पीछे की पंक्ति और नीचे की परत से बनाएँ, हर बार एक ही क्रम में गिनें और कोई सवाल खाली न छोड़ें। लॉगिन के बाद एक फुल मॉक मुफ़्त है; प्रैक्टिस पेपर में हॉल जितने सवाल और वही घड़ी होती है, और जमा करते ही T-Score और हर सवाल का हल दिखता है।"
+ },
+ {
+  "kind": "battery",
+  "slug": "power-of-observation-test",
+  "battery": 4,
+  "name": "Power of Observation Test",
+  "hindi": "अवलोकन शक्ति परीक्षण",
+  "title": "Power of Observation Test for RRB ALP: Kinds, Pattern, Tips",
+  "description": "RRB ALP CBAT Power of Observation Test: Yes or No, Find 6, Find 9 or Figure Placement, 4 to 7 minutes. Method, tips, mistakes, plan and a free Full Mock.",
+  "keywords": [
+   "power of observation test rrb alp",
+   "alp psycho test observation",
+   "alp cbat test 4 kinds",
+   "find 6 find 9 test alp",
+   "rrb alp observation test questions",
+   "observation test kya hota hai",
+   "psycho test 4 kaise hota hai",
+   "avlokan shakti parikshan alp",
+   "alp cbat test 4 pattern"
+  ],
+  "intro": [
+   "The Power of Observation Test is Test 4 of the RRB ALP CBAT, the psycho test after CBT 2. The hall gives one of four kinds: Yes or No Test, Find 6 Test, Find 9 Test or Figure Placement Test. Yes or No gives 96 questions in 4 minutes. Find 6 and Find 9 give 75 in 4 minutes each. Figure Placement gives 60 in 7 minutes. The test measures how quickly and how accurately you notice a small difference on a screen. The pattern follows the RDSO guideline (ALPs Guidelines CBT, Jan 2020).",
+   "On screen the question is always small: two numbers side by side, four groups of digits, or two sets of figures. You look, decide and click Y or N, or a letter. The rows come in parts; Save & Next opens the next part while the Time Left clock runs. There is no study part and no break inside the test. The pace is the whole difficulty. This page gives the screen flow, a method, tips, the mistakes that cost marks, a 7-day plan and the FAQ."
+  ],
+  "introHi": "अवलोकन शक्ति परीक्षण RRB ALP के साइको टेस्ट (CBAT) का चौथा टेस्ट है, जो CBT 2 के बाद होता है। परीक्षा हॉल में यह चार में से एक ही प्रकार में आता है: हाँ या नहीं परीक्षण (4a) में 96 सवाल 4 मिनट में, 6 खोजो परीक्षण (4b) और 9 खोजो परीक्षण (4c) में 75 सवाल 4 मिनट में, और आकृति स्थान परीक्षण (4d) में 60 सवाल 7 मिनट में। यह टेस्ट मापता है कि आप स्क्रीन पर छोटे से अंतर को कितनी तेज़ी और कितनी सटीकता से पकड़ते हैं।",
+  "kindsIntro": "Test 4 comes as one kind only: Yes or No (4a), Find 6 (4b), Find 9 (4c) or Figure Placement (4d). In the last exam (CEN 01/2024) the hall gave Figure Placement, as the institute's records show: give it the most papers.",
+  "how": [
+   {
+    "h": "Instruction screen",
+    "p": "It opens with Hindi and English instructions and an example of the kind the hall has chosen. Read the example once and say the rule in one line. On the portal this screen allows 5 minutes and can be skipped."
+   },
+   {
+    "h": "One clock for the whole test",
+    "p": "One Time Left clock runs for the whole test. Yes or No, Find 6 and Find 9 get 4 minutes; Figure Placement gets 7. There is no clock per question and no study part."
+   },
+   {
+    "h": "What each kind shows",
+    "p": "Yes or No shows two numbers side by side with Y and N to mark. Find 6 and Find 9 show four groups of digits, A to D, and the option E. Figure Placement shows set A against set B and asks for no difference, or two, three or four figures moved."
+   },
+   {
+    "h": "Click, then Save & Next",
+    "p": "Click Y or N, or a letter, on every row of the part. Yes or No shows 24 pairs a part; Find 6 and Find 9 show 25 rows. Save & Next opens the next part, and Figure Placement moves in parts the same way. At zero the clock submits for you."
+   },
+   {
+    "h": "Break, summary and T-Score",
+    "p": "In a Full Mock a short break with a summary follows, then Test 5. In a practice paper your T-Score appears on submit, with a review of every question and its correct answer. A doubtful question can be reported to the institute."
+   }
+  ],
+  "method": [
+   {
+    "h": "Fix the rule of your kind first",
+    "p": "Yes or No: the same, Y; any difference, N. Find 6 and Find 9: the letter of the one group holding the digit; more than one, E. Figure Placement: how many figures of set B have moved against set A; none, two, three or four. Say it once on the instruction screen."
+   },
+   {
+    "h": "Sweep in one fixed order",
+    "p": "Yes or No: read both numbers from the left in chunks of three. Find 6 and Find 9: sweep A, B, C, D in order, hunting the digit's shape, not its value. Figure Placement: check set B against set A one place at a time. One order every time, so nothing is skipped or seen twice."
+   },
+   {
+    "h": "Finish the sweep, then decide",
+    "p": "Every kind punishes a half look. A 6 in group A is not the answer until B, C and D are clear. A pair that matches in its first chunk can still differ in its last digit. A set that looks unchanged earns 'no difference' only after a full walk."
+   },
+   {
+    "h": "Click and leave it",
+    "p": "Click, press Save & Next and start the next sweep. Do not go back; a first careful read beats a hurried second one. Give the last question the same care as the first."
+   }
+  ],
+  "tips": [
+   {
+    "h": "Know your seconds",
+    "p": "Yes or No is 96 pairs in 4 minutes: two and a half seconds a pair. Find 6 and Find 9 are 75 in 4 minutes: just over 3 seconds each. Figure Placement is 60 in 7 minutes: 7 seconds each. Practise until that pace feels normal."
+   },
+   {
+    "h": "The difference waits at the end",
+    "p": "In every kind the slip sits where the eye has already left. Yes or No hides a changed last digit. The Find tests hide the 6 or 9 near the end of a group. Figure Placement puts the moved figure at the far end of set B. Finish the row before you decide."
+   },
+   {
+    "h": "Hunt the loop",
+    "p": "A 6 has its loop below and a tail rising; a 9 has its loop above and a tail falling. Let your eye search for where the loop sits. Under the clock a 9 passes for a 6 and an 8 for either."
+   },
+   {
+    "h": "Four letters, four counts",
+    "p": "In Figure Placement your count becomes a letter: none is A, two B, three C, four D. One is not on the list, so a count of one sends you back over the set. At four, click D; nothing more can change."
+   }
+  ],
+  "mistakes": [
+   "Marking the first group with a 6 or 9 and missing the second group that makes it E.",
+   "Clicking Y after the first digits match, and missing a difference near the end.",
+   "Guessing B in Figure Placement from a single mismatch, when the rule says a second one must exist.",
+   "Re-reading a question for safety and losing two easier questions behind it.",
+   "Slowing down after one slip, when the Time Left clock does not.",
+   "Preparing only Figure Placement because the last exam gave it, then meeting a Find test."
+  ],
+  "plan": [
+   {
+    "day": "Day 1",
+    "task": "Read the four instruction screens on the portal and work their examples by hand. Say the rule of each kind in one line."
+   },
+   {
+    "day": "Day 2",
+    "task": "Sit one Yes or No practice paper on a laptop, reading in chunks of three. In the review, sort every wrong pair: a difference you missed or a hasty Y."
+   },
+   {
+    "day": "Day 3",
+    "task": "Sit one Find 6 paper and one Find 9 paper, sweeping all four groups every time. In the review, count the marks a missed E cost you."
+   },
+   {
+    "day": "Day 4",
+    "task": "Two Figure Placement papers back to back, 60 questions in 7 minutes each, with a fixed route and a running count."
+   },
+   {
+    "day": "Day 5",
+    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting. Read the Test 4 T-Score on the scorecard against 42 and 60."
+   },
+   {
+    "day": "Day 6",
+    "task": "Re-sit the kind with the lowest T-Score. A paper allows up to 3 attempts and the highest T-Score counts."
+   },
+   {
+    "day": "Day 7",
+    "task": "One Figure Placement paper and one Find paper at full pace, then rest your eyes. Target T-Score 60; the pass bar is 42."
+   }
+  ],
+  "faq": [
+   {
+    "q": "Which kind of Power of Observation Test comes in the RRB ALP exam?",
+    "a": "One of four: Yes or No, Find 6, Find 9 or Figure Placement; the hall does not say in advance. In the last exam (CEN 01/2024) it gave Figure Placement, as the institute's records show."
+   },
+   {
+    "q": "How many questions are in the ALP Power of Observation Test?",
+    "a": "It depends on the kind. Yes or No has 96 questions in 4 minutes. Find 6 and Find 9 have 75 in 4 minutes each. Figure Placement has 60 in 7 minutes."
+   },
+   {
+    "q": "What does the Power of Observation Test measure?",
+    "a": "Speed and accuracy of the eye. Each question asks whether two numbers are the same, which group holds a digit, or how many figures have moved. There is nothing to memorise and nothing to work out; the clock makes it hard."
+   },
+   {
+    "q": "Is the Find 6 Test different from the Find 9 Test?",
+    "a": "Only in the digit you hunt. The screen, the four lettered groups, the count and the clock are the same, and either can come in the hall. Practise both."
+   },
+   {
+    "q": "Does the Power of Observation Test come in parts on screen?",
+    "a": "The rows come in parts on one Time Left clock, with no study part and no break. Yes or No shows 24 pairs a part; Find 6 and Find 9 show 25 rows a part. Save & Next opens the next part, in Figure Placement too."
+   },
+   {
+    "q": "Is the Power of Observation Test in Hindi?",
+    "a": "Yes. The instruction screen and the example come in Hindi and English together. The questions themselves are digits and figures, so there is nothing to read in either language."
+   }
+  ],
+  "summaryHi": "अवलोकन शक्ति परीक्षण RRB ALP साइको टेस्ट का चौथा टेस्ट है और परीक्षा हॉल में चार में से एक ही प्रकार आता है: हाँ या नहीं परीक्षण (96 सवाल, 4 मिनट), 6 खोजो या 9 खोजो परीक्षण (75 सवाल, 4 मिनट), या आकृति स्थान परीक्षण (60 सवाल, 7 मिनट)। संस्थान के रिकॉर्ड के अनुसार पिछली परीक्षा (CEN 01/2024) में आकृति स्थान परीक्षण आया था, इसलिए उस पर सबसे ज़्यादा प्रैक्टिस पेपर दें, पर चारों की तैयारी करें। सवाल छोटे हैं, कठिनाई सिर्फ़ घड़ी की है: अपने प्रकार का नियम पहले तय करें, हर सवाल को एक ही क्रम में देखें, पूरा देखने के बाद ही क्लिक करें और वापस न लौटें। 6 या 9 एक से ज़्यादा समूह में हो तो E, और आकृति स्थान में गिनती कभी एक नहीं होती। इस पोर्टल पर लॉगिन के बाद एक फुल मॉक मुफ़्त है, प्रैक्टिस पेपर में हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का हल दिखता है। लक्ष्य T-Score 60 रखें; पास के लिए 42 चाहिए।"
+ },
+ {
+  "kind": "battery",
+  "slug": "perceptual-speed-test",
+  "battery": 5,
+  "name": "Perceptual Speed Test",
+  "hindi": "प्रत्यक्ष गति परीक्षण",
+  "title": "Perceptual Speed Test for RRB ALP: Pattern, Kinds, Tips",
+  "description": "Perceptual Speed Test of the RRB ALP CBAT: one figure, five options, 60 to 96 questions in 5 to 8 minutes. Method, mistakes, 7-day plan, free Full Mock.",
+  "keywords": [
+   "perceptual speed test rrb alp",
+   "alp psycho test perceptual speed",
+   "perceptual speed test kaise hota hai",
+   "perceptual speed test alp pattern",
+   "rrb alp psycho test 5",
+   "perceptual speed test kya hai",
+   "pratyaksh gati parikshan kya hai",
+   "pratyaksh gati parikshan alp",
+   "alp cbat test 5 pattern"
+  ],
+  "intro": [
+   "The Perceptual Speed Test is Test 5 of the RRB ALP CBAT. The hall gives one of five kinds: Similarity Test, Octagonal Test, Similarity Test Type-II, Same Circle Test or Same Figure Test. Every kind shows one figure and five options. The Similarity Test and Similarity Test Type-II want the one most nearly like it, figures in the first and objects in the second. The other three want the identical figure. The clock is short: Octagonal Test, 96 questions in 5 minutes; Same Figure Test, 72 in 8. It measures how fast and accurately your eye finds a small difference.",
+   "The given figure sits on the left, or above in the Same Figure Test. The five options, A to E, sit beside it or below it. You click the matching option for each figure; Save & Next saves the sheet or part on screen and opens the next, while the Time Left clock keeps running. The figures differ by kind: octagon patterns, circle figures, objects such as a radio, or plain figures. This page gives you the method, the mistakes that cost marks, a 7-day plan and candidates' questions."
+  ],
+  "introHi": "प्रत्यक्ष गति परीक्षण RRB ALP के साइको टेस्ट (CBAT) का पाँचवाँ और आखिरी टेस्ट है, जो देखता है कि आपकी आँख छोटा-सा अंतर कितनी जल्दी और कितनी सही पकड़ती है। परीक्षा हॉल में यह पाँच में से एक रूप में आता है: समानता परीक्षण, अष्टकोण परीक्षण, समानता परीक्षण प्रकार-II, समान वृत्त परीक्षण या समान आकृति परीक्षण। हर रूप में एक आकृति और पाँच विकल्प दिखते हैं और आपको उससे मिलती आकृति चुननी होती है, समानता परीक्षण और समानता परीक्षण प्रकार-II में सबसे अधिक मिलती-जुलती, और बाकी तीन रूपों में बिल्कुल वैसी ही; समय बहुत कम है, अष्टकोण परीक्षण में 96 सवाल 5 मिनट में और समान आकृति परीक्षण में 72 सवाल 8 मिनट में।",
+  "kindsIntro": "Test 5 has five kinds, and the hall gives only one of them. The kinds: Similarity Test (5a), Octagonal Test (5b), Similarity Test Type-II (5c), Same Circle Test (5d), Same Figure Test (5e). In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show: prepare it first.",
+  "how": [
+   {
+    "h": "Instruction screen",
+    "p": "The instruction screen, in Hindi and English, carries a worked example of the kind's figures with the right answer. That example tells you which kind the hall has chosen; on the portal it allows 5 minutes and can be skipped."
+   },
+   {
+    "h": "Test screen and clock",
+    "p": "The Time Left clock starts with the first question. The count depends on the kind. Similarity Test and Similarity Test Type-II: 72 questions (18 × 4) in 6 minutes. Octagonal Test: 96 questions in 5 minutes. Same Circle Test: 60 questions in 8 minutes. Same Figure Test: 72 questions in 8 minutes."
+   },
+   {
+    "h": "Click, Save & Next, next figure",
+    "p": "Click the matching option for each figure. Save & Next saves the sheet or part on screen and opens the next one. In the two Similarity kinds that is four figures, in the other three a part of rows. There is no study part to memorise before the questions."
+   },
+   {
+    "h": "The clock submits",
+    "p": "When Time Left reaches zero the test closes and every marked answer counts; a blank scores nothing. A quick answer on every question beats a careful one on half."
+   },
+   {
+    "h": "Scorecard and T-Score",
+    "p": "In a Full Mock, a short break with a summary leads into Test 5, and submitting Test 5 ends the sitting. The scorecard out of 30 then appears with the T-Score of each test. In a practice paper the T-Score appears at once, with a review of every question and its correct option."
+   }
+  ],
+  "method": [
+   {
+    "h": "Note the asking word on the instruction screen",
+    "p": "Each kind asks for one thing. Octagonal Test and Same Figure Test: the identical figure. Same Circle Test: the exactly similar one. Similarity Test and Similarity Test Type-II: the one most nearly like the given figure or object, even when no option is a copy. The example shows why one option is right and four are wrong."
+   },
+   {
+    "h": "Pick the key in the given figure",
+    "p": "Do not read the whole figure. Find one feature that is easy to see and easy to get wrong. A dot in one corner, a line that stops short, a mark on one side only. That feature is your key."
+   },
+   {
+    "h": "Sweep A to E, then confirm with a second detail",
+    "p": "Sweep the options looking only for the key; options that miss it are gone. If one is left, mark it. If two are left, compare them on one more detail: the direction of a line, or the number of marks."
+   },
+   {
+    "h": "Mark it, move on, do not look back",
+    "p": "Click and give the next figure a fresh look; press Save & Next when the sheet or part is done. Do not go back; a second look at a marked question costs a question you have not seen. If a figure will not settle, mark the closest option and move on."
+   }
+  ],
+  "tips": [
+   {
+    "h": "Know your seconds for each kind",
+    "p": "Similarity Test and Similarity Test Type-II: 5 seconds a question. Octagonal Test: a little over 3 seconds each, a sprint: pick the key, sweep once, click. Same Circle Test: 8 seconds, the slowest kind; spend the extra seconds on the second detail, not on re-checking. Same Figure Test: 9 a minute, under 7 seconds each."
+   },
+   {
+    "h": "Watch for the mirror image",
+    "p": "A figure flipped left to right looks the same at a glance, and is not. If the given figure is not symmetric, note which side its mark sits on first. A flipped option fails that check at once."
+   },
+   {
+    "h": "Practise on the hall's screen, not a phone",
+    "p": "On a phone the five options shrink and the deciding detail is hard to see. The hall gives you a desktop and a mouse, so sit practice papers and the Full Mock on a laptop or desktop."
+   },
+   {
+    "h": "Test 5 comes when you are tired",
+    "p": "It is the last of the five tests, and careless clicks gather in its closing minutes. The free Full Mock, all five tests in one sitting with the hall's timing, lets you practise this test tired."
+   },
+   {
+    "h": "Sort your wrong clicks in the review",
+    "p": "The review shows every question beside its correct option. Sort your wrong clicks into mirror images, missed keys and rushed guesses, and fix the largest group first. A practice paper allows up to 3 attempts and the highest T-Score counts."
+   }
+  ],
+  "mistakes": [
+   "Reading the whole figure on every question instead of the one detail that separates the options.",
+   "Marking the mirror image: same shape, same marks, on the wrong side.",
+   "Going back to a marked answer: the clock does not stop, and the unseen questions pay for it.",
+   "Pausing on a figure that looks hard; the clock runs on.",
+   "Practising only the Same Figure Test because it came last time; the hall may give any of the five kinds.",
+   "Treating every kind the same way: the closest option wins in the two Similarity kinds, and only the exact copy wins in the other three."
+  ],
+  "plan": [
+   {
+    "day": "Day 1",
+    "task": "Read all five instruction screens on the portal and their examples. Sit one Same Figure Test practice paper without chasing the clock, picking a key on every question."
+   },
+   {
+    "day": "Day 2",
+    "task": "Same Figure Test at full pace: 72 questions in 8 minutes, 9 a minute. In the review, mark every wrong click that was a mirror image."
+   },
+   {
+    "day": "Day 3",
+    "task": "Similarity Test and Similarity Test Type-II, one paper each: 72 questions in 6 minutes. In the Similarity Test the answer is the option most nearly like the given figure, not a copy. In Similarity Test Type-II the same rule applies to drawings of a radio: the closest of the five, not a copy."
+   },
+   {
+    "day": "Day 4",
+    "task": "Octagonal Test: 96 questions in 5 minutes. Aim to reach the last question with the method intact."
+   },
+   {
+    "day": "Day 5",
+    "task": "Same Circle Test: 60 questions in 8 minutes. You have time for the second detail on every question, so aim for no wrong clicks."
+   },
+   {
+    "day": "Day 6",
+    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting. Read the Test 5 T-Score on the scorecard and compare it with 42 and 60."
+   },
+   {
+    "day": "Day 7",
+    "task": "Second or third attempt of the two kinds with the lowest T-Score. Then rest."
+   }
+  ],
+  "faq": [
+   {
+    "q": "Which kind of perceptual speed test comes in the ALP psycho test?",
+    "a": "Any one of its five kinds; the hall does not say which in advance. You learn the kind from the instruction screen's example on the day. In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show."
+   },
+   {
+    "q": "How many questions are in the RRB ALP perceptual speed test?",
+    "a": "The Similarity Test, Similarity Test Type-II and Same Figure Test have 72 questions each. The Octagonal Test has 96 and the Same Circle Test 60. The clock runs from 5 minutes to 8, by kind."
+   },
+   {
+    "q": "Is there a study part in the Perceptual Speed Test?",
+    "a": "No. Unlike the Memory Test, Test 5 has nothing to memorise first. The Time Left clock starts with the first figure and runs to the last, and the only thing between you and the next figure is one click."
+   },
+   {
+    "q": "What does the perceptual speed test measure?",
+    "a": "How quickly and how surely your eye picks one small difference out of figures that look alike. Your T-Score compares your marks with everyone who sat the same paper, so accuracy counts as much as speed."
+   },
+   {
+    "q": "How do I get faster at the RRB ALP perceptual speed test?",
+    "a": "Sit every paper at the hall's clock, not slower: speed comes from the key-and-sweep method, not from reading faster. Open the review after each paper and remove one cause of wrong clicks at a time."
+   }
+  ],
+  "summaryHi": "प्रत्यक्ष गति परीक्षण RRB ALP साइको टेस्ट का पाँचवाँ और आखिरी टेस्ट है, और परीक्षा हॉल में पाँच रूपों में से एक ही आता है: समानता परीक्षण (5a), अष्टकोण परीक्षण (5b), समानता परीक्षण प्रकार-II (5c), समान वृत्त परीक्षण (5d) या समान आकृति परीक्षण (5e)। हर सवाल में एक आकृति दी होती है और A से E तक पाँच विकल्पों में से उससे मिलती आकृति चुननी होती है; सवाल 60 से 96 तक और समय 5 से 8 मिनट तक, रूप के अनुसार। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, समान आकृति परीक्षण आया था, जिसमें 72 सवाल 8 मिनट में होते हैं, इसलिए उसकी तैयारी पहले कीजिए और बाकी चारों की उसके साथ। तरीका एक ही है: दी गई आकृति का एक खास निशान चुनिए, पाँचों विकल्पों में वही निशान खोजिए, उलटी (दर्पण) आकृति से बचिए, क्लिक करके Save & Next दबाइए और पीछे मुड़कर मत देखिए। एक फुल मॉक मुफ़्त है; हर रूप के प्रैक्टिस पेपर में परीक्षा हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का सही विकल्प दिखता है।"
+ }
+]

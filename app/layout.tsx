@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import type { Viewport } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,7 +15,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   description:
     "Kautilya Classes Railway Psycho Test Portal: RRB ALP CBAT practice as per RDSO pattern, with all five tests, Full Mock Tests and instant T-Score.",
+  applicationName: "Railway Psycho Test Portal",
+  openGraph: { siteName: "Kautilya Classes · Railway Psycho Test Portal", locale: "en_IN", type: "website", images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Kautilya Classes Railway Psycho Test Portal" }] },
+  twitter: { card: "summary_large_image" },
 };
+
+export const viewport: Viewport = { themeColor: "#0d2a6b" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -24,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             their browsers: one page view in five, which keeps it inside the
             plan's included quota. It runs on the live site only. */}
         <SpeedInsights sampleRate={0.2} />
+        <Analytics />
       </body>
     </html>
   );

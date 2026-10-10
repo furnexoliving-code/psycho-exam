@@ -6,6 +6,7 @@ import result from "@/public/landing/result.jpg";
 import mocks from "@/public/landing/mocks.jpg";
 import { KIND_LABEL, rupees, type Package } from "@/lib/packages";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { FreeMockCta } from "@/components/FreeMockCta";
 
 /**
  * The public front page: what the portal is, for whom, and how to join.
@@ -121,6 +122,11 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
           </div>
         </div>
         <div className="h-[5px]" style={{ background: "linear-gradient(90deg,#ff9933 33%,#ffffff 33% 66%,#138808 66%)" }} aria-hidden="true" />
+      </section>
+
+      {/* The offer every page makes */}
+      <section className="mx-auto max-w-6xl px-5 pt-8">
+        <FreeMockCta />
       </section>
 
       {/* Trust strip */}
@@ -363,13 +369,13 @@ export function PublicHeader() {
           </span>
         </Link>
         <nav className="ml-auto hidden items-center gap-6 text-[14px] font-semibold text-gray-700 md:flex" aria-label="Main">
-          <a href="#test-series" className="hover:text-[#0d2a6b]">Test series</a>
-          <a href="#tests" className="hover:text-[#0d2a6b]">5 tests</a>
-          <a href="#features" className="hover:text-[#0d2a6b]">Features</a>
-          <a href="#pricing" className="hover:text-[#0d2a6b]">Prices</a>
-          <a href="#faq" className="hover:text-[#0d2a6b]">FAQ</a>
+          <Link href="/rrb-alp-psycho-test" className="hover:text-[#0d2a6b]">ALP psycho test</Link>
+          <Link href="/psycho-test" className="hover:text-[#0d2a6b]">19 kinds of question</Link>
+          <Link href="/packages" className="hover:text-[#0d2a6b]">Prices</Link>
+          <Link href="/blog" className="hover:text-[#0d2a6b]">Articles</Link>
+          <Link href="/#faq" className="hover:text-[#0d2a6b]">FAQ</Link>
         </nav>
-        <Link href="/login" className="ml-auto rounded-md bg-[#0d2a6b] px-4 py-2 text-[14px] font-bold text-white hover:bg-[#0a2158] md:ml-6">
+        <Link href="/login" className="ml-auto whitespace-nowrap rounded-md bg-[#0d2a6b] px-3 py-2 text-[13px] font-bold text-white hover:bg-[#0a2158] sm:px-4 sm:text-[14px] md:ml-6">
           Student Login
         </Link>
       </div>
@@ -396,11 +402,14 @@ export function PublicFooter() {
           <div className="font-bold text-gray-900">Links</div>
           <ul className="mt-1 space-y-1">
             <li><Link href="/login" className="hover:underline">Student Login</Link></li>
-            <li><a href="#test-series" className="hover:underline">Test series</a></li>
-            <li><a href="#faq" className="hover:underline">FAQ</a></li>
             <li><Link href="/packages" className="hover:underline">Packages & prices</Link></li>
             <li><Link href="/rrb-alp-psycho-test" className="hover:underline">RRB ALP psycho test guide</Link></li>
+            <li><Link href="/psycho-test" className="hover:underline">All 19 kinds of question</Link></li>
+            {TESTS.map((t) => (
+              <li key={t.slug}><Link href={`/psycho-test/${t.slug}`} className="hover:underline">Test {t.n} · {t.en}</Link></li>
+            ))}
             <li><Link href="/blog" className="hover:underline">Articles & guides</Link></li>
+            <li><Link href="/#faq" className="hover:underline">FAQ</Link></li>
             <li><Link href="/terms" className="hover:underline">Terms of Use</Link></li>
             <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>
             <li><Link href="/refund-policy" className="hover:underline">Refund Policy</Link></li>

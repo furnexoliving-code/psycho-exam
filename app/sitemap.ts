@@ -1,22 +1,30 @@
 import type { MetadataRoute } from "next";
 import { listPublishedPosts } from "@/lib/blog";
-import { TEST_PAGES } from "@/lib/seo-tests";
-import { SECTION_PAGES, sectionUrl } from "@/lib/seo-sections";
+import { BATTERY_PAGES, CONTENT_UPDATED, KIND_PAGES, SITE, batteryUrl, kindUrl } from "@/lib/seo/content";
 import { LAUNCH } from "@/lib/launch";
 
-/** The public pages and every published article; everything behind the login stays out. */
+/**
+ * The public pages and every published article; everything behind the
+ * login stays out. The content pages carry the date their words were
+ * last revised, not the time of the request: a sitemap that says
+ * "changed today" every day is one search engines learn to ignore.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
+  const revised = new Date(CONTENT_UPDATED);
   const posts = await listPublishedPosts();
   return [
-    { url: "https://kautilyaonline.com/", lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: "https://kautilyaonline.com/packages", lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    ...(LAUNCH.signup ? [{ url: "https://kautilyaonline.com/signup", lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 }] : []),
-    { url: "https://kautilyaonline.com/rrb-alp-psycho-test", lastModified: now, changeFrequency: "monthly", priority: 0.9 },
-    ...(LAUNCH.sampleTest ? [{ url: "https://kautilyaonline.com/demo", lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 }] : []),
-    ...TEST_PAGES.map((t) => ({ url: `https://kautilyaonline.com/psycho-test/${t.slug}`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 })),
-    ...SECTION_PAGES.map((s) => ({ url: `https://kautilyaonline.com${sectionUrl(s)}`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.7 })),
-    { url: "https://kautilyaonline.com/blog", lastModified: posts[0] ? new Date(posts[0].updatedAt) : now, changeFrequency: "weekly", priority: 0.8 },
-    ...posts.map((p) => ({ url: `https://kautilyaonline.com/blog/${p.slug}`, lastModified: new Date(p.updatedAt), changeFrequency: "monthly" as const, priority: 0.7 })),
+    { url: `${SITE}/`, lastModified: revised, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE}/rrb-alp-psycho-test`, lastModified: revised, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE}/psycho-test`, lastModified: revised, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE}/packages`, lastModified: revised, changeFrequency: "weekly", priority: 0.9 },
+    ...(LAUNCH.signup ? [{ url: `${SITE}/signup`, lastModified: revised, changeFrequency: "monthly" as const, priority: 0.8 }] : []),
+    ...(LAUNCH.sampleTest ? [{ url: `${SITE}/demo`, lastModified: revised, changeFrequency: "monthly" as const, priority: 0.8 }] : []),
+    ...BATTERY_PAGES.map((b) => ({ url: `${SITE}${batteryUrl(b)}`, lastModified: revised, changeFrequency: "monthly" as const, priority: 0.8 })),
+    ...KIND_PAGES.map((k) => ({ url: `${SITE}${kindUrl(k)}`, lastModified: revised, changeFrequency: "monthly" as const, priority: 0.7 })),
+    { url: `${SITE}/blog`, lastModified: posts[0] ? new Date(posts[0].updatedAt) : revised, changeFrequency: "weekly", priority: 0.8 },
+    ...posts.map((p) => ({ url: `${SITE}/blog/${p.slug}`, lastModified: new Date(p.updatedAt), changeFrequency: "monthly" as const, priority: 0.7 })),
+    { url: `${SITE}/terms`, lastModified: revised, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE}/privacy`, lastModified: revised, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE}/refund-policy`, lastModified: revised, changeFrequency: "yearly", priority: 0.2 },
   ];
 }
