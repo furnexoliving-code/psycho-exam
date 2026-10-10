@@ -511,3 +511,48 @@ export async function removeStudentPhoto(_prev: SaveState | null, formData: Form
     return "removed.";
   });
 }
+
+/** A note on the account for the team: fees, calls, anything to remember. Kept where no student can read it. */
+export async function setNote(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Note", async () => {
+    await requireAdmin();
+    const supabase = createAdminClient();
+    const id = String(formData.get("id"));
+    const note = String(formData.get("note") ?? "").trim().slice(0, 2000);
+    await studentOnly(supabase, id);
+    const { error } = note
+      ? await supabase.from("student_notes").upsert({ user_id: id, note, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+      : await supabase.from("student_notes").delete().eq("user_id", id);
+    if (error) {
+      if (/student_notes/.test(error.message)) throw new Error("Run supabase/admin-note.sql first: the notes table is not there yet");
+      throw new Error(error.message);
+    }
+    revalidatePath(`${BACK}/${id}`);
+    return note ? "saved" : "cleared";
+  });
+}
+
+/**
+ * Signs the student out of every device: the account's device stamp is
+ * replaced, so a request carrying the old one is refused. Their next
+ * sign-in stamps the new device.
+ */
+export async function signOutEverywhere(
+  _prev: SaveState | null,
+  formData: FormData,
+): Promise<SaveState> {
+  return attempt("Sign out", async () => {
+    await requireAdmin();
+    const supabase = createAdminClient();
+    const id = String(formData.get("id"));
+    await studentOnly(supabase, id);
+    const { error } = await supabase.from("profiles").update({ session_id: crypto.randomUUID() }).eq("id", id);
+    if (error) throw new Error(error.message);
+    await logAction("Signed out everywhere", `student ${id}`);
+    revalidatePath(`${BACK}/${id}`);
+    return "signed out on every device";
+  });
+}

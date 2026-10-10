@@ -1,37 +1,32 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { formatDateTime } from "@/lib/format-time";
 import { photoUrlOf } from "@/lib/photo";
 import { attemptsFor } from "@/lib/wt/history";
 import { batteryProgress } from "@/lib/wt/progress";
-import { mockResultsFor, scoreOutOf30 } from "@/lib/wt/mock";
+import { mockResultsFor } from "@/lib/wt/mock";
 import { STAGES } from "@/lib/wt/plan";
-import { RowForm } from "@/components/admin/RowForm";
-import { SaveForm } from "@/components/admin/SaveForm";
-import { PendingButton } from "@/components/admin/PendingButton";
-import { deleteStudent, removeStudentPhoto, resetPassword, setActive, setStudentPhoto } from "../actions";
-import { enrollStudent, unenrollStudent } from "../../packages/actions";
-import { enrollmentActive, enrollmentsOf, KIND_LABEL, listAllPackages } from "@/lib/packages";
-import { formatDate } from "@/lib/format-time";
+import { examSettings } from "@/lib/settings";
+import { enrollmentsOf, listAllPackages } from "@/lib/packages";
+import { tScoresOf } from "@/lib/wt/cohorts";
+import { listPublishedPapers } from "@/lib/wt/db";
+import { batteryOf } from "@/lib/wt/series";
+import { StudentDetailView } from "@/components/admin/StudentDetailView";
 
-/**
- * One student, in full: the account and its switches, the photo, how each
- * battery stands against the bar, the recent papers and the Full Mocks.
- * The place the team goes when a student rings.
- */
+/** One student's page: the data, then the view. */
 export default async function StudentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requireAdmin(`/admin/students/${id}`);
   const supabase = createAdminClient();
-  const { data: row } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  const { data: row } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
   if (!row || row.role !== "student") notFound();
-  const student = { valid_until: null, photo_path: null, last_seen_at: null, ...row } as {
+  const student = {
+    valid_until: null,
+    photo_path: null,
+    last_seen_at: null,
+    session_id: null,
+    ...row,
+  } as {
     id: string;
     full_name: string;
     roll_no: string;
@@ -41,276 +36,60 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
     valid_until: string | null;
     photo_path: string | null;
     last_seen_at: string | null;
+    session_id: string | null;
   };
 
-  const [progress, attempts, mocks, held, packages] = await Promise.all([batteryProgress(id), attemptsFor(id, 40), mockResultsFor(id, 20), enrollmentsOf(id), listAllPackages()]);
-  const enrollments = held ?? [];
-  const photo = photoUrlOf(student);
-  const passed = progress.filter((b) => (b.bestT ?? 0) >= STAGES.pass).length;
-
-  return (
-    <>
-      <Link href="/admin/students" className="text-[13px] font-semibold text-rrb-banner hover:underline">
-        ← Students
-      </Link>
-
-      <div className="mt-3 flex flex-wrap items-start gap-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex h-[128px] w-[108px] shrink-0 items-center justify-center overflow-hidden border border-[#bbbbbb] bg-[#dfe6ee]">
-          {photo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={photo} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <svg viewBox="0 0 48 48" className="h-[80px] w-[80px]" aria-hidden="true">
-              <circle cx="24" cy="17" r="10" fill="#8fa3b8" />
-              <path d="M6 46c2-12 10-16 18-16s16 4 18 16z" fill="#8fa3b8" />
-            </svg>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold text-gray-900">{student.full_name || "Unnamed"}</h1>
-          <dl className="mt-2 grid gap-x-6 gap-y-1 text-[13px] sm:grid-cols-2 lg:grid-cols-3">
-            <Row label="Mobile">{student.phone || "—"}</Row>
-            <Row label="Registered">{formatDateTime(student.created_at)}</Row>
-            <Row label="Last seen">{student.last_seen_at ? formatDateTime(student.last_seen_at) : "Never"}</Row>
-            <Row label="Account">
-              <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${student.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                {student.is_active ? "On" : "Off"}
-              </span>
-            </Row>
-            <Row label="Batteries passed">
-              {passed} of {progress.length} at T-Score: {STAGES.pass}+
-            </Row>
-          </dl>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-[14px] font-bold text-gray-900">Photo</h2>
-          <p className="mt-1 text-[12px] text-gray-500">Shown in the exam header. The student can change it from their dashboard; you can replace or remove it here.</p>
-          <SaveForm action={setStudentPhoto} submitLabel={photo ? "Replace photo" : "Upload photo"} className="mt-2" buttonClassName="rounded bg-indigo-800 px-4 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60">
-            <input type="hidden" name="id" value={id} />
-            <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required className="block w-full text-[12px] text-gray-700" />
-          </SaveForm>
-          {photo && (
-            <RowForm action={removeStudentPhoto} className="mt-2">
-              <input type="hidden" name="id" value={id} />
-              <PendingButton pendingLabel="Removing…" confirm="Remove this student's photo?" className="text-[12px] font-semibold text-red-700 hover:underline">
-                Remove photo
-              </PendingButton>
-            </RowForm>
-          )}
-        </section>
-
-        <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-[14px] font-bold text-gray-900">Account</h2>
-          <RowForm action={setActive} className="mt-2">
-            <input type="hidden" name="id" value={id} />
-            <input type="hidden" name="active" value={String(!student.is_active)} />
-            <button
-              type="submit"
-              className={`rounded px-3 py-1 text-[11px] font-semibold ${
-                student.is_active ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-red-100 text-red-800 hover:bg-red-200"
-              }`}
-            >
-              {student.is_active ? "Account on — switch off" : "Account off — switch on"}
-            </button>
-          </RowForm>
-          <RowForm action={deleteStudent} className="mt-3">
-            <input type="hidden" name="id" value={id} />
-            <PendingButton
-              pendingLabel="Deleting…"
-              confirm={`Delete ${student.full_name || student.phone}'s account?\n\nTheir results for every paper go with it. This cannot be undone.\n\nTo keep the results, switch the account off instead.`}
-              className="text-[11px] font-semibold text-red-700 hover:underline disabled:opacity-60"
-            >
-              Delete this account
-            </PendingButton>
-          </RowForm>
-        </section>
-
-        <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-[14px] font-bold text-gray-900">New password</h2>
-          <p className="mt-1 text-[12px] text-gray-500">Set one and tell the student; they can change it afterwards from their dashboard.</p>
-          <RowForm action={resetPassword} className="mt-2 flex gap-2">
-            <input type="hidden" name="id" value={id} />
-            <input name="password" required minLength={6} placeholder="new password" className="w-[160px] rounded border border-gray-400 px-2 py-1 text-[12px]" />
-            <button type="submit" className="rounded border border-gray-400 px-2 py-1 text-[11px] font-semibold text-gray-800 hover:bg-gray-100">
-              Set
-            </button>
-          </RowForm>
-        </section>
-      </div>
-
-      <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="text-[14px] font-bold text-gray-900">Packages</h2>
-        <p className="mt-1 text-[12px] text-gray-600">What this student&apos;s account opens. A Kautilya student gets the package from here; an outside student buys it online.</p>
-        {enrollments.length === 0 ? (
-          <p className="mt-2 text-[12px] text-amber-800">No package: only the free mock is open.</p>
-        ) : (
-          <table className="mt-2 w-full border-collapse text-[12px]">
-            <thead>
-              <tr className="bg-gray-100 text-left text-gray-700">
-                <th className="border border-gray-300 px-2 py-1.5">Package</th>
-                <th className="border border-gray-300 px-2 py-1.5">Opens</th>
-                <th className="border border-gray-300 px-2 py-1.5">From</th>
-                <th className="border border-gray-300 px-2 py-1.5">Till</th>
-                <th className="border border-gray-300 px-2 py-1.5">Source</th>
-                <th className="border border-gray-300 px-2 py-1.5"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {enrollments.map((e) => (
-                <tr key={e.id} className="bg-white even:bg-gray-50">
-                  <td className="border border-gray-300 px-2 py-1.5 font-semibold text-gray-900">{e.package.name}</td>
-                  <td className="border border-gray-300 px-2 py-1.5">{KIND_LABEL[e.package.kind]}</td>
-                  <td className="border border-gray-300 px-2 py-1.5">{formatDate(e.startsAt)}</td>
-                  <td className="border border-gray-300 px-2 py-1.5">
-                    {e.expiresAt ? formatDate(e.expiresAt) : "No expiry"}
-                    {!enrollmentActive(e) && <span className="ml-1 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-800">EXPIRED</span>}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1.5">{e.source === "purchase" ? "Paid online" : "Institute"}{e.note ? <span className="block text-[11px] text-gray-500">{e.note}</span> : null}</td>
-                  <td className="border border-gray-300 px-2 py-1.5">
-                    <RowForm action={unenrollStudent}>
-                      <input type="hidden" name="enrollment_id" value={e.id} />
-                      <input type="hidden" name="user_id" value={id} />
-                      <PendingButton pendingLabel="…" confirm={`Remove ${e.package.name} from this student?`} className="text-[11px] font-semibold text-red-700 hover:underline">Remove</PendingButton>
-                    </RowForm>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        <RowForm action={enrollStudent} className="mt-3 flex flex-wrap items-end gap-2">
-          <input type="hidden" name="user_id" value={id} />
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-semibold text-gray-700">Add a package</span>
-            <select name="package" required className="rounded border border-gray-400 px-2 py-1.5 text-[12px]">
-              <option value="">— choose —</option>
-              {packages.map((p) => (
-                <option key={p.id} value={p.slug}>{p.name} · {KIND_LABEL[p.kind]}{p.isPublished ? "" : " (hidden)"}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-semibold text-gray-700">Till (blank: no expiry)</span>
-            <input name="expires_on" type="date" className="rounded border border-gray-400 px-2 py-1.5 text-[12px]" />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-semibold text-gray-700">Note</span>
-            <input name="note" placeholder="Paid at office ₹699" className="rounded border border-gray-400 px-2 py-1.5 text-[12px]" />
-          </label>
-          <PendingButton pendingLabel="Adding…" className="rounded bg-indigo-800 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-indigo-900 disabled:opacity-60">Add</PendingButton>
-        </RowForm>
-      </section>
-
-      <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="text-[14px] font-bold text-gray-900">Batteries</h2>
-        <table className="mt-2 w-full border-collapse text-[13px]">
-          <thead>
-            <tr className="bg-rrb-banner text-left text-white">
-              <th className="border border-gray-300 px-3 py-2">Battery</th>
-              <th className="border border-gray-300 px-3 py-2">Best T-Score</th>
-              <th className="border border-gray-300 px-3 py-2">Stage</th>
-              <th className="border border-gray-300 px-3 py-2">Attempts</th>
-              <th className="border border-gray-300 px-3 py-2">Papers sat</th>
-              <th className="border border-gray-300 px-3 py-2">Last attempt</th>
-            </tr>
-          </thead>
-          <tbody>
-            {progress.map((b) => {
-              const t = b.bestT;
-              const stage = t === null ? "—" : t >= STAGES.target ? `At target (${STAGES.target})` : t >= STAGES.average ? `Above average (${STAGES.average})` : t >= STAGES.pass ? `Passed (${STAGES.pass})` : `Below ${STAGES.pass}`;
-              return (
-                <tr key={b.battery} className="bg-white even:bg-gray-50">
-                  <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">Test {b.battery} · {b.title}</td>
-                  <td className="border border-gray-300 px-3 py-2 tabular-nums">{t === null ? "—" : t.toFixed(1)}</td>
-                  <td className={`border border-gray-300 px-3 py-2 ${t !== null && t < STAGES.pass ? "text-red-700" : "text-gray-800"}`}>{stage}</td>
-                  <td className="border border-gray-300 px-3 py-2">{b.attempts}</td>
-                  <td className="border border-gray-300 px-3 py-2">{b.papersSat}</td>
-                  <td className="border border-gray-300 px-3 py-2">{b.lastAt ? formatDateTime(b.lastAt) : "—"}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </section>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-[14px] font-bold text-gray-900">Full Mocks</h2>
-          {mocks.length === 0 ? (
-            <p className="mt-2 text-[12px] text-gray-500">No Full Mock finished yet.</p>
-          ) : (
-            <table className="mt-2 w-full border-collapse text-[12px]">
-              <thead>
-                <tr className="bg-gray-100 text-left text-gray-700">
-                  <th className="border border-gray-300 px-2 py-1.5">Mock</th>
-                  <th className="border border-gray-300 px-2 py-1.5">When</th>
-                  <th className="border border-gray-300 px-2 py-1.5">Out of 30</th>
-                  <th className="border border-gray-300 px-2 py-1.5">Verdict</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mocks.map((m) => {
-                  const out = scoreOutOf30(m.tests);
-                  return (
-                    <tr key={m.id} className="bg-white even:bg-gray-50">
-                      <td className="border border-gray-300 px-2 py-1.5 font-semibold text-gray-900">
-                        {m.mockSlug ? <Link href={`/admin/mocks/${m.mockSlug}/results`} className="text-rrb-banner hover:underline">{m.mockName}</Link> : m.mockName}
-                      </td>
-                      <td className="border border-gray-300 px-2 py-1.5">{formatDateTime(m.submittedAt)}</td>
-                      <td className="border border-gray-300 px-2 py-1.5 tabular-nums">{out === null ? "—" : out.toFixed(1)}</td>
-                      <td className="border border-gray-300 px-2 py-1.5">
-                        {m.qualified === null ? "—" : m.qualified ? <span className="font-semibold text-green-700">Qualified</span> : <span className="font-semibold text-red-700">Not yet</span>}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </section>
-
-        <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-[14px] font-bold text-gray-900">Recent papers</h2>
-          {attempts.length === 0 ? (
-            <p className="mt-2 text-[12px] text-gray-500">No paper sat yet.</p>
-          ) : (
-            <table className="mt-2 w-full border-collapse text-[12px]">
-              <thead>
-                <tr className="bg-gray-100 text-left text-gray-700">
-                  <th className="border border-gray-300 px-2 py-1.5">Paper</th>
-                  <th className="border border-gray-300 px-2 py-1.5">When</th>
-                  <th className="border border-gray-300 px-2 py-1.5">Marks</th>
-                  <th className="border border-gray-300 px-2 py-1.5">Attempted</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attempts.map((a) => (
-                  <tr key={a.id} className="bg-white even:bg-gray-50">
-                    <td className="border border-gray-300 px-2 py-1.5 font-semibold text-gray-900">
-                      <Link href={`/admin/papers/${a.paperSlug}/results`} className="text-rrb-banner hover:underline">{a.paperName}</Link>
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1.5">{formatDateTime(a.submittedAt)}</td>
-                    <td className="border border-gray-300 px-2 py-1.5 tabular-nums">{a.marks} / {a.total}</td>
-                    <td className="border border-gray-300 px-2 py-1.5 tabular-nums">{a.attempted}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
-      </div>
-    </>
+  const [progress, attempts, mocks, held, packages, exam, papers, noteRow] = await Promise.all([
+    batteryProgress(id),
+    attemptsFor(id, 1000),
+    mockResultsFor(id, 50),
+    enrollmentsOf(id),
+    listAllPackages(),
+    examSettings(),
+    listPublishedPapers(),
+    // Until supabase/admin-note.sql has been run there is no table: no note.
+    supabase.from("student_notes").select("note").eq("user_id", id).maybeSingle(),
+  ]);
+  const idBySlug = new Map(papers.map((p) => [p.slug, p.id]));
+  // The T-score each attempt earns today, from the cached cohorts.
+  const ts = await tScoresOf(
+    attempts.map((a) => ({
+      paperId: idBySlug.get(a.paperSlug) ?? "",
+      marks: a.marks,
+      total: a.total,
+    })),
   );
-}
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline gap-2">
-      <dt className="w-[110px] shrink-0 text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</dt>
-      <dd className="min-w-0 text-gray-900">{children}</dd>
-    </div>
+    <StudentDetailView
+      s={{
+        id: student.id,
+        fullName: student.full_name || "",
+        rollNo: student.roll_no || "",
+        phone: student.phone || "",
+        createdAt: student.created_at,
+        isActive: student.is_active,
+        validUntil: student.valid_until,
+        photoUrl: photoUrlOf(student),
+        lastSeenAt: student.last_seen_at,
+        note: (noteRow.data?.note as string | undefined) ?? "",
+        hasDevice: Boolean(student.session_id),
+        now: Date.now(),
+        progress,
+        attempts: attempts.map((a, i) => ({
+          ...a,
+          battery: batteryOf(a.category),
+          t: ts[i] ?? null,
+        })),
+        mocks,
+        enrollments: held ?? [],
+        packages,
+        stages: {
+          pass: exam.passT,
+          average: STAGES.average,
+          target: exam.targetT,
+        },
+      }}
+    />
   );
 }

@@ -33,7 +33,7 @@ const NAV: { title: string; items: { href: string; label: string; icon: string; 
       { href: "/admin/blog", label: "Blog", icon: "✍️", section: "admin" },
     ],
   },
-  { title: "Results", items: [{ href: "/admin/results", label: "Results", icon: "📊", section: "results" }] },
+  { title: "Results", items: [{ href: "/admin/results", label: "Results", icon: "📊", section: "results" }, { href: "/admin/analytics", label: "Analytics", icon: "📈", section: "results" }] },
   {
     title: "Settings",
     items: [

@@ -145,6 +145,7 @@ export function AdminHomeView({ d }: { d: HomeData }) {
           <Action href="/admin/mocks">+ New Full Mock</Action>
           <Action href="/admin/packages">Packages &amp; prices</Action>
           <Action href="/admin/results">Results</Action>
+          <Action href="/admin/analytics">Analytics</Action>
           <Action href="/admin/team">Settings &amp; notices</Action>
         </div>
       </section>

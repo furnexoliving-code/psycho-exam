@@ -1,6 +1,8 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PAPERS_TAG } from "./db";
+import { cohortFromMoments } from "./cohort";
+import { tScore } from "./tscore";
 
 const COHORTS_TAG = "wt-cohorts";
 
@@ -84,4 +86,27 @@ export async function paperStats(): Promise<Map<string, PaperStat>> {
 /** A result was recorded, or attempts were removed: the cohorts are read afresh on the next visit. */
 export function cohortsChanged(): void {
   revalidateTag(COHORTS_TAG);
+}
+
+/**
+ * The T-score of each attempt named, from the cached cohorts: the way the
+ * result page measures it, over the paper's current length. Null where the
+ * cohort is too small and no reference figures are set.
+ */
+export async function tScoresOf(rows: { paperId: string; marks: number; total: number }[]): Promise<(number | null)[]> {
+  if (rows.length === 0) return [];
+  const [cohorts, stats] = await Promise.all([allCohorts(), paperStats()]);
+  const byKey = new Map(cohorts.map((c) => [`${c.paper_id}:${c.total}`, c]));
+  return rows.map((r) => {
+    const paper = stats.get(r.paperId);
+    if (!paper) return null;
+    const c = byKey.get(`${r.paperId}:${r.total}`);
+    const cohort = cohortFromMoments(c ? { n: c.n, mean: c.mean, sd: c.sd } : { n: 0, mean: 0, sd: 0 }, {
+      stats_min_attempts: paper.stats_min_attempts,
+      reference_mean: paper.reference_mean,
+      reference_sd: paper.reference_sd,
+    });
+    const t = tScore(r.marks, cohort);
+    return t ? Number(t.value.toFixed(1)) : null;
+  });
 }
