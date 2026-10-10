@@ -61,6 +61,7 @@ export default async function PracticePage() {
       bestT={bestT}
       lastAt={lastAt}
       now={Date.now()}
+      examDate={exam.examDate}
       stages={{ pass: exam.passT, average: STAGES.average, target: exam.targetT }}
     />
   );

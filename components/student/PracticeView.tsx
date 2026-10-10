@@ -4,7 +4,8 @@ import { BATTERIES } from "@/lib/wt/categories";
 import type { BatteryProgress } from "@/lib/wt/progress";
 import { LAST_EXAM_CODES, LAST_EXAM_LABEL, sectionsOfBattery, type Section } from "@/lib/wt/sections";
 import type { Series } from "@/lib/wt/series";
-import { formatDate, indianDay } from "@/lib/format-time";
+import { formatDate, formatDayMonth, indianDay } from "@/lib/format-time";
+import { daysUntil } from "@/lib/settings";
 
 /**
  * Practice, arranged as the hall is: the five batteries, and in each
@@ -30,6 +31,8 @@ export interface PracticeInput {
   /** When each paper was last sat, by paper id; a paper never sat is absent. */
   lastAt: Map<string, string>;
   now: number;
+  /** The exam's date, when the institute has set one. */
+  examDate: string | null;
   stages: { pass: number; average: number; target: number };
 }
 
@@ -97,7 +100,7 @@ function lastOf(series: Series, lastAt: Map<string, string>): string | null {
 
 const isLastExam = (code: string | null) => code !== null && LAST_EXAM_CODES.includes(code);
 
-export function PracticeView({ profile, groups, hidden, progress, sat, bestT, lastAt, now, stages }: PracticeInput) {
+export function PracticeView({ profile, groups, hidden, progress, sat, bestT, lastAt, now, examDate, stages }: PracticeInput) {
   const batteries = BATTERIES.filter((b) => !hidden.includes(b.id));
   const allPapers = [...groups.values()].flat().flatMap((s) => s.papers);
   const satCount = allPapers.filter((p) => sat.has(p.id)).length;
@@ -114,70 +117,100 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
     if (t !== null && (weakest === null || t < weakest.t)) weakest = { card: c, t };
   }
   const lastExam = LAST_EXAM_CODES.map((code) => allCards.find((c) => c.code === code)).filter((c): c is (typeof allCards)[number] => c !== undefined);
+  // The kinds at the pass mark, today's sittings, and the days to the exam.
+  const kindsPassed = allCards.filter((c) => c.series && (bestOf(c.series, bestT) ?? -1) >= stages.pass).length;
+  const todayCount = progress.filter((p) => batteries.some((b) => b.id === p.battery)).reduce((n, p) => n + p.today, 0);
+  const examIn = examDate ? daysUntil(examDate, indianDay(now)) : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f3f5f9]">
       <StudentHeader name={profile.full_name || "Candidate"} photoUrl={profile.photoUrl} active="practice" />
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0b2461] via-[#10306f] to-[#1b1b5e] text-white">
-        {/* Soft glows in the flag's colours, so the band is not a flat block. */}
-        <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#ff9933]/25 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 right-0 h-80 w-80 rounded-full bg-[#138808]/30 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute right-1/3 top-0 h-56 w-56 rounded-full bg-[#60a5fa]/20 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0d2a6b] via-[#113279] to-[#1e2a78] text-white">
+        {/* Gentle glows, so the band is not a flat block. */}
+        <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-[#ff9933]/20 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-[#38bdf8]/20 blur-3xl" />
         <div className="relative mx-auto w-full max-w-6xl px-4 py-6 sm:px-5 sm:py-7">
-          <div className="flex flex-wrap items-end justify-between gap-5">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#ffb84d]">Sectional practice · सेक्शनल अभ्यास</p>
-              <h1 className="mt-1 text-[26px] font-extrabold tracking-tight sm:text-[30px]">
-                Practice Tests <span className="text-[16px] font-normal text-blue-200" lang="hi">/ अभ्यास परीक्षण</span>
-              </h1>
-              <p className="mt-2 text-[13px] leading-relaxed text-blue-100">
-                All {allCards.length} tests of the ALP battery, as the RDSO guideline (CBT, Jan 2020) lists them, with the hall&apos;s own question count and time.
-                Reach T-Score {stages.pass} in every battery to unlock the Full Mocks; then {stages.average}, then {stages.target}.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <Stat value={satCount} of={allPapers.length} label="papers attempted" accent="text-[#ffb84d]" />
-              <Stat value={openTypes} of={allCards.length} label="tests open" accent="text-white" />
-              <Stat value={cleared} of={batteries.length} label={`batteries at ${stages.pass}+`} accent="text-[#86efac]" />
+          <div className="max-w-3xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#ffb84d]">Sectional practice · सेक्शनल अभ्यास</p>
+            <h1 className="mt-1 text-[26px] font-extrabold tracking-tight sm:text-[30px]">
+              Practice Tests <span className="text-[16px] font-normal text-blue-200" lang="hi">/ अभ्यास परीक्षण</span>
+            </h1>
+            <p className="mt-2 text-[13px] leading-relaxed text-blue-100">
+              All {allCards.length} tests of the RRB ALP CBAT, in the hall&apos;s own order, each with the hall&apos;s question count and time limit.
+              T-Score {stages.pass} in every battery is the pass mark and opens the Full Mocks; then aim for {stages.average}, then {stages.target}.
+            </p>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-blue-200" lang="hi">
+              RRB ALP CBAT के सभी {allCards.length} टेस्ट, हॉल के क्रम, प्रश्न-संख्या और समय के साथ। हर बैटरी में T-Score {stages.pass} पास है और इससे Full Mock खुलते हैं; फिर {stages.average}, फिर {stages.target} का लक्ष्य।
+            </p>
+            <div className="mt-2.5 flex flex-wrap gap-1.5 text-[10.5px] font-bold">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-white"><span className="h-2 w-2 rounded-full bg-[#f87171]" aria-hidden="true" />below {stages.pass} · सुधार चाहिए</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-white"><span className="h-2 w-2 rounded-full bg-[#fbbf24]" aria-hidden="true" />{stages.pass}–{stages.target - 1} · pass</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-white"><span className="h-2 w-2 rounded-full bg-[#4ade80]" aria-hidden="true" />{stages.target}+ · target</span>
             </div>
           </div>
 
-          {lastExam.length > 0 && (
-            // The five the last exam gave, one per battery: the first thing
-            // to practise, and framed in gold on their cards below.
-            <div className="mt-5 rounded-[14px] border border-[#fbbf24]/50 bg-gradient-to-r from-[#fbbf24]/20 via-[#fbbf24]/10 to-transparent p-3 sm:p-4">
-              <div className="flex items-start gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#fbbf24] text-[18px] shadow-[0_0_0_4px_rgba(251,191,36,0.25)]" aria-hidden="true">⭐</span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[14px] font-extrabold leading-snug text-white" lang="hi">पिछली परीक्षा {LAST_EXAM_LABEL} में यही आए थे, इनका अभ्यास ज़रूर करें।</p>
-                  <p className="text-[11.5px] text-blue-100">Asked in the last exam ({LAST_EXAM_LABEL}): practise these five first.</p>
+          <div className={`mt-5 grid grid-cols-3 gap-2 sm:gap-3 ${examIn !== null ? "sm:grid-cols-6" : "sm:grid-cols-5"}`}>
+            <Stat value={satCount} of={allPapers.length} label="papers attempted" hindi="पेपर दिए" ink="text-[#c2410c]" bar="bg-[#f97316]" />
+            <Stat value={openTypes} of={allCards.length} label="tests open" hindi="टेस्ट खुले" ink="text-[#1d4ed8]" bar="bg-[#3b82f6]" />
+            <Stat value={kindsPassed} of={openTypes} label={`tests at ${stages.pass}+`} hindi="टेस्ट पास" ink="text-[#15803d]" bar="bg-[#22c55e]" />
+            <Stat value={cleared} of={batteries.length} label={`batteries at ${stages.pass}+`} hindi="बैटरी पास" ink="text-[#0f766e]" bar="bg-[#14b8a6]" />
+            <Stat value={todayCount} label="attempts today" hindi="आज दिए" ink="text-[#6d28d9]" bar="bg-[#8b5cf6]" />
+            {examIn !== null && examDate && (
+              <Stat value={Math.max(0, examIn)} label={examIn > 0 ? `days to exam · ${formatDayMonth(examDate)}` : examIn === 0 ? "exam is today" : "exam day passed"} hindi="परीक्षा में दिन" ink="text-[#b45309]" bar="bg-[#f59e0b]" />
+            )}
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_340px]">
+            {lastExam.length > 0 && (
+              // The five the last exam gave, one per battery: the first thing
+              // to practise, and framed in gold on their cards below.
+              <div className="rounded-[14px] border-l-4 border-[#f59e0b] bg-[#fffaeb] p-3 text-gray-900 shadow-lg shadow-black/15 sm:p-4">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#fef3c7] text-[18px]" aria-hidden="true">⭐</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[14px] font-extrabold leading-snug text-[#0d2a6b]" lang="hi">पिछली परीक्षा {LAST_EXAM_LABEL} में यही आए थे, इनका अभ्यास ज़रूर करें।</p>
+                    <p className="text-[11.5px] text-gray-600">Asked in the last exam ({LAST_EXAM_LABEL}): practise these five first.</p>
+                  </div>
+                </div>
+                <div className="mt-2.5 flex flex-wrap gap-2 sm:pl-12">
+                  {lastExam.map((c) =>
+                    c.series ? (
+                      <Link key={c.code} href={`/practice/${c.battery}/${c.series.slug}`} className="rounded-full border border-[#f59e0b]/60 bg-white px-3 py-1 text-[12px] font-bold text-[#0d2a6b] shadow-sm transition hover:bg-[#fef3c7]">
+                        <span className="text-[#b45309]">{c.code}</span> {c.name}
+                      </Link>
+                    ) : (
+                      <span key={c.code} className="rounded-full border border-gray-200 bg-white/70 px-3 py-1 text-[12px] font-bold text-gray-500">
+                        <span className="text-[#b45309]">{c.code}</span> {c.name}
+                      </span>
+                    ),
+                  )}
                 </div>
               </div>
-              <div className="mt-2.5 flex flex-wrap gap-2 sm:pl-12">
-                {lastExam.map((c) =>
-                  c.series ? (
-                    <Link key={c.code} href={`/practice/${c.battery}/${c.series.slug}`} className="rounded-full border border-[#fbbf24]/60 bg-[#fbbf24]/15 px-3 py-1 text-[12px] font-bold text-white transition hover:bg-[#fbbf24]/35">
-                      <span className="text-[#ffd369]">{c.code}</span> {c.name}
-                    </Link>
-                  ) : (
-                    <span key={c.code} className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[12px] font-bold text-blue-100">
-                      <span className="text-[#ffd369]">{c.code}</span> {c.name}
-                    </span>
-                  ),
-                )}
+            )}
+
+            {weakest && weakest.card.series ? (
+              // Where to start today: the kind with the lowest best T.
+              <div className="flex flex-col rounded-[14px] border-l-4 border-[#e11d48] bg-[#fff1f2] p-3 text-gray-900 shadow-lg shadow-black/15 sm:p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#be123c]">▼ Your weakest · सबसे कमज़ोर</p>
+                <p className="mt-1 text-[17px] font-extrabold leading-tight text-[#0d2a6b]">{weakest.card.name}</p>
+                <p className="mt-0.5 text-[12px] text-gray-700">
+                  best T <span className="font-extrabold text-[#be123c]">{weakest.t.toFixed(0)}</span> · {weakest.t >= stages.pass ? `above the pass mark ${stages.pass}, lowest of yours` : `below the pass mark ${stages.pass}`}
+                </p>
+                <p className="text-[11.5px] text-gray-600" lang="hi">आज यहीं से शुरू करें।</p>
+                <Link href={`/practice/${weakest.card.battery}/${weakest.card.series.slug}`} className="mt-3 inline-block self-start rounded-full bg-[#e11d48] px-4 py-1.5 text-[12px] font-bold text-white shadow transition hover:bg-[#be123c]">
+                  Practise now →
+                </Link>
               </div>
-            </div>
-          )}
-          {weakest && weakest.card.series && (
-            <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-blue-100">
-              <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#fb7185] shadow-[0_0_0_3px_rgba(251,113,133,0.3)]" aria-hidden="true" />
-              <span className="font-bold text-white">Your weakest right now:</span>
-              <Link href={`/practice/${weakest.card.battery}/${weakest.card.series.slug}`} className="font-extrabold text-[#ffd369] hover:underline">{weakest.card.name}</Link>
-              <span>(best T {weakest.t.toFixed(0)}) · start there today.</span>
-              <span lang="hi">अभी सबसे कमज़ोर यही है, आज यहीं से शुरू करें।</span>
-            </p>
-          )}
+            ) : (
+              <div className="flex flex-col rounded-[14px] border-l-4 border-gray-400 bg-white p-3 text-gray-900 shadow-lg shadow-black/15 sm:p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-gray-500">Your weakest · सबसे कमज़ोर</p>
+                <p className="mt-1 text-[14px] font-extrabold leading-tight text-[#0d2a6b]">Not measured yet</p>
+                <p className="mt-0.5 text-[12px] text-gray-700">Sit any paper and your weakest kind shows here, with a button straight to it.</p>
+                <p className="text-[11.5px] text-gray-600" lang="hi">कोई भी पेपर दें, सबसे कमज़ोर टेस्ट यहाँ दिखेगा।</p>
+              </div>
+            )}
+          </div>
         </div>
         <div className="h-1 bg-gradient-to-r from-[#ff9933] via-white to-[#138808]" />
       </section>
@@ -255,13 +288,18 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
   );
 }
 
-function Stat({ value, of, label, accent }: { value: number; of: number; label: string; accent: string }) {
+/** One figure on a white card, its number and top line in the figure's own colour. */
+function Stat({ value, of, label, hindi, ink, bar }: { value: number; of?: number; label: string; hindi: string; ink: string; bar: string }) {
   return (
-    <div className="rounded-[12px] border border-white/15 bg-white/10 px-3 py-2 text-center backdrop-blur sm:px-4">
-      <div className={`text-[20px] font-extrabold tabular-nums leading-tight sm:text-[22px] ${accent}`}>
-        {value} <span className="text-[12px] font-semibold text-blue-200">/ {of}</span>
+    <div className="overflow-hidden rounded-[14px] bg-white text-center text-gray-900 shadow-lg shadow-black/15">
+      <div className={`h-1 ${bar}`} />
+      <div className="px-2 pb-2.5 pt-2 sm:px-3">
+        <div className={`text-[22px] font-extrabold tabular-nums leading-tight sm:text-[24px] ${ink}`}>
+          {value}{of !== undefined && <span className="text-[12px] font-semibold text-gray-400"> / {of}</span>}
+        </div>
+        <div className="text-[9.5px] font-bold uppercase tracking-wide text-gray-600 sm:text-[10px]">{label}</div>
+        <div className="text-[9.5px] text-gray-500" lang="hi">{hindi}</div>
       </div>
-      <div className="text-[9.5px] font-semibold uppercase tracking-wide text-blue-200 sm:text-[10px]">{label}</div>
     </div>
   );
 }
