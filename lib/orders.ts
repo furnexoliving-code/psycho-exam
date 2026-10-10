@@ -101,16 +101,22 @@ export async function settlePaidOrder(order: Order, paymentId: string): Promise<
 
 /** Every order, newest first, with the student's name and the package, for the panel. */
 export async function listOrders(limit = 200): Promise<(Order & { studentName: string; phone: string; packageName: string })[]> {
-  const { data, error } = await createAdminClient()
-    .from("orders")
-    .select(`${COLUMNS}, profile:profiles(full_name, phone), package:packages(name)`)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (error || !data) return [];
-  return (data as unknown as (OrderRow & { profile: { full_name: string; phone: string } | null; package: { name: string } | null })[]).map((r) => ({
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("orders").select(COLUMNS).order("created_at", { ascending: false }).limit(limit);
+  if (error || !data?.length) return [];
+  const rows = data as OrderRow[];
+  // Names and packages in two reads of their own: an order points at the
+  // auth user, not the profile, so the database cannot join the two for us.
+  const [{ data: people }, { data: packages }] = await Promise.all([
+    supabase.from("profiles").select("id, full_name, phone").in("id", [...new Set(rows.map((r) => r.user_id))]),
+    supabase.from("packages").select("id, name").in("id", [...new Set(rows.map((r) => r.package_id))]),
+  ]);
+  const who = new Map((people ?? []).map((p) => [p.id as string, p as { full_name: string | null; phone: string | null }]));
+  const what = new Map((packages ?? []).map((p) => [p.id as string, p as { name: string | null }]));
+  return rows.map((r) => ({
     ...toOrder(r),
-    studentName: r.profile?.full_name ?? "",
-    phone: r.profile?.phone ?? "",
-    packageName: r.package?.name ?? "",
+    studentName: who.get(r.user_id)?.full_name ?? "",
+    phone: who.get(r.user_id)?.phone ?? "",
+    packageName: what.get(r.package_id)?.name ?? "",
   }));
 }

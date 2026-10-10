@@ -3,7 +3,7 @@
 import { requireUser } from "@/lib/auth";
 import { loadPackage } from "@/lib/packages";
 import { createOrder, loadOrder, setGatewayOrder, settlePaidOrder } from "@/lib/orders";
-import { createRazorpayOrder, razorpayKeyId, verifyPaymentSignature } from "@/lib/razorpay";
+import { captureRazorpayPayment, createRazorpayOrder, razorpayKeyId, verifyPaymentSignature } from "@/lib/razorpay";
 import { onlineBuyingFor } from "@/lib/payments";
 import { logAction } from "@/lib/audit";
 import { applyCoupon } from "@/lib/coupons";
@@ -60,6 +60,15 @@ export async function finishCheckout(input: { orderId: string; gatewayOrderId: s
   if (order.gatewayOrderId !== input.gatewayOrderId) return { ok: false, error: "The order does not match." };
   if (!verifyPaymentSignature(input.gatewayOrderId, input.paymentId, input.signature)) {
     return { ok: false, error: "The payment could not be verified. If money was taken, it is settled automatically within a few minutes; ask at the office otherwise." };
+  }
+  // The checkout only authorises the amount; the money moves on capture.
+  // Until it has, the package is not given: Razorpay's own capture (the
+  // account setting) and the webhook finish the job if this call cannot.
+  try {
+    await captureRazorpayPayment(input.paymentId, order.amountInr);
+  } catch (error) {
+    console.error("finishCheckout capture", error);
+    return { ok: false, error: "The payment is approved but not yet confirmed by Razorpay. It settles on its own within a few minutes; if the package has not appeared by then, ask at the office with your payment id." };
   }
   try {
     await settlePaidOrder(order, input.paymentId);

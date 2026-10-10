@@ -38,6 +38,31 @@ export async function createRazorpayOrder(amountInr: number, receipt: string, no
   return { id: data.id };
 }
 
+/**
+ * Takes the money of an authorised payment. Razorpay only holds the
+ * amount at checkout; unless it is captured, by this call or by the
+ * account's auto-capture setting, it goes back to the card in a few
+ * days. "Already captured" counts as done.
+ */
+export async function captureRazorpayPayment(paymentId: string, amountInr: number): Promise<"captured" | "already"> {
+  const keyId = razorpayKeyId();
+  const secret = process.env.RAZORPAY_KEY_SECRET?.trim();
+  if (!keyId || !secret) throw new Error("Razorpay is not configured");
+  const res = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}/capture`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${Buffer.from(`${keyId}:${secret}`).toString("base64")}`,
+    },
+    body: JSON.stringify({ amount: Math.round(amountInr * 100), currency: "INR" }),
+    cache: "no-store",
+  });
+  if (res.ok) return "captured";
+  const text = await res.text().catch(() => "");
+  if (/already been captured|already captured/i.test(text)) return "already";
+  throw new Error(`Razorpay refused the capture (${res.status}): ${text.slice(0, 200)}`);
+}
+
 function safeEqual(a: string, b: string): boolean {
   const x = Buffer.from(a);
   const y = Buffer.from(b);
