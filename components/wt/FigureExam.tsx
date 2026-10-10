@@ -401,10 +401,14 @@ export function FigureExam({
                   <ScrollRail target={picturePane} axis="vertical" />
                   <ScrollRail target={picturePane} axis="horizontal" />
                 </div>
-                <div className="relative min-w-0 flex-1 pb-3 lg:pl-4">
+                {/* The question half scrolls on its own, down as well as
+                    sideways, under rails of its own: twelve rows of a map
+                    test run past the half-screen, and scrolling the whole
+                    column to reach them would carry the picture off the top. */}
+                <div className="relative min-w-0 flex-1 pb-3 lg:h-full lg:pl-4 lg:pr-[14px]">
                 {/* Each row padded and ruled as the Following Directions list is, so the
                     questions sit as far apart as on every other paper. */}
-                <ol ref={brickPane} className="wt-scroll-host w-full" style={{ fontFamily: "Georgia, 'Times New Roman', serif", overflowY: "hidden" }}>
+                <ol ref={brickPane} className="wt-scroll-host w-full lg:h-full" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
                   {parts[part]?.map((q, i) => {
                     const number = part * perPart + i + 1;
                     const chosen = state.answers[q.id];
@@ -421,6 +425,9 @@ export function FigureExam({
                   })}
                 </ol>
                 <ScrollRail target={brickPane} axis="horizontal" />
+                <div className="hidden lg:contents">
+                  <ScrollRail target={brickPane} axis="vertical" />
+                </div>
                 </div>
               </div>
             ) : (
@@ -578,7 +585,12 @@ export function FigureExam({
             </>
             )}
           </div>
-          <ScrollRail target={column} axis="vertical" />
+          {/* On the two-half screens the column itself never scrolls on a
+              wide screen (each half scrolls under its own rail), so its
+              rail would be a second strip beside the question half's. */}
+          <div className={brick ? "contents lg:hidden" : "contents"}>
+            <ScrollRail target={column} axis="vertical" />
+          </div>
           </div>
         </div>
       ) : (
