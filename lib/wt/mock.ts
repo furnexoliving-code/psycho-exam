@@ -117,13 +117,14 @@ interface MockRow {
   exam?: string | null;
 }
 
-const MOCK_COLUMNS =
-  "id, slug, name, paper_ids, gap_min, opens_at, closes_at, max_attempts, cut_off_tscore, is_published, sort_order, created_at, is_free, exam";
+const MOCK_COLUMNS = "id, slug, name, paper_ids, gap_min, opens_at, closes_at, max_attempts, cut_off_tscore, is_published, sort_order, created_at, is_free, exam";
 /** The same columns on a database the packages SQL has not reached yet. */
 const MOCK_COLUMNS_OLD = MOCK_COLUMNS.replace(", is_free, exam", "");
 
 /** Reads mocks with the package columns, or without them on an older database. */
-async function selectMocks(shape: (q: ReturnType<ReturnType<ReturnType<typeof createAdminClient>["from"]>["select"]>) => PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<{ data: MockRow[] | null; error: { message: string } | null }> {
+async function selectMocks(
+  shape: (q: ReturnType<ReturnType<ReturnType<typeof createAdminClient>["from"]>["select"]>) => PromiseLike<{ data: unknown; error: { message: string } | null }>,
+): Promise<{ data: MockRow[] | null; error: { message: string } | null }> {
   const first = await shape(createAdminClient().from("mock_tests").select(MOCK_COLUMNS));
   if (!first.error) return first as { data: MockRow[] | null; error: null };
   if (!/is_free|exam/i.test(first.error.message)) return first as { data: MockRow[] | null; error: { message: string } };
@@ -191,10 +192,7 @@ export async function papersOf(ids: string[]): Promise<MockPaper[]> {
   if (ids.length === 0) return [];
   const supabase = createAdminClient();
   const [{ data: rows }, { data: counts }] = await Promise.all([
-    supabase
-      .from("watch_papers")
-      .select("id, slug, display_name, category, is_published, instruction_time_min, time_limit_min")
-      .in("id", ids),
+    supabase.from("watch_papers").select("id, slug, display_name, category, is_published, instruction_time_min, time_limit_min").in("id", ids),
     supabase.from("watch_question_counts").select("paper_id, question_count").in("paper_id", ids),
   ]);
   const count = new Map((counts ?? []).map((c) => [c.paper_id as string, Number(c.question_count)]));
@@ -317,15 +315,9 @@ export async function mockSummary(papers: MockPaper[], attemptIds: string[], fin
   const ids = done.map((p) => p.id);
   const realAttempts = attemptIds.slice(0, finished).filter(isAttempt);
   const [{ data: rows }, { data: questions }, { data: attempts }] = await Promise.all([
-    ids.length
-      ? supabase.from("watch_papers").select("id, title, features").in("id", ids)
-      : Promise.resolve({ data: [] as { id: string; title: string; features: WatchFeatures | null }[] }),
-    ids.length
-      ? supabase.from("watch_questions").select("id, paper_id, position").in("paper_id", ids).order("position")
-      : Promise.resolve({ data: [] as { id: string; paper_id: string; position: number }[] }),
-    realAttempts.length
-      ? supabase.from("watch_attempts").select("id, paper_id, responses").in("id", realAttempts)
-      : Promise.resolve({ data: [] as { id: string; paper_id: string; responses: Record<string, unknown> | null }[] }),
+    ids.length ? supabase.from("watch_papers").select("id, title, features").in("id", ids) : Promise.resolve({ data: [] as { id: string; title: string; features: WatchFeatures | null }[] }),
+    ids.length ? supabase.from("watch_questions").select("id, paper_id, position").in("paper_id", ids).order("position") : Promise.resolve({ data: [] as { id: string; paper_id: string; position: number }[] }),
+    realAttempts.length ? supabase.from("watch_attempts").select("id, paper_id, responses").in("id", realAttempts) : Promise.resolve({ data: [] as { id: string; paper_id: string; responses: Record<string, unknown> | null }[] }),
   ]);
   const rowById = new Map((rows ?? []).map((r) => [r.id as string, r]));
   const attemptById = new Map((attempts ?? []).map((a) => [a.id as string, a]));
@@ -375,11 +367,7 @@ export async function mockSummary(papers: MockPaper[], attemptIds: string[], fin
 
 /** How many times this candidate has finished this mock. */
 export async function mockAttemptsUsed(mockId: string, userId: string): Promise<number> {
-  const { count } = await createAdminClient()
-    .from("mock_results")
-    .select("id", { count: "exact", head: true })
-    .eq("mock_id", mockId)
-    .eq("user_id", userId);
+  const { count } = await createAdminClient().from("mock_results").select("id", { count: "exact", head: true }).eq("mock_id", mockId).eq("user_id", userId);
   return count ?? 0;
 }
 
@@ -387,11 +375,7 @@ export async function mockAttemptsUsed(mockId: string, userId: string): Promise<
  * Starts the mock for this candidate, or joins the sitting already open.
  * Refused when the mock is not live or the attempts are spent.
  */
-export async function openMockSitting(
-  slug: string,
-  userId: string,
-  role = "student",
-): Promise<{ ok: true; step: MockStep } | { ok: false; reason: string }> {
+export async function openMockSitting(slug: string, userId: string, role = "student"): Promise<{ ok: true; step: MockStep } | { ok: false; reason: string }> {
   const loaded = await loadMock(slug);
   if (!loaded || !loaded.mock.isPublished) return { ok: false, reason: "This mock is not available." };
   const { mock, papers } = loaded;
@@ -423,11 +407,7 @@ export async function openMockSitting(
   }
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("mock_sittings")
-    .insert({ mock_id: mock.id, user_id: userId })
-    .select("id, started_at, step")
-    .single();
+  const { data, error } = await supabase.from("mock_sittings").insert({ mock_id: mock.id, user_id: userId }).select("id, started_at, step").single();
   if (error) {
     // Two tabs at once: the index refused the loser, so join the winner.
     const again = await currentMockStep(userId);
@@ -449,11 +429,7 @@ export async function mockUnlockedFor(userId: string, papers: MockPaper[]): Prom
 
 /** How many Full Mocks this candidate finished today (India). */
 export async function mocksFinishedToday(userId: string, dayStartIso: string): Promise<number> {
-  const { count } = await createAdminClient()
-    .from("mock_results")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .gte("submitted_at", dayStartIso);
+  const { count } = await createAdminClient().from("mock_results").select("id", { count: "exact", head: true }).eq("user_id", userId).gte("submitted_at", dayStartIso);
   return count ?? 0;
 }
 
@@ -462,14 +438,7 @@ export async function mocksFinishedToday(userId: string, dayStartIso: string): P
  * attempt that test became, then either opens the next test or, after the
  * last, writes the scorecard. Returns where the browser should go next.
  */
-export async function advanceMock(
-  userId: string,
-  paperDbId: string,
-): Promise<
-  | { next: "paper"; slug: string; gapSec: number; step: number; total: number; summary: MockSummaryTest[] }
-  | { next: "done"; slug: string; summary: MockSummaryTest[] }
-  | null
-> {
+export async function advanceMock(userId: string, paperDbId: string): Promise<{ next: "paper"; slug: string; gapSec: number; step: number; total: number; summary: MockSummaryTest[] } | { next: "done"; slug: string; summary: MockSummaryTest[] } | null> {
   const current = await currentMockStep(userId);
   if (!current || current.paper.id !== paperDbId) return null;
   const supabase = createAdminClient();
@@ -477,21 +446,9 @@ export async function advanceMock(
   // The attempt this test became: the newest one of this paper by this
   // candidate since the mock began. None means the paper was not recorded
   // (opened and shut unanswered): it then counts as zero.
-  const { data: attempt } = await supabase
-    .from("watch_attempts")
-    .select("id")
-    .eq("paper_id", paperDbId)
-    .eq("user_id", userId)
-    .gte("submitted_at", current.startedAt)
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const { data: attempt } = await supabase.from("watch_attempts").select("id").eq("paper_id", paperDbId).eq("user_id", userId).gte("submitted_at", current.startedAt).order("submitted_at", { ascending: false }).limit(1).maybeSingle();
 
-  const { data: row } = await supabase
-    .from("mock_sittings")
-    .select("attempt_ids, step")
-    .eq("id", current.sittingId)
-    .maybeSingle();
+  const { data: row } = await supabase.from("mock_sittings").select("attempt_ids, step").eq("id", current.sittingId).maybeSingle();
   const ids = [...((row?.attempt_ids as string[] | null) ?? [])];
   ids[current.step] = attempt?.id ?? NO_ATTEMPT;
 
@@ -528,7 +485,13 @@ async function finishMock(current: MockStep, attemptIds: string[]): Promise<void
       ? supabase.from("watch_attempts").select("id, paper_id, marks, total, attempted, duration_sec").in("id", realIds)
       : Promise.resolve({ data: [] as { id: string; paper_id: string; marks: number; total: number; attempted: number; duration_sec: number | null }[] }),
     supabase.rpc("watch_cohorts", { p_papers: papers.map((p) => p.id) }),
-    supabase.from("watch_papers").select("id, stats_min_attempts, reference_mean, reference_sd").in("id", papers.map((p) => p.id)),
+    supabase
+      .from("watch_papers")
+      .select("id, stats_min_attempts, reference_mean, reference_sd")
+      .in(
+        "id",
+        papers.map((p) => p.id),
+      ),
   ]);
   const attemptById = new Map((attempts ?? []).map((a) => [a.id as string, a]));
   const settingById = new Map((settings ?? []).map((s) => [s.id as string, s]));
@@ -540,9 +503,7 @@ async function finishMock(current: MockStep, attemptIds: string[]): Promise<void
     const total = attempt ? Number(attempt.total) : paper.questionCount;
     durationSec += attempt?.duration_sec ? Number(attempt.duration_sec) : 0;
     // The cohort over the paper's current length, as the result page uses.
-    const cohortRow = (cohorts as { paper_id: string; total: number; n: number; mean: number; sd: number }[] | null)?.find(
-      (c) => c.paper_id === paper.id && Number(c.total) === total,
-    );
+    const cohortRow = (cohorts as { paper_id: string; total: number; n: number; mean: number; sd: number }[] | null)?.find((c) => c.paper_id === paper.id && Number(c.total) === total);
     const moments = cohortRow ? { n: Number(cohortRow.n), mean: Number(cohortRow.mean), sd: Number(cohortRow.sd) } : { n: 0, mean: 0, sd: 0 };
     const setting = settingById.get(paper.id);
     const cohort = cohortFromMoments(moments, {
@@ -580,19 +541,12 @@ async function finishMock(current: MockStep, attemptIds: string[]): Promise<void
     duration_sec: durationSec || null,
   });
   if (error) throw new Error(error.message);
-  await supabase
-    .from("mock_sittings")
-    .update({ attempt_ids: attemptIds, submitted_at: new Date().toISOString() })
-    .eq("id", current.sittingId);
+  await supabase.from("mock_sittings").update({ attempt_ids: attemptIds, submitted_at: new Date().toISOString() }).eq("id", current.sittingId);
 }
 
 /** Gives up on an open sitting: it is closed with no scorecard and no attempt spent. */
 export async function abandonMock(userId: string): Promise<void> {
-  await createAdminClient()
-    .from("mock_sittings")
-    .update({ submitted_at: new Date().toISOString() })
-    .eq("user_id", userId)
-    .is("submitted_at", null);
+  await createAdminClient().from("mock_sittings").update({ submitted_at: new Date().toISOString() }).eq("user_id", userId).is("submitted_at", null);
 }
 
 // ---------------------------------------------------------------------------
@@ -628,16 +582,17 @@ const RESULT_COLUMNS = "id, mock_id, user_id, tests, composite, qualified, durat
 /** A candidate's own mock results, newest first, with each mock's name. */
 export async function mockResultsFor(userId: string, limit = 50): Promise<(MockResult & { mockName: string; mockSlug: string })[]> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("mock_results")
-    .select(RESULT_COLUMNS)
-    .eq("user_id", userId)
-    .order("submitted_at", { ascending: false })
-    .limit(limit);
+  const { data, error } = await supabase.from("mock_results").select(RESULT_COLUMNS).eq("user_id", userId).order("submitted_at", { ascending: false }).limit(limit);
   if (error || !data?.length) return [];
+  // The names come from the published-mocks cache; only a mock no longer
+  // published (or deleted) is looked up, and that is rare.
   const ids = [...new Set(data.map((r) => r.mock_id as string))];
-  const { data: mocks } = await supabase.from("mock_tests").select("id, name, slug").in("id", ids);
-  const byId = new Map((mocks ?? []).map((m) => [m.id as string, m]));
+  const byId = new Map<string, { id: string; name: string; slug: string }>((await listPublishedMocks()).filter((m) => ids.includes(m.id)).map((m) => [m.id, { id: m.id, name: m.name, slug: m.slug }]));
+  const missing = ids.filter((id) => !byId.has(id));
+  if (missing.length) {
+    const { data: mocks } = await supabase.from("mock_tests").select("id, name, slug").in("id", missing);
+    for (const m of mocks ?? []) byId.set(m.id as string, { id: m.id as string, name: m.name as string, slug: m.slug as string });
+  }
   return (data as ResultRow[]).map((r) => ({
     ...toResult(r),
     mockName: (byId.get(r.mock_id)?.name as string) ?? "A deleted mock",
@@ -647,14 +602,7 @@ export async function mockResultsFor(userId: string, limit = 50): Promise<(MockR
 
 /** The newest result of one mock by one candidate. */
 export async function latestMockResult(mockId: string, userId: string): Promise<MockResult | null> {
-  const { data } = await createAdminClient()
-    .from("mock_results")
-    .select(RESULT_COLUMNS)
-    .eq("mock_id", mockId)
-    .eq("user_id", userId)
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const { data } = await createAdminClient().from("mock_results").select(RESULT_COLUMNS).eq("mock_id", mockId).eq("user_id", userId).order("submitted_at", { ascending: false }).limit(1).maybeSingle();
   return data ? toResult(data as ResultRow) : null;
 }
 
@@ -701,7 +649,10 @@ export async function mockLeaderboard(mockId: string, limit = 10): Promise<Leade
   const { data: profiles } = await createAdminClient()
     .from("profiles")
     .select("id, full_name")
-    .in("id", sorted.map(([u]) => u));
+    .in(
+      "id",
+      sorted.map(([u]) => u),
+    );
   const name = new Map((profiles ?? []).map((p) => [p.id as string, (p.full_name as string) || "Candidate"]));
   let rank = 0;
   let last: number | null = null;
@@ -717,14 +668,7 @@ export async function mockResultsOf(mockId: string): Promise<MockResult[]> {
   const supabase = createAdminClient();
   try {
     const data = await fetchAll<ResultRow>((from, to) =>
-      supabase
-        .from("mock_results")
-        .select(RESULT_COLUMNS)
-        .eq("mock_id", mockId)
-        .order("composite", { ascending: false, nullsFirst: false })
-        .order("submitted_at", { ascending: false })
-        .order("id")
-        .range(from, to),
+      supabase.from("mock_results").select(RESULT_COLUMNS).eq("mock_id", mockId).order("composite", { ascending: false, nullsFirst: false }).order("submitted_at", { ascending: false }).order("id").range(from, to),
     );
     return data.map(toResult);
   } catch {

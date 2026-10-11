@@ -36,6 +36,22 @@ export interface BatteryProgress {
  * cohort figures of every paper touched.
  */
 export async function batteryProgress(userId: string): Promise<BatteryProgress[]> {
+  return (await batteryProgressWithAttempts(userId)).progress;
+}
+
+/** A student's attempt row, as the progress figures read it. */
+export interface AttemptRow {
+  paper_id: string;
+  marks: number;
+  total: number;
+  submitted_at: string;
+}
+
+/**
+ * The progress figures and the attempt rows they were made from, so a page
+ * that also tallies attempts per paper reads the student's attempts once.
+ */
+export async function batteryProgressWithAttempts(userId: string): Promise<{ progress: BatteryProgress[]; attempts: AttemptRow[] }> {
   const supabase = createAdminClient();
   const now = Date.now();
   const days = [2, 1, 0].map((back) => indianDay(now - back * 86400000));
@@ -54,13 +70,9 @@ export async function batteryProgress(userId: string): Promise<BatteryProgress[]
     }));
   const byBattery = new Map<number, BatteryProgress>(empty().map((p) => [p.battery, p]));
 
-  const { data: attempts } = await supabase
-    .from("watch_attempts")
-    .select("paper_id, marks, total, submitted_at")
-    .eq("user_id", userId)
-    .order("submitted_at", { ascending: false })
-    .limit(3000);
-  if (!attempts?.length) return [...byBattery.values()];
+  const { data } = await supabase.from("watch_attempts").select("paper_id, marks, total, submitted_at").eq("user_id", userId).order("submitted_at", { ascending: false }).limit(3000);
+  const attempts = (data ?? []) as AttemptRow[];
+  if (!attempts.length) return { progress: [...byBattery.values()], attempts };
 
   const paperIds = [...new Set(attempts.map((a) => a.paper_id as string))];
   // The papers' settings and every cohort come from the caches: one read of
@@ -82,14 +94,11 @@ export async function batteryProgress(userId: string): Promise<BatteryProgress[]
 
     const total = Number(a.total);
     const c = cohortRows.find((r) => r.paper_id === a.paper_id && Number(r.total) === total);
-    const cohort = cohortFromMoments(
-      c ? { n: Number(c.n), mean: Number(c.mean), sd: Number(c.sd) } : { n: 0, mean: 0, sd: 0 },
-      {
-        stats_min_attempts: paper.stats_min_attempts,
-        reference_mean: paper.reference_mean,
-        reference_sd: paper.reference_sd,
-      },
-    );
+    const cohort = cohortFromMoments(c ? { n: Number(c.n), mean: Number(c.mean), sd: Number(c.sd) } : { n: 0, mean: 0, sd: 0 }, {
+      stats_min_attempts: paper.stats_min_attempts,
+      reference_mean: paper.reference_mean,
+      reference_sd: paper.reference_sd,
+    });
     const t = tScore(Number(a.marks), cohort);
     const value = t ? Number(t.value.toFixed(1)) : null;
     if (value !== null && (row.bestT === null || value > row.bestT)) row.bestT = value;
@@ -109,7 +118,7 @@ export async function batteryProgress(userId: string): Promise<BatteryProgress[]
     const row = byBattery.get(battery);
     if (row) row.papersSat = set.size;
   }
-  return [...byBattery.values()];
+  return { progress: [...byBattery.values()], attempts };
 }
 
 /** True when every battery named has reached the bar in sectional practice. */
@@ -129,24 +138,17 @@ export async function paperBestT(userId: string, paperIds: string[]): Promise<Ma
   const out = new Map<string, number>();
   if (paperIds.length === 0) return out;
   const supabase = createAdminClient();
-  const [{ data: attempts }, paperById, cohortRows] = await Promise.all([
-    supabase.from("watch_attempts").select("paper_id, marks, total").eq("user_id", userId).in("paper_id", paperIds).limit(3000),
-    paperStats(),
-    cohortsFor(paperIds),
-  ]);
+  const [{ data: attempts }, paperById, cohortRows] = await Promise.all([supabase.from("watch_attempts").select("paper_id, marks, total").eq("user_id", userId).in("paper_id", paperIds).limit(3000), paperStats(), cohortsFor(paperIds)]);
   for (const a of attempts ?? []) {
     const paper = paperById.get(a.paper_id as string);
     if (!paper) continue;
     const total = Number(a.total);
     const c = cohortRows.find((r) => r.paper_id === a.paper_id && Number(r.total) === total);
-    const cohort = cohortFromMoments(
-      c ? { n: Number(c.n), mean: Number(c.mean), sd: Number(c.sd) } : { n: 0, mean: 0, sd: 0 },
-      {
-        stats_min_attempts: paper.stats_min_attempts,
-        reference_mean: paper.reference_mean,
-        reference_sd: paper.reference_sd,
-      },
-    );
+    const cohort = cohortFromMoments(c ? { n: Number(c.n), mean: Number(c.mean), sd: Number(c.sd) } : { n: 0, mean: 0, sd: 0 }, {
+      stats_min_attempts: paper.stats_min_attempts,
+      reference_mean: paper.reference_mean,
+      reference_sd: paper.reference_sd,
+    });
     const t = tScore(Number(a.marks), cohort);
     if (!t) continue;
     const value = Number(t.value.toFixed(1));

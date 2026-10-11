@@ -15,6 +15,9 @@ import { ScrollRail } from "./ScrollRail";
 import { QuestionPaperView } from "./QuestionPaperView";
 import { ConfirmBox } from "./ConfirmBox";
 
+/** How often the answer sheet goes up to the server while the questions are open. */
+const SAVE_EVERY_MS = 10000;
+
 /**
  * The exam screen: the diagram fixed on the left, the questions scrolling on
  * the right, driven from the keyboard.
@@ -38,12 +41,7 @@ export function WatchTableExam({
   storageOwner?: string;
 }) {
   const { goToResult } = useExamChrome();
-  const { state, dispatch, answered, clearSaved } = useAttempt(
-    paper,
-    elapsedSec,
-    questionElapsedSec,
-    storageOwner,
-  );
+  const { state, dispatch, answered, clearSaved } = useAttempt(paper, elapsedSec, questionElapsedSec, storageOwner);
   const questionColumn = useRef<HTMLElement | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
@@ -61,15 +59,7 @@ export function WatchTableExam({
   const onTest = state.phase === "test";
   // Which controls this paper grants. Set per paper in the admin panel.
   const features = resolveFeatures(paper.features);
-  const active =
-    onTest &&
-    !state.submitted &&
-    !state.paused &&
-    !helpOpen &&
-    !confirmSubmit &&
-    !confirmSkip &&
-    !paperOpen &&
-    !instructionsOpen;
+  const active = onTest && !state.submitted && !state.paused && !helpOpen && !confirmSubmit && !confirmSkip && !paperOpen && !instructionsOpen;
 
   // The wheel is off during the test; the scrollbar and the keyboard still move
   // the column, and the mouse stays fully usable everywhere else.
@@ -107,15 +97,18 @@ export function WatchTableExam({
     return () => window.removeEventListener("keydown", onKey);
   }, [helpOpen]);
 
-  // The sheet goes up to the server as it changes — a little after each
-  // answer, and at once when the tab is hidden — so a browser that dies
-  // mid-paper has lost nothing, and a paper submitted after the bell is
-  // marked from what the server held at the bell.
+  // The sheet goes up to the server while the questions are open — every
+  // ten seconds when it has changed, and at once when the tab is hidden —
+  // so a browser that dies mid-paper has lost at most a few seconds, and a
+  // paper submitted after the bell is marked from what the server held at
+  // the bell. It used to go up after every answer; on a busy evening that
+  // was most of what the database wrote.
   const answersRef = useRef(state.answers);
   answersRef.current = state.answers;
   const sentRef = useRef<string>("");
+  const testing = onTestPhase(state);
   useEffect(() => {
-    if (!onTestPhase(state)) return;
+    if (!testing) return;
     const send = (keepalive: boolean) => {
       const answers = answersRef.current;
       const serialised = JSON.stringify(answers);
@@ -130,16 +123,16 @@ export function WatchTableExam({
         sentRef.current = "";
       });
     };
-    const timer = window.setTimeout(() => send(false), 1500);
+    const timer = window.setInterval(() => send(false), SAVE_EVERY_MS);
     const onHide = () => {
       if (document.visibilityState === "hidden") send(true);
     };
     document.addEventListener("visibilitychange", onHide);
     return () => {
-      window.clearTimeout(timer);
+      window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onHide);
     };
-  }, [state, paper.id]);
+  }, [testing, paper.id]);
 
   // Tell the server the moment the questions open, once. That is when the
   // test's clock starts, and it is where the time on the paper is measured
@@ -195,13 +188,7 @@ export function WatchTableExam({
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white">
-      <PortalBanner
-        disabled={!onTest}
-        showInstructions={features.showInstructionsButton}
-        showQuestionPaper={features.showQuestionPaperButton}
-        onInstructions={() => setInstructionsOpen(true)}
-        onQuestionPaper={() => setPaperOpen(true)}
-      />
+      <PortalBanner disabled={!onTest} showInstructions={features.showInstructionsButton} showQuestionPaper={features.showQuestionPaperButton} onInstructions={() => setInstructionsOpen(true)} onQuestionPaper={() => setPaperOpen(true)} />
       <ExamTop
         title={paper.title}
         paperName={paper.displayName}
@@ -231,22 +218,11 @@ export function WatchTableExam({
             {/* Scrolls in BOTH directions: a diagram wider or taller than its
                 half of the screen must stay reachable, not be cut off. On a
                 phone it sits ABOVE the questions, capped so they stay in view. */}
-            <section
-              className="flex max-h-[38vh] w-full shrink-0 flex-col items-center overflow-auto px-4 py-2 md:max-h-none md:w-1/2 md:py-4"
-              aria-label="Watch table diagram"
-            >
-              <div className="w-full max-w-[520px] text-[13px] font-bold text-gray-800">
-                {table?.label}
-              </div>
+            <section className="flex max-h-[38vh] w-full shrink-0 flex-col items-center overflow-auto px-4 py-2 md:max-h-none md:w-1/2 md:py-4" aria-label="Watch table diagram">
+              <div className="w-full max-w-[520px] text-[13px] font-bold text-gray-800">{table?.label}</div>
               {paper.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={paper.imageUrl}
-                  alt="Watch table diagram"
-                  className="mt-2 h-auto max-w-[520px]"
-                  style={{ width: `${paper.imageWidthPct ?? 100}%` }}
-                  draggable={false}
-                />
+                <img src={paper.imageUrl} alt="Watch table diagram" className="mt-2 h-auto max-w-[520px]" style={{ width: `${paper.imageWidthPct ?? 100}%` }} draggable={false} />
               ) : (
                 table && <WatchTableDiagram table={table} className="mt-2" />
               )}
@@ -258,35 +234,29 @@ export function WatchTableExam({
             {/* The rails are inset by their own 9px so they never sit over
                 the question text. */}
             <div className="relative min-h-0 min-w-0 flex-1 border-t border-[#dcdcdc] md:border-l md:border-t-0">
-            <section
-              ref={questionColumn}
-              className="wt-scroll-host h-full pb-[9px] pr-[9px]"
-              style={{ fontSize: `${16 * fontScale}px` }}
-              aria-label="Questions"
-            >
-              <QuestionList
-                questions={paper.questions}
-                answers={state.answers}
-                currentIndex={state.currentIndex}
-                locked={state.submitted}
-                container={questionColumn}
-                scrollToken={scrollToken}
-                overflow={features.overflowQuestions}
-                onSelect={(qi, oi) => {
-                  const q = paper.questions[qi];
-                  const value = q.options[oi];
-                  // Sets the current question too, so the keys carry on from
-                  // wherever the pointer left off — but without a scroll.
-                  dispatch({ type: "goto", index: qi });
-                  dispatch({ type: "answer", questionId: q.id, value });
-                }}
-              />
-            </section>
-            <ScrollRail target={questionColumn} axis="vertical" />
-            <ScrollRail target={questionColumn} axis="horizontal" />
+              <section ref={questionColumn} className="wt-scroll-host h-full pb-[9px] pr-[9px]" style={{ fontSize: `${16 * fontScale}px` }} aria-label="Questions">
+                <QuestionList
+                  questions={paper.questions}
+                  answers={state.answers}
+                  currentIndex={state.currentIndex}
+                  locked={state.submitted}
+                  container={questionColumn}
+                  scrollToken={scrollToken}
+                  overflow={features.overflowQuestions}
+                  onSelect={(qi, oi) => {
+                    const q = paper.questions[qi];
+                    const value = q.options[oi];
+                    // Sets the current question too, so the keys carry on from
+                    // wherever the pointer left off — but without a scroll.
+                    dispatch({ type: "goto", index: qi });
+                    dispatch({ type: "answer", questionId: q.id, value });
+                  }}
+                />
+              </section>
+              <ScrollRail target={questionColumn} axis="vertical" />
+              <ScrollRail target={questionColumn} axis="horizontal" />
             </div>
           </div>
-
         </>
       ) : (
         <Instructions paper={paper} />
@@ -296,11 +266,8 @@ export function WatchTableExam({
         <span className="text-[13px] text-gray-600">
           {onTest ? (
             <>
-              Answered <strong className="text-gray-900">{answered}</strong> of{" "}
-              {paper.questions.length}
-              <span className="ml-3 text-gray-500">
-                Question {state.currentIndex + 1}
-              </span>
+              Answered <strong className="text-gray-900">{answered}</strong> of {paper.questions.length}
+              <span className="ml-3 text-gray-500">Question {state.currentIndex + 1}</span>
             </>
           ) : (
             <>
@@ -313,22 +280,12 @@ export function WatchTableExam({
         </span>
 
         {onTest ? (
-          <button
-            type="button"
-            data-allow-mouse="true"
-            onClick={() => setConfirmSubmit(true)}
-            className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90"
-          >
+          <button type="button" data-allow-mouse="true" onClick={() => setConfirmSubmit(true)} className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90">
             Submit Test
           </button>
         ) : (
           // The only route from the instructions to the test.
-          <button
-            type="button"
-            data-allow-mouse="true"
-            onClick={() => setConfirmSkip(true)}
-            className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90"
-          >
+          <button type="button" data-allow-mouse="true" onClick={() => setConfirmSkip(true)} className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90">
             Skip Instruction
           </button>
         )}
@@ -336,18 +293,9 @@ export function WatchTableExam({
 
       <KeyboardHelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
 
-      <InstructionsDialog
-        paper={paper}
-        open={instructionsOpen}
-        onClose={() => setInstructionsOpen(false)}
-      />
+      <InstructionsDialog paper={paper} open={instructionsOpen} onClose={() => setInstructionsOpen(false)} />
 
-      <QuestionPaperView
-        paper={paper}
-        answers={state.answers}
-        open={paperOpen}
-        onClose={() => setPaperOpen(false)}
-      />
+      <QuestionPaperView paper={paper} answers={state.answers} open={paperOpen} onClose={() => setPaperOpen(false)} />
 
       <ConfirmBox
         open={state.paused && !state.submitted}
@@ -375,11 +323,7 @@ export function WatchTableExam({
       <ConfirmBox
         open={confirmSubmit}
         title="Submit the test?"
-        body={
-          unanswered > 0
-            ? `${unanswered} question${unanswered === 1 ? " is" : "s are"} still unanswered. You cannot return after submitting.`
-            : "All questions are answered. You cannot return after submitting."
-        }
+        body={unanswered > 0 ? `${unanswered} question${unanswered === 1 ? " is" : "s are"} still unanswered. You cannot return after submitting.` : "All questions are answered. You cannot return after submitting."}
         confirmLabel="Submit"
         cancelLabel="Go back"
         onConfirm={() => {

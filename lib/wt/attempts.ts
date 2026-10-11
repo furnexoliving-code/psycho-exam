@@ -17,11 +17,7 @@ export interface AttemptAllowance {
  * be correct today — but the limit is a rule the institute sets, and a rule
  * enforced from data the person being limited controls is not enforced at all.
  */
-export async function allowanceFor(
-  paperDbId: string,
-  max: number | null,
-  userId: string,
-): Promise<AttemptAllowance> {
+export async function allowanceFor(paperDbId: string, max: number | null, userId: string): Promise<AttemptAllowance> {
   const used = await countAttempts(paperDbId, userId);
   // No limit: the count is still shown, so the card can say "Re-attempt".
   if (max === null) return { max: null, used, remaining: null, exhausted: false };
@@ -31,11 +27,7 @@ export async function allowanceFor(
 }
 
 async function countAttempts(paperDbId: string, userId: string): Promise<number> {
-  const { count } = await createAdminClient()
-    .from("watch_attempts")
-    .select("id", { count: "exact", head: true })
-    .eq("paper_id", paperDbId)
-    .eq("user_id", userId);
+  const { count } = await createAdminClient().from("watch_attempts").select("id", { count: "exact", head: true }).eq("paper_id", paperDbId).eq("user_id", userId);
   return count ?? 0;
 }
 
@@ -47,12 +39,8 @@ async function countAttempts(paperDbId: string, userId: string): Promise<number>
  * Under a batch of students all opening their page at once, that is the
  * difference between a page and a queue.
  */
-export async function allowancesFor(
-  papers: { id: string; slug: string; maxAttempts: number | null }[],
-  userId: string,
-): Promise<Map<string, AttemptAllowance>> {
-  const out = new Map<string, AttemptAllowance>();
-  if (papers.length === 0) return out;
+export async function allowancesFor(papers: { id: string; slug: string; maxAttempts: number | null }[], userId: string): Promise<Map<string, AttemptAllowance>> {
+  if (papers.length === 0) return new Map();
 
   // One query for every paper at once. Postgres returns the rows; the
   // tallying is cheaper here than a round trip each.
@@ -60,10 +48,23 @@ export async function allowancesFor(
     .from("watch_attempts")
     .select("paper_id")
     .eq("user_id", userId)
-    .in("paper_id", papers.map((p) => p.id));
+    .in(
+      "paper_id",
+      papers.map((p) => p.id),
+    );
+  return allowancesFromRows(papers, attempts ?? []);
+}
+
+/**
+ * The same tally from attempt rows already in hand: a page that has read
+ * the student's attempts for another reason need not read them again.
+ */
+export function allowancesFromRows(papers: { id: string; slug: string; maxAttempts: number | null }[], attempts: { paper_id: string }[]): Map<string, AttemptAllowance> {
+  const out = new Map<string, AttemptAllowance>();
+  if (papers.length === 0) return out;
 
   const used = new Map<string, number>();
-  for (const a of attempts ?? []) {
+  for (const a of attempts) {
     used.set(a.paper_id, (used.get(a.paper_id) ?? 0) + 1);
   }
 

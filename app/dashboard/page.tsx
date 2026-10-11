@@ -9,9 +9,9 @@ import { photoUrlOf } from "@/lib/photo";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { listPublishedPapers } from "@/lib/wt/db";
-import { allowancesFor } from "@/lib/wt/attempts";
-import { batteryProgress } from "@/lib/wt/progress";
-import { currentMockStep, listPublishedMocks, mockLeaderboard, mockResultsFor, mocksFinishedToday } from "@/lib/wt/mock";
+import { allowancesFromRows } from "@/lib/wt/attempts";
+import { batteryProgressWithAttempts } from "@/lib/wt/progress";
+import { currentMockStep, listPublishedMocks, mockLeaderboard, mockResultsFor } from "@/lib/wt/mock";
 import { accessFor, canPractice } from "@/lib/packages";
 
 export default async function DashboardPage() {
@@ -36,23 +36,24 @@ export default async function DashboardPage() {
   const today = indianDay(now);
   const dayStart = new Date(`${today}T00:00:00+05:30`).toISOString();
 
-  // Everything in one round: the allowances over every published paper
-  // (a superset of the ones shown, which costs the same single query) so
-  // nothing waits for the filtering below. The leaderboard streams in on
-  // its own after the page, under the Suspense boundary.
+  // Everything in one round. The student's attempts are read once and
+  // serve both the progress figures and the attempts left per paper; the
+  // mocks finished today are counted from the results already in hand.
+  // The leaderboard streams in on its own after the page, under the
+  // Suspense boundary.
   const allPapers = await listPublishedPapers();
-  const [hidden, progress, mocks, mockResults, inMock, exam, mocksToday, allNotices, access, allowances] = await Promise.all([
+  const [hidden, { progress, attempts }, mocks, mockResults, inMock, exam, allNotices, access] = await Promise.all([
     hiddenBatteries(),
-    batteryProgress(profile.id),
+    batteryProgressWithAttempts(profile.id),
     listPublishedMocks(),
     mockResultsFor(profile.id, 30),
     currentMockStep(profile.id),
     examSettings(),
-    mocksFinishedToday(profile.id, dayStart),
     listNotices(),
     accessFor(profile.id, profile.role),
-    allowancesFor(allPapers, profile.id),
   ]);
+  const allowances = allowancesFromRows(allPapers, attempts);
+  const mocksToday = mockResults.filter((r) => Date.parse(r.submittedAt) >= Date.parse(dayStart)).length;
   // Papers of a battery the admin has not opened yet are not on offer, and
   // none are without the sectional package.
   const practice = canPractice(access, "alp");

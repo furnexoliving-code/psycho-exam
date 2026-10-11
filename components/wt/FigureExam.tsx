@@ -16,6 +16,9 @@ import { testNameOf } from "@/lib/wt/categories";
 import { ScrollRail } from "./ScrollRail";
 import { splitGroups } from "@/lib/wt/find";
 
+/** How often the answer sheet goes up to the server while the questions are open. */
+const SAVE_EVERY_MS = 10000;
+
 /**
  * The Perceptual Speed Test screen: the paper in parts, each question a
  * figure with its options beneath, answered with the mouse.
@@ -41,12 +44,7 @@ export function FigureExam({
   questionElapsedSec?: number | null;
   storageOwner?: string;
 }) {
-  const { state, dispatch, answered, clearSaved } = useAttempt(
-    paper,
-    elapsedSec,
-    questionElapsedSec,
-    storageOwner,
-  );
+  const { state, dispatch, answered, clearSaved } = useAttempt(paper, elapsedSec, questionElapsedSec, storageOwner);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   // Power of Observation: "Set A" and "Set B" stand over the two halves of
   // the pictures, as in the real test. The headings are as wide as the
@@ -101,11 +99,7 @@ export function FigureExam({
   // as the attempt's current question, so a reload lands on the same part.
   const perPart = Math.max(1, Math.floor(features.questionsPerPart) || 1);
   const partCount = Math.max(1, Math.ceil(paper.questions.length / perPart));
-  const parts = useMemo(
-    () =>
-      Array.from({ length: partCount }, (_, p) => paper.questions.slice(p * perPart, (p + 1) * perPart)),
-    [paper.questions, partCount, perPart],
-  );
+  const parts = useMemo(() => Array.from({ length: partCount }, (_, p) => paper.questions.slice(p * perPart, (p + 1) * perPart)), [paper.questions, partCount, perPart]);
 
   // The Memory Test runs on the clock alone: each part is a study screen
   // for the study time, then its questions for the part time, then a break
@@ -154,8 +148,9 @@ export function FigureExam({
   // The Save button sends the sheet up at once; the effect below keeps the
   // sender current.
   const sendRef = useRef<(keepalive: boolean) => void>(() => undefined);
+  const testing = onTestPhase(state);
   useEffect(() => {
-    if (!onTestPhase(state)) return;
+    if (!testing) return;
     const send = (keepalive: boolean) => {
       const answers = answersRef.current;
       const serialised = JSON.stringify(answers);
@@ -171,16 +166,18 @@ export function FigureExam({
       });
     };
     sendRef.current = send;
-    const timer = window.setTimeout(() => send(false), 1500);
+    // Every ten seconds while the questions are open, when the sheet has
+    // changed, and at once when the tab is hidden: not after every answer.
+    const timer = window.setInterval(() => send(false), SAVE_EVERY_MS);
     const onHide = () => {
       if (document.visibilityState === "hidden") send(true);
     };
     document.addEventListener("visibilitychange", onHide);
     return () => {
-      window.clearTimeout(timer);
+      window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onHide);
     };
-  }, [state, paper.id]);
+  }, [testing, paper.id]);
 
   // Tell the server the moment the questions open, once: that is where the
   // time on the paper is measured from.
@@ -201,21 +198,18 @@ export function FigureExam({
   // screen puts them in its left column.
   const reminderLines = (
     <>
-            {features.showInstructionsButton && (
-              <p className="mb-2 text-[0.85em] text-[#333]">
-                <span lang="hi">
-                  यदि आप परीक्षण के निर्देशों को पुनः देखना चाहते हैं तो{" "}
-                  <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} /> पर क्लिक करें
-                </span>
-                {" / "}
-                If you want to see the test instructions again please click on{" "}
-                <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} />
-              </p>
-            )}
-            <p className="text-[0.9em] text-[#494949]">
-              Please Select Correct Answer /{" "}
-              <span lang="hi">कृपया सही उत्तर चुनें</span>
-            </p>
+      {features.showInstructionsButton && (
+        <p className="mb-2 text-[0.85em] text-[#333]">
+          <span lang="hi">
+            यदि आप परीक्षण के निर्देशों को पुनः देखना चाहते हैं तो <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} /> पर क्लिक करें
+          </span>
+          {" / "}
+          If you want to see the test instructions again please click on <GroupInstructionsLink onClick={() => setInstructionsOpen(true)} />
+        </p>
+      )}
+      <p className="text-[0.9em] text-[#494949]">
+        Please Select Correct Answer / <span lang="hi">कृपया सही उत्तर चुनें</span>
+      </p>
     </>
   );
 
@@ -224,24 +218,11 @@ export function FigureExam({
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white">
-      <PortalBanner
-        disabled={!onTest}
-        showInstructions={features.showInstructionsButton}
-        showQuestionPaper={false}
-        onInstructions={() => setInstructionsOpen(true)}
-      />
+      <PortalBanner disabled={!onTest} showInstructions={features.showInstructionsButton} showQuestionPaper={false} onInstructions={() => setInstructionsOpen(true)} />
       <ExamTop
         title={testName}
         paperName={paper.displayName}
-        label={
-          !onTest
-            ? "Instruction Time Left"
-            : inStudy
-              ? "Instruction Timer"
-              : inBreak
-                ? "Break Time Left"
-                : "Time Left"
-        }
+        label={!onTest ? "Instruction Time Left" : inStudy ? "Instruction Timer" : inBreak ? "Break Time Left" : "Time Left"}
         // On a schedule the panel counts the phase on screen — the study
         // time, this part's question time, or the break — as the real test
         // does; the whole sitting's clock is the server's concern.
@@ -259,12 +240,7 @@ export function FigureExam({
         // On a schedule, a tab per part — "Memory Test-1", "Memory Test-2" —
         // as the real test's top strip has one per group.
         activeId={scheduled && onTest ? `part-${part}` : state.phase}
-        tabs={[
-          { id: "instructions", label: `${testName} Instructions` },
-          ...(scheduled
-            ? parts.map((_, p) => ({ id: `part-${p}`, label: `${testName}-${p + 1}` }))
-            : [{ id: "test", label: testName }]),
-        ]}
+        tabs={[{ id: "instructions", label: `${testName} Instructions` }, ...(scheduled ? parts.map((_, p) => ({ id: `part-${p}`, label: `${testName}-${p + 1}` })) : [{ id: "test", label: testName }])]}
         // The Sections row: on a schedule the one group on screen, as the
         // real test names it ("Memory Test (Part 1)"); otherwise a chip per
         // part. No counts: the hall shows none.
@@ -272,15 +248,15 @@ export function FigureExam({
           onTest && sheetTest
             ? undefined
             : onTest
-            ? (scheduled ? [parts[part] ?? []] : parts).map((_, i) => {
-                const p = scheduled ? part : i;
-                return (
-                  <SectionChip key={p} active={p === part} disabled={scheduled} onClick={() => goToPart(p)}>
-                    {scheduled ? `${testName} (Part ${p + 1})` : `Part ${p + 1}`}
-                  </SectionChip>
-                );
-              })
-            : undefined
+              ? (scheduled ? [parts[part] ?? []] : parts).map((_, i) => {
+                  const p = scheduled ? part : i;
+                  return (
+                    <SectionChip key={p} active={p === part} disabled={scheduled} onClick={() => goToPart(p)}>
+                      {scheduled ? `${testName} (Part ${p + 1})` : `Part ${p + 1}`}
+                    </SectionChip>
+                  );
+                })
+              : undefined
         }
       />
 
@@ -290,319 +266,301 @@ export function FigureExam({
               a browser that hides its scrollbar until the wheel moves would
               otherwise show no way down a paper whose wheel is off. */}
           <div className="relative min-h-0 flex-1">
-          <div
-            ref={column}
-            className="wt-scroll-host h-full px-5 py-4 pr-[14px]"
-            style={{ fontSize: `${16 * fontScale}px` }}
-          >
-            {inStudy ? (
-              // The study screen, as the real portal shows it: the group
-              // instructions bar, the picture in its box, and the study
-              // timer in the toolbar above.
-              <div className="-mx-5 -mt-4">
-                <div className="border-b border-[#dcdcdc] bg-[#e9ecef] px-5 py-2 text-center text-[1.05em] text-[#333]">
-                  Group Instructions: {testName} (Part {part + 1})
+            <div ref={column} className="wt-scroll-host h-full px-5 py-4 pr-[14px]" style={{ fontSize: `${16 * fontScale}px` }}>
+              {inStudy ? (
+                // The study screen, as the real portal shows it: the group
+                // instructions bar, the picture in its box, and the study
+                // timer in the toolbar above.
+                <div className="-mx-5 -mt-4">
+                  <div className="border-b border-[#dcdcdc] bg-[#e9ecef] px-5 py-2 text-center text-[1.05em] text-[#333]">
+                    Group Instructions: {testName} (Part {part + 1})
+                  </div>
+                  <div className="px-5 pt-3">
+                    <p className="text-[0.85em] text-[#333]">
+                      Study Screen Part {part + 1}/ <span lang="hi">अध्ययन स्क्रीन भाग -{part + 1}</span>
+                    </p>
+                    {features.studyImages[part] && (
+                      <div className="mt-1 inline-block border border-[#555] bg-white p-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={features.studyImages[part]} alt={`Study screen for part ${part + 1}`} className="h-auto max-w-full" style={{ maxHeight: `${features.studyScale}vh` }} draggable={false} />
+                      </div>
+                    )}
+                    <p className="mt-3 text-[0.8em] text-[#666]">
+                      Memorise the picture; the test screen opens by itself in <strong className="font-mono tabular-nums">{clock(phaseLeftSec)}</strong>.
+                      <span className="ml-2" lang="hi">
+                        चित्र को याद करें; परीक्षण स्क्रीन स्वतः खुलेगी।
+                      </span>
+                    </p>
+                  </div>
                 </div>
-                <div className="px-5 pt-3">
-                  <p className="text-[0.85em] text-[#333]">
-                    Study Screen Part {part + 1}/{" "}
-                    <span lang="hi">अध्ययन स्क्रीन भाग -{part + 1}</span>
-                  </p>
-                  {features.studyImages[part] && (
-                    <div className="mt-1 inline-block border border-[#555] bg-white p-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={features.studyImages[part]}
-                        alt={`Study screen for part ${part + 1}`}
-                        className="h-auto max-w-full"
-                        style={{ maxHeight: `${features.studyScale}vh` }}
-                        draggable={false}
-                      />
-                    </div>
-                  )}
-                  <p className="mt-3 text-[0.8em] text-[#666]">
-                    Memorise the picture; the test screen opens by itself in{" "}
-                    <strong className="font-mono tabular-nums">{clock(phaseLeftSec)}</strong>.
-                    <span className="ml-2" lang="hi">चित्र को याद करें; परीक्षण स्क्रीन स्वतः खुलेगी।</span>
-                  </p>
+              ) : inBreak ? (
+                // Between parts: the break and a summary of the part just done.
+                <div className="-mx-5 -mt-4">
+                  <div className="border-b border-[#dcdcdc] px-5 py-2 text-center text-[0.8em] font-semibold text-[#222]">Break Time Left : {clock(phaseLeftSec)}</div>
+                  <h3 className="mt-3 text-center text-[1em] font-semibold text-[#222]">Exam Summary</h3>
+                  <div className="px-5 pt-3">
+                    <p className="text-[0.8em] font-semibold text-[#222]">
+                      {testName} (Part {part + 1}) : ( Attempted Group ; View not allowed; Edit not allowed )
+                    </p>
+                    <table className="mt-2 w-full border-collapse text-center text-[0.8em]">
+                      <thead>
+                        <tr className="bg-[#cfe2f3] text-[#222]">
+                          <th className="border border-[#999] px-3 py-1.5 font-semibold">Section Name</th>
+                          <th className="border border-[#999] px-3 py-1.5 font-semibold">No. of Questions</th>
+                          <th className="border border-[#999] px-3 py-1.5 font-semibold">Answered</th>
+                          <th className="border border-[#999] px-3 py-1.5 font-semibold">Not Answered</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(() => {
+                          const group = parts[part] ?? [];
+                          const done = group.filter((q) => state.answers[q.id] !== null && state.answers[q.id] !== undefined).length;
+                          return (
+                            <tr className="bg-white text-[#222]">
+                              <td className="border border-[#999] px-3 py-1.5">
+                                {testName} (Part {part + 1})
+                              </td>
+                              <td className="border border-[#999] px-3 py-1.5">{group.length}</td>
+                              <td className="border border-[#999] px-3 py-1.5">{done}</td>
+                              <td className="border border-[#999] px-3 py-1.5">{group.length - done}</td>
+                            </tr>
+                          );
+                        })()}
+                      </tbody>
+                    </table>
+                    <p className="mt-4 text-[0.8em] font-semibold text-[#222]">
+                      {testName} (Part {part + 2}) : ( Yet to attempt )
+                    </p>
+                    {mockSummary && (
+                      <div className="mt-4">
+                        <ExamSummaryList tests={mockSummary} skipBattery={battery ?? undefined} />
+                      </div>
+                    )}
+                    <p className="mt-2 text-[0.75em] text-[#666]">
+                      The next part&apos;s study screen opens by itself when the break ends.
+                      <span className="ml-2" lang="hi">
+                        अवकाश समाप्त होते ही अगले भाग की अध्ययन स्क्रीन स्वतः खुलेगी।
+                      </span>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : inBreak ? (
-              // Between parts: the break and a summary of the part just done.
-              <div className="-mx-5 -mt-4">
-                <div className="border-b border-[#dcdcdc] px-5 py-2 text-center text-[0.8em] font-semibold text-[#222]">
-                  Break Time Left : {clock(phaseLeftSec)}
-                </div>
-                <h3 className="mt-3 text-center text-[1em] font-semibold text-[#222]">Exam Summary</h3>
-                <div className="px-5 pt-3">
-                  <p className="text-[0.8em] font-semibold text-[#222]">
-                    {testName} (Part {part + 1}) : ( Attempted Group ; View not allowed; Edit not allowed )
-                  </p>
-                  <table className="mt-2 w-full border-collapse text-center text-[0.8em]">
-                    <thead>
-                      <tr className="bg-[#cfe2f3] text-[#222]">
-                        <th className="border border-[#999] px-3 py-1.5 font-semibold">Section Name</th>
-                        <th className="border border-[#999] px-3 py-1.5 font-semibold">No. of Questions</th>
-                        <th className="border border-[#999] px-3 py-1.5 font-semibold">Answered</th>
-                        <th className="border border-[#999] px-3 py-1.5 font-semibold">Not Answered</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(() => {
-                        const group = parts[part] ?? [];
-                        const done = group.filter((q) => state.answers[q.id] !== null && state.answers[q.id] !== undefined).length;
-                        return (
-                          <tr className="bg-white text-[#222]">
-                            <td className="border border-[#999] px-3 py-1.5">{testName} (Part {part + 1})</td>
-                            <td className="border border-[#999] px-3 py-1.5">{group.length}</td>
-                            <td className="border border-[#999] px-3 py-1.5">{done}</td>
-                            <td className="border border-[#999] px-3 py-1.5">{group.length - done}</td>
-                          </tr>
-                        );
-                      })()}
-                    </tbody>
-                  </table>
-                  <p className="mt-4 text-[0.8em] font-semibold text-[#222]">
-                    {testName} (Part {part + 2}) : ( Yet to attempt )
-                  </p>
-                  {mockSummary && (
-                    <div className="mt-4">
-                      <ExamSummaryList tests={mockSummary} skipBattery={battery ?? undefined} />
-                    </div>
-                  )}
-                  <p className="mt-2 text-[0.75em] text-[#666]">
-                    The next part&apos;s study screen opens by itself when the break ends.
-                    <span className="ml-2" lang="hi">अवकाश समाप्त होते ही अगले भाग की अध्ययन स्क्रीन स्वतः खुलेगी।</span>
-                  </p>
-                </div>
-              </div>
-            ) : brick ? (
-              // Two halves, as the hall's screen: the pile at the left, the
-              // questions at the right. Ten options at the hall's spacing run
-              // past the right edge; the pane scrolls sideways under its own
-              // rail, as the hall's panes do, so no option is ever dropped
-              // down a line.
-              <div className="flex min-h-full flex-col gap-4 lg:h-full lg:flex-row lg:gap-0">
-                {/* The picture half: the pile or sheet drawn large, and when
+              ) : brick ? (
+                // Two halves, as the hall's screen: the pile at the left, the
+                // questions at the right. Ten options at the hall's spacing run
+                // past the right edge; the pane scrolls sideways under its own
+                // rail, as the hall's panes do, so no option is ever dropped
+                // down a line.
+                <div className="flex min-h-full flex-col gap-4 lg:h-full lg:flex-row lg:gap-0">
+                  {/* The picture half: the pile or sheet drawn large, and when
                     it runs past the half-screen the pane scrolls either way
                     under rails of its own, as the hall's panes do. */}
-                <div className="relative lg:h-full lg:w-1/2 lg:shrink-0 lg:border-r lg:border-[#dcdcdc]">
-                  <div ref={picturePane} className="wt-scroll-host h-full pb-[14px] pr-[14px] lg:pr-[18px]">
-                    {scheduled && (
-                      <p className="mb-2 text-[0.95em] font-semibold text-[#222]">
-                        Test Screen Part {part + 1} /{" "}
-                        <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
-                      </p>
-                    )}
-                    {reminderLines}
-                    {parts[part]?.[0]?.image && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={parts[part][0].image} alt={`${paper.category === "brick" ? "Pile" : mapOf(paper.category) ? "Map" : "Sheet"} ${part + 1}`} className="mt-3 h-auto max-w-none" style={{ width: Math.round(figureH * (sheetTest ? 3.2 : 3.8)) }} draggable={false} />
-                    )}
+                  <div className="relative lg:h-full lg:w-1/2 lg:shrink-0 lg:border-r lg:border-[#dcdcdc]">
+                    <div ref={picturePane} className="wt-scroll-host h-full pb-[14px] pr-[14px] lg:pr-[18px]">
+                      {scheduled && (
+                        <p className="mb-2 text-[0.95em] font-semibold text-[#222]">
+                          Test Screen Part {part + 1} / <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
+                        </p>
+                      )}
+                      {reminderLines}
+                      {parts[part]?.[0]?.image && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={parts[part][0].image}
+                          alt={`${paper.category === "brick" ? "Pile" : mapOf(paper.category) ? "Map" : "Sheet"} ${part + 1}`}
+                          className="mt-3 h-auto max-w-none"
+                          style={{ width: Math.round(figureH * (sheetTest ? 3.2 : 3.8)) }}
+                          draggable={false}
+                        />
+                      )}
+                    </div>
+                    <ScrollRail target={picturePane} axis="vertical" />
+                    <ScrollRail target={picturePane} axis="horizontal" />
                   </div>
-                  <ScrollRail target={picturePane} axis="vertical" />
-                  <ScrollRail target={picturePane} axis="horizontal" />
-                </div>
-                {/* The question half scrolls on its own, down as well as
+                  {/* The question half scrolls on its own, down as well as
                     sideways, under rails of its own: twelve rows of a map
                     test run past the half-screen, and scrolling the whole
                     column to reach them would carry the picture off the top. */}
-                <div className="relative min-w-0 flex-1 pb-3 lg:h-full lg:pl-4 lg:pr-[14px]">
-                {/* Each row padded and ruled as the Following Directions list is, so the
+                  <div className="relative min-w-0 flex-1 pb-3 lg:h-full lg:pl-4 lg:pr-[14px]">
+                    {/* Each row padded and ruled as the Following Directions list is, so the
                     questions sit as far apart as on every other paper. */}
-                <ol ref={brickPane} className="wt-scroll-host w-full lg:h-full" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
-                  {parts[part]?.map((q, i) => {
-                    const number = part * perPart + i + 1;
-                    const chosen = state.answers[q.id];
-                    return (
-                      <li key={q.id} className="flex items-center gap-x-5 border-b border-[#ececec] py-5 first:pt-1">
-                        {q.promptImage ? (
-                          // A house test: the question is the house itself.
-                          <span className="flex shrink-0 items-center gap-2 whitespace-nowrap text-[1em] text-[#222]">
-                            {number}.
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={q.promptImage} alt={`${mapOf(paper.category)?.topicPrefix ?? "Picture"} ${number}`} className="w-auto" style={{ height: promptH }} draggable={false} />
-                            -
-                          </span>
-                        ) : (
-                          <span className="w-[56px] shrink-0 whitespace-nowrap text-[1em] text-[#222]">{number}. {q.prompt.en} -</span>
-                        )}
-                        <span className="flex items-center gap-x-[52px] whitespace-nowrap">
-                          {q.options.map((option, oi) => (
-                            <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
-                          ))}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ol>
-                <ScrollRail target={brickPane} axis="horizontal" />
-                <div className="hidden lg:contents">
-                  <ScrollRail target={brickPane} axis="vertical" />
+                    <ol ref={brickPane} className="wt-scroll-host w-full lg:h-full" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                      {parts[part]?.map((q, i) => {
+                        const number = part * perPart + i + 1;
+                        const chosen = state.answers[q.id];
+                        return (
+                          <li key={q.id} className="flex items-center gap-x-5 border-b border-[#ececec] py-5 first:pt-1">
+                            {q.promptImage ? (
+                              // A house test: the question is the house itself.
+                              <span className="flex shrink-0 items-center gap-2 whitespace-nowrap text-[1em] text-[#222]">
+                                {number}.{/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={q.promptImage} alt={`${mapOf(paper.category)?.topicPrefix ?? "Picture"} ${number}`} className="w-auto" style={{ height: promptH }} draggable={false} />-
+                              </span>
+                            ) : (
+                              <span className="w-[56px] shrink-0 whitespace-nowrap text-[1em] text-[#222]">
+                                {number}. {q.prompt.en} -
+                              </span>
+                            )}
+                            <span className="flex items-center gap-x-[52px] whitespace-nowrap">
+                              {q.options.map((option, oi) => (
+                                <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                              ))}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                    <ScrollRail target={brickPane} axis="horizontal" />
+                    <div className="hidden lg:contents">
+                      <ScrollRail target={brickPane} axis="vertical" />
+                    </div>
+                  </div>
                 </div>
-                </div>
-              </div>
-            ) : (
-            <>
-            {scheduled && (
-              <p className="text-[0.95em] font-semibold text-[#222]">
-                Test Screen Part {part + 1} /{" "}
-                <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
-              </p>
-            )}
-            {reminderLines}
+              ) : (
+                <>
+                  {scheduled && (
+                    <p className="text-[0.95em] font-semibold text-[#222]">
+                      Test Screen Part {part + 1} / <span lang="hi">परीक्षण स्क्रीन भाग {part + 1}</span>
+                    </p>
+                  )}
+                  {reminderLines}
 
-            {twoSets && (
-              <div
-                className="mt-3 flex text-[1.05em] text-[#222]"
-                style={{ width: setsWidth > 0 ? setsWidth : undefined, fontFamily: "Georgia, 'Times New Roman', serif" }}
-              >
-                <span className="w-1/2 text-center">Set A</span>
-                <span className="w-1/2 text-center">Set B</span>
-              </div>
-            )}
+                  {twoSets && (
+                    <div className="mt-3 flex text-[1.05em] text-[#222]" style={{ width: setsWidth > 0 ? setsWidth : undefined, fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                      <span className="w-1/2 text-center">Set A</span>
+                      <span className="w-1/2 text-center">Set B</span>
+                    </div>
+                  )}
 
-            <ol className={`mt-3 ${textPaper ? "space-y-3" : "space-y-10"}`}>
-              {parts[part]?.map((q, i) => {
-                const number = part * perPart + i + 1;
-                const chosen = state.answers[q.id];
-                // A question with no picture at all (the Yes or No Test's
-                // pair of numbers): the text stands where the picture would,
-                // and the radios follow it on the same line, at the same
-                // distance, as on every other paper.
-                const textOnly = !q.image && !q.optionImages;
-                return (
-                  <li key={q.id} className={`border-b border-[#ececec] ${textOnly ? "pb-3" : sideBySide ? "pb-4" : "pb-8"}`} style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
-                    {!sideBySide && <p className="text-[0.95em] font-bold text-[#222]">Question No : {number}</p>}
-                    {!textOnly && (q.prompt.en || q.prompt.hi) && (
-                      <div className="mt-2 text-[1em] text-[#494949]">
-                        {q.prompt.en && <p>{q.prompt.en}</p>}
-                        {q.prompt.hi && <p lang="hi">{q.prompt.hi}</p>}
-                      </div>
-                    )}
+                  <ol className={`mt-3 ${textPaper ? "space-y-3" : "space-y-10"}`}>
+                    {parts[part]?.map((q, i) => {
+                      const number = part * perPart + i + 1;
+                      const chosen = state.answers[q.id];
+                      // A question with no picture at all (the Yes or No Test's
+                      // pair of numbers): the text stands where the picture would,
+                      // and the radios follow it on the same line, at the same
+                      // distance, as on every other paper.
+                      const textOnly = !q.image && !q.optionImages;
+                      return (
+                        <li key={q.id} className={`border-b border-[#ececec] ${textOnly ? "pb-3" : sideBySide ? "pb-4" : "pb-8"}`} style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                          {!sideBySide && <p className="text-[0.95em] font-bold text-[#222]">Question No : {number}</p>}
+                          {!textOnly && (q.prompt.en || q.prompt.hi) && (
+                            <div className="mt-2 text-[1em] text-[#494949]">
+                              {q.prompt.en && <p>{q.prompt.en}</p>}
+                              {q.prompt.hi && <p lang="hi">{q.prompt.hi}</p>}
+                            </div>
+                          )}
 
-                    {/* Three layouts, as the real portal draws them. Every
+                          {/* Three layouts, as the real portal draws them. Every
                         picture is drawn small, at a fixed height, whatever
                         size was uploaded. */}
-                    {textOnly ? (
-                      // The text in a column of one width, so the radios of
-                      // every question stand in the same place down the page.
-                      <div className="mt-1.5 flex flex-wrap items-center gap-x-[52px] gap-y-2">
-                        <TextQuestion en={q.prompt.en} hi={q.prompt.hi} />
-                        <span className="flex flex-wrap items-center gap-x-[52px]">
-                          {q.options.map((option, oi) => (
-                            <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
-                          ))}
-                        </span>
-                      </div>
-                    ) : q.optionImages && !q.image ? (
-                      // Option pictures with no figure (Memory): a strip of
-                      // the pictures, each with its letter in the corner,
-                      // then the radios in a row after the strip.
-                      <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
-                        <span className="flex flex-wrap gap-1.5">
-                          {q.optionImages.map((picture, oi) => (
-                            <span key={oi} className="relative inline-block border border-[#333] bg-white p-0.5">
+                          {textOnly ? (
+                            // The text in a column of one width, so the radios of
+                            // every question stand in the same place down the page.
+                            <div className="mt-1.5 flex flex-wrap items-center gap-x-[52px] gap-y-2">
+                              <TextQuestion en={q.prompt.en} hi={q.prompt.hi} />
+                              <span className="flex flex-wrap items-center gap-x-[52px]">
+                                {q.options.map((option, oi) => (
+                                  <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                                ))}
+                              </span>
+                            </div>
+                          ) : q.optionImages && !q.image ? (
+                            // Option pictures with no figure (Memory): a strip of
+                            // the pictures, each with its letter in the corner,
+                            // then the radios in a row after the strip.
+                            <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
+                              <span className="flex flex-wrap gap-1.5">
+                                {q.optionImages.map((picture, oi) => (
+                                  <span key={oi} className="relative inline-block border border-[#333] bg-white p-0.5">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={picture} alt={`Option ${String(q.options[oi])}`} className="w-auto" style={{ height: stripH }} draggable={false} />
+                                    <span className="absolute bottom-0 right-0.5 text-[9px] leading-none text-[#333]">{String(q.options[oi])}</span>
+                                  </span>
+                                ))}
+                              </span>
+                              <span className="flex flex-wrap items-center gap-x-[52px]">
+                                {q.options.map((option, oi) => (
+                                  <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                                ))}
+                              </span>
+                            </div>
+                          ) : q.image && !q.optionImages ? (
+                            // A figure with plain options (Depth Perception, Power
+                            // of Observation): the picture and the radios on one line.
+                            <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={picture} alt={`Option ${String(q.options[oi])}`} className="w-auto" style={{ height: stripH }} draggable={false} />
-                              <span className="absolute bottom-0 right-0.5 text-[9px] leading-none text-[#333]">
-                                {String(q.options[oi])}
+                              <img src={q.image} alt={`Question ${number}`} className="w-auto max-w-full" style={{ height: figureH }} draggable={false} onLoad={twoSets && i === 0 ? (e) => setSetsWidth(e.currentTarget.clientWidth) : undefined} />
+                              <span className="flex flex-wrap items-center gap-x-[52px]">
+                                {q.options.map((option, oi) => (
+                                  <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                                ))}
                               </span>
-                            </span>
-                          ))}
-                        </span>
-                        <span className="flex flex-wrap items-center gap-x-[52px]">
-                          {q.options.map((option, oi) => (
-                            <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
-                          ))}
-                        </span>
-                      </div>
-                    ) : q.image && !q.optionImages ? (
-                      // A figure with plain options (Depth Perception, Power
-                      // of Observation): the picture and the radios on one line.
-                      <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={q.image}
-                          alt={`Question ${number}`}
-                          className="w-auto max-w-full"
-                          style={{ height: figureH }}
-                          draggable={false}
-                          onLoad={twoSets && i === 0 ? (e) => setSetsWidth(e.currentTarget.clientWidth) : undefined}
-                        />
-                        <span className="flex flex-wrap items-center gap-x-[52px]">
-                          {q.options.map((option, oi) => (
-                            <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
-                          ))}
-                        </span>
-                      </div>
-                    ) : (
-                      // A figure with option pictures (Perceptual Speed): the
-                      // figure above, then "A [picture]" per option.
-                      sideBySide ? (
-                      <div className="flex flex-wrap items-center gap-x-[40px] gap-y-2">
-                        <span className="w-[28px] shrink-0 text-[0.95em] text-[#222]">{number}.</span>
-                        {q.image && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={q.image} alt={`Question ${number}`} className="w-auto max-w-full" style={{ height: figureH }} draggable={false} />
-                        )}
-                        <span className="flex items-end gap-x-3">
-                          {q.options.map((option, oi) => {
-                            const picture = q.optionImages?.[oi];
-                            return (
-                              <span key={oi} className="flex flex-col items-center gap-0.5">
-                                {picture && (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={picture} alt={`Option ${String(option)}`} className="w-auto" style={{ height: optionH }} draggable={false} />
-                                )}
-                                <span className="text-[0.8em] leading-none text-[#333]">{String(option)}</span>
+                            </div>
+                          ) : // A figure with option pictures (Perceptual Speed): the
+                          // figure above, then "A [picture]" per option.
+                          sideBySide ? (
+                            <div className="flex flex-wrap items-center gap-x-[40px] gap-y-2">
+                              <span className="w-[28px] shrink-0 text-[0.95em] text-[#222]">{number}.</span>
+                              {q.image && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={q.image} alt={`Question ${number}`} className="w-auto max-w-full" style={{ height: figureH }} draggable={false} />
+                              )}
+                              <span className="flex items-end gap-x-3">
+                                {q.options.map((option, oi) => {
+                                  const picture = q.optionImages?.[oi];
+                                  return (
+                                    <span key={oi} className="flex flex-col items-center gap-0.5">
+                                      {picture && (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={picture} alt={`Option ${String(option)}`} className="w-auto" style={{ height: optionH }} draggable={false} />
+                                      )}
+                                      <span className="text-[0.8em] leading-none text-[#333]">{String(option)}</span>
+                                    </span>
+                                  );
+                                })}
                               </span>
-                            );
-                          })}
-                        </span>
-                        <span className="flex flex-wrap items-center gap-x-[52px]">
-                          {q.options.map((option, oi) => (
-                            <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
-                          ))}
-                        </span>
-                      </div>
-                      ) : (
-                      <>
-                        {q.image && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={q.image} alt={`Question ${number}`} className="mt-2 w-auto max-w-full" style={{ height: figureH }} draggable={false} />
-                        )}
-                        <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
-                          {q.options.map((option, oi) => {
-                            const id = `${q.id}-opt-${oi}`;
-                            const picture = q.optionImages?.[oi];
-                            return (
-                              <span key={id} className="flex items-center gap-1.5">
-                                <Choice id={id} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
-                                {picture && (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={picture} alt={`Option ${String(option)}`} className="w-auto" style={{ height: optionH }} draggable={false} />
-                                )}
+                              <span className="flex flex-wrap items-center gap-x-[52px]">
+                                {q.options.map((option, oi) => (
+                                  <Choice key={oi} id={`${q.id}-opt-${oi}`} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                                ))}
                               </span>
-                            );
-                          })}
-                        </div>
-                      </>
-                      )
-                    )}
-                  </li>
-                );
-              })}
-            </ol>
-            </>
-            )}
-          </div>
-          {/* On the two-half screens the column itself never scrolls on a
+                            </div>
+                          ) : (
+                            <>
+                              {q.image && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={q.image} alt={`Question ${number}`} className="mt-2 w-auto max-w-full" style={{ height: figureH }} draggable={false} />
+                              )}
+                              <div className="mt-2 flex flex-wrap items-center gap-x-[52px] gap-y-2">
+                                {q.options.map((option, oi) => {
+                                  const id = `${q.id}-opt-${oi}`;
+                                  const picture = q.optionImages?.[oi];
+                                  return (
+                                    <span key={id} className="flex items-center gap-1.5">
+                                      <Choice id={id} name={q.id} option={option} checked={chosen === option} disabled={state.submitted} onPick={() => dispatch({ type: "answer", questionId: q.id, value: option })} />
+                                      {picture && (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={picture} alt={`Option ${String(option)}`} className="w-auto" style={{ height: optionH }} draggable={false} />
+                                      )}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </>
+              )}
+            </div>
+            {/* On the two-half screens the column itself never scrolls on a
               wide screen (each half scrolls under its own rail), so its
               rail would be a second strip beside the question half's. */}
-          <div className={brick ? "contents lg:hidden" : "contents"}>
-            <ScrollRail target={column} axis="vertical" />
-          </div>
+            <div className={brick ? "contents lg:hidden" : "contents"}>
+              <ScrollRail target={column} axis="vertical" />
+            </div>
           </div>
         </div>
       ) : (
@@ -627,65 +585,34 @@ export function FigureExam({
               // The real Memory Test screen has a Save button; the answers
               // are already kept as they are chosen, so this sends them up
               // at once and otherwise changes nothing.
-              <button
-                type="button"
-                data-allow-mouse="true"
-                onClick={() => sendRef.current(false)}
-                className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab]"
-              >
+              <button type="button" data-allow-mouse="true" onClick={() => sendRef.current(false)} className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab]">
                 Save
               </button>
             ) : (
-            <>
-            {sheetTest && (
-              // With no Part chips, the only way back to an earlier sheet.
-              <button
-                type="button"
-                data-allow-mouse="true"
-                disabled={part === 0}
-                onClick={() => goToPart(part - 1)}
-                className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab] disabled:opacity-40"
-              >
-                Previous
-              </button>
+              <>
+                {sheetTest && (
+                  // With no Part chips, the only way back to an earlier sheet.
+                  <button type="button" data-allow-mouse="true" disabled={part === 0} onClick={() => goToPart(part - 1)} className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab] disabled:opacity-40">
+                    Previous
+                  </button>
+                )}
+                <button type="button" data-allow-mouse="true" disabled={lastPart} onClick={() => goToPart(part + 1)} className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab] disabled:opacity-40">
+                  Save &amp; Next
+                </button>
+              </>
             )}
-            <button
-              type="button"
-              data-allow-mouse="true"
-              disabled={lastPart}
-              onClick={() => goToPart(part + 1)}
-              className="rounded bg-[#2a7fc0] px-6 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab] disabled:opacity-40"
-            >
-              Save &amp; Next
-            </button>
-            </>
-            )}
-            <button
-              type="button"
-              data-allow-mouse="true"
-              onClick={() => setConfirmSubmit(true)}
-              className="rounded bg-[#6fb6e6] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#5ea8dc]"
-            >
+            <button type="button" data-allow-mouse="true" onClick={() => setConfirmSubmit(true)} className="rounded bg-[#6fb6e6] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#5ea8dc]">
               Submit
             </button>
           </div>
         ) : (
-          <button
-            type="button"
-            data-allow-mouse="true"
-            onClick={() => setConfirmSkip(true)}
-            className="ml-auto rounded bg-[#2a7fc0] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab]"
-          >
+          <button type="button" data-allow-mouse="true" onClick={() => setConfirmSkip(true)} className="ml-auto rounded bg-[#2a7fc0] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab]">
             Skip Instruction
           </button>
         )}
       </div>
 
-      <InstructionsDialog
-        paper={paper}
-        open={instructionsOpen}
-        onClose={() => setInstructionsOpen(false)}
-      />
+      <InstructionsDialog paper={paper} open={instructionsOpen} onClose={() => setInstructionsOpen(false)} />
 
       <ConfirmBox
         open={state.paused && !state.submitted}
@@ -713,9 +640,7 @@ export function FigureExam({
       <ConfirmBox
         open={confirmSubmit}
         title="Are you sure you want to submit the test?"
-        body={`क्या आप वाकई परीक्षण जमा करना चाहते हैं?${
-          unanswered > 0 ? ` (${unanswered} question${unanswered === 1 ? "" : "s"} still unanswered.)` : ""
-        }`}
+        body={`क्या आप वाकई परीक्षण जमा करना चाहते हैं?${unanswered > 0 ? ` (${unanswered} question${unanswered === 1 ? "" : "s"} still unanswered.)` : ""}`}
         confirmLabel="Yes"
         cancelLabel="No"
         onConfirm={() => {
@@ -753,39 +678,20 @@ function TextQuestion({ en, hi }: { en: string; hi: string }) {
   return (
     <span className="inline-block min-w-[300px] text-[1.25em] tabular-nums text-[#222]" style={serif}>
       {en}
-      {hi && <span className="ml-3 text-[#494949]" lang="hi">{hi}</span>}
+      {hi && (
+        <span className="ml-3 text-[#494949]" lang="hi">
+          {hi}
+        </span>
+      )}
     </span>
   );
 }
 
 /** One option's radio and its label, as "○ A". */
-function Choice({
-  id,
-  name,
-  option,
-  checked,
-  disabled,
-  onPick,
-}: {
-  id: string;
-  name: string;
-  option: string | number;
-  checked: boolean;
-  disabled: boolean;
-  onPick: () => void;
-}) {
+function Choice({ id, name, option, checked, disabled, onPick }: { id: string; name: string; option: string | number; checked: boolean; disabled: boolean; onPick: () => void }) {
   return (
     <label htmlFor={id} className="flex cursor-pointer items-center gap-1.5">
-      <input
-        id={id}
-        type="radio"
-        name={name}
-        checked={checked}
-        disabled={disabled}
-        data-allow-mouse="true"
-        onChange={onPick}
-        className="h-[14px] w-[14px] cursor-pointer"
-      />
+      <input id={id} type="radio" name={name} checked={checked} disabled={disabled} data-allow-mouse="true" onChange={onPick} className="h-[14px] w-[14px] cursor-pointer" />
       <span className="text-[1em] text-[#494949]">{String(option)}</span>
     </label>
   );
@@ -812,7 +718,9 @@ function GroupInstructionsLink({ onClick }: { onClick: () => void }) {
       className="mx-0.5 inline-flex items-center gap-1 rounded-sm bg-[#333333] px-1.5 py-0.5 align-middle text-[11px] font-bold text-white hover:bg-[#222]"
       style={{ fontFamily: "Arial, sans-serif" }}
     >
-      <span className="flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[#2a8fd6] text-[9px] italic" aria-hidden="true">i</span>
+      <span className="flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[#2a8fd6] text-[9px] italic" aria-hidden="true">
+        i
+      </span>
       Group Instructions
     </button>
   );
