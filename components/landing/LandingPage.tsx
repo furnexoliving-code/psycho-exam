@@ -7,6 +7,7 @@ import mocks from "@/public/landing/mocks.jpg";
 import { KIND_LABEL, rupees, type Package } from "@/lib/packages";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { FreeMockCta } from "@/components/FreeMockCta";
+import { LAUNCH } from "@/lib/launch";
 
 /**
  * The public front page: what the portal is, for whom, and how to join.
@@ -68,7 +69,9 @@ export const FAQ = [
   },
   {
     q: "How do I get a login?",
-    a: "Accounts are issued by Kautilya Classes. Message our team on WhatsApp with your name and mobile number; the number becomes your login ID and you get your first password the same day. Kautilya Classes students get it from the office. Then add your photo and set your own password from My profile.",
+    a: LAUNCH.signup
+      ? "Make your own free account on the Create account page with your name, mobile number and a password; the number becomes your login ID and one Full Mock is free at once. Kautilya Classes students get their login from the office. Packages are added online or by our team on WhatsApp."
+      : "Accounts are issued by Kautilya Classes. Message our team on WhatsApp with your name and mobile number; the number becomes your login ID and you get your first password the same day. Kautilya Classes students get it from the office. Then add your photo and set your own password from My profile.",
   },
   {
     q: "Does it work on a mobile phone?",
@@ -95,27 +98,41 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
             <p className="text-[12px] font-bold uppercase tracking-[0.25em]" style={{ color: Y }}>
               RRB ALP CBAT · As per RDSO pattern
             </p>
-            <h1 className="mt-4 text-[34px] font-extrabold leading-[1.1] sm:text-[44px] md:text-[52px]">
-              Railway Psycho Test practice, exactly like the exam hall
-            </h1>
+            <h1 className="mt-4 text-[34px] font-extrabold leading-[1.1] sm:text-[44px] md:text-[52px]">Railway Psycho Test practice, exactly like the exam hall</h1>
             <p className="mt-3 text-[18px] text-[#c9d3e6]" lang="hi">
               रेलवे ALP साइको टेस्ट (CBAT) की तैयारी, असली परीक्षा जैसी स्क्रीन पर
             </p>
             <ul className="mt-6 space-y-2 text-[15px] text-[#e6ebf5]">
-              <li className="flex gap-2"><Check /> All 5 tests of the CBAT, in the hall&apos;s order</li>
-              <li className="flex gap-2"><Check /> Full Mock Tests with the real timing and break screens</li>
-              <li className="flex gap-2"><Check /> Instant result with the same T-Score the railway uses</li>
-              <li className="flex gap-2"><Check /> Instructions in Hindi and English</li>
+              <li className="flex gap-2">
+                <Check /> All 5 tests of the CBAT, in the hall&apos;s order
+              </li>
+              <li className="flex gap-2">
+                <Check /> Full Mock Tests with the real timing and break screens
+              </li>
+              <li className="flex gap-2">
+                <Check /> Instant result with the same T-Score the railway uses
+              </li>
+              <li className="flex gap-2">
+                <Check /> Instructions in Hindi and English
+              </li>
             </ul>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b] shadow hover:brightness-95" style={{ background: Y }}>
                 Student Login
               </Link>
-              <a href={CONTACT.whatsapp} className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
-                New student? Message our team on WhatsApp
-              </a>
+              {LAUNCH.signup ? (
+                <Link href="/signup?next=/mocks" className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
+                  New here? Create a free account
+                </Link>
+              ) : (
+                <a href={CONTACT.whatsapp} className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
+                  New student? Message our team on WhatsApp
+                </a>
+              )}
             </div>
-            <p className="mt-4 text-[13px] text-[#9fb0d4]">Packages from {packages.length ? rupees(Math.min(...packages.map((p) => p.priceInr))) : "₹399"} · New papers every week · Admission on WhatsApp</p>
+            <p className="mt-4 text-[13px] text-[#9fb0d4]">
+              Packages from {packages.length ? rupees(Math.min(...packages.map((p) => p.priceInr))) : "₹399"} · New papers every week · {LAUNCH.signup ? "One Full Mock free with every account" : "Admission on WhatsApp"}
+            </p>
           </div>
           <div className="relative">
             <Image src={exam} alt="The portal's exam screen for the Memory Test, laid out like the RRB CBAT hall screen" priority className="rounded-lg border border-white/20 shadow-2xl" sizes="(min-width: 768px) 560px, 100vw" />
@@ -159,9 +176,17 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
                 {s.status === "live" ? "Available now" : "Coming soon"}
               </span>
               <h3 className="mt-3 text-[19px] font-bold text-gray-900">
-                {s.status === "live" ? <Link href="/rrb-alp-psycho-test" className="hover:underline">{s.name}</Link> : s.name}
+                {s.status === "live" ? (
+                  <Link href="/rrb-alp-psycho-test" className="hover:underline">
+                    {s.name}
+                  </Link>
+                ) : (
+                  s.name
+                )}
               </h3>
-              <p className="text-[14px] text-gray-500" lang="hi">{s.hi} · {s.exam}</p>
+              <p className="text-[14px] text-gray-500" lang="hi">
+                {s.hi} · {s.exam}
+              </p>
               <p className="mt-3 text-[14px] text-gray-700">{s.note}</p>
               {s.status === "live" ? (
                 <Link href="/packages" className="mt-5 inline-block rounded-md bg-[#0d2a6b] px-4 py-2 text-[14px] font-semibold text-white hover:bg-[#0a2158]">
@@ -185,9 +210,13 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {TESTS.map((t) => (
               <Link key={t.n} href={`/psycho-test/${t.slug}`} className="rounded-xl border-t-4 bg-white p-5 shadow-sm hover:shadow-md" style={{ borderColor: Y }}>
-                <div className="text-[28px] font-extrabold" style={{ color: Y }}>0{t.n}</div>
+                <div className="text-[28px] font-extrabold" style={{ color: Y }}>
+                  0{t.n}
+                </div>
                 <h3 className="mt-1 text-[16px] font-bold leading-tight text-gray-900">{t.en}</h3>
-                <p className="text-[13px] text-gray-500" lang="hi">{t.hi}</p>
+                <p className="text-[13px] text-gray-500" lang="hi">
+                  {t.hi}
+                </p>
                 <p className="mt-2 text-[13px] text-gray-700">{t.what}</p>
                 <p className="mt-2 text-[12px] font-bold text-[#0d2a6b]">Pattern, tips & sample →</p>
               </Link>
@@ -209,22 +238,14 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
             alt="Dashboard with Today's plan: the weakest test first, next goal, and the paper to open"
             title="The dashboard tells you what to do today"
             hi="आज का प्लान: सबसे कमज़ोर टेस्ट सबसे ऊपर"
-            points={[
-              "Today's plan sorts your five tests weakest first and names the paper to open.",
-              "Next goal in plain words: “+24 more to T-Score 42 (pass)”.",
-              "Each test tile shows your best T-Score and the last three days.",
-            ]}
+            points={["Today's plan sorts your five tests weakest first and names the paper to open.", "Next goal in plain words: “+24 more to T-Score 42 (pass)”.", "Each test tile shows your best T-Score and the last three days."]}
           />
           <Feature
             img={mocks}
             alt="Full Mock Tests page with Open now, Upcoming and Completed groups"
             title="Full Mock Tests: a rehearsal of exam day"
             hi="पाँचों टेस्ट एक बार में, असली क्रम और समय के साथ"
-            points={[
-              "All five tests in one sitting with the real timing and break screens.",
-              "Mocks open on a schedule; a scorecard out of 30 says qualified or not.",
-              "A leaderboard across the batch for every mock.",
-            ]}
+            points={["All five tests in one sitting with the real timing and break screens.", "Mocks open on a schedule; a scorecard out of 30 says qualified or not.", "A leaderboard across the batch for every mock."]}
             flip
           />
           <Feature
@@ -232,11 +253,7 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
             alt="Result page showing T-Score, score tiles and accuracy by question type"
             title="Instant result, and where the marks went"
             hi="सबमिट करते ही रिज़ल्ट, रेलवे वाला T-Score"
-            points={[
-              "T-Score with a meter, scored the way the railway does.",
-              "Accuracy by question type, weakest first; review every question.",
-              "Download the scorecard as an image or share it on WhatsApp.",
-            ]}
+            points={["T-Score with a meter, scored the way the railway does.", "Accuracy by question type, weakest first; review every question.", "Download the scorecard as an image or share it on WhatsApp."]}
           />
         </div>
       </section>
@@ -253,8 +270,12 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
               ["60 and above", "Our target", "#4ade80", "A safe margin on exam day and a strong 30% in the final merit. हरा = लक्ष्य पूरा।"],
             ].map(([range, label, color, text]) => (
               <div key={range} className="rounded-xl border border-white/15 bg-white/5 p-6">
-                <div className="text-[13px] font-bold uppercase tracking-wider" style={{ color }}>{label}</div>
-                <div className="mt-1 text-[36px] font-extrabold" style={{ color }}>{range}</div>
+                <div className="text-[13px] font-bold uppercase tracking-wider" style={{ color }}>
+                  {label}
+                </div>
+                <div className="mt-1 text-[36px] font-extrabold" style={{ color }}>
+                  {range}
+                </div>
                 <p className="mt-2 text-[14px] text-[#c9d3e6]">{text}</p>
               </div>
             ))}
@@ -267,14 +288,22 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
         <div className="mx-auto max-w-6xl px-5 py-14">
           <Eyebrow>Packages & prices · पैकेज और कीमत</Eyebrow>
           <h2 className="mt-2 text-[28px] font-extrabold text-gray-900 sm:text-[34px]">Pick a package. Admission on WhatsApp.</h2>
-          <p className="mt-2 max-w-2xl text-[15px] text-gray-600">Kautilya Classes students get their package from the institute. New students: message our team, and your login and package are set up the same day.</p>
+          <p className="mt-2 max-w-2xl text-[15px] text-gray-600">
+            {LAUNCH.signup
+              ? "Kautilya Classes students get their package from the institute. New students: create a free account, then message our team for a package; it is added the same day."
+              : "Kautilya Classes students get their package from the institute. New students: message our team, and your login and package are set up the same day."}
+          </p>
           <div className="mt-8 grid gap-5 md:grid-cols-4">
             <div className="flex flex-col rounded-xl border-2 border-dashed border-green-400 bg-green-50 p-6">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-green-700">New student?</p>
               <h3 className="mt-1 text-[20px] font-extrabold text-gray-900">Join on WhatsApp</h3>
               <p className="mt-3 flex-1 text-[13px] text-gray-700">Send your name and mobile number. Our team sets up your login and the package you choose, the same day.</p>
-              <p className="text-[12px] text-gray-500" lang="hi">नाम और मोबाइल नंबर भेजें, टीम उसी दिन लॉगिन और पैकेज चालू कर देगी।</p>
-              <a href={CONTACT.whatsapp} className="mt-4 rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">Message our team</a>
+              <p className="text-[12px] text-gray-500" lang="hi">
+                नाम और मोबाइल नंबर भेजें, टीम उसी दिन लॉगिन और पैकेज चालू कर देगी।
+              </p>
+              <a href={CONTACT.whatsapp} className="mt-4 rounded-md bg-green-600 px-4 py-2.5 text-center text-[14px] font-bold text-white hover:bg-green-700">
+                Message our team
+              </a>
             </div>
             {packages.map((p) => (
               <div key={p.id} className={`flex flex-col rounded-xl border bg-white p-6 ${p.kind === "combo" ? "border-[#0d2a6b] shadow-md" : "border-gray-200"}`}>
@@ -291,11 +320,7 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
                 </Link>
               </div>
             ))}
-            {packages.length === 0 && (
-              <div className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-[13px] text-gray-500 md:col-span-3">
-                Package prices are set in the admin panel (Packages) and appear here.
-              </div>
-            )}
+            {packages.length === 0 && <div className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-[13px] text-gray-500 md:col-span-3">Package prices are set in the admin panel (Packages) and appear here.</div>}
           </div>
         </div>
       </section>
@@ -311,10 +336,14 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
             ["Follow Today's plan", "Open the paper the dashboard points to, every day, until all five tests are green.", "रोज़ आज का प्लान खोलें।"],
           ].map(([t, d, h], i) => (
             <li key={t} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="text-[40px] font-extrabold leading-none" style={{ color: Y }}>{i + 1}</div>
+              <div className="text-[40px] font-extrabold leading-none" style={{ color: Y }}>
+                {i + 1}
+              </div>
               <h3 className="mt-2 text-[18px] font-bold text-gray-900">{t}</h3>
               <p className="mt-1 text-[14px] text-gray-700">{d}</p>
-              <p className="mt-1 text-[13px] text-gray-500" lang="hi">{h}</p>
+              <p className="mt-1 text-[13px] text-gray-500" lang="hi">
+                {h}
+              </p>
             </li>
           ))}
         </ol>
@@ -343,10 +372,25 @@ export function LandingPage({ packages = [] }: { packages?: Package[] }) {
       <section className="mx-auto max-w-6xl px-5 py-14">
         <div className="rounded-2xl bg-[#0d2a6b] px-6 py-10 text-center text-white md:px-12">
           <h2 className="text-[28px] font-extrabold sm:text-[34px]">Start today. Be ready for the hall.</h2>
-          <p className="mt-2 text-[17px] text-[#c9d3e6]" lang="hi">आज ही शुरू करें। परीक्षा हॉल के लिए तैयार रहें।</p>
+          <p className="mt-2 text-[17px] text-[#c9d3e6]" lang="hi">
+            आज ही शुरू करें। परीक्षा हॉल के लिए तैयार रहें।
+          </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="/login" className="rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b]" style={{ background: Y }}>Student Login</Link>
-            <a href={CONTACT.whatsapp} className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">Ask on WhatsApp</a>
+            {LAUNCH.signup && (
+              <Link href="/signup?next=/mocks" className="rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b]" style={{ background: Y }}>
+                Create a free account
+              </Link>
+            )}
+            <Link
+              href="/login"
+              className={LAUNCH.signup ? "rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10" : "rounded-md px-6 py-3 text-[15px] font-bold text-[#0d2a6b]"}
+              style={LAUNCH.signup ? undefined : { background: Y }}
+            >
+              Student Login
+            </Link>
+            <a href={CONTACT.whatsapp} className="rounded-md border border-white/40 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10">
+              Ask on WhatsApp
+            </a>
           </div>
         </div>
       </section>
@@ -369,11 +413,21 @@ export function PublicHeader() {
           </span>
         </Link>
         <nav className="ml-auto hidden items-center gap-6 text-[14px] font-semibold text-gray-700 md:flex" aria-label="Main">
-          <Link href="/rrb-alp-psycho-test" className="hover:text-[#0d2a6b]">ALP psycho test</Link>
-          <Link href="/psycho-test" className="hover:text-[#0d2a6b]">19 kinds of question</Link>
-          <Link href="/packages" className="hover:text-[#0d2a6b]">Prices</Link>
-          <Link href="/blog" className="hover:text-[#0d2a6b]">Articles</Link>
-          <Link href="/#faq" className="hover:text-[#0d2a6b]">FAQ</Link>
+          <Link href="/rrb-alp-psycho-test" className="hover:text-[#0d2a6b]">
+            ALP psycho test
+          </Link>
+          <Link href="/psycho-test" className="hover:text-[#0d2a6b]">
+            19 kinds of question
+          </Link>
+          <Link href="/packages" className="hover:text-[#0d2a6b]">
+            Prices
+          </Link>
+          <Link href="/blog" className="hover:text-[#0d2a6b]">
+            Articles
+          </Link>
+          <Link href="/#faq" className="hover:text-[#0d2a6b]">
+            FAQ
+          </Link>
         </nav>
         <Link href="/login" className="ml-auto whitespace-nowrap rounded-md bg-[#0d2a6b] px-3 py-2 text-[13px] font-bold text-white hover:bg-[#0a2158] sm:px-4 sm:text-[14px] md:ml-6">
           Student Login
@@ -396,23 +450,75 @@ export function PublicFooter() {
         <div className="text-[13px] text-gray-700">
           <div className="font-bold text-gray-900">Contact</div>
           <p className="mt-1">{CONTACT.address}</p>
-          <p>WhatsApp: <a href={CONTACT.whatsapp} className="font-semibold hover:underline">{CONTACT.phone}</a></p>
+          <p>
+            WhatsApp:{" "}
+            <a href={CONTACT.whatsapp} className="font-semibold hover:underline">
+              {CONTACT.phone}
+            </a>
+          </p>
         </div>
         <div className="text-[13px] text-gray-700">
           <div className="font-bold text-gray-900">Links</div>
           <ul className="mt-1 space-y-1">
-            <li><Link href="/login" className="hover:underline">Student Login</Link></li>
-            <li><Link href="/packages" className="hover:underline">Packages & prices</Link></li>
-            <li><Link href="/rrb-alp-psycho-test" className="hover:underline">RRB ALP psycho test guide</Link></li>
-            <li><Link href="/psycho-test" className="hover:underline">All 19 kinds of question</Link></li>
+            <li>
+              <Link href="/login" className="hover:underline">
+                Student Login
+              </Link>
+            </li>
+            {LAUNCH.signup && (
+              <li>
+                <Link href="/signup" className="hover:underline">
+                  Create a free account
+                </Link>
+              </li>
+            )}
+            <li>
+              <Link href="/packages" className="hover:underline">
+                Packages & prices
+              </Link>
+            </li>
+            <li>
+              <Link href="/rrb-alp-psycho-test" className="hover:underline">
+                RRB ALP psycho test guide
+              </Link>
+            </li>
+            <li>
+              <Link href="/psycho-test" className="hover:underline">
+                All 19 kinds of question
+              </Link>
+            </li>
             {TESTS.map((t) => (
-              <li key={t.slug}><Link href={`/psycho-test/${t.slug}`} className="hover:underline">Test {t.n} · {t.en}</Link></li>
+              <li key={t.slug}>
+                <Link href={`/psycho-test/${t.slug}`} className="hover:underline">
+                  Test {t.n} · {t.en}
+                </Link>
+              </li>
             ))}
-            <li><Link href="/blog" className="hover:underline">Articles & guides</Link></li>
-            <li><Link href="/#faq" className="hover:underline">FAQ</Link></li>
-            <li><Link href="/terms" className="hover:underline">Terms of Use</Link></li>
-            <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>
-            <li><Link href="/refund-policy" className="hover:underline">Refund Policy</Link></li>
+            <li>
+              <Link href="/blog" className="hover:underline">
+                Articles & guides
+              </Link>
+            </li>
+            <li>
+              <Link href="/#faq" className="hover:underline">
+                FAQ
+              </Link>
+            </li>
+            <li>
+              <Link href="/terms" className="hover:underline">
+                Terms of Use
+              </Link>
+            </li>
+            <li>
+              <Link href="/privacy" className="hover:underline">
+                Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link href="/refund-policy" className="hover:underline">
+                Refund Policy
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
@@ -424,12 +530,18 @@ export function PublicFooter() {
 }
 
 function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
-  return <p className={`text-[12px] font-bold uppercase tracking-[0.25em] ${light ? "" : "text-[#c8102e]"}`} style={light ? { color: Y } : undefined}>{children}</p>;
+  return (
+    <p className={`text-[12px] font-bold uppercase tracking-[0.25em] ${light ? "" : "text-[#c8102e]"}`} style={light ? { color: Y } : undefined}>
+      {children}
+    </p>
+  );
 }
 
 function Check() {
   return (
-    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-[#0d2a6b]" style={{ background: Y }} aria-hidden="true">✓</span>
+    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-[#0d2a6b]" style={{ background: Y }} aria-hidden="true">
+      ✓
+    </span>
   );
 }
 
@@ -439,10 +551,14 @@ function Feature({ img, alt, title, hi, points, flip = false }: { img: typeof pl
       <Image src={img} alt={alt} className="rounded-lg border border-gray-200 shadow-lg" sizes="(min-width: 768px) 560px, 100vw" />
       <div>
         <h3 className="text-[24px] font-extrabold text-gray-900">{title}</h3>
-        <p className="mt-1 text-[15px] text-gray-500" lang="hi">{hi}</p>
+        <p className="mt-1 text-[15px] text-gray-500" lang="hi">
+          {hi}
+        </p>
         <ul className="mt-4 space-y-2 text-[15px] text-gray-700">
           {points.map((p) => (
-            <li key={p} className="flex gap-2"><Check /> {p}</li>
+            <li key={p} className="flex gap-2">
+              <Check /> {p}
+            </li>
           ))}
         </ul>
       </div>

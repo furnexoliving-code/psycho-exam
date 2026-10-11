@@ -5,6 +5,7 @@ import { getProfile, isConfigured } from "@/lib/auth";
 import { AuthForm } from "./AuthForm";
 import { SetupNotice } from "./SetupNotice";
 import { CONTACT } from "@/components/landing/LandingPage";
+import { LAUNCH } from "@/lib/launch";
 
 export const metadata: Metadata = {
   title: "Student Login | Kautilya Classes Railway Psycho Test Portal",
@@ -33,11 +34,7 @@ function safeNext(next: string | undefined): string {
 
 const Y = "#ff9933";
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ next?: string; error?: string }>;
-}) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
   const { next, error } = await searchParams;
   const target = safeNext(next);
 
@@ -55,13 +52,15 @@ export default async function LoginPage({
             <img src="/kautilya-logo.png" alt="Kautilya Classes" className="h-12 w-auto rounded bg-white p-0.5" draggable={false} />
             <span className="leading-none">
               <span className="block text-[16px] font-bold">KAUTILYA CLASSES</span>
-              <span className="mt-1 block text-[9px] font-bold tracking-[0.2em]" style={{ color: Y }}>RAILWAY PSYCHO TEST PORTAL</span>
+              <span className="mt-1 block text-[9px] font-bold tracking-[0.2em]" style={{ color: Y }}>
+                RAILWAY PSYCHO TEST PORTAL
+              </span>
             </span>
           </Link>
-          <h1 className="mt-8 text-[26px] font-extrabold leading-tight md:mt-14 md:text-[36px]">
-            Practice the RRB ALP psycho test on the real exam screen
-          </h1>
-          <p className="mt-2 text-[15px] text-[#c9d3e6]" lang="hi">असली परीक्षा जैसी स्क्रीन पर रेलवे साइको टेस्ट की तैयारी</p>
+          <h1 className="mt-8 text-[26px] font-extrabold leading-tight md:mt-14 md:text-[36px]">Practice the RRB ALP psycho test on the real exam screen</h1>
+          <p className="mt-2 text-[15px] text-[#c9d3e6]" lang="hi">
+            असली परीक्षा जैसी स्क्रीन पर रेलवे साइको टेस्ट की तैयारी
+          </p>
           <ul className="mt-6 hidden space-y-2 text-[14px] text-[#e6ebf5] md:block">
             <li>✓ All 5 tests of the CBAT, as per RDSO pattern</li>
             <li>✓ Full Mock Tests with the hall&apos;s timing and breaks</li>
@@ -70,7 +69,10 @@ export default async function LoginPage({
           </ul>
         </div>
         <p className="relative mt-6 hidden text-[12px] text-[#9fb0d4] md:block">
-          New here? <Link href="/" className="underline hover:text-white">See how the portal works →</Link>
+          New here?{" "}
+          <Link href="/" className="underline hover:text-white">
+            See how the portal works →
+          </Link>
         </p>
       </aside>
 
@@ -81,7 +83,9 @@ export default async function LoginPage({
             <h2 className="text-[22px] font-extrabold text-gray-900">Student Login</h2>
             <p className="mt-1 text-[13px] text-gray-600">
               Sign in with the mobile number registered with the institute.
-              <span className="block" lang="hi">संस्थान में दर्ज मोबाइल नंबर से साइन इन करें।</span>
+              <span className="block" lang="hi">
+                संस्थान में दर्ज मोबाइल नंबर से साइन इन करें।
+              </span>
             </p>
 
             {error === "inactive" && (
@@ -93,23 +97,48 @@ export default async function LoginPage({
             {error === "elsewhere" && (
               <p role="alert" className="mt-5 rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
                 This account was signed in on another device, so this one was signed out. One device at a time; sign in again here to continue on this one.
-                <span className="mt-1 block" lang="hi">यह खाता दूसरे डिवाइस पर साइन इन हुआ, इसलिए यहाँ से साइन आउट हो गया। एक समय पर एक ही डिवाइस; यहाँ जारी रखने के लिए फिर साइन इन करें।</span>
+                <span className="mt-1 block" lang="hi">
+                  यह खाता दूसरे डिवाइस पर साइन इन हुआ, इसलिए यहाँ से साइन आउट हो गया। एक समय पर एक ही डिवाइस; यहाँ जारी रखने के लिए फिर साइन इन करें।
+                </span>
               </p>
             )}
 
             <div className="mt-6">{isConfigured() ? <AuthForm next={target} /> : <SetupNotice />}</div>
           </div>
 
-          <p className="mt-5 text-center text-[14px] text-gray-700">
-            New here? <a href={CONTACT.whatsapp} className="font-bold text-[#0d2a6b] underline">Message our team on WhatsApp</a> for your login.
-            <span className="block text-[12px] text-gray-500" lang="hi">नए हैं? लॉगिन के लिए WhatsApp पर टीम से संपर्क करें।</span>
-          </p>
+          {LAUNCH.signup ? (
+            <p className="mt-5 text-center text-[14px] text-gray-700">
+              New here?{" "}
+              <Link href={`/signup?next=${encodeURIComponent(target)}`} className="font-bold text-[#0d2a6b] underline">
+                Create a free account
+              </Link>{" "}
+              and try one Full Mock free.
+              <span className="block text-[12px] text-gray-500" lang="hi">
+                नए हैं? फ्री अकाउंट बनाएँ और एक फुल मॉक मुफ्त दें।
+              </span>
+            </p>
+          ) : (
+            <p className="mt-5 text-center text-[14px] text-gray-700">
+              New here?{" "}
+              <a href={CONTACT.whatsapp} className="font-bold text-[#0d2a6b] underline">
+                Message our team on WhatsApp
+              </a>{" "}
+              for your login.
+              <span className="block text-[12px] text-gray-500" lang="hi">
+                नए हैं? लॉगिन के लिए WhatsApp पर टीम से संपर्क करें।
+              </span>
+            </p>
+          )}
           <p className="mt-4 rounded-xl border border-gray-200 bg-white px-4 py-3 text-center text-[12px] text-gray-600">
             Kautilya Classes student? Your login is issued by the institute: ask at the office for your mobile number and password.
-            <span className="mt-1 block" lang="hi">कौटिल्य क्लासेज़ के छात्र हैं? आपका लॉगिन संस्थान देता है।</span>
+            <span className="mt-1 block" lang="hi">
+              कौटिल्य क्लासेज़ के छात्र हैं? आपका लॉगिन संस्थान देता है।
+            </span>
           </p>
           <p className="mt-4 text-center text-[12px] text-gray-500 md:hidden">
-            <Link href="/" className="underline">See how the portal works →</Link>
+            <Link href="/" className="underline">
+              See how the portal works →
+            </Link>
           </p>
         </div>
       </main>

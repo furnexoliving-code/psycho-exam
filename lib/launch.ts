@@ -5,7 +5,7 @@
  */
 export const LAUNCH = {
   /** Students may make their own account at /signup. */
-  signup: false,
+  signup: true,
   /** Packages are bought online on the packages page. */
   onlineBuy: false,
   /** A mock marked free is advertised on the packages page and the blog: every account's first step. */

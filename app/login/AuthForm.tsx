@@ -3,6 +3,10 @@
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, type SignInResult } from "./actions";
+import { CONTACT } from "@/lib/contact";
+
+/** A pre-written WhatsApp message: the team sets a new password from the Passwords page and replies. */
+const FORGOT_LINK = `${CONTACT.whatsapp}?text=${encodeURIComponent("Namaste, mera portal password reset karna hai.\nMobile number: \nNaam: ")}`;
 
 /**
  * Sign in with the mobile number and password the institute issued.
@@ -56,6 +60,14 @@ export function AuthForm({ next }: { next: string }) {
           className="w-full rounded border border-gray-400 bg-white px-3 py-2.5 text-[15px]
                      focus:border-rrb-banner focus:outline-none focus:ring-1 focus:ring-rrb-banner"
         />
+        <span className="mt-1 block text-right text-[12px] text-gray-600">
+          <a href={FORGOT_LINK} target="_blank" rel="noopener" className="underline hover:text-[#0d2a6b]">
+            Forgot password? Message our team on WhatsApp
+          </a>
+          <span className="block text-[11px] text-gray-500" lang="hi">
+            पासवर्ड भूल गए? WhatsApp पर टीम को लिखें, नया पासवर्ड मिल जाएगा।
+          </span>
+        </span>
       </label>
 
       {state && !state.ok && (
