@@ -43,6 +43,9 @@ export function WatchTableExam({
   const { goToResult } = useExamChrome();
   const { state, dispatch, answered, clearSaved } = useAttempt(paper, elapsedSec, questionElapsedSec, storageOwner);
   const questionColumn = useRef<HTMLElement | null>(null);
+  // The diagram's half, which scrolls either way under rails of its own
+  // when the table is drawn larger than the half-screen.
+  const diagramPane = useRef<HTMLElement | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
@@ -215,18 +218,28 @@ export function WatchTableExam({
         <>
           <div className="flex min-h-0 flex-1 flex-col md:flex-row">
             {/* Left portion — the fixed diagram. Never scrolls with questions. */}
-            {/* Scrolls in BOTH directions: a diagram wider or taller than its
-                half of the screen must stay reachable, not be cut off. On a
+            {/* Scrolls in BOTH directions under rails of its own, as the
+                question half does: a diagram wider or taller than its half
+                of the screen stays reachable, with the way to it in plain
+                sight, and the wheel off as everywhere on the paper. On a
                 phone it sits ABOVE the questions, capped so they stay in view. */}
-            <section className="flex max-h-[38vh] w-full shrink-0 flex-col items-center overflow-auto px-4 py-2 md:max-h-none md:w-1/2 md:py-4" aria-label="Watch table diagram">
-              <div className="w-full max-w-[520px] text-[13px] font-bold text-gray-800">{table?.label}</div>
-              {paper.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={paper.imageUrl} alt="Watch table diagram" className="mt-2 h-auto max-w-[520px]" style={{ width: `${paper.imageWidthPct ?? 100}%` }} draggable={false} />
-              ) : (
-                table && <WatchTableDiagram table={table} className="mt-2" />
-              )}
-            </section>
+            <div className="relative max-h-[38vh] w-full shrink-0 md:max-h-none md:min-h-0 md:w-1/2">
+              <section ref={diagramPane} className="wt-scroll-host h-full max-h-[38vh] px-4 py-2 pb-[9px] pr-[9px] md:max-h-none md:py-4" aria-label="Watch table diagram">
+                {/* Centred while it fits; wider than the pane, it starts at
+                    the left so the rail reaches every part of it. */}
+                <div className="mx-auto w-max max-w-full">
+                  <div className="w-full max-w-[520px] text-[13px] font-bold text-gray-800">{table?.label}</div>
+                  {paper.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={paper.imageUrl} alt="Watch table diagram" className="mt-2 h-auto max-w-[520px]" style={{ width: `${paper.imageWidthPct ?? 100}%` }} draggable={false} />
+                  ) : (
+                    table && <WatchTableDiagram table={table} className="mt-2" />
+                  )}
+                </div>
+              </section>
+              <ScrollRail target={diagramPane} axis="vertical" />
+              <ScrollRail target={diagramPane} axis="horizontal" />
+            </div>
 
             {/* Right portion — the questions. The scrollbar stays visible so a
                 candidate can see how much of the paper is left, and it can
