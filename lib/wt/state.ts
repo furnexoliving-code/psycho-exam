@@ -65,6 +65,12 @@ export interface AttemptState {
   pausedSec?: number;
   /** When the current pause began, by the wall clock. */
   pausedAt?: number;
+  /**
+   * Seconds of a scheduled paper given up on purpose: a part submitted
+   * before its time moves the timetable on by what was left, so the
+   * screen reads the next phase off the clock as if that time had passed.
+   */
+  skippedSec?: number;
 }
 
 type Action =
@@ -75,6 +81,7 @@ type Action =
   | { type: "begin-test" }
   | { type: "pause"; paused: boolean; now: number }
   | { type: "submit" }
+  | { type: "skip"; seconds: number }
   | { type: "scroll-lock"; on: boolean }
   | { type: "restore"; state: AttemptState };
 
@@ -107,9 +114,7 @@ function makeReducer(questionCount: number) {
 
         // Seconds actually passed since the last tick — one when the tab is in
         // front, more when the browser throttled it in the background.
-        const passed = state.lastTickAt
-          ? Math.max(1, Math.round((action.now - state.lastTickAt) / 1000))
-          : 1;
+        const passed = state.lastTickAt ? Math.max(1, Math.round((action.now - state.lastTickAt) / 1000)) : 1;
 
         // The two screens keep separate clocks. Only the one on screen runs.
         if (state.phase === "instructions") {
@@ -163,9 +168,7 @@ function makeReducer(questionCount: number) {
         // Resuming restarts the wall clock from now; the pause itself is not
         // time passed, and how long it held is banked so a reload can credit
         // it back against the server's clock, which never stopped.
-        const held = state.pausedAt
-          ? Math.max(0, Math.round((action.now - state.pausedAt) / 1000))
-          : 0;
+        const held = state.pausedAt ? Math.max(0, Math.round((action.now - state.pausedAt) / 1000)) : 0;
         return {
           ...state,
           paused: false,
@@ -177,6 +180,10 @@ function makeReducer(questionCount: number) {
 
       case "submit":
         return { ...state, submitted: true };
+
+      case "skip":
+        if (state.submitted || state.phase !== "test") return state;
+        return { ...state, skippedSec: (state.skippedSec ?? 0) + Math.max(0, action.seconds) };
 
       case "scroll-lock":
         return { ...state, scrollLocked: action.on };
@@ -221,16 +228,8 @@ export function useAttempt(
       // The server's clock never pauses. Where the paper allows a pause, the
       // time this browser recorded as paused is credited back, or a reload
       // after a pause would take those minutes off the clock without a word.
-      const pausedSoFar = resolveFeatures(paper.features).allowPause
-        ? (state.pausedSec ?? 0) +
-          (state.paused && state.pausedAt
-            ? Math.max(0, Math.round((Date.now() - state.pausedAt) / 1000))
-            : 0)
-        : 0;
-      const questionElapsed =
-        serverQuestionElapsedSec === null
-          ? null
-          : Math.max(0, serverQuestionElapsedSec - pausedSoFar);
+      const pausedSoFar = resolveFeatures(paper.features).allowPause ? (state.pausedSec ?? 0) + (state.paused && state.pausedAt ? Math.max(0, Math.round((Date.now() - state.pausedAt) / 1000)) : 0) : 0;
+      const questionElapsed = serverQuestionElapsedSec === null ? null : Math.max(0, serverQuestionElapsedSec - pausedSoFar);
       const elapsed = Math.max(0, serverElapsedSec - pausedSoFar);
 
       // The questions have already opened, by the server's record: the test
@@ -253,10 +252,7 @@ export function useAttempt(
 
       return {
         ...state,
-        instructionRemainingSec: Math.min(
-          state.instructionRemainingSec,
-          Math.max(0, left - testSec),
-        ),
+        instructionRemainingSec: Math.min(state.instructionRemainingSec, Math.max(0, left - testSec)),
         remainingSec: Math.min(state.remainingSec, left),
         // Both clocks spent means the paper is over, whatever the browser says.
         submitted: state.submitted || left <= 0,
@@ -271,9 +267,7 @@ export function useAttempt(
           // A pause taken while the paper still allowed one, then the paper
           // changed: the clock runs from here, and no credit is claimed.
           const pauseAllowed = resolveFeatures(paper.features).allowPause;
-          const restored = pauseAllowed
-            ? { ...saved, lastTickAt: undefined }
-            : { ...saved, lastTickAt: undefined, paused: false, pausedAt: undefined, pausedSec: 0 };
+          const restored = pauseAllowed ? { ...saved, lastTickAt: undefined } : { ...saved, lastTickAt: undefined, paused: false, pausedAt: undefined, pausedSec: 0 };
           dispatch({ type: "restore", state: capped(restored) });
           return;
         }
@@ -307,10 +301,7 @@ export function useAttempt(
     return () => window.clearInterval(id);
   }, [state.paused, state.submitted, state.startedAt]);
 
-  const answered = useMemo(
-    () => Object.values(state.answers).filter((v) => v !== null).length,
-    [state.answers],
-  );
+  const answered = useMemo(() => Object.values(state.answers).filter((v) => v !== null).length, [state.answers]);
 
   const clearSaved = useCallback(() => {
     try {

@@ -110,9 +110,12 @@ export function FigureExam({
   const limitSec = paper.timeLimitMin * 60;
   const timetable = scheduleOf(features, paper.questions.length, limitSec);
   const scheduled = timetable !== null;
-  // Named apart from the elapsedSec prop, which is the sitting's age on arrival.
-  const spentSec = Math.max(0, limitSec - state.remainingSec);
+  // Named apart from the elapsedSec prop, which is the sitting's age on
+  // arrival. A part submitted before its time added what was left to
+  // skippedSec, so the timetable reads as if that time had passed.
+  const spentSec = Math.max(0, limitSec - state.remainingSec) + (state.skippedSec ?? 0);
   const at = timetable ? phaseAt(timetable, spentSec) : null;
+  const inQuestions = at?.phase === "questions";
   const inStudy = at?.phase === "study";
   const inBreak = at?.phase === "break";
   const phaseLeftSec = at?.leftSec ?? 0;
@@ -130,6 +133,26 @@ export function FigureExam({
   const finish = useCallback(() => {
     dispatch({ type: "submit" });
   }, [dispatch]);
+
+  // A part submitted before its time moved the timetable on, so it now
+  // ends before the sitting's own clock: the last part's time run out
+  // then ends the paper. Without a skip the two clocks end together and
+  // the tick's own time-out does it, as before.
+  useEffect(() => {
+    if (timetable && onTest && !state.submitted && state.startedAt !== 0 && (state.skippedSec ?? 0) > 0 && spentSec >= timetable.totalSec) finish();
+  }, [timetable, onTest, state.submitted, state.startedAt, state.skippedSec, spentSec, finish]);
+
+  // Submit on a scheduled paper: a part that is not the last gives up the
+  // rest of its question time and the break opens, as the hall moves on;
+  // the last part submits the paper.
+  const submitPart = useCallback(() => {
+    if (at && at.phase === "questions" && at.part < partCount - 1) {
+      dispatch({ type: "skip", seconds: at.leftSec });
+      column.current?.scrollTo({ top: 0 });
+      return;
+    }
+    finish();
+  }, [at, partCount, dispatch, finish]);
 
   // Submitted — by the button, by the clock, or by the server — means the
   // result, at once.
@@ -215,6 +238,10 @@ export function FigureExam({
 
   const unanswered = paper.questions.length - answered;
   const lastPart = part >= partCount - 1;
+  // What Submit covers: on a schedule the part on screen (unless it is the
+  // last), otherwise the whole paper.
+  const partOnly = scheduled && !lastPart;
+  const partUnanswered = (parts[part] ?? []).filter((q) => state.answers[q.id] === null || state.answers[q.id] === undefined).length;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white">
@@ -271,21 +298,27 @@ export function FigureExam({
                 // The study screen, as the real portal shows it: the group
                 // instructions bar, the picture in its box, and the study
                 // timer in the toolbar above.
-                <div className="-mx-5 -mt-4">
-                  <div className="border-b border-[#dcdcdc] bg-[#e9ecef] px-5 py-2 text-center text-[1.05em] text-[#333]">
+                // The whole screen fits the column, as the hall shows the
+                // whole picture at once: the bar and the two lines keep
+                // their height and the picture takes what is left, never
+                // more, so nothing is cut off below and nothing scrolls.
+                <div className="-mx-5 -mt-4 flex flex-col" style={{ height: "calc(100% + 1rem)" }}>
+                  <div className="shrink-0 border-b border-[#dcdcdc] bg-[#e9ecef] px-5 py-2 text-center text-[1.05em] text-[#333]">
                     Group Instructions: {testName} (Part {part + 1})
                   </div>
-                  <div className="px-5 pt-3">
-                    <p className="text-[0.85em] text-[#333]">
+                  <div className="flex min-h-0 flex-1 flex-col px-5 pt-3">
+                    <p className="shrink-0 text-[0.85em] text-[#333]">
                       Study Screen Part {part + 1}/ <span lang="hi">अध्ययन स्क्रीन भाग -{part + 1}</span>
                     </p>
                     {features.studyImages[part] && (
-                      <div className="mt-1 inline-block border border-[#555] bg-white p-3">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={features.studyImages[part]} alt={`Study screen for part ${part + 1}`} className="h-auto max-w-full" style={{ maxHeight: `${features.studyScale}vh` }} draggable={false} />
+                      <div className="mt-1 flex min-h-0 flex-1 items-start">
+                        <div className="flex max-h-full max-w-full border border-[#555] bg-white p-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={features.studyImages[part]} alt={`Study screen for part ${part + 1}`} className="h-auto max-h-full max-w-full object-contain object-left-top" style={{ maxHeight: `min(${features.studyScale}vh, 100%)` }} draggable={false} />
+                        </div>
                       </div>
                     )}
-                    <p className="mt-3 text-[0.8em] text-[#666]">
+                    <p className="mt-3 shrink-0 text-[0.8em] text-[#666]">
                       Memorise the picture; the test screen opens by itself in <strong className="font-mono tabular-nums">{clock(phaseLeftSec)}</strong>.
                       <span className="ml-2" lang="hi">
                         चित्र को याद करें; परीक्षण स्क्रीन स्वतः खुलेगी।
@@ -601,7 +634,13 @@ export function FigureExam({
                 </button>
               </>
             )}
-            <button type="button" data-allow-mouse="true" onClick={() => setConfirmSubmit(true)} className="rounded bg-[#6fb6e6] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#5ea8dc]">
+            <button
+              type="button"
+              data-allow-mouse="true"
+              disabled={scheduled && !inQuestions}
+              onClick={() => setConfirmSubmit(true)}
+              className="rounded bg-[#6fb6e6] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#5ea8dc] disabled:cursor-not-allowed disabled:opacity-50"
+            >
               Submit
             </button>
           </div>
@@ -639,12 +678,20 @@ export function FigureExam({
 
       <ConfirmBox
         open={confirmSubmit}
-        title="Are you sure you want to submit the test?"
-        body={`क्या आप वाकई परीक्षण जमा करना चाहते हैं?${unanswered > 0 ? ` (${unanswered} question${unanswered === 1 ? "" : "s"} still unanswered.)` : ""}`}
+        title={partOnly ? `Are you sure you want to submit Part ${part + 1}?` : "Are you sure you want to submit the test?"}
+        body={
+          partOnly
+            ? `क्या आप वाकई भाग ${part + 1} जमा करना चाहते हैं?${partUnanswered > 0 ? ` (${partUnanswered} question${partUnanswered === 1 ? "" : "s"} of this part still unanswered.)` : ""} Part ${part + 2} follows after the break.`
+            : `क्या आप वाकई परीक्षण जमा करना चाहते हैं?${unanswered > 0 ? ` (${unanswered} question${unanswered === 1 ? "" : "s"} still unanswered.)` : ""}`
+        }
         confirmLabel="Yes"
         cancelLabel="No"
         onConfirm={() => {
           setConfirmSubmit(false);
+          if (partOnly) {
+            submitPart();
+            return;
+          }
           clearSaved();
           finish();
         }}
