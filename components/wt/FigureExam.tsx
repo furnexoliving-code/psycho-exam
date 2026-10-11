@@ -594,7 +594,10 @@ export function FigureExam({
             {/* On the two-half screens the column itself never scrolls on a
               wide screen (each half scrolls under its own rail), so its
               rail would be a second strip beside the question half's. */}
-            <div className={brick ? "contents lg:hidden" : "contents"}>
+            {/* The map and sheet tests' question screens carry rails of
+                their own on a wide screen, so the column's is hidden there;
+                a study screen has no panes, so its rail always shows. */}
+            <div className={brick && !inStudy ? "contents lg:hidden" : "contents"}>
               <ScrollRail target={column} axis="vertical" wide={inStudy} />
             </div>
           </div>
