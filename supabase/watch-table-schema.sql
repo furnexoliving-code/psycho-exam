@@ -383,10 +383,10 @@ security invoker
 set search_path = public
 as $$
   with latest as (
-    select distinct on (coalesce(a.user_id::text, a.id::text)) a.user_id, a.marks
+    select distinct on (coalesce(a.user_id, a.id)) a.user_id, a.marks
     from public.watch_attempts a
     where a.paper_id = p_paper and a.total = p_total
-    order by coalesce(a.user_id::text, a.id::text), a.submitted_at desc
+    order by coalesce(a.user_id, a.id), a.submitted_at desc
   )
   select
     count(*) filter (where user_id is distinct from p_user)::integer,
@@ -711,11 +711,11 @@ stable
 security definer set search_path = public
 as $$
   with latest as (
-    select distinct on (a.paper_id, coalesce(a.user_id::text, a.id::text))
+    select distinct on (a.paper_id, coalesce(a.user_id, a.id))
       a.paper_id, a.total, a.marks
     from public.watch_attempts a
     where a.paper_id = any (p_papers)
-    order by a.paper_id, coalesce(a.user_id::text, a.id::text), a.submitted_at desc
+    order by a.paper_id, coalesce(a.user_id, a.id), a.submitted_at desc
   )
   select
     l.paper_id,
@@ -727,6 +727,11 @@ as $$
   group by l.paper_id, l.total;
 $$;
 grant execute on function public.watch_cohorts(uuid[]) to service_role;
+
+-- The latest attempt per candidate, in the order the cohort functions
+-- walk it: one index scan instead of a sort over the whole table.
+create index if not exists watch_attempts_latest_idx
+  on public.watch_attempts (paper_id, (coalesce(user_id, id)), submitted_at desc);
 
 -- ---------------------------------------------------------------------------
 -- Full Mock tests (added later)

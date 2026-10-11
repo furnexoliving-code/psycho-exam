@@ -25,14 +25,17 @@ export interface PaperStat {
 }
 
 /**
- * Every paper's cohort figures, worked out once and kept for a minute, and
- * dropped the moment a result is recorded. The dashboard, the practice
- * list and a series page read these for a student's best T-scores; each
- * used to ask the database to work them out afresh on every visit, over
- * every attempt of every paper the student had sat.
+ * Every paper's cohort figures, worked out once and kept for a minute,
+ * and dropped when attempts are removed. The dashboard, the practice list
+ * and a series page read these for a student's best T-scores; each used
+ * to ask the database to work them out afresh on every visit, over every
+ * attempt of every paper the student had sat.
  *
- * A result page and a mock scorecard keep asking the database live: those
- * are the figures of record, and a minute's staleness there would show.
+ * A new result does not drop them: it changes a paper's mean by a hair,
+ * and the next minute's read has it. Dropping them on every result made
+ * the database measure every paper afresh, result after result, on a busy
+ * day. A result page and a mock scorecard keep asking the database live:
+ * those are the figures of record, and a minute's staleness there would show.
  */
 export async function allCohorts(): Promise<CohortRow[]> {
   return unstable_cache(
@@ -66,9 +69,7 @@ export async function cohortsFor(paperIds: string[]): Promise<CohortRow[]> {
 export async function paperStats(): Promise<Map<string, PaperStat>> {
   const rows = await unstable_cache(
     async () => {
-      const { data } = await createAdminClient()
-        .from("watch_papers")
-        .select("id, category, stats_min_attempts, reference_mean, reference_sd");
+      const { data } = await createAdminClient().from("watch_papers").select("id, category, stats_min_attempts, reference_mean, reference_sd");
       return ((data as PaperStat[] | null) ?? []).map((p) => ({
         id: p.id,
         category: p.category,
@@ -101,9 +102,7 @@ export async function attemptCounts(): Promise<Map<string, AttemptCount>> {
   if (!error && data) {
     return new Map((data as { paper_id: string; attempts: number; students: number }[]).map((r) => [r.paper_id, { attempts: Number(r.attempts), students: Number(r.students) }]));
   }
-  const rows = await fetchAll<{ paper_id: string; user_id: string | null }>((from, to) =>
-    supabase.from("watch_attempts").select("paper_id, user_id").order("id").range(from, to),
-  );
+  const rows = await fetchAll<{ paper_id: string; user_id: string | null }>((from, to) => supabase.from("watch_attempts").select("paper_id, user_id").order("id").range(from, to));
   const seen = new Map<string, Set<string>>();
   const counts = new Map<string, AttemptCount>();
   for (const r of rows) {

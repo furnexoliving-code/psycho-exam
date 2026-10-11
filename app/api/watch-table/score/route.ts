@@ -3,28 +3,14 @@ import { getProfile, isConfigured, isVerifiedEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { readQuestionRows } from "@/lib/wt/db";
-import { cohortsChanged } from "@/lib/wt/cohorts";
 import { tScore, type Cohort } from "@/lib/wt/tscore";
-import {
-  resolveFeatures,
-  resolveResultView,
-  type ResultView,
-  type WatchFeatures,
-} from "@/lib/wt/types";
+import { resolveFeatures, resolveResultView, type ResultView, type WatchFeatures } from "@/lib/wt/types";
 import { closeExpiredSitting, closeSitting, lastSubmission } from "@/lib/wt/session";
 import { decideCutOff, type CutOffVerdict } from "@/lib/wt/cutoff";
 import { isOptionValue } from "@/lib/wt/parse-questions";
 import { currentMockStep } from "@/lib/wt/mock";
 import type { OptionValue } from "@/lib/wt/types";
-import {
-  aggregateFromRows,
-  cohortFromMoments,
-  fetchAll,
-  momentsFromAggregate,
-  standingFromAggregate,
-  type AttemptMark,
-  type CohortAggregate,
-} from "@/lib/wt/cohort";
+import { aggregateFromRows, cohortFromMoments, fetchAll, momentsFromAggregate, standingFromAggregate, type AttemptMark, type CohortAggregate } from "@/lib/wt/cohort";
 
 /**
  * Scores an attempt on the server.
@@ -161,19 +147,7 @@ export async function POST(request: Request) {
 
   // The questions do not depend on which answers are marked, so they are
   // fetched while the sitting is being closed rather than after it.
-  const [rows, closed] = await Promise.all([
-    fetchQuestions(paper.id),
-    wantsRecord
-      ? closeSitting(
-          paper.id,
-          profile.id,
-          instructionSec,
-          limitSec,
-          Object.fromEntries(given),
-          !pauseAllowed,
-        )
-      : Promise.resolve(null),
-  ]);
+  const [rows, closed] = await Promise.all([fetchQuestions(paper.id), wantsRecord ? closeSitting(paper.id, profile.id, instructionSec, limitSec, Object.fromEntries(given), !pauseAllowed) : Promise.resolve(null)]);
 
   // Which answers this call marks, and whether it records an attempt.
   //
@@ -240,9 +214,7 @@ export async function POST(request: Request) {
     total: marked.length,
     record,
     // The sheet as marked: known questions, offered numbers, nothing else.
-    responses: Object.fromEntries(
-      marked.filter((q) => q.given !== null).map((q) => [q.id, q.given as OptionValue]),
-    ),
+    responses: Object.fromEntries(marked.filter((q) => q.given !== null).map((q) => [q.id, q.given as OptionValue])),
     paper,
     userId: profile.id,
     durationSec,
@@ -290,22 +262,13 @@ function respond(marked: MarkedQuestion[], stats: Stats | null, durationSec: num
   // The T-score as published. The cohort figures behind it travel only when a
   // panel that shows them is on; otherwise a hidden mean and sd sat inside the
   // response for anyone reading the network tab.
-  const t =
-    view.tScore && tRaw
-      ? view.tScoreStats || view.tScoreFormula
-        ? tRaw
-        : { value: tRaw.value, note: tRaw.note }
-      : null;
+  const t = view.tScore && tRaw ? (view.tScoreStats || view.tScoreFormula ? tRaw : { value: tRaw.value, note: tRaw.note }) : null;
 
   // The questions as published. The review off means none at all — every
   // question, key included, used to ship regardless. The key off strips the
   // answer AND the worked solution, which spells the answer out; the verdict
   // on each question stays, since Correct / Incorrect is the review's point.
-  const questions = !view.review
-    ? []
-    : view.correctAnswers
-      ? marked
-      : marked.map(({ correct: _c, workingEn: _e, workingHi: _h, ...rest }) => rest);
+  const questions = !view.review ? [] : view.correctAnswers ? marked : marked.map(({ correct: _c, workingEn: _e, workingHi: _h, ...rest }) => rest);
 
   return {
     questions,
@@ -328,18 +291,15 @@ function respond(marked: MarkedQuestion[], stats: Stats | null, durationSec: num
             showTScore: view.tScore,
           })
         : null,
-    expertComment: view.expertComment ? stats?.expertComment ?? null : null,
+    expertComment: view.expertComment ? (stats?.expertComment ?? null) : null,
     durationSec: view.timeAnalysis ? durationSec : null,
-    history: view.attemptHistory ? stats?.history ?? [] : [],
+    history: view.attemptHistory ? (stats?.history ?? []) : [],
     view,
   };
 }
 
 /** Only the halves of the standing this paper publishes. */
-function pickStanding(
-  standing: Standing | null,
-  view: ReturnType<typeof resolveResultView>,
-): StandingWire | null {
+function pickStanding(standing: Standing | null, view: ReturnType<typeof resolveResultView>): StandingWire | null {
   if (!standing) return null;
   const out: StandingWire = {};
   if (view.rank) {
@@ -424,15 +384,8 @@ async function statsFor({
   // to stop quietly at a thousand rows, so the figures went wrong for
   // exactly the papers with the most candidates.
   const [aggregate, { data: ownRows }] = await Promise.all([
-    supabase
-      .rpc("watch_cohort", { p_paper: paper.id, p_total: total, p_user: userId, p_marks: marks })
-      .maybeSingle(),
-    supabase
-      .from("watch_attempts")
-      .select("marks, total, attempted, duration_sec, submitted_at")
-      .eq("paper_id", paper.id)
-      .eq("user_id", userId)
-      .order("submitted_at", { ascending: true }),
+    supabase.rpc("watch_cohort", { p_paper: paper.id, p_total: total, p_user: userId, p_marks: marks }).maybeSingle(),
+    supabase.from("watch_attempts").select("marks, total, attempted, duration_sec, submitted_at").eq("paper_id", paper.id).eq("user_id", userId).order("submitted_at", { ascending: true }),
   ]);
 
   const history: HistoryPoint[] = (ownRows ?? []).map((a) => ({
@@ -478,8 +431,10 @@ async function statsFor({
     // Counted into the figures below only once it is actually on record.
     if (made) {
       recorded = true;
-      // Every overview page's cohort figures are stale now.
-      cohortsChanged();
+      // The overview pages' cohort figures are not dropped here: they are
+      // read afresh once a minute on their own. Dropping them on every
+      // result made a busy day re-measure every paper over the whole
+      // attempts table, result after result, and slowed the portal for all.
       history.push({
         at: new Date(made.submitted_at as string).getTime(),
         marks,
@@ -494,15 +449,7 @@ async function statsFor({
   // yet. The rows are read instead — page by page — so no result is refused.
   let agg = (aggregate.data as CohortAggregate | null) ?? null;
   if (aggregate.error || !agg) {
-    const rows = await fetchAll<AttemptMark>((from, to) =>
-      supabase
-        .from("watch_attempts")
-        .select("user_id, marks, total, submitted_at")
-        .eq("paper_id", paper.id)
-        .order("submitted_at", { ascending: true })
-        .order("id")
-        .range(from, to),
-    );
+    const rows = await fetchAll<AttemptMark>((from, to) => supabase.from("watch_attempts").select("user_id, marks, total, submitted_at").eq("paper_id", paper.id).order("submitted_at", { ascending: true }).order("id").range(from, to));
     agg = aggregateFromRows(
       // The row just written is already among these; keep it out and let it
       // come back in as the contribution below, the same as the RPC path.
@@ -549,9 +496,7 @@ async function fetchPaperRow(slug: string): Promise<PaperRow | null> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("watch_papers")
-    .select(
-      "id, is_published, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view, features, instruction_time_min, time_limit_min",
-    )
+    .select("id, is_published, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view, features, instruction_time_min, time_limit_min")
     .eq("slug", slug)
     .maybeSingle();
   return (data as PaperRow) ?? null;
@@ -612,10 +557,7 @@ function mark(rows: QuestionRow[], given: Map<string, OptionValue>): MarkedQuest
  * The bundled sample paper, for a portal with no database yet: a demo with no
  * accounts and nothing to record, marked so the result screen can be seen.
  */
-function markFromBundle(
-  paperId: string,
-  given: Map<string, OptionValue>,
-): MarkedQuestion[] | null {
+function markFromBundle(paperId: string, given: Map<string, OptionValue>): MarkedQuestion[] | null {
   const paper = getBundledPaper(paperId);
   if (!paper) return null;
 
