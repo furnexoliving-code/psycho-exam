@@ -7,7 +7,7 @@ import { listPublishedPosts } from "@/lib/blog";
 
 export const metadata: Metadata = {
   title: "Railway Psycho Test Articles: ALP CBAT tips, T-Score, test guides | Kautilya Classes",
-  description: "Guides for the RRB ALP psycho test (CBAT): how each of the 5 tests works, what T-Score 42 means, how to prepare, and mistakes to avoid. By Kautilya Classes.",
+  description: "Guides for the RRB ALP psycho test (CBAT): how each of the 5 tests works, what T-Score 42 means, how to prepare, and mistakes to avoid. By Pindel Sir, Kautilya Classes.",
   robots: { index: true, follow: true },
   alternates: { canonical: "https://kautilyaonline.com/blog" },
 };
@@ -27,7 +27,7 @@ export default async function BlogIndex() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 md:py-14">
         <p className="text-[12px] font-bold uppercase tracking-[0.25em] text-[#c8102e]">Articles · लेख</p>
         <h1 className="mt-2 text-[32px] font-extrabold sm:text-[40px]">Railway psycho test guides</h1>
-        <p className="mt-2 max-w-2xl text-[16px] text-gray-600">How the five tests of the CBAT work, what the T-Score means, and how to prepare. Written by the Kautilya Classes team.</p>
+        <p className="mt-2 max-w-2xl text-[16px] text-gray-600">How the five tests of the CBAT work, what the T-Score means, and how to prepare. Written by Pindel Sir (Er. Mahendra Pindel), founder of Kautilya Classes, and the team.</p>
         {posts.length === 0 ? (
           <p className="mt-10 rounded-xl border border-dashed border-gray-300 p-10 text-center text-[14px] text-gray-500">Articles are on their way.</p>
         ) : (

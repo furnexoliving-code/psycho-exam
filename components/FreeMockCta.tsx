@@ -29,7 +29,7 @@ export function FreeMockCta({ test, variant = "band" }: { test?: string; variant
   return (
     <section className="flex flex-wrap items-center gap-5 rounded-2xl border-2 border-dashed border-green-500 bg-green-50 p-5 sm:p-6">
       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-green-600 text-[24px]" aria-hidden="true">🎁</div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 grow basis-[220px]">
         <h2 className="text-[20px] font-extrabold leading-tight text-gray-900">
           Sit a free Full Mock{test ? ` with the ${test}` : ""}, on a screen like the hall
         </h2>

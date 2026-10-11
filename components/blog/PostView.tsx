@@ -4,6 +4,7 @@ import { CONTACT, PublicFooter, PublicHeader } from "@/components/landing/Landin
 import { Markdown, headingsOf } from "@/components/blog/Markdown";
 import { formatDate } from "@/lib/format-time";
 import { readingMinutes, type Post, type PostSummary } from "@/lib/blog";
+import { AUTHOR, isPindel } from "@/lib/author";
 import { KIND_LABEL, rupees, type Package } from "@/lib/packages";
 
 const Y = "#ff9933";
@@ -46,7 +47,7 @@ export function PostView({ post, packages, upsell, saving, related, signedIn, fr
             <h1 className="mt-2 text-[32px] font-extrabold leading-[1.15] text-gray-900 sm:text-[40px]">{post.title}</h1>
             {post.excerpt && <p className="mt-3 text-[18px] leading-relaxed text-gray-600">{post.excerpt}</p>}
             <p className="mt-3 text-[13px] text-gray-500">
-              By {post.author}{post.publishedAt ? ` · ${formatDate(post.publishedAt)}` : ""} · {readingMinutes(post.content)} min read
+              By <span className="font-semibold text-gray-800">{post.author}</span>{isPindel(post.author) ? `, ${AUTHOR.role}` : ""}{post.publishedAt ? ` · ${formatDate(post.publishedAt)}` : ""} · {readingMinutes(post.content)} min read
             </p>
             {post.coverImageUrl && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -67,6 +68,8 @@ export function PostView({ post, packages, upsell, saving, related, signedIn, fr
             <div className="mt-2">
               <Markdown text={post.content} />
             </div>
+
+            {isPindel(post.author) && <AuthorBox />}
 
             {/* The offer every public page makes, where the reader is warmest. */}
             <div className="mt-10">
@@ -188,6 +191,35 @@ export function PostView({ post, packages, upsell, saving, related, signedIn, fr
       </main>
       <PublicFooter />
     </div>
+  );
+}
+
+/** Who wrote it: the teacher's name, role and record, and the way to reach him. */
+export function AuthorBox() {
+  return (
+    <section className="mt-10 rounded-2xl border border-gray-200 bg-gray-50 p-5 sm:flex sm:gap-5" aria-label="About the author">
+      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#0d2a6b] text-[22px] font-extrabold text-white" aria-hidden="true">
+        {AUTHOR.photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={AUTHOR.photo} alt="" className="h-full w-full object-cover" />
+        ) : (
+          "MP"
+        )}
+      </div>
+      <div className="mt-3 min-w-0 sm:mt-0">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[#c8102e]">About the author · लेखक</p>
+        <h2 className="mt-0.5 text-[19px] font-extrabold leading-tight text-gray-900">
+          {AUTHOR.name} <span className="text-[15px] font-semibold text-gray-500">({AUTHOR.short})</span>
+        </h2>
+        <p className="text-[13px] font-semibold text-gray-700">{AUTHOR.role} · {AUTHOR.degree}</p>
+        <p className="mt-2 text-[14.5px] leading-relaxed text-gray-800">{AUTHOR.bio}</p>
+        <p className="mt-1 text-[13px] text-gray-600" lang="hi">{AUTHOR.bioHi}</p>
+        <div className="mt-3 flex flex-wrap gap-4 text-[13px] font-semibold">
+          <a href={CONTACT.whatsapp} className="text-green-700 hover:underline">Ask Pindel Sir on WhatsApp →</a>
+          <Link href="/blog" className="text-[#0d2a6b] hover:underline">All articles</Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
