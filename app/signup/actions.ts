@@ -30,7 +30,9 @@ export async function signUp(_prev: SignUpResult | null, formData: FormData): Pr
   // A field people never see; a script filling every field trips it.
   if (String(formData.get("website") ?? "")) return { ok: false, error: "Could not create the account." };
 
-  const fullName = String(formData.get("full_name") ?? "").trim().replace(/\s+/g, " ");
+  const fullName = String(formData.get("full_name") ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
   const phoneRaw = String(formData.get("phone") ?? "");
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
@@ -67,34 +69,38 @@ export async function signUp(_prev: SignUpResult | null, formData: FormData): Pr
     return { ok: false, error: "Could not create the account. Try again in a moment." };
   }
 
-  await admin
-    .from("profiles")
-    .update({ full_name: fullName, phone, is_active: true, signup_source: "self", signup_ip: ip })
-    .eq("id", created.user.id)
-    .then(async (r) => {
-      // An older database without signup_source / signup_ip: keep the rest.
-      if (r.error) await admin.from("profiles").update({ full_name: fullName, phone, is_active: true }).eq("id", created.user.id);
-    });
-
-  // Signed in at once, on this device.
+  // The profile write and the sign-in both need only the account, so they
+  // go out together rather than one after the other.
   const supabase = await createClient();
-  const { data: signed, error: signInError } = await supabase.auth.signInWithPassword({ email: phoneToEmail(phone), password });
+  const [, { data: signed, error: signInError }] = await Promise.all([
+    admin
+      .from("profiles")
+      .update({ full_name: fullName, phone, is_active: true, signup_source: "self", signup_ip: ip })
+      .eq("id", created.user.id)
+      .then(async (r) => {
+        // An older database without signup_source / signup_ip: keep the rest.
+        if (r.error) await admin.from("profiles").update({ full_name: fullName, phone, is_active: true }).eq("id", created.user.id);
+      }),
+    supabase.auth.signInWithPassword({ email: phoneToEmail(phone), password }),
+  ]);
   if (signInError || !signed.user) return { ok: true };
-  try {
-    const device = crypto.randomUUID();
-    const { error: stampError } = await admin.from("profiles").update({ session_id: device }).eq("id", signed.user.id);
-    if (!stampError) {
-      (await cookies()).set(DEVICE_COOKIE, device, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 30,
-      });
-    }
-  } catch {
-    // The stamp is a courtesy; the account stands.
+
+  // Signed in at once, on this device: the stamp and the audit line together.
+  const device = crypto.randomUUID();
+  const [stamped] = await Promise.all([
+    Promise.resolve(admin.from("profiles").update({ session_id: device }).eq("id", signed.user.id))
+      .then((r) => !r.error)
+      .catch(() => false),
+    logAction("Student signed up", `${fullName} (${phone})`).catch(() => {}),
+  ]);
+  if (stamped) {
+    (await cookies()).set(DEVICE_COOKIE, device, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
   }
-  await logAction("Student signed up", `${fullName} (${phone})`).catch(() => {});
   return { ok: true };
 }

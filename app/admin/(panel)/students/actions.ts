@@ -10,8 +10,9 @@ import { HELPER_ROLES, isHelperRole } from "./helpers";
 import { logAction } from "@/lib/audit";
 import { indianDay } from "@/lib/format-time";
 import { removePhoto, savePhoto } from "@/lib/photo";
-import { defaultPackage, enrollNewStudent, grantToMany, studentsWithoutPackage } from "@/lib/packages";
+import { defaultPackage, enrollNewStudent, grantToMany, loadPackage, studentsWithoutPackage } from "@/lib/packages";
 import { cohortsChanged } from "@/lib/wt/cohorts";
+import { filterOf, studentsMatching } from "./list";
 
 /** A validity date off a form: YYYY-MM-DD, or null for none. */
 function validityOf(raw: FormDataEntryValue | null): string | null {
@@ -31,10 +32,7 @@ const BACK = "/admin/students";
  * behind the address, and a student waiting on a confirmation mail that can
  * never arrive would simply be locked out.
  */
-export async function createStudent(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function createStudent(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Student", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
@@ -78,10 +76,7 @@ export async function createStudent(
     // Switched on explicitly as well: an account the institute issues is
     // on from the first moment, whatever version of the trigger the
     // database runs.
-    await supabase
-      .from("profiles")
-      .update({ full_name: fullName, phone, is_active: true, valid_until: validUntil })
-      .eq("id", created.user.id);
+    await supabase.from("profiles").update({ full_name: fullName, phone, is_active: true, valid_until: validUntil }).eq("id", created.user.id);
 
     // The package comes with the account, so nothing is left to give one by one.
     const pkg = await enrollNewStudent(created.user.id, String(formData.get("package") ?? ""), validUntil);
@@ -93,34 +88,93 @@ export async function createStudent(
 }
 
 /**
- * Gives the default package to every switched-on student who has none:
- * the accounts made before packages existed, or made without one. Each
- * runs till the account's validity date, or without expiry.
+ * Gives the default package to every switched-on institute student who
+ * has none: the accounts made before packages existed, or made without
+ * one. A student who made their own account is not among them: they have
+ * the free mock, and a package only when they buy one or the team adds it.
+ * Each runs till the account's validity date, or without expiry.
  */
-export async function givePackageToAll(
-  _prev: SaveState | null,
-  _formData: FormData,
-): Promise<SaveState> {
+export async function givePackageToAll(_prev: SaveState | null, _formData: FormData): Promise<SaveState> {
   return attempt("Packages", async () => {
     await requireAdmin();
     const pkg = await defaultPackage();
     if (!pkg) throw new Error("No published package to give. Make one under Packages first.");
-    const missing = await studentsWithoutPackage();
-    if (missing.length === 0) return "every student already has a package";
+    const missing = (await studentsWithoutPackage()).filter((s) => !s.self);
+    if (missing.length === 0) return "every institute student already has a package";
     // One insert per two hundred, not one per student: hundreds of
     // accounts must finish inside the time a server action is allowed.
-    const given = await grantToMany(missing, pkg, "Given to all students without a package");
-    await logAction("Package given to all", `${pkg.name} to ${given} student${given === 1 ? "" : "s"} who had none`);
+    const given = await grantToMany(missing, pkg, "Given to all institute students without a package");
+    await logAction("Package given to all", `${pkg.name} to ${given} institute student${given === 1 ? "" : "s"} who had none`);
     revalidatePath(BACK);
     return `${pkg.name} given to ${given} student${given === 1 ? "" : "s"}`;
   });
 }
 
+/**
+ * Gives one package to many students at once: everyone the list's
+ * current filter shows, or the mobile numbers pasted in. A student who
+ * already holds the package is left as they are. The end date, when
+ * given, applies to all; otherwise each runs till the account's validity
+ * date, or without expiry.
+ */
+export async function givePackageBulk(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
+  return attempt("Packages", async () => {
+    await requireAdmin();
+    const pkg = await loadPackage(String(formData.get("package") ?? ""));
+    if (!pkg) throw new Error("Choose a package");
+    const target = String(formData.get("target") ?? "");
+    const until = validityOf(formData.get("expires_on"));
+    const note = String(formData.get("note") ?? "").trim() || "Given by the institute";
+
+    let students: { id: string; validUntil: string | null }[] = [];
+    let unknown: string[] = [];
+    if (target === "filter") {
+      const filter = filterOf({ q: String(formData.get("q") ?? ""), quiet: String(formData.get("quiet") ?? ""), pkg: String(formData.get("pkg") ?? "") });
+      students = await studentsMatching(filter);
+    } else if (target === "numbers") {
+      const raw = String(formData.get("numbers") ?? "");
+      const phones = [
+        ...new Set(
+          raw
+            .split(/[\s,;]+/)
+            .map((x) => x.trim())
+            .filter(Boolean)
+            .map(normalisePhone),
+        ),
+      ];
+      const valid = phones.filter(isValidPhone);
+      unknown = phones.filter((x) => !isValidPhone(x));
+      if (valid.length === 0) throw new Error("Paste at least one 10-digit mobile number");
+      const supabase = createAdminClient();
+      const found: { id: string; phone: string; valid_until: string | null }[] = [];
+      for (let i = 0; i < valid.length; i += 200) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, phone, valid_until")
+          .eq("role", "student")
+          .in("phone", valid.slice(i, i + 200));
+        if (error) throw new Error(error.message);
+        found.push(...((data ?? []) as typeof found));
+      }
+      const have = new Set(found.map((f) => f.phone));
+      unknown.push(...valid.filter((x) => !have.has(x)));
+      students = found.map((f) => ({ id: f.id, validUntil: f.valid_until }));
+    } else {
+      throw new Error("Choose who gets the package");
+    }
+    if (students.length === 0) throw new Error(unknown.length ? `No account for: ${unknown.join(", ")}` : "No student matches");
+    if (until) students = students.map((s) => ({ ...s, validUntil: until }));
+
+    const given = await grantToMany(students, pkg, note);
+    await logAction("Package given in bulk", `${pkg.name} to ${given} of ${students.length} student${students.length === 1 ? "" : "s"}${until ? ` till ${until}` : ""}`);
+    revalidatePath(BACK);
+    const skipped = students.length - given;
+    return `${pkg.name} given to ${given} student${given === 1 ? "" : "s"}${skipped ? `; ${skipped} already had it` : ""}${unknown.length ? `; no account for ${unknown.join(", ")}` : ""}`;
+  });
+}
+
 /** Sets a new password for a student who has forgotten theirs. */
-export async function resetPassword(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function resetPassword(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Password", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
@@ -145,10 +199,7 @@ export async function resetPassword(
  * Deleting would take the student's results with it, which is usually not what
  * an institute wants when someone leaves a batch.
  */
-export async function setActive(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function setActive(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Account", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
@@ -157,11 +208,7 @@ export async function setActive(
     const active = formData.get("active") === "true";
     await studentOnly(supabase, id);
 
-    const { data: updated, error } = await supabase
-      .from("profiles")
-      .update({ is_active: active })
-      .eq("id", id)
-      .select("id");
+    const { data: updated, error } = await supabase.from("profiles").update({ is_active: active }).eq("id", id).select("id");
 
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error("That account no longer exists");
@@ -194,10 +241,7 @@ export async function setActive(
  * still moving everyone else's mean and T-score. Admin only, by role in
  * the section — a staff account never reaches this.
  */
-export async function deleteStudent(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function deleteStudent(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Account", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
@@ -227,10 +271,7 @@ export async function deleteStudent(
  * action is a public endpoint: a posted admin id would switch off — or reset
  * the password of — the only account that can switch it back on.
  */
-async function studentOnly(
-  supabase: ReturnType<typeof createAdminClient>,
-  id: string,
-): Promise<void> {
+async function studentOnly(supabase: ReturnType<typeof createAdminClient>, id: string): Promise<void> {
   const { data } = await supabase.from("profiles").select("role").eq("id", id).maybeSingle();
   if (!data) throw new Error("That account no longer exists");
   if (data.role !== "student") {
@@ -343,10 +384,7 @@ export async function importStudentBatch(
  * exactly like a student — mobile number and password — with the role set
  * once the account exists.
  */
-export async function createStaff(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function createStaff(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Helper account", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
@@ -378,20 +416,12 @@ export async function createStaff(
       throw new Error(error.message);
     }
 
-    const { data: updated, error: roleError } = await supabase
-      .from("profiles")
-      .update({ full_name: fullName, phone, role, is_active: true })
-      .eq("id", created.user.id)
-      .select("id");
+    const { data: updated, error: roleError } = await supabase.from("profiles").update({ full_name: fullName, phone, role, is_active: true }).eq("id", created.user.id).select("id");
     if (roleError) {
       // The account exists with no role but student's; it must not stay as
       // a student who can sit papers, so it is removed again.
       await supabase.auth.admin.deleteUser(created.user.id);
-      throw new Error(
-        /role_check|violates check/i.test(roleError.message)
-          ? `The database does not know the ${role} role yet — run the latest watch-table-schema.sql, then try again.`
-          : roleError.message,
-      );
+      throw new Error(/role_check|violates check/i.test(roleError.message) ? `The database does not know the ${role} role yet — run the latest watch-table-schema.sql, then try again.` : roleError.message);
     }
     if (!updated?.length) throw new Error("The account was made but its role could not be set");
 
@@ -402,10 +432,7 @@ export async function createStaff(
 }
 
 /** Removes a helper account entirely. Their sign-in stops at once. */
-export async function removeStaff(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function removeStaff(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Helper account", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
@@ -428,10 +455,7 @@ export async function removeStaff(
  * Sets, moves or clears the last day a student may sign in. Past it the
  * account is refused like a switched-off one, and the results stay.
  */
-export async function setValidity(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function setValidity(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Validity", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
@@ -440,21 +464,13 @@ export async function setValidity(
     const validUntil = validityOf(formData.get("valid_until"));
     await studentOnly(supabase, id);
 
-    const { data: updated, error } = await supabase
-      .from("profiles")
-      .update({ valid_until: validUntil })
-      .eq("id", id)
-      .select("id");
+    const { data: updated, error } = await supabase.from("profiles").update({ valid_until: validUntil }).eq("id", id).select("id");
     if (error) throw new Error(error.message);
     if (!updated?.length) throw new Error("That account no longer exists");
 
     await logAction("Validity changed", `student ${id}: ${validUntil ?? "no end date"}`);
     revalidatePath(BACK);
-    return validUntil
-      ? validUntil < indianDay(Date.now())
-        ? `ends ${validUntil} — already past, the account is now refused`
-        : `till ${validUntil}`
-      : "no end date";
+    return validUntil ? (validUntil < indianDay(Date.now()) ? `ends ${validUntil} — already past, the account is now refused` : `till ${validUntil}`) : "no end date";
   });
 }
 
@@ -462,22 +478,15 @@ export async function setValidity(
  * One validity date for every student at once — the usual case when a
  * course's end date moves. Admin only.
  */
-export async function setValidityForAll(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function setValidityForAll(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Validity for all students", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
     const validUntil = validityOf(formData.get("valid_until"));
     if (String(formData.get("confirm") ?? "") !== "ALL") {
-      throw new Error('Type ALL in the box to confirm: this changes every student account');
+      throw new Error("Type ALL in the box to confirm: this changes every student account");
     }
-    const { data, error } = await supabase
-      .from("profiles")
-      .update({ valid_until: validUntil })
-      .eq("role", "student")
-      .select("id");
+    const { data, error } = await supabase.from("profiles").update({ valid_until: validUntil }).eq("role", "student").select("id");
     if (error) throw new Error(error.message);
     await logAction("Validity set for all students", `${data?.length ?? 0} accounts: ${validUntil ?? "no end date"}`);
     revalidatePath(BACK);
@@ -513,19 +522,16 @@ export async function removeStudentPhoto(_prev: SaveState | null, formData: Form
 }
 
 /** A note on the account for the team: fees, calls, anything to remember. Kept where no student can read it. */
-export async function setNote(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function setNote(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Note", async () => {
     await requireAdmin();
     const supabase = createAdminClient();
     const id = String(formData.get("id"));
-    const note = String(formData.get("note") ?? "").trim().slice(0, 2000);
+    const note = String(formData.get("note") ?? "")
+      .trim()
+      .slice(0, 2000);
     await studentOnly(supabase, id);
-    const { error } = note
-      ? await supabase.from("student_notes").upsert({ user_id: id, note, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
-      : await supabase.from("student_notes").delete().eq("user_id", id);
+    const { error } = note ? await supabase.from("student_notes").upsert({ user_id: id, note, updated_at: new Date().toISOString() }, { onConflict: "user_id" }) : await supabase.from("student_notes").delete().eq("user_id", id);
     if (error) {
       if (/student_notes/.test(error.message)) throw new Error("Run supabase/admin-note.sql first: the notes table is not there yet");
       throw new Error(error.message);
@@ -540,10 +546,7 @@ export async function setNote(
  * replaced, so a request carrying the old one is refused. Their next
  * sign-in stamps the new device.
  */
-export async function signOutEverywhere(
-  _prev: SaveState | null,
-  formData: FormData,
-): Promise<SaveState> {
+export async function signOutEverywhere(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Sign out", async () => {
     await requireAdmin();
     const supabase = createAdminClient();

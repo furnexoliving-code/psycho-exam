@@ -21,7 +21,9 @@ export default async function MockBeginPage({ params }: { params: Promise<{ slug
   if (current && current.mock.id === mock.id) redirect(`/test/${current.paper.slug}`);
   if (current) redirect(`/mock/${slug}`);
 
-  const [used, unlocked] = await Promise.all([mockAttemptsUsed(mock.id, who.id), mockUnlockedFor(who.id, papers)]);
+  // The free mock is there to be tried on day one; only the others wait
+  // for the practice bar, and only those read the student's progress.
+  const [used, unlocked] = await Promise.all([mockAttemptsUsed(mock.id, who.id), mock.isFree ? Promise.resolve(true) : mockUnlockedFor(who.id, papers)]);
   const spent = mock.maxAttempts !== null && used >= mock.maxAttempts;
   if (mockStatus(mock) !== "live" || spent || !unlocked) redirect(`/mock/${slug}`);
 

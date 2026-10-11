@@ -120,11 +120,7 @@ export async function loadPackage(slug: string): Promise<Package | null> {
  */
 export async function enrollmentsOf(userId: string): Promise<Enrollment[] | null> {
   try {
-    const { data, error } = await createAdminClient()
-      .from("enrollments")
-      .select(`id, user_id, source, starts_at, expires_at, note, package:packages(${COLUMNS})`)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+    const { data, error } = await createAdminClient().from("enrollments").select(`id, user_id, source, starts_at, expires_at, note, package:packages(${COLUMNS})`).eq("user_id", userId).order("created_at", { ascending: false });
     if (error) {
       if (/enrollments|packages|schema cache|does not exist/i.test(error.message)) {
         console.error(`packages not set up yet (${error.message}); everything stays open`);
@@ -182,11 +178,7 @@ export function canSitMock(access: Access, mock: { exam: string; isFree: boolean
  * refreshed rather than duplicated: the end date moves to the later of the
  * two, and a package with no end stays endless.
  */
-export async function grantEnrollment(
-  userId: string,
-  pkg: Package,
-  opts: { source: "institute" | "purchase"; validityDays?: number | null; expiresAt?: string | null; orderId?: string | null; note?: string },
-): Promise<void> {
+export async function grantEnrollment(userId: string, pkg: Package, opts: { source: "institute" | "purchase"; validityDays?: number | null; expiresAt?: string | null; orderId?: string | null; note?: string }): Promise<void> {
   const supabase = createAdminClient();
   const days = opts.validityDays === undefined ? pkg.validityDays : opts.validityDays;
   const fresh = opts.expiresAt !== undefined ? opts.expiresAt : days ? new Date(Date.now() + days * 86400000).toISOString() : null;
@@ -256,7 +248,7 @@ export async function enrollNewStudent(userId: string, slug: string, validUntil:
 }
 
 /** Every switched-on student with no package at all, oldest first; empty when the tables are missing. */
-export async function studentsWithoutPackage(): Promise<{ id: string; fullName: string; validUntil: string | null }[]> {
+export async function studentsWithoutPackage(): Promise<{ id: string; fullName: string; validUntil: string | null; self: boolean }[]> {
   try {
     const supabase = createAdminClient();
     // Page by page: the database hands back at most a thousand rows per
@@ -264,7 +256,11 @@ export async function studentsWithoutPackage(): Promise<{ id: string; fullName: 
     // count enrolled students as having none.
     const enrolled: { user_id: string }[] = [];
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase.from("enrollments").select("user_id").order("id").range(from, from + 999);
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("user_id")
+        .order("id")
+        .range(from, from + 999);
       if (error) return [];
       enrolled.push(...((data ?? []) as { user_id: string }[]));
       if ((data ?? []).length < 1000) break;
@@ -274,7 +270,7 @@ export async function studentsWithoutPackage(): Promise<{ id: string; fullName: 
     for (let from = 0; ; from += 1000) {
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, valid_until")
+        .select("id, full_name, valid_until, signup_source")
         .eq("role", "student")
         .eq("is_active", true)
         .order("created_at")
@@ -283,9 +279,7 @@ export async function studentsWithoutPackage(): Promise<{ id: string; fullName: 
       students.push(...((data ?? []) as Record<string, unknown>[]));
       if ((data ?? []).length < 1000) break;
     }
-    return students
-      .filter((s) => !has.has(s.id as string))
-      .map((s) => ({ id: s.id as string, fullName: (s.full_name as string) || "Unnamed", validUntil: (s.valid_until as string | null) ?? null }));
+    return students.filter((s) => !has.has(s.id as string)).map((s) => ({ id: s.id as string, fullName: (s.full_name as string) || "Unnamed", validUntil: (s.valid_until as string | null) ?? null, self: s.signup_source === "self" }));
   } catch {
     return [];
   }
@@ -312,10 +306,7 @@ export async function grantToMany(students: { id: string; validUntil: string | n
     }));
     // A student who already holds the package is skipped, not an error:
     // one such row must not stop the whole batch.
-    const { data, error } = await supabase
-      .from("enrollments")
-      .upsert(rows, { onConflict: "user_id,package_id", ignoreDuplicates: true })
-      .select("id");
+    const { data, error } = await supabase.from("enrollments").upsert(rows, { onConflict: "user_id,package_id", ignoreDuplicates: true }).select("id");
     if (error) throw new Error(error.message);
     given += data?.length ?? 0;
   }
