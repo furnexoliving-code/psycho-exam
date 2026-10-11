@@ -18,9 +18,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export function ScrollRail({
   target,
   axis = "vertical",
+  wide = false,
 }: {
   target: React.RefObject<HTMLElement | null>;
   axis?: "vertical" | "horizontal";
+  /** A plainly visible rail, for a screen where scrolling is the way to see the whole picture. */
+  wide?: boolean;
 }) {
   const vertical = axis === "vertical";
   const [metrics, setMetrics] = useState({ offset: 0, size: 0, scrollable: false });
@@ -131,11 +134,7 @@ export function ScrollRail({
     const direction = at < metrics.offset ? -1 : 1;
     const page = (vertical ? el.clientHeight : el.clientWidth) * 0.9;
 
-    el.scrollBy(
-      vertical
-        ? { top: direction * page, behavior: "smooth" }
-        : { left: direction * page, behavior: "smooth" },
-    );
+    el.scrollBy(vertical ? { top: direction * page, behavior: "smooth" } : { left: direction * page, behavior: "smooth" });
   };
 
   return (
@@ -143,9 +142,7 @@ export function ScrollRail({
       ref={railRef}
       onPointerDown={onTrackPointerDown}
       data-scroll-rail={axis}
-      className={`absolute bg-[#eeeeee] ${
-        vertical ? "right-0 top-0 h-full w-[9px]" : "bottom-0 left-0 h-[9px] w-full"
-      }`}
+      className={`absolute ${wide ? "bg-[#d9d9d9]" : "bg-[#eeeeee]"} ${vertical ? `right-0 top-0 h-full ${wide ? "w-[16px]" : "w-[9px]"}` : "bottom-0 left-0 h-[9px] w-full"}`}
       aria-hidden="true"
     >
       <div
@@ -153,14 +150,8 @@ export function ScrollRail({
         onPointerMove={onThumbPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className={`absolute ${vertical ? "bg-[#878787]" : "bg-[#4e4e4e]"} ${
-          metrics.scrollable ? "cursor-grab active:cursor-grabbing hover:brightness-90" : ""
-        } ${vertical ? "left-0 w-full" : "top-0 h-full"}`}
-        style={
-          vertical
-            ? { top: `${metrics.offset}px`, height: `${metrics.size}px` }
-            : { left: `${metrics.offset}px`, width: `${metrics.size}px` }
-        }
+        className={`absolute ${wide ? "rounded-sm bg-[#5a5a5a]" : vertical ? "bg-[#878787]" : "bg-[#4e4e4e]"} ${metrics.scrollable ? "cursor-grab active:cursor-grabbing hover:brightness-90" : ""} ${vertical ? "left-0 w-full" : "top-0 h-full"}`}
+        style={vertical ? { top: `${metrics.offset}px`, height: `${metrics.size}px` } : { left: `${metrics.offset}px`, width: `${metrics.size}px` }}
       />
     </div>
   );

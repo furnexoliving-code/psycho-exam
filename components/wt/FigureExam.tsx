@@ -93,7 +93,6 @@ export function FigureExam({
   // The same switch as the Following Directions paper: with the wheel off,
   // the scrollbar still drags and the Part tabs still move; only the wheel
   // and the Space/PageDown keys are refused, as in the hall.
-  useScrollLock(features.lockScroll && onTest && !state.submitted);
 
   // The parts: a fixed number of questions each. Which part is open is kept
   // as the attempt's current question, so a reload lands on the same part.
@@ -118,6 +117,10 @@ export function FigureExam({
   const inQuestions = at?.phase === "questions";
   const inStudy = at?.phase === "study";
   const inBreak = at?.phase === "break";
+  // The same switch as the Following Directions paper, on every screen of
+  // the paper, the study screen included: the wheel is off, as in the
+  // hall, and the rail at the right is the way down a tall picture.
+  useScrollLock(features.lockScroll && onTest && !state.submitted);
   const phaseLeftSec = at?.leftSec ?? 0;
 
   const part = at ? at.part : Math.min(partCount - 1, Math.floor(state.currentIndex / perPart));
@@ -293,32 +296,32 @@ export function FigureExam({
               a browser that hides its scrollbar until the wheel moves would
               otherwise show no way down a paper whose wheel is off. */}
           <div className="relative min-h-0 flex-1">
-            <div ref={column} className="wt-scroll-host h-full px-5 py-4 pr-[14px]" style={{ fontSize: `${16 * fontScale}px` }}>
+            <div ref={column} className={`wt-scroll-host h-full px-5 py-4 ${inStudy ? "pr-[22px]" : "pr-[14px]"}`} style={{ fontSize: `${16 * fontScale}px` }}>
               {inStudy ? (
                 // The study screen, as the real portal shows it: the group
                 // instructions bar, the picture in its box, and the study
                 // timer in the toolbar above.
-                // The whole screen fits the column, as the hall shows the
-                // whole picture at once: the bar and the two lines keep
-                // their height and the picture takes what is left, never
-                // more, so nothing is cut off below and nothing scrolls.
-                <div className="-mx-5 -mt-4 flex flex-col" style={{ height: "calc(100% + 1rem)" }}>
-                  <div className="shrink-0 border-b border-[#dcdcdc] bg-[#e9ecef] px-5 py-2 text-center text-[1.05em] text-[#333]">
+                // The study screen, as the real portal shows it: the group
+                // instructions bar, the picture in its box at the size the
+                // paper sets, and the study timer in the toolbar above. A
+                // picture taller than the column scrolls under the wide rail
+                // at the right, which drags; the wheel stays off, as in the
+                // hall, so nothing is cut off and the way down is plain.
+                <div className="-mx-5 -mt-4 pb-6">
+                  <div className="border-b border-[#dcdcdc] bg-[#e9ecef] px-5 py-2 text-center text-[1.05em] text-[#333]">
                     Group Instructions: {testName} (Part {part + 1})
                   </div>
-                  <div className="flex min-h-0 flex-1 flex-col px-5 pt-3">
-                    <p className="shrink-0 text-[0.85em] text-[#333]">
+                  <div className="px-5 pt-3">
+                    <p className="text-[0.85em] text-[#333]">
                       Study Screen Part {part + 1}/ <span lang="hi">अध्ययन स्क्रीन भाग -{part + 1}</span>
                     </p>
                     {features.studyImages[part] && (
-                      <div className="mt-1 flex min-h-0 flex-1 items-start">
-                        <div className="flex max-h-full max-w-full border border-[#555] bg-white p-3">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={features.studyImages[part]} alt={`Study screen for part ${part + 1}`} className="h-auto max-h-full max-w-full object-contain object-left-top" style={{ maxHeight: `min(${features.studyScale}vh, 100%)` }} draggable={false} />
-                        </div>
+                      <div className="mt-1 inline-block border border-[#555] bg-white p-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={features.studyImages[part]} alt={`Study screen for part ${part + 1}`} className="h-auto max-w-full" style={{ maxHeight: `${features.studyScale}vh` }} draggable={false} />
                       </div>
                     )}
-                    <p className="mt-3 shrink-0 text-[0.8em] text-[#666]">
+                    <p className="mt-3 text-[0.8em] text-[#666]">
                       Memorise the picture; the test screen opens by itself in <strong className="font-mono tabular-nums">{clock(phaseLeftSec)}</strong>.
                       <span className="ml-2" lang="hi">
                         चित्र को याद करें; परीक्षण स्क्रीन स्वतः खुलेगी।
@@ -592,7 +595,7 @@ export function FigureExam({
               wide screen (each half scrolls under its own rail), so its
               rail would be a second strip beside the question half's. */}
             <div className={brick ? "contents lg:hidden" : "contents"}>
-              <ScrollRail target={column} axis="vertical" />
+              <ScrollRail target={column} axis="vertical" wide={inStudy} />
             </div>
           </div>
         </div>
