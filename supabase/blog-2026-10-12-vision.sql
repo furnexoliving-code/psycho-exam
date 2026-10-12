@@ -1,7 +1,7 @@
 -- 12 Oct 2026: the vision certificate article (Annexure VI-A, format, steps), inserted
 -- once; and three mentions of it added to the exam-day article of 11 Oct, by replacing
 -- the exact sentences that article was seeded with. Run once in the Supabase SQL editor.
--- Pictures and the PDF the article links to are served by the site itself (public/blog).
+-- Pictures the article shows are served by the site itself (public/blog).
 insert into public.blog_posts (slug, title, excerpt, content, exam, meta_title, meta_description, keywords, faq, is_published, published_at, author)
 values (
   $kc$alp-cbat-vision-certificate-annexure-via$kc$,
@@ -15,12 +15,13 @@ This article gives the format in Hindi and English, exactly as the RRB published
 
 ## Download the format (Hindi and English)
 
-- [Annexure VI-A in English, as a picture](/blog/alp-vision-certificate-annexure-via-english.png)
-- [Annexure VI-A in Hindi, as a picture](/blog/alp-vision-certificate-annexure-via-hindi.png)
-- [The RRB notice of 8 October 2026 with both formats, PDF, 4 pages](/blog/rrb-alp-cbat-vision-certificate-notice-cen-01-2025.pdf)
-- [The same notice on the RRB website, rrb.indianrailways.gov.in](https://rrb.indianrailways.gov.in/-/image/1791524982443Notice_Vision_certificate_format_CBAT_CEN_01-2025(ALP).pdf/examsDocuments)
+:::box
+# Vision Certificate: Download Now
+The RRB notice of 8 October 2026 for CEN 01/2025 (ALP), with Annexure VI-A in English and in Hindi, as a PDF of 4 pages: the notice on pages 1 and 2, the Hindi format on page 3, the English format on page 4. Opens on the RRB website, rrb.indianrailways.gov.in.
+[⬇ Download the vision certificate format (PDF)](https://rrb.indianrailways.gov.in/-/image/1791524982443Notice_Vision_certificate_format_CBAT_CEN_01-2025(ALP).pdf/examsDocuments)
+:::
 
-Print it on A4 paper, full size, with nothing cut off at the edges. The notice carries the format in both languages; the English one is the Annexure as it stands in the CEN, so print that one unless your eye specialist prefers to fill the Hindi one. Print two copies, so that a slip of the pen does not cost you a second visit.
+Print the page you will use on A4 paper, full size, with nothing cut off at the edges. The notice carries the format in both languages; the English one (page 4) is the Annexure as it stands in the CEN, so print that one unless your eye specialist prefers to fill the Hindi one (page 3). Print two copies, so that a slip of the pen does not cost you a second visit.
 
 ## What the RRB notice says, point by point
 
@@ -68,7 +69,7 @@ Government or private? The notice names no kind of hospital; it names the doctor
 
 ## Step by step: getting the certificate made
 
-1. **Print the format.** Two copies of the page you will use, on A4, full size, from the links above.
+1. **Print the format.** Two copies of the page you will use, on A4, full size, from the Download Now button above.
 2. **Collect what you will carry.** Two colour passport photographs, 3.5 cm × 4.5 cm, identical to the one in your online application; a printout of your application or registration details, so that the name is spelt the same; a photo identity card; and a printout of the RRB notice, to show the specialist what the seal must say.
 3. **Choose the hospital and the specialist.** The eye department of a government or district hospital, a medical college, a railway hospital, or a private eye hospital whose ophthalmologist's seal shows qualification and position. Tell them at the counter that you need the Railway ALP vision certificate in the Annexure VI-A format.
 4. **Give the examination without glasses or contact lenses.** The standard is unaided vision. The specialist reads your distant vision in each eye, does the fogging test with the +2D lens, reads your near vision in each eye, tests colour vision with the plates, and checks binocular vision, field of vision and night vision.
@@ -103,7 +104,7 @@ The standard on the certificate is the medical standard of the Assistant Loco Pi
 
 ## The CBAT-day checklist
 
-- The vision certificate in original, in the Annexure VI-A format, with the attested photograph, the seal and the registration number.
+- The vision certificate in original, in the Annexure VI-A format ([download the format](https://rrb.indianrailways.gov.in/-/image/1791524982443Notice_Vision_certificate_format_CBAT_CEN_01-2025(ALP).pdf/examsDocuments)), with the attested photograph, the seal and the registration number.
 - Your CBAT call letter or admit card, and the identity proof it names.
 - Anything more the call letter asks for.
 - A night's sleep and an early start, as RDSO advises in [exam day in the ALP psycho test](/blog/alp-psycho-test-exam-day-tips).
@@ -112,7 +113,7 @@ The certificate gets you to the screen. What happens on the screen is the five t
 
 ## हिंदी में: ALP CBAT का विज़न सर्टिफिकेट क्या है और कैसे बनवाएँ
 
-RRB की 8 अक्टूबर 2026 की सूचना (CEN 01/2025, ALP) के अनुसार CBAT में प्रवेश के समय निर्धारित फॉर्मेट (अनुलग्नक VI-A) में **मूल** विज़न सर्टिफिकेट दिखाना अनिवार्य है; इसके बिना परीक्षा में बैठने की अनुमति नहीं मिलेगी। फॉर्मेट में कोई बदलाव नहीं है; सूचना में वही फॉर्मेट हिंदी और अंग्रेज़ी में साफ़ छपा है, और ऊपर दिए लिंक से डाउनलोड किया जा सकता है। बनवाने के कदम:
+RRB की 8 अक्टूबर 2026 की सूचना (CEN 01/2025, ALP) के अनुसार CBAT में प्रवेश के समय निर्धारित फॉर्मेट (अनुलग्नक VI-A) में **मूल** विज़न सर्टिफिकेट दिखाना अनिवार्य है; इसके बिना परीक्षा में बैठने की अनुमति नहीं मिलेगी। फॉर्मेट में कोई बदलाव नहीं है; सूचना में वही फॉर्मेट हिंदी और अंग्रेज़ी में साफ़ छपा है, और नीचे दिए Download Now बटन से डाउनलोड किया जा सकता है। बनवाने के कदम:
 
 1. फॉर्मेट A4 पर पूरा प्रिंट करें, दो प्रतियाँ।
 2. साथ ले जाएँ: 3.5 × 4.5 सेमी के दो रंगीन पासपोर्ट फोटो (वही जो ऑनलाइन आवेदन में लगाया था), आवेदन का प्रिंट, पहचान पत्र और RRB की सूचना का प्रिंट।
@@ -126,6 +127,12 @@ RRB की 8 अक्टूबर 2026 की सूचना (CEN 01/2025, ALP
 10. अस्पताल से निकलने से पहले पूरा पन्ना जाँचें; दो फोटोकॉपी और फ़ोन में फोटो रखें; **मूल प्रमाणपत्र** परीक्षा के दिन साथ ले जाएँ, फोटोकॉपी स्वीकार नहीं होगी।
 
 ऑप्टोमेट्रिस्ट, चश्मे की दुकान या बिना ऑप्थेल्मोलॉजी योग्यता वाले डॉक्टर का प्रमाणपत्र नहीं चलेगा। सूचना में सरकारी अस्पताल की शर्त नहीं है, शर्त डॉक्टर की योग्यता, पद, मुहर और पंजीकरण की है। अभी बनवा लें; एडमिट कार्ड का इंतज़ार न करें।
+
+:::box
+# विज़न सर्टिफिकेट फॉर्मेट डाउनलोड करें
+RRB की 8 अक्टूबर 2026 की सूचना, अनुलग्नक VI-A हिंदी (पेज 3) और अंग्रेज़ी (पेज 4) में, PDF, RRB की वेबसाइट से।
+[⬇ Download Now (PDF)](https://rrb.indianrailways.gov.in/-/image/1791524982443Notice_Vision_certificate_format_CBAT_CEN_01-2025(ALP).pdf/examsDocuments)
+:::
 
 *Source: Railway Recruitment Board, "Notice for format of Vision certificate to be produced for Computer Based Aptitude Test (CBAT) for the post of Assistant Loco Pilot", CEN 01/2025 (ALP), dated 8 October 2026, with Annexure VI-A in English and Hindi, rrb.indianrailways.gov.in. The explanations of the tests are Kautilya Classes' own, for understanding; the certificate's words are the RRB's.*$kc$,
   'alp',

@@ -58,6 +58,18 @@ Pictures and PDFs that belong to the site (a form, a notice, a diagram) live in 
 
 Markdown the editor understands: `#`/`##`/`###` headings, blank-line paragraphs, `-` bullets, `1.` numbered lists, `>` for a quoted line (used for formulas), `**bold**`, `*italic*`, `[text](address)`, `![alt](picture address)` on its own line, `---` for a rule. No tables; use a list.
 
+A highlighted box with a button (a download, a form, a sign-up) is written as:
+
+```
+:::box
+# Vision Certificate: Download Now
+One or two lines of text under the title.
+[⬇ Download the format (PDF)](https://address-of-the-file)
+:::
+```
+
+The first link line becomes the filled navy button, further link lines become outline buttons. Files and other websites open in a new tab.
+
 ## 4. Before publishing: the checklist
 
 - Title has the search phrase; search title under 60 characters; search description 150 to 160.

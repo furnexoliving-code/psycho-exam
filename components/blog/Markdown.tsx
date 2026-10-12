@@ -19,7 +19,8 @@ type Block =
   | { kind: "ol"; items: string[] }
   | { kind: "quote"; text: string }
   | { kind: "img"; alt: string; src: string }
-  | { kind: "hr" };
+  | { kind: "hr" }
+  | { kind: "box"; title: string; lines: string[]; buttons: { label: string; href: string }[] };
 
 function blocks(text: string): Block[] {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
@@ -41,6 +42,33 @@ function blocks(text: string): Block[] {
     if (/^(---|\*\*\*)$/.test(t)) {
       out.push({ kind: "hr" });
       i++;
+      continue;
+    }
+    // A highlighted box with a button: ":::box", then a "# title" line, text lines and
+    // link lines "[label](address)" that become buttons, closed by ":::".
+    if (/^:::\s*box\s*$/i.test(t)) {
+      i++;
+      const title: string[] = [];
+      const body: string[] = [];
+      const buttons: { label: string; href: string }[] = [];
+      while (i < lines.length && !/^:::\s*$/.test(lines[i].trim())) {
+        const l = lines[i].trim();
+        i++;
+        if (!l) continue;
+        const h = /^#{1,4}\s+(.*)$/.exec(l);
+        if (h) {
+          title.push(h[1]);
+          continue;
+        }
+        const btn = /^\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)$/.exec(l);
+        if (btn) {
+          buttons.push({ label: btn[1], href: btn[2] });
+          continue;
+        }
+        body.push(l);
+      }
+      i++;
+      out.push({ kind: "box", title: title.join(" "), lines: body, buttons });
       continue;
     }
     const img = /^!\[([^\]]*)\]\(([^)\s]+)\)$/.exec(t);
@@ -80,7 +108,7 @@ function blocks(text: string): Block[] {
     const parts: string[] = [];
     while (i < lines.length) {
       const s = lines[i].trim();
-      if (!s || /^(#{1,4})\s+/.test(s) || /^[-*]\s+/.test(s) || /^\d+[.)]\s+/.test(s) || /^>\s?/.test(s) || /^!\[/.test(s) || /^(---|\*\*\*)$/.test(s)) break;
+      if (!s || /^(#{1,4})\s+/.test(s) || /^[-*]\s+/.test(s) || /^\d+[.)]\s+/.test(s) || /^>\s?/.test(s) || /^!\[/.test(s) || /^(---|\*\*\*)$/.test(s) || /^:::/.test(s)) break;
       parts.push(s);
       i++;
     }
@@ -119,6 +147,30 @@ function render(b: Block, key: number): ReactNode {
       return <img key={key} src={safeUrl(b.src) ?? ""} alt={b.alt} loading="lazy" className="mt-6 w-full rounded-xl border border-gray-200" />;
     case "hr":
       return <hr key={key} className="my-8 border-gray-200" />;
+    case "box":
+      return (
+        <aside key={key} className="mt-8 rounded-2xl border-2 border-[#0d2a6b] bg-[#eef2fb] p-5 sm:p-6">
+          {b.title && <p className="text-[21px] font-extrabold leading-tight text-[#0d2a6b]">{inline(b.title)}</p>}
+          {b.lines.map((l, j) => (
+            <p key={j} className="mt-2 text-[15.5px] leading-relaxed text-gray-800">{inline(l)}</p>
+          ))}
+          {b.buttons.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              {b.buttons.map((bt, j) => {
+                const href = safeUrl(bt.href);
+                if (!href) return null;
+                const cls = j === 0 ? "rounded-md bg-[#0d2a6b] px-5 py-3 text-[15px] font-bold text-white shadow hover:bg-[#0a2158]" : "rounded-md border border-[#0d2a6b] bg-white px-5 py-3 text-[15px] font-semibold text-[#0d2a6b] hover:bg-[#e3e9f7]";
+                // Files and other sites open in a new tab; pages of this site stay in it.
+                return !href.startsWith("/") || /\.(pdf|png|jpe?g)$/i.test(href) ? (
+                  <a key={j} href={href} target="_blank" rel="noopener" className={cls}>{bt.label}</a>
+                ) : (
+                  <Link key={j} href={href} className={cls}>{bt.label}</Link>
+                );
+              })}
+            </div>
+          )}
+        </aside>
+      );
   }
 }
 
