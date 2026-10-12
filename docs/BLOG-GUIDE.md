@@ -54,6 +54,8 @@ Also write after every event: a new RRB notification, a change RDSO makes to its
 - **Length.** 900 to 1,500 words. Shorter is fine when the question is small; padding is never fine.
 - **FAQ.** 4 to 7 questions students actually ask, each answered in two or three sentences that stand on their own (Google may show them without the article).
 
+Pictures and PDFs that belong to the site (a form, a notice, a diagram) live in `public/blog/`; a developer adds the file there and the article links to it as `/blog/<file name>`. The vision certificate article (12 Oct 2026) is the example: two pictures and the RRB notice as a PDF. A picture hosted elsewhere works with its full web address.
+
 Markdown the editor understands: `#`/`##`/`###` headings, blank-line paragraphs, `-` bullets, `1.` numbered lists, `>` for a quoted line (used for formulas), `**bold**`, `*italic*`, `[text](address)`, `![alt](picture address)` on its own line, `---` for a rule. No tables; use a list.
 
 ## 4. Before publishing: the checklist

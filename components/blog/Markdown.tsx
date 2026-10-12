@@ -125,7 +125,8 @@ function render(b: Block, key: number): ReactNode {
 /** Bold, italic, code, links and pictures inside a line. */
 function inline(text: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g;
+  // A link's address may hold one level of brackets, as the railway's notice addresses do.
+  const re = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\((?:[^()\s]|\([^()\s]*\))+\))/g;
   let last = 0;
   let m: RegExpExecArray | null;
   let k = 0;
@@ -136,7 +137,7 @@ function inline(text: string): ReactNode[] {
     else if (tok.startsWith("`")) out.push(<code key={k++} className="rounded bg-gray-100 px-1 text-[15px]">{tok.slice(1, -1)}</code>);
     else if (tok.startsWith("*")) out.push(<i key={k++}>{tok.slice(1, -1)}</i>);
     else {
-      const link = /^\[([^\]]+)\]\(([^)\s]+)\)$/.exec(tok);
+      const link = /^\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)$/.exec(tok);
       if (link) {
         const href = safeUrl(link[2]);
         if (!href) out.push(link[1]);

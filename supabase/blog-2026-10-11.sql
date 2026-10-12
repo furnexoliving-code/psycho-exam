@@ -197,6 +197,8 @@ RDSO's Candidates' Corner, under "what can you do to get higher scores", starts 
 
 The sleep line is the one most candidates break, and the Memory Test is the first test of the day. A tired mind holds a map for 2 minutes and loses it in the third. Pindel Sir's addition: eat lightly, carry the admit card and the identity proof it names, and know the way to the centre a day earlier.
 
+One document comes before everything on this page. The RRB's notice of 8 October 2026 requires the **vision certificate in original**, in the Annexure VI-A format, at the time of entry for the CBAT; a candidate without it is not allowed in. The [vision certificate article](/blog/alp-cbat-vision-certificate-annexure-via) has the format in Hindi and English, who may sign it, and the steps to get it made.
+
 ## At the session: RDSO's eight points
 
 RDSO continues, for the session itself:
@@ -239,6 +241,7 @@ RDSO also describes the mechanics: you answer by clicking the mouse on one of th
 
 ## The night before: a short checklist
 
+- The vision certificate in original, in the Annexure VI-A format, signed and sealed by an eye specialist, with your attested photograph ([format and steps](/blog/alp-cbat-vision-certificate-annexure-via)).
 - Admit card and the identity proof it asks for, in one envelope.
 - Glasses or hearing aid, if you use them.
 - The route to the centre, and the time to leave, decided.
@@ -256,7 +259,7 @@ Everything on this page comes down to one habit: sit the five tests, on a laptop
   $kc$ALP Psycho Test Exam Day Tips: RDSO Advice & Pindel Sir$kc$,
   $kc$Exam-day tips for the RRB ALP psycho test: RDSO's advice before and during the session, plus Pindel Sir's ten rules on the clock, Save & Next and the breaks.$kc$,
   $kc$alp psycho test exam day tips, alp psycho test tips in hindi, cbat exam day, railway psycho test tips, alp psycho test kaise pass kare, pindel sir alp psycho, psycho test ke liye tips, alp psycho test hall instructions$kc$,
-  $kc$[{"q":"Is there a mock test in the hall before the real ALP psycho test?","a":"Yes. RDSO states that a mock test is available before the aptitude test so that candidates can get familiar with it. Use it to check the mouse, the screen and the Save & Next button, not to learn the kinds of question."},{"q":"Can I change an answer in the CBAT?","a":"Yes, within the time limit of that test. RDSO says answers marked in CBT mode can be changed within the specified time. Going back costs time, so change an answer only when you are sure."},{"q":"What should I do when the time is nearly over and questions remain?","a":"Answer them quickly. There is no negative marking in the CBAT, so a guess costs nothing and a blank is a sure zero. When the clock reaches zero the screen submits for you."},{"q":"Should I guess in the psycho test?","a":"Yes, when you cannot decide. RDSO confirms there is no negative marking. Give your most likely answer, press Save & Next and move on; do not let one question eat the time of three."},{"q":"What should I carry to the CBAT?","a":"Your admit card and the identity proof it asks for, and, in RDSO's words, your glasses or hearing aid if you use them. Arrive with plenty of time so that you do not have to rush."}]$kc$::jsonb,
+  $kc$[{"q":"Is there a mock test in the hall before the real ALP psycho test?","a":"Yes. RDSO states that a mock test is available before the aptitude test so that candidates can get familiar with it. Use it to check the mouse, the screen and the Save & Next button, not to learn the kinds of question."},{"q":"Can I change an answer in the CBAT?","a":"Yes, within the time limit of that test. RDSO says answers marked in CBT mode can be changed within the specified time. Going back costs time, so change an answer only when you are sure."},{"q":"What should I do when the time is nearly over and questions remain?","a":"Answer them quickly. There is no negative marking in the CBAT, so a guess costs nothing and a blank is a sure zero. When the clock reaches zero the screen submits for you."},{"q":"Should I guess in the psycho test?","a":"Yes, when you cannot decide. RDSO confirms there is no negative marking. Give your most likely answer, press Save & Next and move on; do not let one question eat the time of three."},{"q":"What should I carry to the CBAT?","a":"First, your vision certificate in original in the Annexure VI-A format, without which the RRB does not allow entry to the CBAT. Then your admit card and the identity proof it asks for, and, in RDSO's words, your glasses or hearing aid if you use them. Arrive with plenty of time so that you do not have to rush."}]$kc$::jsonb,
   true,
   now() - interval '1 minutes',
   $kc$Team Kautilya$kc$
