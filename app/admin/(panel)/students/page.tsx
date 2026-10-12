@@ -111,7 +111,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
           {chip("self", "Self sign-ups")}
         </div>
 
-        <BulkGrant packages={packages} filter={filter} filterLabel={filterLabel} matchCount={total} />
+        <BulkGrant packages={packages} open={filter.pkg === "none" || filter.pkg === "self"} />
 
         {students.length ? (
           <div className="mt-3 overflow-x-auto">

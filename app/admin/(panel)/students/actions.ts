@@ -12,7 +12,6 @@ import { indianDay } from "@/lib/format-time";
 import { removePhoto, savePhoto } from "@/lib/photo";
 import { defaultPackage, enrollNewStudent, grantToMany, loadPackage, studentsWithoutPackage } from "@/lib/packages";
 import { cohortsChanged } from "@/lib/wt/cohorts";
-import { filterOf, studentsMatching } from "./list";
 
 /** A validity date off a form: YYYY-MM-DD, or null for none. */
 function validityOf(raw: FormDataEntryValue | null): string | null {
@@ -122,16 +121,14 @@ export async function givePackageBulk(_prev: SaveState | null, formData: FormDat
     await requireAdmin();
     const pkg = await loadPackage(String(formData.get("package") ?? ""));
     if (!pkg) throw new Error("Choose a package");
-    const target = String(formData.get("target") ?? "");
     const until = validityOf(formData.get("expires_on"));
     const note = String(formData.get("note") ?? "").trim() || "Given by the institute";
 
+    // Only pasted mobile numbers: never "everyone in a filter", which with the
+    // filter on All would hand the package to every student on one click.
     let students: { id: string; validUntil: string | null }[] = [];
     let unknown: string[] = [];
-    if (target === "filter") {
-      const filter = filterOf({ q: String(formData.get("q") ?? ""), quiet: String(formData.get("quiet") ?? ""), pkg: String(formData.get("pkg") ?? "") });
-      students = await studentsMatching(filter);
-    } else if (target === "numbers") {
+    {
       const raw = String(formData.get("numbers") ?? "");
       const phones = [
         ...new Set(
@@ -159,8 +156,6 @@ export async function givePackageBulk(_prev: SaveState | null, formData: FormDat
       const have = new Set(found.map((f) => f.phone));
       unknown.push(...valid.filter((x) => !have.has(x)));
       students = found.map((f) => ({ id: f.id, validUntil: f.valid_until }));
-    } else {
-      throw new Error("Choose who gets the package");
     }
     if (students.length === 0) throw new Error(unknown.length ? `No account for: ${unknown.join(", ")}` : "No student matches");
     if (until) students = students.map((s) => ({ ...s, validUntil: until }));
