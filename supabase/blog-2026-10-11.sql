@@ -100,7 +100,7 @@ ALP साइको टेस्ट (CBAT) का हर परिणाम T-Sc
   $kc$[{"q":"What is the formula for the T-Score in the ALP psycho test?","a":"RDSO gives it as T = 50 + 10 × (your score − mean) ÷ standard deviation. The mean and the standard deviation come from the scores of every candidate who sat that test. A score equal to the mean gives exactly 50."},{"q":"Can the T-Score be negative?","a":"Yes. RDSO's own example is a test of 50 questions with a mean of 40 and a standard deviation of 5: a raw score of 0 gives 50 + 10 × (0 − 40) ÷ 5 = −30. Very few candidates land there, but the formula allows it."},{"q":"I answered most questions correctly. How can my T-Score still be below 42?","a":"Because the T-Score is relative. In RDSO's example, 75 right out of 100 gives a T-Score of only 40 when the mean is 85 and the standard deviation is 10. In a test where almost everyone scores high, an ordinary score falls below the average."},{"q":"Is the cut-off the same in every RRB?","a":"Yes. RDSO states that the qualifying criterion, a T-Score of 42 or more in each test, is the same in all RRBs across the country, with no variation. There is no reservation in the aptitude test and no negative marking."},{"q":"How is the score out of 30 calculated?","a":"Add the T-Scores of the five tests, divide by 400 (taken as 80 × 5) and multiply by 30. RDSO's example: 300 ÷ 400 × 30 = 22.5. This is the aptitude test's share in the 70:30 final merit with the RRB examination."},{"q":"What T-Score should I aim for in practice?","a":"Pindel Sir sets 60 in every test. 42 is the floor; 60 leaves a margin for a hard paper and lifts your composite score, which still counts in the final merit."}]$kc$::jsonb,
   true,
   now() - interval '3 minutes',
-  $kc$Er. Mahendra Pindel (Pindel Sir)$kc$
+  $kc$Team Kautilya$kc$
 )
 on conflict (slug) do nothing;
 
@@ -174,7 +174,7 @@ RDSO (लखनऊ) का मनोविज्ञान निदेशाल�
   $kc$[{"q":"Does RDSO's aptitude test FAQ apply to the ALP psycho test?","a":"Most of it does. RDSO designs the aptitude tests for Station Masters, Assistant Loco Pilots and Section Controllers, and the FAQ covers all of them. The questions on the six scores of the Station Master battery and on CADAT do not apply to ALP recruitment."},{"q":"Is there any reservation in the ALP psycho test?","a":"No. RDSO states that the aptitude test selects staff for safety categories, so there is no provision of reservation. The same T-Score of 42 is needed by every candidate."},{"q":"Is there negative marking in the ALP CBAT?","a":"No. RDSO says the test measures cognitive attributes, so there is no negative marking. Attempt every question; a blank can only lose."},{"q":"Is the cut-off the same in every RRB?","a":"Yes. RDSO states that the qualifying criterion is the same in all RRBs across the country, with no variation at all: a T-Score of 42 or more in each test."},{"q":"Will I get a mock test in the exam hall before the real CBAT?","a":"Yes. RDSO's Candidates' Corner says a mock test is available before the aptitude test so that candidates can get familiar with it. It shows you the screen and the mouse, not the kinds of question; those must be practised beforehand."},{"q":"Can I change an answer during the test?","a":"Yes, within the time limit of that test. RDSO states that answers marked in CBT mode can be changed within the time specified for the test. Going back costs time, so change an answer only when you are sure."},{"q":"What is CADAT, and do I need to prepare for it?","a":"CADAT is RDSO's computer-aided test system for serving Loco Pilots being deployed on trains faster than 110 km/h. It has its own five tests and is not part of ALP recruitment. Prepare for the five tests of the ALP CBAT instead."}]$kc$::jsonb,
   true,
   now() - interval '2 minutes',
-  $kc$Er. Mahendra Pindel (Pindel Sir)$kc$
+  $kc$Team Kautilya$kc$
 )
 on conflict (slug) do nothing;
 
@@ -259,7 +259,7 @@ Everything on this page comes down to one habit: sit the five tests, on a laptop
   $kc$[{"q":"Is there a mock test in the hall before the real ALP psycho test?","a":"Yes. RDSO states that a mock test is available before the aptitude test so that candidates can get familiar with it. Use it to check the mouse, the screen and the Save & Next button, not to learn the kinds of question."},{"q":"Can I change an answer in the CBAT?","a":"Yes, within the time limit of that test. RDSO says answers marked in CBT mode can be changed within the specified time. Going back costs time, so change an answer only when you are sure."},{"q":"What should I do when the time is nearly over and questions remain?","a":"Answer them quickly. There is no negative marking in the CBAT, so a guess costs nothing and a blank is a sure zero. When the clock reaches zero the screen submits for you."},{"q":"Should I guess in the psycho test?","a":"Yes, when you cannot decide. RDSO confirms there is no negative marking. Give your most likely answer, press Save & Next and move on; do not let one question eat the time of three."},{"q":"What should I carry to the CBAT?","a":"Your admit card and the identity proof it asks for, and, in RDSO's words, your glasses or hearing aid if you use them. Arrive with plenty of time so that you do not have to rush."}]$kc$::jsonb,
   true,
   now() - interval '1 minutes',
-  $kc$Er. Mahendra Pindel (Pindel Sir)$kc$
+  $kc$Team Kautilya$kc$
 )
 on conflict (slug) do nothing;
 
@@ -323,7 +323,7 @@ ALP चयन में साइको टेस्ट (CBAT) ही वह च
   $kc$[{"q":"Who teaches the ALP psycho test at Kautilya Classes?","a":"Er. Mahendra Pindel, known to students as Pindel Sir. He holds an M.Tech. from NIT Jalandhar, has taught the RRB ALP psycho test for ten years and is the founder and director of Kautilya Classes."},{"q":"Where are the Kautilya Classes classrooms?","a":"In Jaipur and Jodhpur, Rajasthan. Students anywhere in India prepare on the portal at kautilyaonline.com, with the same papers and the same T-Score."},{"q":"Can I prepare for the ALP psycho test online only?","a":"Yes. The portal has practice papers of all 19 kinds of question with the hall's count and clock, Full Mocks in the hall's order, and a T-Score on every paper. Sit them on a laptop or desktop, as in the hall."},{"q":"What is free on the portal?","a":"One Full Mock with every account: all five tests in one sitting, the hall's timing, a scorecard out of 30 and a T-Score in each test. No package is needed for it."},{"q":"How many days does the ALP psycho test need?","a":"Thirty days with a job for every day is enough for most students: a Full Mock first, then the weakest test's kinds, then every kind, then Full Mocks in the last week. The guide on this site gives the day-by-day plan."}]$kc$::jsonb,
   true,
   now() - interval '0 minutes',
-  $kc$Er. Mahendra Pindel (Pindel Sir)$kc$
+  $kc$Team Kautilya$kc$
 )
 on conflict (slug) do nothing;
 

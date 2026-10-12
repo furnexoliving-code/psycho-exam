@@ -6,7 +6,7 @@ import { listPublishedPosts, loadPostLive, loadPublishedPost, sidebarPackages } 
 import { listPackages } from "@/lib/packages";
 import { listPublishedMocks } from "@/lib/wt/mock";
 import { LAUNCH } from "@/lib/launch";
-import { AUTHOR, isPindel } from "@/lib/author";
+import { EDUCATOR, WRITER, isPindel } from "@/lib/author";
 
 const SITE = "https://kautilyaonline.com";
 
@@ -54,6 +54,18 @@ export default async function BlogPostPage({ params, searchParams }: { params: P
   const related = posts.filter((p) => p.slug !== post.slug && p.exam === post.exam).slice(0, 3);
   const freeMock = LAUNCH.freeMock ? (mocks.find((m) => m.isFree) ?? null) : null;
 
+  // The teacher whose method the articles describe, named to the search engines on every one.
+  const educator = {
+    "@type": "Person",
+    name: EDUCATOR.name,
+    alternateName: EDUCATOR.short,
+    jobTitle: EDUCATOR.role,
+    description: EDUCATOR.bio,
+    alumniOf: { "@type": "CollegeOrUniversity", name: EDUCATOR.college },
+    worksFor: { "@type": "Organization", name: "Kautilya Classes", url: `${SITE}/` },
+    url: `${SITE}/blog`,
+    knowsAbout: ["RRB ALP Computer Based Aptitude Test (CBAT)", "Railway psycho test preparation"],
+  };
   const jsonLd: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
@@ -62,19 +74,8 @@ export default async function BlogPostPage({ params, searchParams }: { params: P
       description: post.metaDescription || post.excerpt,
       datePublished: post.publishedAt ?? post.createdAt,
       dateModified: post.updatedAt,
-      author: isPindel(post.author)
-        ? {
-            "@type": "Person",
-            name: AUTHOR.name,
-            alternateName: AUTHOR.short,
-            jobTitle: AUTHOR.role,
-            description: AUTHOR.bio,
-            alumniOf: { "@type": "CollegeOrUniversity", name: AUTHOR.college },
-            worksFor: { "@type": "Organization", name: "Kautilya Classes", url: `${SITE}/` },
-            url: `${SITE}/blog`,
-            knowsAbout: ["RRB ALP Computer Based Aptitude Test (CBAT)", "Railway psycho test preparation"],
-          }
-        : { "@type": "Organization", name: post.author },
+      author: isPindel(post.author) ? educator : post.author === WRITER ? { "@type": "Organization", name: "Kautilya Classes", alternateName: WRITER, url: `${SITE}/` } : { "@type": "Organization", name: post.author },
+      contributor: educator,
       publisher: { "@type": "Organization", name: "Kautilya Classes", logo: { "@type": "ImageObject", url: `${SITE}/kautilya-logo.png` } },
       image: post.coverImageUrl || `${SITE}/og.jpg`,
       mainEntityOfPage: `${SITE}/blog/${post.slug}`,

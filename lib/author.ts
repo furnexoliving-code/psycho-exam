@@ -1,12 +1,15 @@
 /**
- * The teacher the articles are written by, in one place: the byline, the
- * "About the author" box and the Person the search engines are told about
- * all read from here. Facts as Kautilya Classes gave them.
+ * Who stands behind the articles. They are written by the team (the
+ * byline), and every one of them carries the educator's box: the teacher
+ * whose method they describe, and the Person the search engines are told
+ * about. Facts as Kautilya Classes gave them.
  */
-export const AUTHOR = {
+export const WRITER = "Team Kautilya";
+
+export const EDUCATOR = {
   name: "Er. Mahendra Pindel",
   short: "Pindel Sir",
-  /** What the byline and the Author field carry. */
+  /** The name with the one students use. */
   byline: "Er. Mahendra Pindel (Pindel Sir)",
   role: "Founder & Director, Kautilya Classes",
   degree: "M.Tech., NIT Jalandhar",
@@ -19,7 +22,7 @@ export const AUTHOR = {
   photo: null as string | null,
 };
 
-/** True when the article's author is Pindel Sir, under any spelling. */
+/** True when an article names Pindel Sir himself as its writer, under any spelling. */
 export function isPindel(author: string): boolean {
   return /pindel/i.test(author);
 }

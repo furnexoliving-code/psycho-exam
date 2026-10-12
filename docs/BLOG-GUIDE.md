@@ -13,7 +13,7 @@ Admin › Blog › "New article": give it a title and (optionally) an address, t
 | Title | The question or claim the article answers, with the search phrase in it | 50 to 70 characters; e.g. "ALP Psycho Test T-Score: RDSO's formula, worked examples and the 42 cut-off" |
 | Address (slug) | Lower-case words joined by hyphens, from the title | Short, no dates, never changed after publishing |
 | Summary | One or two lines under the title and on the articles page | 25 to 40 words, says what the reader gets |
-| Author | Who wrote it | New articles default to "Er. Mahendra Pindel (Pindel Sir)". Keep it: his name is given to Google as the author (Person schema) and the "About the author" box appears only for him. |
+| Author | Who wrote it | New articles default to "Team Kautilya". Keep it: the articles describe Pindel Sir's rules, so the team is the writer and he is the educator. His "Educator" box appears under every article, and Google is told about him on every one (Person schema). |
 | Cover picture | A web address of a 1200×630 picture | Optional. Without one, the article shows a navy band. |
 | Text (Markdown) | The article | See section 3 |
 | Packages beside the article | Tick the packages to show on the right, numbered in order; "push" one | Combo first for most articles |
@@ -65,7 +65,7 @@ Markdown the editor understands: `#`/`##`/`###` headings, blank-line paragraphs,
 - Hindi summary present.
 - FAQ filled (4 to 7 pairs).
 - Preview read once on a phone: headings in order, no broken link, pictures load.
-- Author = Er. Mahendra Pindel (Pindel Sir).
+- Author = Team Kautilya.
 
 ## 5. After publishing
 

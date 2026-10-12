@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { logAction } from "@/lib/audit";
 import { blogChanged, parseFaq } from "@/lib/blog";
 import { EXAMS } from "@/lib/packages";
-import { AUTHOR } from "@/lib/author";
+import { WRITER } from "@/lib/author";
 
 const BACK = "/admin/blog";
 
@@ -22,7 +22,7 @@ export async function createPost(formData: FormData): Promise<void> {
   const title = String(formData.get("title") ?? "").trim();
   if (!title) redirect(`${BACK}?error=${encodeURIComponent("Give the article a title")}`);
   const slug = slugify(String(formData.get("slug") ?? "") || title) || `article-${Date.now()}`;
-  const { error } = await createAdminClient().from("blog_posts").insert({ slug, title, exam: "alp", author: AUTHOR.byline });
+  const { error } = await createAdminClient().from("blog_posts").insert({ slug, title, exam: "alp", author: WRITER });
   if (error) {
     const msg = /duplicate/i.test(error.message) ? `An article at /blog/${slug} already exists` : /blog_posts/i.test(error.message) ? "Run supabase/blog.sql first" : error.message;
     redirect(`${BACK}?error=${encodeURIComponent(msg)}`);
@@ -82,7 +82,7 @@ export async function savePost(_prev: SaveState | null, formData: FormData): Pro
         faq: parseFaq(String(formData.get("faq") ?? "")),
         is_published: publish,
         published_at: publishedAt,
-        author: String(formData.get("author") ?? "").trim() || AUTHOR.byline,
+        author: String(formData.get("author") ?? "").trim() || WRITER,
         updated_at: new Date().toISOString(),
       })
       .eq("slug", slug);
