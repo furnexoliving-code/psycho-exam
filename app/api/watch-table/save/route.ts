@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { getProfile, isConfigured } from "@/lib/auth";
-import { saveSnapshot } from "@/lib/wt/session";
+import { cookies } from "next/headers";
+import { getProfile, isConfigured, signedInUserId } from "@/lib/auth";
+import { DEVICE_COOKIE } from "@/lib/login-guard";
+import { saveSnapshot, saveSnapshotFast } from "@/lib/wt/session";
 import { isOptionValue } from "@/lib/wt/parse-questions";
 import type { OptionValue } from "@/lib/wt/types";
 
@@ -12,6 +14,10 @@ const MAX_ANSWERS = 500;
  * browser that dies mid-paper has then lost nothing, and a late submit is
  * marked from this copy rather than from a blank. Refused once the paper's
  * time is up.
+ *
+ * The cheapest request the portal has, on purpose: every student sends it
+ * every ten seconds. The token says who is asking, and the account check,
+ * the paper, the sitting and the update are one database call.
  */
 export async function POST(request: Request) {
   if (!isConfigured()) return NextResponse.json({ ok: true });
@@ -25,8 +31,8 @@ export async function POST(request: Request) {
   const paperId = typeof body.paperId === "string" ? body.paperId : "";
   if (!paperId) return NextResponse.json({ error: "paperId is required" }, { status: 400 });
 
-  const profile = await getProfile();
-  if (!profile) return NextResponse.json({ error: "Sign in first" }, { status: 401 });
+  const userId = await signedInUserId();
+  if (!userId) return NextResponse.json({ error: "Sign in first" }, { status: 401 });
 
   const responses: Record<string, OptionValue> = {};
   if (body.answers && typeof body.answers === "object") {
@@ -39,6 +45,14 @@ export async function POST(request: Request) {
     }
   }
 
-  const saved = await saveSnapshot(paperId, profile.id, responses);
+  const device = (await cookies()).get(DEVICE_COOKIE)?.value ?? "";
+  let saved = await saveSnapshotFast(paperId, userId, device, responses);
+  if (saved === null) {
+    // The database has no watch_save_snapshot yet: the older path, with the
+    // full account check in front of it.
+    const profile = await getProfile();
+    if (!profile) return NextResponse.json({ error: "Sign in first" }, { status: 401 });
+    saved = await saveSnapshot(paperId, profile.id, responses);
+  }
   return NextResponse.json({ ok: saved });
 }

@@ -187,9 +187,16 @@ export function FigureExam({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ paperId: paper.id, answers }),
         keepalive,
-      }).catch(() => {
-        sentRef.current = "";
-      });
+      })
+        .then(async (res) => {
+          // A save the server did not take (a token mid-refresh, a database
+          // hiccup) goes again on the next tick, which only a cleared sentRef does.
+          const body = (await res.json().catch(() => null)) as { ok?: boolean } | null;
+          if (!res.ok || body?.ok !== true) sentRef.current = "";
+        })
+        .catch(() => {
+          sentRef.current = "";
+        });
     };
     sendRef.current = send;
     // Every ten seconds while the questions are open, when the sheet has

@@ -149,6 +149,21 @@ const readProfile = cache(async (): Promise<Session> => {
 });
 
 /**
+ * Who the request's token says is signed in, with no profile lookup: for
+ * the autosave, which runs every ten seconds and only ever writes the
+ * caller's own open sitting. A switched-off or elsewhere-signed-in account
+ * can at most keep saving its own sheet until the token runs out; the
+ * pages, which decide what may be seen, keep the full check.
+ */
+export async function signedInUserId(): Promise<string | null> {
+  if (!isConfigured()) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const sub = data?.claims?.sub;
+  return typeof sub === "string" && sub ? sub : null;
+}
+
+/**
  * Sends signed-out visitors to the login page. A switched-off account is told
  * so there, rather than shown a login form that will refuse it without saying
  * why.

@@ -236,6 +236,33 @@ export async function saveSnapshot(
   return (saved?.length ?? 0) > 0;
 }
 
+/** PostgREST's word for a function the database does not have (yet). */
+function missingFunction(error: { code?: string; message?: string }): boolean {
+  return error.code === "PGRST202" || error.code === "42883" || /could not find the function/i.test(error.message ?? "");
+}
+
+/**
+ * saveSnapshot in one round trip, through the watch_save_snapshot function
+ * (supabase/autosave-rpc.sql), which applies the same rules: the account on
+ * and stamped with this device, as readProfile demands, and the paper's
+ * time not more than 180 s over. Null on a database where the function is
+ * not there yet; the caller then takes the statement-by-statement path, so
+ * the code may ship before the SQL has been run. Any other error is a save
+ * refused; the page sends the sheet again on its next tick.
+ */
+export async function saveSnapshotFast(
+  paperSlug: string,
+  userId: string,
+  device: string,
+  responses: Record<string, OptionValue>,
+): Promise<boolean | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("watch_save_snapshot", { p_slug: paperSlug, p_user: userId, p_device: device, p_responses: responses });
+  if (!error) return data === true;
+  if (missingFunction(error)) return null;
+  return false;
+}
+
 /**
  * Closes a sitting whose time has run out, with nothing answered, and returns
  * how long it took — or null when there is no open sitting, or the open one
