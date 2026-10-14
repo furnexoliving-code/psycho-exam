@@ -70,7 +70,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
         createdAt: student.created_at,
         isActive: student.is_active,
         validUntil: student.valid_until,
-        photoUrl: photoUrlOf(student),
+        photoUrl: photoUrlOf(student, "full"),
         lastSeenAt: student.last_seen_at,
         note: (noteRow.data?.note as string | undefined) ?? "",
         hasDevice: Boolean(student.session_id),

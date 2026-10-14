@@ -33,7 +33,7 @@ export default async function ProfilePage() {
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <section id="photo" className="scroll-mt-4 md:col-span-1">
-            <PhotoCard photoUrl={photoUrlOf(profile)} name={name} phone={profile.phone || ""} />
+            <PhotoCard photoUrl={photoUrlOf(profile, "full")} name={name} phone={profile.phone || ""} />
           </section>
 
           <div className="space-y-4">
