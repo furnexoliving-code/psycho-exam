@@ -74,3 +74,13 @@ export function tScore(marks: number, cohort: Cohort | null): TScore | null {
 export function formatTScore(value: number): string {
   return value.toFixed(1);
 }
+
+/**
+ * The institute's own figure: the five T-scores added up, over 400, as a
+ * mark out of 30. Null until every test has a T-score.
+ */
+export function scoreOutOf30(tests: { tScore: number | null }[]): number | null {
+  if (tests.length === 0 || tests.some((t) => t.tScore === null)) return null;
+  const sum = tests.reduce((s, t) => s + (t.tScore as number), 0);
+  return Number(((sum / 400) * 30).toFixed(1));
+}

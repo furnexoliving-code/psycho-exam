@@ -79,7 +79,12 @@ and `/api/watch-table/score` marks the paper server-side with the service-role
 client. Without that, anyone could open the result page in a second tab and
 read every answer out of the page source.
 
-Run `supabase/schema.sql` first, then `supabase/watch-table-schema.sql`.
+Run `supabase/schema.sql` first, then `supabase/watch-table-schema.sql`. The
+other files there are additions, each run once in the SQL editor, in any
+order: `packages.sql`, `coupons.sql`, `blog.sql`, `admin-note.sql`,
+`cohort-speed.sql`, `attempt-counts.sql`, `autosave-rpc.sql`,
+`admin-analytics.sql`. The portal works without the last four and falls
+back to a slower path; each file's header says what it speeds up.
 
 ### Accounts
 

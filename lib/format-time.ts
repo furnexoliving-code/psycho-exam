@@ -43,14 +43,16 @@ export function formatDayMonth(when: string | number | Date): string {
 
 /** The calendar day in India, as YYYY-MM-DD, for comparing with a date input. */
 export function indianDay(when: string | number | Date): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(when));
-  return parts;
+  return INDIAN_DAY.format(new Date(when));
 }
+// Built once: a formatter costs more to make than to use, and the
+// analytics walk every attempt through this.
+const INDIAN_DAY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
 /** The moment as a datetime-local input wants it, in India: YYYY-MM-DDTHH:mm. */
 export function indianLocalInput(when: string | number | Date | null | undefined): string {

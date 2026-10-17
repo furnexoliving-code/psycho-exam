@@ -237,7 +237,7 @@ export async function saveSnapshot(
 }
 
 /** PostgREST's word for a function the database does not have (yet). */
-function missingFunction(error: { code?: string; message?: string }): boolean {
+export function missingFunction(error: { code?: string; message?: string }): boolean {
   return error.code === "PGRST202" || error.code === "42883" || /could not find the function/i.test(error.message ?? "");
 }
 

@@ -84,15 +84,8 @@ export interface MockResult {
   submittedAt: string;
 }
 
-/**
- * The institute's own figure: the five T-scores added up, over 400, as a
- * mark out of 30. Null until every test has a T-score.
- */
-export function scoreOutOf30(tests: { tScore: number | null }[]): number | null {
-  if (tests.length === 0 || tests.some((t) => t.tScore === null)) return null;
-  const sum = tests.reduce((s, t) => s + (t.tScore as number), 0);
-  return Number(((sum / 400) * 30).toFixed(1));
-}
+/** The mark out of 30 lives with the T-score, in tscore.ts; kept here for its readers. */
+export { scoreOutOf30 } from "./tscore";
 
 const MOCKS_TAG = "mocks";
 
