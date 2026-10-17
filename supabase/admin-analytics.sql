@@ -15,7 +15,9 @@
 -- (assemble()), so both paths show the same page.
 
 -- The fortnight's bars, and the panel's "today" and "this week" counts,
--- walk the attempts by date.
+-- walk the attempts by date. On a busy live database, build it first on
+-- its own, as a single statement, with "create index concurrently": a
+-- plain create index holds attempts' inserts for the seconds it takes.
 create index if not exists watch_attempts_submitted_idx
   on public.watch_attempts (submitted_at);
 
@@ -206,11 +208,12 @@ quiet as (
 ),
 mock_scored as (
   select r.mock_id, r.user_id, r.qualified,
-         -- scoreOutOf30(): the five T-scores as a mark out of 30; none
-         -- when any test went unmeasured.
+         -- outOf30(): the five T-scores as a mark out of 30, unrounded
+         -- (the mean is rounded once, by the portal); none when any
+         -- test went unmeasured.
          case when jsonb_typeof(r.tests) <> 'array' or jsonb_array_length(r.tests) = 0 then null
               when exists (select 1 from jsonb_array_elements(r.tests) e where e ->> 'tScore' is null) then null
-              else round((((select sum((e ->> 'tScore')::double precision) from jsonb_array_elements(r.tests) e) / 400) * 30)::numeric, 1)::double precision
+              else ((select sum((e ->> 'tScore')::double precision) from jsonb_array_elements(r.tests) e) / 400) * 30
          end as out30
   from public.mock_results r
 ),
@@ -225,6 +228,8 @@ mock_rows as (
   group by m.id, m.slug, m.name, m.sort_order, m.created_at
 )
 select jsonb_build_object(
+  -- The day the figures were cut at: the chart's last bar.
+  'today', to_char((now() at time zone 'Asia/Kolkata')::date, 'YYYY-MM-DD'),
   'totals', jsonb_build_object(
     'students',   (select count(*) from students),
     'active',     (select count(*) from students where is_active),

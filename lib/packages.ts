@@ -251,6 +251,18 @@ export async function enrollNewStudent(userId: string, slug: string, validUntil:
 export async function studentsWithoutPackage(): Promise<{ id: string; fullName: string; validUntil: string | null; self: boolean }[]> {
   try {
     const supabase = createAdminClient();
+    // Listed by the database in one call (supabase/admin-home.sql), as one
+    // JSON array so the API's thousand-row cap cannot cut it; by paging,
+    // below, on a database without the function yet.
+    const listed = await supabase.rpc("admin_students_without_package");
+    if (!listed.error && listed.data) {
+      return (listed.data as { id: string; full_name: string | null; valid_until: string | null; self: boolean | null }[]).map((s) => ({
+        id: s.id,
+        fullName: s.full_name || "Unnamed",
+        validUntil: s.valid_until ?? null,
+        self: s.self === true,
+      }));
+    }
     // Page by page: the database hands back at most a thousand rows per
     // call, and both lists have grown past that. A list cut short would
     // count enrolled students as having none.

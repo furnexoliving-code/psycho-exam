@@ -80,7 +80,13 @@ export function formatTScore(value: number): string {
  * mark out of 30. Null until every test has a T-score.
  */
 export function scoreOutOf30(tests: { tScore: number | null }[]): number | null {
+  const out = outOf30(tests);
+  return out === null ? null : Number(out.toFixed(1));
+}
+
+/** The same mark before rounding: for an average over many results, which rounds once at the end. */
+export function outOf30(tests: { tScore: number | null }[]): number | null {
   if (tests.length === 0 || tests.some((t) => t.tScore === null)) return null;
   const sum = tests.reduce((s, t) => s + (t.tScore as number), 0);
-  return Number(((sum / 400) * 30).toFixed(1));
+  return (sum / 400) * 30;
 }

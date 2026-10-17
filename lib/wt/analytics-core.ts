@@ -1,6 +1,6 @@
 import { indianDay } from "@/lib/format-time";
 import { cohortFor } from "./cohort";
-import { scoreOutOf30, tScore, type Cohort } from "./tscore";
+import { outOf30, tScore, type Cohort } from "./tscore";
 import { BATTERIES, CATEGORIES } from "./categories";
 import { batteryOf } from "./series";
 
@@ -112,6 +112,8 @@ export interface Analytics {
  * rounds and orders, assemble(), is the same for both.
  */
 export interface Aggregates {
+  /** The Indian day the figures were cut at, "2026-10-17": the chart's last bar. Absent from the function's first version. */
+  today?: string;
   totals: Analytics["totals"];
   /** Only the days with an attempt; the chart fills in the rest. */
   days: DayActivity[];
@@ -392,7 +394,8 @@ export function aggregateRows(rows: AnalyticsRows, passT: number, targetT: numbe
       m.qualified += 1;
       mockQualified += 1;
     }
-    const out = scoreOutOf30(Array.isArray(r.tests) ? r.tests : []);
+    // Unrounded here; the mean is rounded once, in assemble().
+    const out = outOf30(Array.isArray(r.tests) ? r.tests : []);
     if (out !== null) m.outs.push(out);
     byMock.set(r.mock_id, m);
   }
@@ -409,6 +412,7 @@ export function aggregateRows(rows: AnalyticsRows, passT: number, targetT: numbe
     }));
 
   return {
+    today: indianDay(now),
     totals: {
       students: students.length,
       active: active.length,
@@ -431,6 +435,12 @@ export function aggregateRows(rows: AnalyticsRows, passT: number, targetT: numbe
       byMock: byMockRows,
     },
   };
+}
+
+/** "2026-10-17" less n days, as a calendar day: no clock or zone involved. */
+function dayBefore(day: string, n: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d - n)).toISOString().slice(0, 10);
 }
 
 /** The page from the figures: rounded, ordered, every day and every battery present. */
@@ -470,9 +480,13 @@ export function assemble(agg: Aggregates, passT: number, targetT: number, now: n
     };
   });
 
+  // The axis ends on the day the figures were cut, so the bars and the
+  // fortnight's totals describe the same fourteen days whichever clock
+  // (the database's or this one's) was a second ahead at midnight.
+  const anchor = agg.today ?? indianDay(now);
   const byDay = new Map(agg.days.map((d) => [d.day, d]));
   const days: DayActivity[] = Array.from({ length: DAYS }, (_, i) => {
-    const day = indianDay(now - (DAYS - 1 - i) * 86400000);
+    const day = dayBefore(anchor, DAYS - 1 - i);
     const d = byDay.get(day);
     return { day, attempts: d?.attempts ?? 0, students: d?.students ?? 0 };
   });
