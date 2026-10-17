@@ -17,7 +17,7 @@ import { ScrollRail } from "./ScrollRail";
 import { splitGroups } from "@/lib/wt/find";
 
 /** How often the answer sheet goes up to the server while the questions are open. */
-const SAVE_EVERY_MS = 10000;
+const SAVE_EVERY_MS = 15000;
 
 /**
  * The Perceptual Speed Test screen: the paper in parts, each question a
@@ -199,7 +199,7 @@ export function FigureExam({
         });
     };
     sendRef.current = send;
-    // Every ten seconds while the questions are open, when the sheet has
+    // Every fifteen seconds while the questions are open, when the sheet has
     // changed, and at once when the tab is hidden: not after every answer.
     const timer = window.setInterval(() => send(false), SAVE_EVERY_MS);
     const onHide = () => {
