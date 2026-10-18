@@ -17,6 +17,9 @@ export function razorpayConfigured(): boolean {
 }
 
 /** Makes an order at Razorpay; the id comes back for the checkout. Amount in rupees. */
+/** How long a call to Razorpay may take before it counts as failed: a stalled gateway must never hold a page. */
+export const GATEWAY_TIMEOUT_MS = 8000;
+
 export async function createRazorpayOrder(amountInr: number, receipt: string, notes: Record<string, string>): Promise<{ id: string }> {
   const keyId = razorpayKeyId();
   const secret = process.env.RAZORPAY_KEY_SECRET?.trim();
@@ -29,6 +32,7 @@ export async function createRazorpayOrder(amountInr: number, receipt: string, no
     },
     body: JSON.stringify({ amount: Math.round(amountInr * 100), currency: "INR", receipt, notes }),
     cache: "no-store",
+    signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -56,11 +60,53 @@ export async function captureRazorpayPayment(paymentId: string, amountInr: numbe
     },
     body: JSON.stringify({ amount: Math.round(amountInr * 100), currency: "INR" }),
     cache: "no-store",
+    signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS),
   });
   if (res.ok) return "captured";
   const text = await res.text().catch(() => "");
   if (/already been captured|already captured/i.test(text)) return "already";
   throw new Error(`Razorpay refused the capture (${res.status}): ${text.slice(0, 200)}`);
+}
+
+/** A payment as Razorpay lists it against one of our orders; the amount is in paise. */
+export interface GatewayPayment {
+  id: string;
+  status: string;
+  amount: number;
+}
+
+/**
+ * The payments Razorpay holds against one of our orders. Asked when the
+ * checkout's own word cannot be acted on: a capture call refused, or a
+ * student back on the page after closing the tab mid-payment.
+ */
+export async function listRazorpayOrderPayments(gatewayOrderId: string, timeoutMs = GATEWAY_TIMEOUT_MS): Promise<GatewayPayment[]> {
+  const keyId = razorpayKeyId();
+  const secret = process.env.RAZORPAY_KEY_SECRET?.trim();
+  if (!keyId || !secret) throw new Error("Razorpay is not configured");
+  const res = await fetch(`https://api.razorpay.com/v1/orders/${encodeURIComponent(gatewayOrderId)}/payments`, {
+    headers: { Authorization: `Basic ${Buffer.from(`${keyId}:${secret}`).toString("base64")}` },
+    cache: "no-store",
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Razorpay refused the payment list (${res.status}): ${text.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { items?: { id?: unknown; status?: unknown; amount?: unknown }[] };
+  return (data.items ?? [])
+    .filter((p) => typeof p.id === "string" && typeof p.status === "string")
+    .map((p) => ({ id: p.id as string, status: p.status as string, amount: Number(p.amount) }));
+}
+
+/**
+ * The payment that took the order's money, if Razorpay holds one: captured,
+ * and for the amount the order was made for (a Razorpay order fixes its
+ * amount, so anything else is not this order's).
+ */
+export function capturedPayment(payments: GatewayPayment[], amountInr: number): GatewayPayment | null {
+  const paise = Math.round(amountInr * 100);
+  return payments.find((p) => p.status === "captured" && p.amount === paise) ?? null;
 }
 
 function safeEqual(a: string, b: string): boolean {

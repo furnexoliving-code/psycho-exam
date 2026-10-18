@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { grantEnrollment, loadPackage, type Package } from "@/lib/packages";
 import { countCouponUse } from "@/lib/coupons";
+import { capturedPayment, listRazorpayOrderPayments } from "@/lib/razorpay";
 
 export interface Order {
   id: string;
@@ -78,8 +79,11 @@ export async function loadOrderByGatewayId(gatewayOrderId: string): Promise<Orde
 
 /**
  * Marks an order paid and gives the student the package. Safe to call
- * twice (the checkout's handler and the webhook both do): the second
- * call finds the order already paid and does nothing.
+ * twice (the checkout's handler, the webhook and the packages page all
+ * may): the second call finds the order already paid and does nothing.
+ * Marking it paid first is the lock between them; should the grant then
+ * fail, the mark is taken back so the next caller can try again, and
+ * the student is never left "paid" without the package.
  */
 export async function settlePaidOrder(order: Order, paymentId: string): Promise<void> {
   if (order.status === "paid") return;
@@ -88,16 +92,100 @@ export async function settlePaidOrder(order: Order, paymentId: string): Promise<
     .from("orders")
     .update({ status: "paid", gateway_payment_id: paymentId, paid_at: new Date().toISOString() })
     .eq("id", order.id)
-    .eq("status", "created")
+    .neq("status", "paid")
     .select("id");
   if (error) throw new Error(error.message);
   if (!data?.length) return; // the other caller got there first
-  const { data: row } = await supabase.from("packages").select("slug").eq("id", order.packageId).single();
-  const pkg = row ? await loadPackage(row.slug as string) : null;
-  if (!pkg) throw new Error("The package of this order no longer exists");
-  await grantEnrollment(order.userId, pkg, { source: "purchase", orderId: order.id, note: `Paid online · ${paymentId}${order.couponCode ? ` · code ${order.couponCode}` : ""}` });
+  try {
+    const { data: row } = await supabase.from("packages").select("slug").eq("id", order.packageId).single();
+    const pkg = row ? await loadPackage(row.slug as string) : null;
+    if (!pkg) throw new Error("The package of this order no longer exists");
+    await grantEnrollment(order.userId, pkg, { source: "purchase", orderId: order.id, note: `Paid online · ${paymentId}${order.couponCode ? ` · code ${order.couponCode}` : ""}` });
+  } catch (failure) {
+    // The grant may have landed with its reply lost: then the mark stands.
+    const { data: granted } = await supabase.from("enrollments").select("id").eq("order_id", order.id).limit(1);
+    if (granted?.length) return;
+    const { error: undo } = await supabase.from("orders").update({ status: "created", gateway_payment_id: null, paid_at: null }).eq("id", order.id).eq("status", "paid");
+    if (undo) console.error("settlePaidOrder: could not take back the paid mark", order.id, undo.message);
+    throw failure;
+  }
   if (order.couponCode) await countCouponUse(order.couponCode);
 }
+
+/**
+ * Settles an order whose money Razorpay has already taken, on Razorpay's
+ * own word rather than the browser's. The safety net for a checkout whose
+ * capture call was refused (a UPI payment is captured by Razorpay itself
+ * the moment the bank approves, and the call then has nothing left to do)
+ * and for a student who closed the tab before the handler ran. True when
+ * the order is paid afterwards; false when Razorpay holds no captured
+ * payment for it yet (an authorised card payment is captured within
+ * minutes, and the webhook or the next visit here settles it).
+ */
+export async function settleFromGateway(order: Order, timeoutMs?: number): Promise<boolean> {
+  if (order.status === "paid") return true;
+  if (!order.gatewayOrderId) return false;
+  const payments = await listRazorpayOrderPayments(order.gatewayOrderId, timeoutMs);
+  const captured = capturedPayment(payments, order.amountInr);
+  if (captured) {
+    await settlePaidOrder(order, captured.id);
+    return true;
+  }
+  // A checkout closed without paying, or whose every attempt failed, is
+  // marked so after an hour and asked about for one more day only (see
+  // pendingOrdersOf), in case its window was still open and paid late.
+  // A payment still in flight keeps the order waiting as it is.
+  const over = order.status === "created" && Date.now() - Date.parse(order.createdAt) > ABANDONED_AFTER_MS && payments.every((p) => p.status === "failed");
+  if (over) await createAdminClient().from("orders").update({ status: "failed" }).eq("id", order.id).eq("status", "created");
+  return false;
+}
+
+const ABANDONED_AFTER_MS = 60 * 60 * 1000;
+
+/**
+ * A student's orders still waiting on their payment, oldest first: those
+ * of the last thirty days that reached Razorpay, and those given up on
+ * (status "failed") in the last day, whose checkout might yet have been
+ * paid late.
+ */
+export async function pendingOrdersOf(userId: string, limit = 20): Promise<Order[]> {
+  const since = new Date(Date.now() - 30 * 86400000).toISOString();
+  const sinceFailed = new Date(Date.now() - 86400000).toISOString();
+  const { data, error } = await createAdminClient()
+    .from("orders")
+    .select(COLUMNS)
+    .eq("user_id", userId)
+    .or(`status.eq.created,and(status.eq.failed,created_at.gte.${sinceFailed})`)
+    .not("gateway_order_id", "is", null)
+    .gte("created_at", since)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+  if (error || !data) return [];
+  return (data as OrderRow[]).map(toOrder);
+}
+
+/**
+ * Gives a student what they have paid for, if a recent order of theirs
+ * was settled at Razorpay but not here. Run when they open the packages
+ * page; nothing to do for almost everyone, one short Razorpay call per
+ * pending order otherwise, all at once. Never throws: the page must open
+ * regardless, and a slow gateway costs it a few seconds at most.
+ */
+export async function reconcilePendingOrders(userId: string): Promise<number> {
+  try {
+    const orders = await pendingOrdersOf(userId);
+    const results = await Promise.allSettled(orders.map((order) => settleFromGateway(order, RECONCILE_TIMEOUT_MS)));
+    results.forEach((r, i) => {
+      if (r.status === "rejected") console.error("reconcilePendingOrders", orders[i].id, r.reason);
+    });
+    return results.filter((r) => r.status === "fulfilled" && r.value).length;
+  } catch (error) {
+    console.error("reconcilePendingOrders", error);
+    return 0;
+  }
+}
+
+const RECONCILE_TIMEOUT_MS = 4000;
 
 /** Every order, newest first, with the student's name and the package, for the panel. */
 export async function listOrders(limit = 200): Promise<(Order & { studentName: string; phone: string; packageName: string })[]> {

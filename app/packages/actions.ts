@@ -2,7 +2,7 @@
 
 import { requireUser } from "@/lib/auth";
 import { loadPackage } from "@/lib/packages";
-import { createOrder, loadOrder, setGatewayOrder, settlePaidOrder } from "@/lib/orders";
+import { createOrder, loadOrder, setGatewayOrder, settleFromGateway, settlePaidOrder } from "@/lib/orders";
 import { captureRazorpayPayment, createRazorpayOrder, razorpayKeyId, verifyPaymentSignature } from "@/lib/razorpay";
 import { onlineBuyingFor } from "@/lib/payments";
 import { logAction } from "@/lib/audit";
@@ -68,7 +68,20 @@ export async function finishCheckout(input: { orderId: string; gatewayOrderId: s
     await captureRazorpayPayment(input.paymentId, order.amountInr);
   } catch (error) {
     console.error("finishCheckout capture", error);
-    return { ok: false, error: "The payment is approved but not yet confirmed by Razorpay. It settles on its own within a few minutes; if the package has not appeared by then, ask at the office with your payment id." };
+    // Razorpay may well have captured it itself already (UPI, auto-capture),
+    // in which case the refusal means nothing: ask Razorpay, and give the
+    // package on its word.
+    let settled = false;
+    try {
+      settled = await settleFromGateway(order);
+    } catch (again) {
+      console.error("finishCheckout settleFromGateway", again);
+    }
+    if (!settled) {
+      return { ok: false, error: "The payment is approved but not yet confirmed by Razorpay. It settles on its own within a few minutes; if the package has not appeared by then, ask at the office with your payment id." };
+    }
+    await logAction("Package bought", `${who.full_name} (${who.phone}) · order ${order.id} · settled on Razorpay's word`).catch(() => {});
+    return { ok: true };
   }
   try {
     await settlePaidOrder(order, input.paymentId);

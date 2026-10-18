@@ -6,8 +6,12 @@ import { photoUrlOf } from "@/lib/photo";
 import { accessFor, enrollmentActive, listPackages } from "@/lib/packages";
 import { PackagesView } from "@/components/student/PackagesView";
 import { onlineBuyingFor } from "@/lib/payments";
+import { reconcilePendingOrders } from "@/lib/orders";
 import { couponProblem, discounted, loadCoupon, normaliseCode } from "@/lib/coupons";
 import { listPublishedMocks } from "@/lib/wt/mock";
+
+/** The checkout's handler asks Razorpay twice at most (capture, then the payment list), eight seconds each. */
+export const maxDuration = 40;
 
 export const metadata: Metadata = {
   title: "RRB ALP Psycho Test Series Packages & Prices | Kautilya Classes",
@@ -28,7 +32,10 @@ export default async function PackagesPage({ searchParams }: { searchParams: Pro
   const [packages, mocks, access] = await Promise.all([
     listPackages("alp"),
     isConfigured() ? listPublishedMocks().catch(() => []) : Promise.resolve([]),
-    profile ? accessFor(profile.id, profile.role) : Promise.resolve(null),
+    // A payment Razorpay took but the checkout could not confirm (a closed
+    // tab, a refused capture call) is settled here first, so the student
+    // sees the package they paid for rather than Buy again.
+    profile ? reconcilePendingOrders(profile.id).then(() => accessFor(profile.id, profile.role)) : Promise.resolve(null),
   ]);
   const freeMock = mocks.find((m) => m.isFree) ?? null;
   const online = await onlineBuyingFor(profile?.role ?? null);

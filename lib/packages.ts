@@ -182,8 +182,11 @@ export async function grantEnrollment(userId: string, pkg: Package, opts: { sour
   const supabase = createAdminClient();
   const days = opts.validityDays === undefined ? pkg.validityDays : opts.validityDays;
   const fresh = opts.expiresAt !== undefined ? opts.expiresAt : days ? new Date(Date.now() + days * 86400000).toISOString() : null;
-  const { data: existing } = await supabase.from("enrollments").select("id, expires_at").eq("user_id", userId).eq("package_id", pkg.id).maybeSingle();
+  const { data: existing } = await supabase.from("enrollments").select("id, expires_at, order_id").eq("user_id", userId).eq("package_id", pkg.id).maybeSingle();
   if (existing) {
+    // The same purchase, granted already (its reply was lost, or a second
+    // caller got here first): one payment buys one validity.
+    if (opts.orderId && existing.order_id === opts.orderId) return;
     const current = existing.expires_at as string | null;
     // Still running: add the new validity on top; lapsed or endless: as computed.
     let expiresAt = fresh;
