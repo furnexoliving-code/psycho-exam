@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireEditor } from "@/lib/auth";
 import { indianLocalInput } from "@/lib/format-time";
-import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
+import { BATTERIES_IN_HALL_ORDER, CATEGORIES } from "@/lib/wt/categories";
 import { listPapersForAdmin } from "@/lib/wt/db";
 import { loadMock, mockMinutes, mockStatus } from "@/lib/wt/mock";
 import { SaveForm } from "@/components/admin/SaveForm";
@@ -53,7 +53,7 @@ export default async function MockEditor({
 
         <h2 className="text-[13px] font-bold uppercase tracking-wide text-gray-500">Step 1 · The five tests, in the hall&apos;s order</h2>
         <p className="mt-1 text-[12px] text-gray-600">
-          One paper per battery. Only a published paper with questions can go into a published mock; a battery left blank is left out.
+          One paper per battery, sat in the hall&apos;s order (the railway&apos;s mock for CEN 01/2025: Memory, Depth Perception, Power of Observation, Following Directions, Perceptual Speed). Only a published paper with questions can go into a published mock; a battery left blank is left out.
           Prefer papers marked <b>MOCK ONLY</b> (tick &ldquo;Only for Full Mocks&rdquo; in the paper&apos;s settings): students cannot practise
           those, so the mock tests them fresh. A paper &ldquo;also in practice&rdquo; may already have been sat.
         </p>
@@ -66,12 +66,12 @@ export default async function MockEditor({
             </tr>
           </thead>
           <tbody>
-            {BATTERIES.map((battery) => {
+            {BATTERIES_IN_HALL_ORDER.map((battery, i) => {
               const ids: string[] = CATEGORIES.filter((c) => c.battery === battery.id).map((c) => c.id);
               const options = papers.filter((p) => ids.includes(p.category));
               return (
                 <tr key={battery.id} className="border-t border-gray-200">
-                  <td className="px-3 py-2 font-bold text-gray-700">{battery.id}</td>
+                  <td className="px-3 py-2 font-bold text-gray-700">{i + 1}</td>
                   <td className="px-3 py-2 font-semibold text-gray-900">{battery.title}</td>
                   <td className="px-3 py-2">
                     <select name={`paper_${battery.id}`} defaultValue={chosenByBattery.get(battery.id) ?? ""} className="w-full max-w-md rounded border border-gray-400 px-3 py-2 text-[13px]">

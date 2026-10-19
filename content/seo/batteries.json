@@ -121,7 +121,7 @@
    },
    {
     "day": "Day 6",
-    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting, in the guideline's order. Compare the Test 1 T-Score on the scorecard with 42, the pass bar, and with 60, the Kautilya Classes target."
+    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting, in the order of the railway's mock. Compare the Test 1 T-Score on the scorecard with 42, the pass bar, and with 60, the Kautilya Classes target."
    },
    {
     "day": "Day 7",
@@ -147,7 +147,7 @@
    },
    {
     "q": "Is the Memory Test the first test of the CBAT?",
-    "a": "Yes. It is Test 1 of five and comes before the Following Directions Test. The free Full Mock runs the five tests in the RDSO guideline's order; the railway's mock for CEN 01/2025 runs them in another."
+    "a": "Yes. It is Test 1 of five and comes before the Following Directions Test. The free Full Mock runs the five tests in the order of the railway's mock for CEN 01/2025: Memory, Depth Perception, Power of Observation, Following Directions, Perceptual Speed."
    },
    {
     "q": "What does the Memory Test measure?",
@@ -633,7 +633,7 @@
    "The given figure sits on the left, or above in the Same Figure Test. The five options, A to E, sit beside it or below it. You click the matching option for each figure; Save & Next saves the sheet or part on screen and opens the next, while the Time Left clock keeps running. The figures differ by kind: octagon patterns, circle figures, objects such as a radio, or plain figures. This page gives you the method, the mistakes that cost marks, a 7-day plan and candidates' questions."
   ],
   "introHi": "प्रत्यक्ष गति परीक्षण RRB ALP के साइको टेस्ट (CBAT) का पाँचवाँ और आखिरी टेस्ट है, जो देखता है कि आपकी आँख छोटा-सा अंतर कितनी जल्दी और कितनी सही पकड़ती है। परीक्षा हॉल में यह पाँच में से एक रूप में आता है: समानता परीक्षण, अष्टकोण परीक्षण, समानता परीक्षण प्रकार-II, समान वृत्त परीक्षण या समान आकृति परीक्षण। हर रूप में एक आकृति और पाँच विकल्प दिखते हैं और आपको उससे मिलती आकृति चुननी होती है, समानता परीक्षण और समानता परीक्षण प्रकार-II में सबसे अधिक मिलती-जुलती, और बाकी तीन रूपों में बिल्कुल वैसी ही; समय बहुत कम है, अष्टकोण परीक्षण में 96 सवाल 5 मिनट में और समान आकृति परीक्षण में 72 सवाल 8 मिनट में।",
-  "kindsIntro": "Test 5 has five kinds, and the hall gives only one of them. The kinds: Similarity Test (5a), Octagonal Test (5b), Similarity Test Type-II (5c), Same Circle Test (5d), Same Figure Test (5e). In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show. The railway's mock link for CEN 01/2025 gives the Same Circle Test (5d): practise that one first.",
+  "kindsIntro": "Test 5 has five kinds, and the hall gives only one of them. The kinds: Similarity Test (5a), Octagonal Test (5b), Similarity Test Type-II (5c), Same Circle Test (5d), Same Figure Test (5e). In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show. The railway's mock link for CEN 01/2025 gives the Octagonal Test (5b): practise that one first.",
   "how": [
    {
     "h": "Instruction screen",
@@ -737,7 +737,7 @@
   "faq": [
    {
     "q": "Which kind of perceptual speed test comes in the ALP psycho test?",
-    "a": "Any one of its five kinds; the hall does not say which in advance. You learn the kind from the instruction screen's example on the day. In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show. The railway's mock link for CEN 01/2025 gives the Same Circle Test (5d)."
+    "a": "Any one of its five kinds; the hall does not say which in advance. You learn the kind from the instruction screen's example on the day. In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show. The railway's mock link for CEN 01/2025 gives the Octagonal Test (5b)."
    },
    {
     "q": "How many questions are in the RRB ALP perceptual speed test?",
@@ -756,6 +756,6 @@
     "a": "Sit every paper at the hall's clock, not slower: speed comes from the key-and-sweep method, not from reading faster. Open the review after each paper and remove one cause of wrong clicks at a time."
    }
   ],
-  "summaryHi": "प्रत्यक्ष गति परीक्षण RRB ALP साइको टेस्ट का पाँचवाँ और आखिरी टेस्ट है, और परीक्षा हॉल में पाँच रूपों में से एक ही आता है: समानता परीक्षण (5a), अष्टकोण परीक्षण (5b), समानता परीक्षण प्रकार-II (5c), समान वृत्त परीक्षण (5d) या समान आकृति परीक्षण (5e)। हर सवाल में एक आकृति दी होती है और A से E तक पाँच विकल्पों में से उससे मिलती आकृति चुननी होती है; सवाल 60 से 96 तक और समय 5 से 8 मिनट तक, रूप के अनुसार। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, समान आकृति परीक्षण आया था, पर CEN 01/2025 के रेलवे मॉक लिंक में समान वृत्त परीक्षण (5d) है, इसलिए अब उसकी तैयारी पहले कीजिए और बाकी चारों की उसके साथ। तरीका एक ही है: दी गई आकृति का एक खास निशान चुनिए, पाँचों विकल्पों में वही निशान खोजिए, उलटी (दर्पण) आकृति से बचिए, क्लिक करके Save & Next दबाइए और पीछे मुड़कर मत देखिए। एक फुल मॉक मुफ़्त है; हर रूप के प्रैक्टिस पेपर में परीक्षा हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का सही विकल्प दिखता है।"
+  "summaryHi": "प्रत्यक्ष गति परीक्षण RRB ALP साइको टेस्ट का पाँचवाँ और आखिरी टेस्ट है, और परीक्षा हॉल में पाँच रूपों में से एक ही आता है: समानता परीक्षण (5a), अष्टकोण परीक्षण (5b), समानता परीक्षण प्रकार-II (5c), समान वृत्त परीक्षण (5d) या समान आकृति परीक्षण (5e)। हर सवाल में एक आकृति दी होती है और A से E तक पाँच विकल्पों में से उससे मिलती आकृति चुननी होती है; सवाल 60 से 96 तक और समय 5 से 8 मिनट तक, रूप के अनुसार। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, समान आकृति परीक्षण आया था, पर CEN 01/2025 के रेलवे मॉक लिंक में अष्टकोण परीक्षण (5b) है, इसलिए अब उसकी तैयारी पहले कीजिए और बाकी चारों की उसके साथ। तरीका एक ही है: दी गई आकृति का एक खास निशान चुनिए, पाँचों विकल्पों में वही निशान खोजिए, उलटी (दर्पण) आकृति से बचिए, क्लिक करके Save & Next दबाइए और पीछे मुड़कर मत देखिए। एक फुल मॉक मुफ़्त है; हर रूप के प्रैक्टिस पेपर में परीक्षा हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का सही विकल्प दिखता है।"
  }
 ]

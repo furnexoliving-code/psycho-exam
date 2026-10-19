@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BATTERIES } from "@/lib/wt/categories";
+import { BATTERIES_IN_HALL_ORDER, hallPosition } from "@/lib/wt/categories";
 import { useExamChrome } from "./ExamChrome";
 
 const InfoDot = ({ active = false }: { active?: boolean }) => (
@@ -20,8 +20,9 @@ const InfoDot = ({ active = false }: { active?: boolean }) => (
  * The grey strip of test tabs, as the real hall screen shows it: this
  * paper's own tabs (its instructions, then its test or its parts) with the
  * battery's number and the test's Hindi name, and around them the other
- * four batteries, greyed out — on view, as in the hall, but not open. A
- * strip wider than the screen scrolls with the arrows at either end.
+ * four batteries, greyed out — on view, as in the hall, but not open. The
+ * tests are numbered in the hall's order, not by the battery. A strip
+ * wider than the screen scrolls with the arrows at either end.
  *
  * The tabs show where the candidate is; they do not navigate. Moving from the
  * instructions to the test is done with Skip Instruction, and there is no way
@@ -39,14 +40,15 @@ export function TestTabs({
   title?: string;
 }) {
   const { battery } = useExamChrome();
-  const own = battery ? BATTERIES.find((b) => b.id === battery) : undefined;
-  const others = battery ? BATTERIES.filter((b) => b.id !== battery) : [];
-  const before = others.filter((b) => battery !== null && b.id < battery);
-  const after = others.filter((b) => battery !== null && b.id > battery);
+  const own = battery ? BATTERIES_IN_HALL_ORDER.find((b) => b.id === battery) : undefined;
+  const position = battery ? hallPosition(battery) : 0;
+  const others = battery ? BATTERIES_IN_HALL_ORDER.filter((b) => b.id !== battery) : [];
+  const before = others.filter((b) => hallPosition(b.id) < position);
+  const after = others.filter((b) => hallPosition(b.id) > position);
 
   // "Memory Test-1" → "Test 1 - Memory Test / स्मृति परीक्षण (Part 1)", as the hall names it.
   const named = (label: string) => {
-    const prefix = battery ? `Test ${battery} - ` : "";
+    const prefix = battery ? `Test ${position} - ` : "";
     if (!title || !own) return `${prefix}${label}`;
     const bilingual = `${title} / ${own.hindi}`;
     const part = label.match(/-(\d+)$/);
@@ -79,13 +81,13 @@ export function TestTabs({
       <Arrow dir={-1} enabled={canScroll.left} onClick={() => nudge(-1)} />
       <div ref={strip} className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {before.map((b) => (
-          <Tab key={`b${b.id}`} label={`Test ${b.id} - ${b.title} / ${b.hindi}`} muted />
+          <Tab key={`b${b.id}`} label={`Test ${hallPosition(b.id)} - ${b.title} / ${b.hindi}`} muted />
         ))}
         {tabs.map((tab) => (
           <Tab key={tab.id} label={named(tab.label)} active={tab.id === activeId} />
         ))}
         {after.map((b) => (
-          <Tab key={`b${b.id}`} label={`Test ${b.id} - ${b.title} / ${b.hindi}`} muted />
+          <Tab key={`b${b.id}`} label={`Test ${hallPosition(b.id)} - ${b.title} / ${b.hindi}`} muted />
         ))}
       </div>
       <Arrow dir={1} enabled={canScroll.right} onClick={() => nudge(1)} />

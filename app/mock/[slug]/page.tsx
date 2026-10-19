@@ -92,7 +92,7 @@ export default async function MockPage({ params, searchParams }: { params: Promi
                   <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[12px] font-bold ${done ? "bg-green-100 text-green-800" : now ? "bg-[#1d4ed8] text-white" : "bg-gray-100 text-gray-700"}`}>{done ? "✓" : i + 1}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold text-gray-900">
-                      Test {paper.battery} · {battery?.title ?? paper.category}
+                      Test {i + 1} · {battery?.title ?? paper.category}
                     </span>
                     <span className="block text-[12px] text-gray-500">
                       {paper.displayName} · {paper.questionCount} questions · {paper.instructionTimeMin} min reading + {paper.timeLimitMin} min test

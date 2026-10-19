@@ -70,7 +70,7 @@ export const SECTIONS: readonly Section[] = [
  * as Memory, Depth Perception, Power of Observation, Following
  * Directions, Perceptual Speed.
  */
-export const NEXT_EXAM_CODES: readonly string[] = ["1f", "2b", "3a", "4d", "5d"];
+export const NEXT_EXAM_CODES: readonly string[] = ["1f", "2b", "3a", "4d", "5b"];
 /** Which exam that is, as the notice names it. */
 export const NEXT_EXAM_LABEL = "CEN 01/2025";
 

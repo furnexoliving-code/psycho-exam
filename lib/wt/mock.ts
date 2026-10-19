@@ -2,7 +2,7 @@ import { fetchAll } from "./cohort";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { accessFor, canSitMock } from "@/lib/packages";
-import { BATTERIES, CATEGORIES, categoryKind } from "./categories";
+import { BATTERIES, CATEGORIES, categoryKind, hallPosition } from "./categories";
 import { resolveFeatures, type WatchFeatures } from "./types";
 import { cohortFromMoments } from "./cohort";
 import { tScore } from "./tscore";
@@ -180,7 +180,7 @@ export async function loadMock(slug: string): Promise<{ mock: MockTest; papers: 
   return { mock, papers: await papersOf(mock.paperIds) };
 }
 
-/** The papers named, in the order named; a deleted paper is simply absent. */
+/** The papers named, in the hall's order; a deleted paper is simply absent. */
 export async function papersOf(ids: string[]): Promise<MockPaper[]> {
   if (ids.length === 0) return [];
   const supabase = createAdminClient();
@@ -190,7 +190,7 @@ export async function papersOf(ids: string[]): Promise<MockPaper[]> {
   ]);
   const count = new Map((counts ?? []).map((c) => [c.paper_id as string, Number(c.question_count)]));
   const byId = new Map((rows ?? []).map((r) => [r.id as string, r]));
-  return ids.flatMap((id) => {
+  const named = ids.flatMap((id) => {
     const r = byId.get(id);
     if (!r) return [];
     const category = (r.category as string) ?? "watch";
@@ -208,6 +208,9 @@ export async function papersOf(ids: string[]): Promise<MockPaper[]> {
       },
     ];
   });
+  // A mock sits its papers in the hall's order, whatever order they were
+  // named in: a mock made before the order was known follows it too.
+  return named.map((p, i) => [p, i] as const).sort((a, b) => hallPosition(a[0].battery) - hallPosition(b[0].battery) || a[1] - b[1]).map(([p]) => p);
 }
 
 /** The whole sitting's length in minutes: every test's reading and clock, plus the gaps. */

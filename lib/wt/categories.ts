@@ -193,6 +193,25 @@ export const CATEGORIES = [
   blurb: string;
 }[];
 
+/**
+ * The order the hall gives the five tests, as the railway's own mock for
+ * CEN 01/2025 runs them: Memory, Depth Perception, Power of Observation,
+ * Following Directions, Perceptual Speed. The batteries keep the RDSO
+ * guideline's numbering (1 to 5) in their codes and on the practice and
+ * public pages; a Full Mock sits them in this order, and the exam screens
+ * number the tests by it.
+ */
+export const HALL_ORDER: readonly number[] = [1, 3, 4, 2, 5];
+
+/** Where a battery comes in the hall's order, 1 to 5; a battery outside the order keeps its number. */
+export function hallPosition(battery: number): number {
+  const i = HALL_ORDER.indexOf(battery);
+  return i < 0 ? battery : i + 1;
+}
+
+/** The batteries in the hall's order. */
+export const BATTERIES_IN_HALL_ORDER = HALL_ORDER.map((id) => BATTERIES.find((b) => b.id === id)).filter((b): b is (typeof BATTERIES)[number] => b !== undefined);
+
 /** The battery's own name, as the hall screen writes it: the name of every test in it. */
 export function testNameOf(battery: number | null | undefined, fallback = ""): string {
   return BATTERIES.find((b) => b.id === battery)?.title ?? fallback;

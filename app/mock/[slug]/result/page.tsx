@@ -4,7 +4,7 @@ import { StudentHeader } from "@/components/StudentHeader";
 import { photoUrlOf } from "@/lib/photo";
 import { requireUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format-time";
-import { BATTERIES } from "@/lib/wt/categories";
+import { BATTERIES, BATTERIES_IN_HALL_ORDER } from "@/lib/wt/categories";
 import { latestMockResult, loadMock, mockLeaderboard, mockMinutes, mockStanding } from "@/lib/wt/mock";
 import { MockScorecard } from "@/components/MockScorecard";
 import { ScorecardOffer } from "@/components/ScorecardOffer";
@@ -77,7 +77,7 @@ export default async function MockResultPage({ params }: { params: Promise<{ slu
             result={result}
             standing={standing}
             leaders={leaders}
-            batteries={BATTERIES.map((b) => ({ id: b.id, title: b.title }))}
+            batteries={BATTERIES_IN_HALL_ORDER.map((b) => ({ id: b.id, title: b.title }))}
             myId={who.id}
           />
         )}

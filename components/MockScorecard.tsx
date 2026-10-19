@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShareResult } from "@/components/ShareResult";
 import { scoreOutOf30, type LeaderRow, type MockResult } from "@/lib/wt/mock";
+import { hallPosition } from "@/lib/wt/categories";
 
 /**
  * The Full Mock scorecard, in the result page's own visual language: a row
@@ -100,13 +101,14 @@ export function MockScorecard({
             </tr>
           </thead>
           <tbody>
-            {result.tests.map((t) => {
+            {/* In the hall's order, whatever order the sitting was recorded in. */}
+            {[...result.tests].sort((a, b) => hallPosition(a.battery) - hallPosition(b.battery)).map((t) => {
               const title = batteries.find((b) => b.id === t.battery)?.title ?? t.name;
               const width = t.tScore === null ? 0 : Math.max(4, Math.min(100, ((t.tScore - 20) / 60) * 100));
               return (
                 <tr key={t.paperId} className="border-t border-gray-100">
                   <td className="px-4 py-2.5">
-                    <div className="font-semibold text-gray-900">Test {t.battery} · {title}</div>
+                    <div className="font-semibold text-gray-900">Test {hallPosition(t.battery)} · {title}</div>
                     <div className="text-[11px] text-gray-500">{t.name}</div>
                   </td>
                   <td className="px-4 py-2.5 tabular-nums">{t.marks} / {t.total}</td>

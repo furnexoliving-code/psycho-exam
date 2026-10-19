@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { fromIndianLocalInput } from "@/lib/format-time";
 import { logAction } from "@/lib/audit";
 import { mocksChanged, papersOf } from "@/lib/wt/mock";
-import { BATTERIES } from "@/lib/wt/categories";
+import { HALL_ORDER } from "@/lib/wt/categories";
 
 const BACK = "/admin/mocks";
 
@@ -58,7 +58,7 @@ export async function saveMock(_prev: SaveState | null, formData: FormData): Pro
 
     // One paper per battery, in the hall's order. A battery left blank is
     // simply not in this mock.
-    const paperIds = BATTERIES.map((b) => String(formData.get(`paper_${b.id}`) ?? "")).filter(Boolean);
+    const paperIds = HALL_ORDER.map((id) => String(formData.get(`paper_${id}`) ?? "")).filter(Boolean);
     const publish = formData.get("is_published") === "on";
     const isFree = formData.get("is_free") === "on";
     const papers = await papersOf(paperIds);

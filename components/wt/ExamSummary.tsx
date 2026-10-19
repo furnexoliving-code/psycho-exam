@@ -1,6 +1,7 @@
 "use client";
 
 import type { MockSummaryTest } from "@/lib/wt/mock";
+import { hallPosition } from "@/lib/wt/categories";
 
 /**
  * The hall's Exam Summary, shown in every break of a Full Mock: each test
@@ -16,7 +17,7 @@ export function ExamSummaryList({ tests, skipBattery }: { tests: MockSummaryTest
         .map((t) => (
           <div key={t.battery}>
             <p className="text-[0.8em] font-semibold text-[#222]">
-              Test {t.battery} - {t.title} / <span lang="hi">{t.hindi}</span> :{" "}
+              Test {hallPosition(t.battery)} - {t.title} / <span lang="hi">{t.hindi}</span> :{" "}
               {t.status === "done" ? "( Attempted Group ; View not allowed; Edit not allowed)" : "( Yet to attempt )"}
             </p>
             {t.status === "done" && <SummaryTable rows={t.rows} />}
