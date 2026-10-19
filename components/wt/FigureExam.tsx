@@ -174,8 +174,17 @@ export function FigureExam({
       column.current?.scrollTo({ top: 0 });
       return;
     }
+    // A box left open while the clock moved the part on (into its break
+    // or the next part's instructions) must not submit the whole paper.
+    if (at && at.phase !== "questions") return;
     finish();
   }, [at, partCount, dispatch, finish]);
+
+  // Every screen of a schedule starts at the top: the instruction text a
+  // student scrolled must not leave the next study picture half hidden.
+  useEffect(() => {
+    column.current?.scrollTo({ top: 0 });
+  }, [at?.part, at?.phase]);
 
   // Submitted — by the button, by the clock, or by the server — means the
   // result, at once.
@@ -410,9 +419,9 @@ export function FigureExam({
                       </div>
                     )}
                     <p className="mt-2 text-[0.75em] text-[#666]">
-                      The next part&apos;s study screen opens by itself when the break ends.
+                      {partIntro ? "The next part's instruction screen opens by itself when the break ends." : "The next part's study screen opens by itself when the break ends."}
                       <span className="ml-2" lang="hi">
-                        अवकाश समाप्त होते ही अगले भाग की अध्ययन स्क्रीन स्वतः खुलेगी।
+                        {partIntro ? "अवकाश समाप्त होते ही अगले भाग की निर्देश स्क्रीन स्वतः खुलेगी।" : "अवकाश समाप्त होते ही अगले भाग की अध्ययन स्क्रीन स्वतः खुलेगी।"}
                       </span>
                     </p>
                   </div>
@@ -714,7 +723,7 @@ export function FigureExam({
       <ConfirmBox
         open={confirmSkip}
         title="Start the test now?"
-        body={`The instruction screen closes and the test's own ${shownTimeLimitMin(paper)} minute clock starts. You cannot come back to the instructions.`}
+        body={partIntro ? `The instruction screen closes and Part 1's own ${partMin} minute clock starts. You cannot come back to these instructions.` : `The instruction screen closes and the test's own ${shownTimeLimitMin(paper)} minute clock starts. You cannot come back to the instructions.`}
         confirmLabel="Start test"
         cancelLabel="Keep reading"
         onConfirm={() => {
@@ -738,7 +747,9 @@ export function FigureExam({
       />
 
       <ConfirmBox
-        open={confirmSubmit}
+        // Shut by itself once the clock has moved the part on: a box left
+        // open over the break must not submit anything.
+        open={confirmSubmit && (!scheduled || inQuestions)}
         title={partOnly ? `Are you sure you want to submit Part ${part + 1}?` : "Are you sure you want to submit the test?"}
         body={
           partOnly
@@ -749,6 +760,7 @@ export function FigureExam({
         cancelLabel="No"
         onConfirm={() => {
           setConfirmSubmit(false);
+          if (scheduled && !inQuestions) return;
           if (partOnly) {
             submitPart();
             return;

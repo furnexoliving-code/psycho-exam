@@ -340,8 +340,11 @@ export default async function EditWatchPaper({
                   {Math.max(1, Math.ceil(paper.questions.length / features.questionsPerPart))} part
                   {Math.max(1, Math.ceil(paper.questions.length / features.questionsPerPart)) === 1 ? "" : "s"} × (
                   {features.studyTimeMin} study + {features.partTimeMin} questions) ={" "}
-                  <strong>{scheduleMinutes(features, paper.questions.length, false)} minutes</strong>, as the
-                  candidate is told; with the breaks and any instruction screens between parts the sitting runs{" "}
+                  <strong>{scheduleMinutes(features, paper.questions.length, false)} minutes</strong>
+                  {features.partInstructionMin > 0
+                    ? `; each part's instruction screen tells the candidate its own ${features.studyTimeMin + features.partTimeMin} minutes`
+                    : ", as the candidate is told"}
+                  ; with the breaks and any instruction screens between parts the sitting runs{" "}
                   {scheduleMinutes(features, paper.questions.length)} minutes. It is kept up to date as
                   questions are added or removed.
                 </p>
