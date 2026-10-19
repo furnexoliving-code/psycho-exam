@@ -417,7 +417,7 @@ export function PublicHeader() {
             ALP psycho test
           </Link>
           <Link href="/psycho-test" className="hover:text-[#0d2a6b]">
-            19 kinds of question
+            20 kinds of question
           </Link>
           <Link href="/packages" className="hover:text-[#0d2a6b]">
             Prices
@@ -484,7 +484,7 @@ export function PublicFooter() {
             </li>
             <li>
               <Link href="/psycho-test" className="hover:underline">
-                All 19 kinds of question
+                All 20 kinds of question
               </Link>
             </li>
             {TESTS.map((t) => (

@@ -12,6 +12,7 @@ import { MAX_OPTION, parseOption, parseQuestionLines } from "@/lib/wt/parse-ques
 import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged, readQuestionRows } from "@/lib/wt/db";
 import { BATTERIES, CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
+import { sectionOf } from "@/lib/wt/sections";
 import { matchingExampleText, memorySchedule, pictureInstructions, sheetExampleText, sheetOf } from "@/lib/wt/figure-sample";
 import { builtQuestions, builtSpec } from "@/lib/wt/built";
 import { syncScheduleClock } from "./figure-actions";
@@ -186,7 +187,10 @@ export async function createPaper(formData: FormData) {
   const matching = category === "figure" || category === "octagonal" || category === "circle";
   // A sheet test (Brick, Similarity): a picture per part with its questions; the hall's own clock.
   const sheet = sheetOf(category);
-  const pictureMin = sheet ? sheet.timeMin : category === "circle" ? 8 : 5;
+  // A Memory test's clock is its parts' study and answering time together,
+  // as the hall's index gives it; the schedule keeps it in step afterwards.
+  const hallClock = memorySchedule(category) ? sectionOf("", category)?.timeMin : undefined;
+  const pictureMin = sheet ? sheet.timeMin : (hallClock ?? (category === "circle" ? 8 : 5));
 
   // A fresh Following Directions paper starts with a generated diagram and a
   // full set of questions, so it is usable immediately rather than an empty

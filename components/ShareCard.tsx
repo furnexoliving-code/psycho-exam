@@ -191,7 +191,7 @@ export function ShareCard({
         </div>
         <div style={{ fontSize: 11, textAlign: "right", opacity: 0.9 }}>
           <div style={{ fontWeight: 700 }}>Kautilya Classes</div>
-          <div>19 kinds of test · Full Mocks</div>
+          <div>20 kinds of test · Full Mocks</div>
         </div>
       </div>
     </div>

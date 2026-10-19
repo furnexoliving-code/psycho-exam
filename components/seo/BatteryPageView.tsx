@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import { FreeMockCta } from "@/components/FreeMockCta";
 import { Crumbs, Eyebrow, FaqList, H2, HindiSummary, JoinBand, LinkCards, Mistakes, PlanRows, Sidebar, Stat, Steps, Tips } from "@/components/seo/parts";
-import { BATTERY_PAGES, DEVICE_TIP, LAST_EXAM_LABEL, STANDARD_FAQ, batteryUrl, hallOf, kindUrl, kindsOfBattery, lastExamGave, type BatteryPage } from "@/lib/seo/content";
+import { BATTERY_PAGES, DEVICE_TIP, NEXT_EXAM_LABEL, STANDARD_FAQ, batteryUrl, hallOf, kindUrl, kindsOfBattery, mockGives, type BatteryPage } from "@/lib/seo/content";
 import type { Package } from "@/lib/packages";
 
 /**
@@ -40,7 +40,7 @@ export function BatteryPageView({ page, packages }: { page: BatteryPage; package
               <Stat big={range(questions)} label="questions, by kind" />
               <Stat big={`${range(minutes)} min`} label="time, by kind" />
             </div>
-            <p className="mt-2 text-[12.5px] text-gray-500">The hall gives one kind for Test {page.battery}, with that kind&apos;s own count and clock (RDSO guideline, ALPs Guidelines CBT, Jan 2020). T-Score 42 or more is needed in this test, as in every test.</p>
+            <p className="mt-2 text-[12.5px] text-gray-500">The hall gives one kind for Test {page.battery}, with that kind&apos;s own count and clock (RDSO guideline, ALPs Guidelines CBT, Jan 2020).{page.hallNote ? ` ${page.hallNote}` : ""} T-Score 42 or more is needed in this test, as in every test.</p>
 
             <div className="mt-8">
               <FreeMockCta test={page.name} />
@@ -60,7 +60,7 @@ export function BatteryPageView({ page, packages }: { page: BatteryPage; package
                     const h = hallOf(k);
                     return (
                       <tr key={k.code} className="border-b border-gray-200 even:bg-gray-50">
-                        <td className="px-3 py-3 font-bold text-[#c8102e]">{k.code}{lastExamGave(k.code) && <span className="ml-1 text-[#ff9933]" title={`Given in ${LAST_EXAM_LABEL}`}>★</span>}</td>
+                        <td className="px-3 py-3 font-bold text-[#c8102e]">{k.code}{mockGives(k.code) && <span className="ml-1 text-[#ff9933]" title={`In the railway's mock link for ${NEXT_EXAM_LABEL}`}>★</span>}</td>
                         <td className="px-3 py-3"><Link href={kindUrl(k)} className="font-bold text-[#0d2a6b] hover:underline">{k.name}</Link><span className="block text-[12px] text-gray-500" lang="hi">{k.hindi}</span></td>
                         <td className="px-3 py-3 text-gray-700">{h.blurb}</td>
                         <td className="px-3 py-3 tabular-nums">{h.questions}{h.questionsNote && <span className="block text-[11px] text-gray-500">{h.questionsNote}</span>}</td>
@@ -71,7 +71,7 @@ export function BatteryPageView({ page, packages }: { page: BatteryPage; package
                 </tbody>
               </table>
             </div>
-            <p className="mt-2 text-[12.5px] text-gray-500">★ The kind the last exam ({LAST_EXAM_LABEL}) gave for this test. Each kind has its own page with a worked example, the method and a plan.</p>
+            <p className="mt-2 text-[12.5px] text-gray-500">★ The kind the railway&apos;s mock link for {NEXT_EXAM_LABEL} gives for this test. Each kind has its own page with a worked example, the method and a plan.</p>
 
             <H2 id="pattern" sub="स्क्रीन पर कैसे चलता है">How the test runs on screen</H2>
             <Steps steps={page.how} />
@@ -98,7 +98,7 @@ export function BatteryPageView({ page, packages }: { page: BatteryPage; package
             <H2>The other four tests of the CBAT</H2>
             <LinkCards items={others.map((b) => ({ href: batteryUrl(b), title: `Test ${b.battery} · ${b.name}`, hindi: b.hindi, note: `${kindsOfBattery(b.battery).length} kinds of question` }))} />
             <p className="mt-6 text-[14px] text-gray-600">
-              New to the exam? Start with the <Link href="/rrb-alp-psycho-test" className="font-semibold text-[#0d2a6b] hover:underline">complete guide to the RRB ALP psycho test</Link>, or see <Link href="/psycho-test" className="font-semibold text-[#0d2a6b] hover:underline">all 19 kinds of question</Link> on one page.
+              New to the exam? Start with the <Link href="/rrb-alp-psycho-test" className="font-semibold text-[#0d2a6b] hover:underline">complete guide to the RRB ALP psycho test</Link>, or see <Link href="/psycho-test" className="font-semibold text-[#0d2a6b] hover:underline">all 20 kinds of question</Link> on one page.
             </p>
           </article>
 

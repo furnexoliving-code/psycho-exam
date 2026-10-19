@@ -78,6 +78,19 @@ export function FigureQuestionsPanel({
   // A map test (House Position, Railway Track Route): one picture per part,
   // with the part's questions typed as labels beside it.
   const map = mapOf(category);
+  // The part about to be added, when the parts differ (vehicles, then
+  // signals): the first whose questions are not there yet, so a part the
+  // admin deleted to redo is added back as itself, by its topic name.
+  const partItem = (() => {
+    if (!map?.partItems) return map?.item ?? "";
+    const missing = map.partItems.findIndex((item) => !questions.some((q) => (q.topic ?? "").toLowerCase().startsWith(item)));
+    return map.partItems[missing >= 0 ? missing : map.partItems.length - 1];
+  })();
+  // A map test's options are letters: a numbers choice left over from the
+  // paper's earlier category falls back to the test's own default.
+  const mapOptions = optionStyle === "letters" ? { style: optionStyle, count: optionCount } : defaultOptionsFor(category);
+  const lastLetter = OPTION_LETTERS[mapOptions.count - 1];
+  const countSource = map?.countSource ?? "in the hall";
   const [labels, setLabels] = useState((map?.defaultLabels ?? []).join("\n"));
   const mapPicker = useRef<HTMLInputElement | null>(null);
   // A house test: the part's questions are pictures, chosen before the map.
@@ -96,8 +109,8 @@ export function FigureQuestionsPanel({
     const state: Run = { done: 0, total: 1 + pictures.length, error: null, running: true };
     setRun({ ...state });
     try {
-      if (map.pictureQuestions && pictures.length === 0) throw new Error(`Choose the ${map.item} pictures of this part first (step 1), one per question`);
-      if (names.length === 0) throw new Error(`Type the ${map.item}s of this part first, one per line`);
+      if (map.pictureQuestions && pictures.length === 0) throw new Error(`Choose the ${partItem} pictures of this part first (step 1), one per question`);
+      if (names.length === 0) throw new Error(`Type the ${partItem}s of this part first, one per line`);
       if (names.length > 60) throw new Error("At most 60 questions on one map");
       const promptImages: string[] = [];
       for (const picture of pictures) {
@@ -108,9 +121,9 @@ export function FigureQuestionsPanel({
       const url = await uploadPicture(file);
       state.done += 1;
       setRun({ ...state });
-      const outcome = await addFigureQuestions(slug, [{ image: url }], optionCount, optionStyle, {
+      const outcome = await addFigureQuestions(slug, [{ image: url }], mapOptions.count, mapOptions.style, {
         prompts: names,
-        topicPrefix: map.topicPrefix,
+        topicPrefix: map.partItems ? partItem[0].toUpperCase() + partItem.slice(1) : map.topicPrefix,
         ...(map.pictureQuestions ? { promptImages } : {}),
       });
       if (outcome.error) throw new Error(outcome.error);
@@ -197,22 +210,23 @@ export function FigureQuestionsPanel({
       {/* --------------------------- Add a map part --------------------------- */}
       {map ? (
       <div className="mt-4 rounded border border-gray-300 bg-gray-50 p-4">
-        <p className="text-[13px] font-semibold text-gray-800">Add a part: the test map and its {map.item}s</p>
+        <p className="text-[13px] font-semibold text-gray-800">Add a part: the test map and its {partItem}s</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-gray-600">
           <li>
-            Each part has two pictures: the <strong>study map</strong> (set in the Study screens section above){map.pictureQuestions ? `, with the ${map.item}s drawn on it,` : ""} and the
-            <strong> test map</strong>, the same map with the letters A to E in place of the {map.item}s.
+            Each part has two pictures: the <strong>study map</strong> (set in the Study screens section above){map.pictureQuestions ? `, with the ${partItem}s drawn on it,` : ""} and the
+            <strong> test map</strong>, the same map with the letters {OPTION_LETTERS[0]} to {lastLetter} in place of the {partItem}s.
           </li>
+          {map.partsNote && <li>{map.partsNote}</li>}
           {map.pictureQuestions ? (
             <li>
-              The questions are the {map.item}s themselves, one picture each. <strong>Step 1:</strong> choose the part&apos;s {map.item} pictures, named in the
-              order the questions should come ({map.item}01.png, {map.item}02.png …). <strong>Step 2:</strong> choose the test map. Each picture becomes a
-              question, shown beside the map with the options A to E; {map.perPart} per part in the hall.
+              The questions are the {partItem}s themselves, one picture each. <strong>Step 1:</strong> choose the part&apos;s {partItem} pictures, named in the
+              order the questions should come ({partItem}01.png, {partItem}02.png …). <strong>Step 2:</strong> choose the test map. Each picture becomes a
+              question, shown beside the map with the options {OPTION_LETTERS[0]} to {lastLetter}; {map.perPart} per part {countSource}.
             </li>
           ) : (
             <li>
-              Type the {map.item}s of this part below, one per line, in the order the questions should come (the station names, as the candidate reads them);
-              then choose the test map. The part&apos;s questions are made on it, {map.perPart} per part in the hall.
+              Type the {partItem}s of this part below, one per line, in the order the questions should come (the station names, as the candidate reads them);
+              then choose the test map. The part&apos;s questions are made on it, {map.perPart} per part {countSource}.
             </li>
           )}
           <li>Afterwards type the answer key in one line (one letter per question, in order), or set each answer by hand.</li>
@@ -220,25 +234,25 @@ export function FigureQuestionsPanel({
         <div className="mt-3 flex flex-wrap items-start gap-4">
           {map.pictureQuestions ? (
             <div className="flex flex-col gap-2">
-              <span className="block text-[12px] font-semibold text-gray-700">Step 1 · {map.item[0].toUpperCase() + map.item.slice(1)} pictures of this part, one per question</span>
+              <span className="block text-[12px] font-semibold text-gray-700">Step 1 · {partItem[0].toUpperCase() + partItem.slice(1)} pictures of this part, one per question</span>
               <button
                 type="button"
                 disabled={run?.running}
                 onClick={() => housePicker.current?.click()}
                 className="rounded border border-gray-400 bg-white px-4 py-2 text-[13px] font-semibold text-gray-800 hover:bg-gray-100 disabled:opacity-60"
               >
-                Choose the {map.item} pictures…
+                Choose the {partItem} pictures…
               </button>
               <input ref={housePicker} type="file" accept="image/*" multiple className="hidden" onChange={(e) => setHousePictures(sortByName(Array.from(e.target.files ?? [])))} />
               <span className="max-w-[300px] text-[12px] text-gray-600">
                 {housePictures.length === 0
-                  ? `None chosen yet; ${map.perPart} per part in the hall.`
+                  ? `None chosen yet; ${map.perPart} per part ${countSource}.`
                   : `${housePictures.length} chosen, in this order: ${housePictures.slice(0, 4).map((f) => f.name).join(", ")}${housePictures.length > 4 ? " …" : ""}`}
               </span>
             </div>
           ) : (
           <label className="block">
-            <span className="mb-1 block text-[12px] font-semibold text-gray-700">{map.item[0].toUpperCase() + map.item.slice(1)}s of this part, one per line</span>
+            <span className="mb-1 block text-[12px] font-semibold text-gray-700">{partItem[0].toUpperCase() + partItem.slice(1)}s of this part, one per line</span>
             <textarea
               value={labels}
               onChange={(e) => setLabels(e.target.value)}

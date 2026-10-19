@@ -6,7 +6,7 @@ What is built into the site, what the team does once, and what the team does eve
 
 | Area | What is in place |
 |---|---|
-| Public pages | The guide (/rrb-alp-psycho-test), the list of all 19 kinds (/psycho-test), 5 test pages, 19 kind pages, the packages page, the blog, the policies. 31 pages search engines may index. |
+| Public pages | The guide (/rrb-alp-psycho-test), the list of all 20 kinds (/psycho-test), 5 test pages, 20 kind pages, the packages page, the blog, the policies. 32 pages search engines may index. |
 | Titles and descriptions | Every page has its own title (40 to 60 characters), description (120 to 158), keywords in English and Hinglish, a canonical address, and a share picture made for it. |
 | Structured data | Article, FAQ and breadcrumb data on every content page; a collection list on the kinds page; the institute as an EducationalOrganization on the home page. Google can show the FAQ and breadcrumbs under the result. |
 | Internal links | Guide → tests → kinds, kinds → siblings and the other tests, every page → the guide and the full list, the header and footer → the five tests. Every public page carries the free Full Mock offer. |
@@ -44,7 +44,7 @@ Search engines trust a site that other sites point to. The free Full Mock is the
 1. **Telegram and WhatsApp groups** for RRB ALP: post the kind pages when a question comes up (not the home page): "House Position Test kaise solve karein" with the link. Once a week, never spam.
 2. **YouTube**: a 5-minute video per kind of test on the institute's channel, the page link in the description and pinned comment. Embed the video on the matching page later.
 3. **Quora and Reddit (r/RRB, r/IndianRailways… the exam communities)**: answer "how is the ALP psycho test" questions properly, link the guide.
-4. **Other coaching and exam sites**: offer a guest article ("The 19 kinds of question in the ALP CBAT, explained") to railway exam blogs and Telegram channels, with a link back to the guide.
+4. **Other coaching and exam sites**: offer a guest article ("The 20 kinds of question in the ALP CBAT, explained") to railway exam blogs and Telegram channels, with a link back to the guide.
 5. **Directories and listings**: JustDial, Sulekha, UrbanPro, Google Business Profile, Shiksha (if listed), the institute's own social profiles: each with the website link.
 6. **Student results**: after the exam, a page with students' CBAT results (with permission) and their Full Mock scores: the most shared page a coaching site can have.
 7. **Press release** at launch of the free mock: local Hindi papers and education portals (Jagran Josh, Amar Ujala's education desk) take short items with a link.
@@ -60,4 +60,4 @@ Never buy links and never use link exchanges; one real mention from a railway ex
 
 ## 7. Changing the words on a page
 
-The text of the guide, the five test pages and the 19 kind pages lives in three files, not in code: `content/seo/guide.json`, `content/seo/batteries.json`, `content/seo/kinds.json`. Each page is one block with its title, description, keywords, the paragraphs, the steps, tips, mistakes, the 7-day plan, the FAQ and the Hindi summary. Counts and clocks are not there on purpose: they come from the hall pattern in `lib/wt/sections.ts`, so one change there updates every page and every paper. After a change, a push rebuilds the pages; nothing else is needed.
+The text of the guide, the five test pages and the 20 kind pages lives in three files, not in code: `content/seo/guide.json`, `content/seo/batteries.json`, `content/seo/kinds.json`. Each page is one block with its title, description, keywords, the paragraphs, the steps, tips, mistakes, the 7-day plan, the FAQ and the Hindi summary. Counts and clocks are not there on purpose: they come from the hall pattern in `lib/wt/sections.ts`, so one change there updates every page and every paper. After a change, a push rebuilds the pages; nothing else is needed.

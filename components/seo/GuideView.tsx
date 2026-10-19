@@ -4,7 +4,7 @@ import plan from "@/public/landing/plan.jpg";
 import { PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import { FreeMockCta } from "@/components/FreeMockCta";
 import { Crumbs, Eyebrow, FaqList, H2, HindiSummary, PlanTable, Sidebar, Y } from "@/components/seo/parts";
-import { BATTERY_PAGES, LAST_EXAM_LABEL, batteryUrl, hallOf, kindUrl, kindsOfBattery, lastExamGave, type GuidePage } from "@/lib/seo/content";
+import { BATTERY_PAGES, NEXT_EXAM_LABEL, batteryUrl, hallOf, kindUrl, kindsOfBattery, mockGives, type GuidePage } from "@/lib/seo/content";
 import type { Package } from "@/lib/packages";
 
 /** The complete guide to the exam: the hub every test page links back to. */
@@ -33,8 +33,8 @@ export function GuideView({ page, packages }: { page: GuidePage; packages: Packa
               <FreeMockCta />
             </div>
 
-            <H2 id="tests" sub="पाँच टेस्ट">The five tests and their 19 kinds of question</H2>
-            <p className="mt-2 text-[15px] text-gray-600">The hall gives one kind of question for each test, with that kind&apos;s own count and clock. ★ marks the kind the last exam ({LAST_EXAM_LABEL}) gave. Click a test or a kind for its pattern, a worked example, the method and tips.</p>
+            <H2 id="tests" sub="पाँच टेस्ट">The five tests and their 20 kinds of question</H2>
+            <p className="mt-2 text-[15px] text-gray-600">The hall gives one kind of question for each test, with that kind&apos;s own count and clock (for 1f, the railway&apos;s mock&apos;s). ★ marks the kind the railway&apos;s mock link for {NEXT_EXAM_LABEL} gives. Click a test or a kind for its pattern, a worked example, the method and tips.</p>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full border-collapse text-[14px]">
                 <thead>
@@ -56,8 +56,8 @@ export function GuideView({ page, packages }: { page: GuidePage; packages: Packa
                             const h = hallOf(k);
                             return (
                               <li key={k.code}>
-                                <Link href={kindUrl(k)} className="font-semibold text-[#0d2a6b] hover:underline">{k.code} {k.name}</Link>{lastExamGave(k.code) && <span className="ml-1 text-[#ff9933]">★</span>}
-                                <span className="text-gray-500"> · {h.questions} · {h.timeMin} min</span>
+                                <Link href={kindUrl(k)} className="font-semibold text-[#0d2a6b] hover:underline">{k.code} {k.name}</Link>{mockGives(k.code) && <span className="ml-1 text-[#ff9933]">★</span>}
+                                <span className="text-gray-500"> · {h.questions} · {h.timeMin} min{k.hallNote ? " (railway's mock)" : ""}</span>
                               </li>
                             );
                           })}
@@ -95,10 +95,10 @@ export function GuideView({ page, packages }: { page: GuidePage; packages: Packa
             <aside className="mt-12 rounded-2xl bg-[#0d2a6b] px-6 py-6 text-white">
               <p className="text-[12px] font-bold uppercase tracking-[0.22em]" style={{ color: Y }}>Practise on the real screen</p>
               <h2 className="mt-1 text-[24px] font-extrabold leading-tight">Every kind of question, with the hall&apos;s count and clock, and your T-Score at once</h2>
-              <p className="mt-1 text-[15px] text-[#c9d3e6]">Practice papers of all 19 kinds, up to 3 attempts each, review with the correct answers, and Full Mocks with all 5 tests in the hall&apos;s order.</p>
+              <p className="mt-1 text-[15px] text-[#c9d3e6]">Practice papers of all 20 kinds, up to 3 attempts each, review with the correct answers, and Full Mocks with all 5 tests in the hall&apos;s order.</p>
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link href="/packages" className="rounded-md px-5 py-2.5 text-[14px] font-bold text-[#0d2a6b]" style={{ background: Y }}>Packages &amp; prices</Link>
-                <Link href="/psycho-test" className="rounded-md border border-white/40 px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-white/10">All 19 kinds of question →</Link>
+                <Link href="/psycho-test" className="rounded-md border border-white/40 px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-white/10">All 20 kinds of question →</Link>
               </div>
             </aside>
 

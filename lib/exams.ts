@@ -14,7 +14,7 @@ export interface Exam {
 }
 
 export const EXAMS: readonly Exam[] = [
-  { id: "alp", name: "RRB ALP", short: "ALP", status: "live", note: "CBAT · 5 tests · 19 kinds of question" },
+  { id: "alp", name: "RRB ALP", short: "ALP", status: "live", note: "CBAT · 5 tests · 20 kinds of question" },
   { id: "asm", name: "RRB ASM / Station Master", short: "ASM", status: "planned", note: "Psycho test series · coming" },
   { id: "train-operator", name: "Train Operator", short: "Train Op.", status: "planned", note: "Psycho test series · coming" },
 ];

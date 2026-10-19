@@ -436,7 +436,7 @@ export function FigureExam({
                               // A house test: the question is the house itself.
                               <span className="flex shrink-0 items-center gap-2 whitespace-nowrap text-[1em] text-[#222]">
                                 {number}.{/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={q.promptImage} alt={`${mapOf(paper.category)?.topicPrefix ?? "Picture"} ${number}`} className="w-auto" style={{ height: promptH }} draggable={false} />-
+                                <img src={q.promptImage} alt={q.topic || `${mapOf(paper.category)?.topicPrefix ?? "Picture"} ${number}`} className="w-auto" style={{ height: promptH }} draggable={false} />-
                               </span>
                             ) : (
                               <span className="w-[56px] shrink-0 whitespace-nowrap text-[1em] text-[#222]">

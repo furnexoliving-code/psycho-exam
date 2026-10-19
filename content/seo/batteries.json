@@ -5,8 +5,8 @@
   "battery": 1,
   "name": "Memory Test",
   "hindi": "स्मृति परीक्षण",
-  "title": "Memory Test for RRB ALP CBAT: Pattern, 5 Kinds, Tips",
-  "description": "Memory Test, Test 1 of the RRB ALP CBAT: five kinds, 24 to 42 questions in 8 or 12 minutes. Method, mistakes, a 7-day plan and a free Full Mock.",
+  "title": "Memory Test for RRB ALP CBAT: Pattern, 6 Kinds, Tips",
+  "description": "Memory Test, Test 1 of the RRB ALP CBAT: six kinds, 6 to 42 questions in 4 to 12 minutes. Method, mistakes, a 7-day plan and a free Full Mock.",
   "keywords": [
    "rrb alp memory test",
    "alp psycho test memory test",
@@ -19,11 +19,12 @@
    "alp cbat memory test"
   ],
   "intro": [
-   "The RRB ALP Memory Test is Test 1 of the CBAT, the psycho test after CBT 2. In the hall it is one of five kinds: House Position Test (1a), Figure to Number Test (1b), Railway Track Route Test (1c), Figure to Figure Test (1d) or Figure Find Test (1e). Each kind has two parts, each with a study stage and then a test stage. Kinds 1a, 1c and 1e give 24 questions in 8 minutes; 1b and 1d give 42 or 40 in 12 minutes. The test measures how much you can hold in mind for a short while.",
+   "The RRB ALP Memory Test is Test 1 of the CBAT, the psycho test after CBT 2. In the hall it is one of six kinds: House Position Test (1a), Figure to Number Test (1b), Railway Track Route Test (1c), Figure to Figure Test (1d), Figure Find Test (1e) or Vehicle & Signal Position Test (1f), the kind new in the railway's mock for CEN 01/2025. Each kind has two parts, each with a study stage and then a test stage. Kinds 1a, 1c and 1e give 24 questions in 8 minutes; 1b and 1d give 42 or 40 in 12 minutes; 1f gives 6 in 4 minutes in the railway's mock, as 3 + 3. The test measures how much you can hold in mind for a short while.",
    "The study screen shows a map, picture-number pairs, pairs of shapes or sets of shapes under a Time Left clock. At zero it disappears and the questions open on a fresh screen. Each question offers four or five options; you click one and press Save & Next. This page gives the shared flow, a study method, the costly mistakes, a 7-day plan and common questions. Practice papers on the portal run with the hall's count and clock; one Full Mock is free after login."
   ],
-  "introHi": "स्मृति परीक्षण RRB ALP के साइको टेस्ट (CBAT) का पहला टेस्ट है, जो CBT 2 के बाद होता है। परीक्षा हॉल में यह पाँच प्रकारों में से किसी एक रूप में आता है: मकान स्थिति परीक्षण (1a), आकृति-अंक परीक्षण (1b), रेलवे ट्रैक रूट परीक्षण (1c), आकृति-आकृति परीक्षण (1d) या आकृति खोज परीक्षण (1e)। हर प्रकार के दो भाग होते हैं और हर भाग में पहले याद करने का समय मिलता है, फिर सवाल आते हैं; 1a, 1c और 1e में 8 मिनट में 24 सवाल और 1b, 1d में 12 मिनट में 42 या 40 सवाल होते हैं।",
-  "kindsIntro": "In the hall, Test 1 appears as one kind only: House Position Test (1a), Figure to Number Test (1b), Railway Track Route Test (1c), Figure to Figure Test (1d) or Figure Find Test (1e). In the last exam (CEN 01/2024) the hall gave the Figure Find Test, as the institute's records show.",
+  "introHi": "स्मृति परीक्षण RRB ALP के साइको टेस्ट (CBAT) का पहला टेस्ट है, जो CBT 2 के बाद होता है। परीक्षा हॉल में यह छह प्रकारों में से किसी एक रूप में आता है: मकान स्थिति परीक्षण (1a), आकृति-अंक परीक्षण (1b), रेलवे ट्रैक रूट परीक्षण (1c), आकृति-आकृति परीक्षण (1d), आकृति खोज परीक्षण (1e) या वाहन व रेल संकेत स्थिति परीक्षण (1f), जो रेलवे के CEN 01/2025 के मॉक में नया है। हर प्रकार के दो भाग होते हैं और हर भाग में पहले याद करने का समय मिलता है, फिर सवाल आते हैं; 1a, 1c और 1e में 8 मिनट में 24 सवाल और 1b, 1d में 12 मिनट में 42 या 40 सवाल होते हैं; 1f में रेलवे मॉक के अनुसार 4 मिनट में 6 सवाल।",
+  "kindsIntro": "In the hall, Test 1 appears as one kind only: House Position Test (1a), Figure to Number Test (1b), Railway Track Route Test (1c), Figure to Figure Test (1d), Figure Find Test (1e) or Vehicle & Signal Position Test (1f). In the last exam (CEN 01/2024) the hall gave the Figure Find Test, as the institute's records show. The railway's own mock test for CEN 01/2025 gives the new Vehicle & Signal Position Test.",
+  "hallNote": "Kind 1f has the count and clock of the railway's own mock test for CEN 01/2025.",
   "how": [
    {
     "h": "Instruction screen",
@@ -31,15 +32,15 @@
    },
    {
     "h": "Study screen, Part 1",
-    "p": "The material appears under its own Time Left clock. You get 2 minutes in the 24-question kinds and 3 minutes in Figure to Number and Figure to Figure. Nothing can be written. At zero the screen closes and does not come back."
+    "p": "The material appears under its own Time Left clock. You get 2 minutes in the 24-question kinds, 3 minutes in Figure to Number and Figure to Figure, and 1 minute in Vehicle & Signal Position. Nothing can be written. At zero the screen closes and does not come back."
    },
    {
     "h": "Test screen, Part 1",
-    "p": "A fresh clock of the same length starts. Part 1 has 12 questions in the 24-question kinds, 21 in Figure to Number and 20 in Figure to Figure. Map kinds ask the letter now shown at each house's or station's place. Figure to Number gives four options and Figure Find gives five sets to choose from. Click one, press Save & Next."
+    "p": "A fresh clock of the same length starts. Part 1 has 12 questions in the 24-question kinds, 21 in Figure to Number, 20 in Figure to Figure and 3 in Vehicle & Signal Position, in the railway's mock. Map kinds ask the letter now shown at each house's, station's, vehicle's or signal's place. Figure to Number gives four options and Figure Find gives five sets to choose from. Click one; the click is kept at once, and the part closes on its clock or on Submit."
    },
    {
     "h": "Part 2",
-    "p": "A short break with a summary follows. Then Part 2 opens by itself: a second study screen under a fresh clock of the same length, then its own 12, 21 or 20 questions."
+    "p": "A short break with a summary follows. Then Part 2 opens by itself: a second study screen under a fresh clock of the same length, then its own 12, 21, 20 or 3 questions. In Vehicle & Signal Position, Part 2 is a railway map with rail signals after Part 1's street map with vehicles."
    },
    {
     "h": "Submit and T-Score",
@@ -67,11 +68,11 @@
   "tips": [
    {
     "h": "Know your pace",
-    "p": "You get 10 seconds a question in the three 24-question kinds. Figure to Figure gives 9, Figure to Number under 9. Hold that pace from question 1; a slow start cannot be made up later in the part."
+    "p": "You get 10 seconds a question in the three 24-question kinds. Figure to Figure gives 9, Figure to Number under 9. Hold that pace from question 1; a slow start cannot be made up later in the part. Vehicle & Signal Position gives 20 seconds a question on the mock's three a part, but only a minute to study."
    },
    {
     "h": "Tie every place to a landmark",
-    "p": "In the map kinds the letters sit where the houses or stations stood. Fix each place by its neighbours on the map. Note the house beside another house, or the station before and after it on the track. Hold the route, not a list of separate points."
+    "p": "In the map kinds the letters sit where the houses, stations, vehicles or signals stood. Fix each place by its neighbours on the map. Note the house beside another house, or the station before and after it on the track. Hold the route, not a list of separate points."
    },
    {
     "h": "Give every pair a reason",
@@ -100,11 +101,11 @@
   "plan": [
    {
     "day": "Day 1",
-    "task": "Read the instruction screens of all five kinds on the portal. Work each example until you can give its answer without looking at it."
+    "task": "Read the instruction screens of all six kinds on the portal. Work each example until you can give its answer without looking at it."
    },
    {
     "day": "Day 2",
-    "task": "Map kinds. Sit one House Position Test paper and one Railway Track Route Test paper without chasing the clock. Tie every house or station to a landmark."
+    "task": "Map kinds. Sit one House Position Test paper, one Railway Track Route Test paper and one Vehicle & Signal Position Test paper without chasing the clock. Tie every house, station, vehicle or signal to a landmark."
    },
    {
     "day": "Day 3",
@@ -120,7 +121,7 @@
    },
    {
     "day": "Day 6",
-    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting, in the hall's order. Compare the Test 1 T-Score on the scorecard with 42, the pass bar, and with 60, the Kautilya Classes target."
+    "task": "Free Full Mock on a laptop or desktop: all five tests in one sitting, in the guideline's order. Compare the Test 1 T-Score on the scorecard with 42, the pass bar, and with 60, the Kautilya Classes target."
    },
    {
     "day": "Day 7",
@@ -130,15 +131,15 @@
   "faq": [
    {
     "q": "Which kind of Memory Test comes in the RRB ALP psycho test?",
-    "a": "One of five; the instruction screen tells you on the day. In the last exam (CEN 01/2024) the hall gave the Figure Find Test, as the institute's records show."
+    "a": "One of six; the instruction screen tells you on the day. The railway's mock for CEN 01/2025 gives the new Vehicle & Signal Position Test (1f). In the last exam (CEN 01/2024) the hall gave the Figure Find Test, as the institute's records show."
    },
    {
     "q": "How many questions are in the ALP Memory Test?",
-    "a": "House Position, Railway Track Route and Figure Find: 24 questions in 8 minutes, as 12 + 12. Figure to Number: 42 in 12 minutes, as 21 + 21. Figure to Figure: 40 in 12 minutes, as 20 + 20."
+    "a": "House Position, Railway Track Route and Figure Find: 24 questions in 8 minutes, as 12 + 12. Figure to Number: 42 in 12 minutes, as 21 + 21. Figure to Figure: 40 in 12 minutes, as 20 + 20. Vehicle & Signal Position: 6 in 4 minutes in the railway's mock, as 3 + 3; the mock says the count will vary in the actual exam."
    },
    {
     "q": "Memory test kaise hota hai: what does the screen show?",
-    "a": "First a study screen: a map with houses or stations, pictures with numbers, pairs or sets of shapes. Then each question asks for one thing you studied and gives four or five options. Click the one that matches and press Save & Next."
+    "a": "First a study screen: a map with houses, stations, vehicles or rail signals, pictures with numbers, pairs or sets of shapes. Then each question asks for one thing you studied and gives four or five options. Click the one that matches and press Save & Next."
    },
    {
     "q": "Can I see the study screen again, or write anything down?",
@@ -146,14 +147,14 @@
    },
    {
     "q": "Is the Memory Test the first test of the CBAT?",
-    "a": "Yes. It is Test 1 of five and comes before the Following Directions Test. The free Full Mock runs the five tests in the hall's order."
+    "a": "Yes. It is Test 1 of five and comes before the Following Directions Test. The free Full Mock runs the five tests in the RDSO guideline's order; the railway's mock for CEN 01/2025 runs them in another."
    },
    {
     "q": "What does the Memory Test measure?",
-    "a": "Short recall under a clock. It asks where a house or station stood, what went with each picture, and which shapes made a set. What you did not fix in the study stage cannot be found later."
+    "a": "Short recall under a clock. It asks where a house, station, vehicle or signal stood, what went with each picture, and which shapes made a set. What you did not fix in the study stage cannot be found later."
    }
   ],
-  "summaryHi": "स्मृति परीक्षण RRB ALP साइको टेस्ट का पहला टेस्ट है और परीक्षा हॉल में इसके पाँच प्रकारों में से एक ही आता है। मकान स्थिति, रेलवे ट्रैक रूट और आकृति खोज परीक्षण में 8 मिनट में 24 सवाल होते हैं, आकृति-अंक परीक्षण में 12 मिनट में 42 सवाल और आकृति-आकृति परीक्षण में 12 मिनट में 40 सवाल। हर प्रकार में पहले याद करने की स्क्रीन आती है, जो घड़ी शून्य होते ही बंद हो जाती है और वापस नहीं आती, फिर सवाल आते हैं; यही क्रम दूसरे भाग में अपनी स्क्रीन और अपनी घड़ी के साथ दोहराया जाता है। याद करते समय एक तय क्रम रखें, हर चीज़ का नाम मन में बोलें, जोड़ों को किसी कड़ी से बाँधें और घड़ी का पूरा समय इस्तेमाल करें। संस्थान के रिकॉर्ड के अनुसार पिछली परीक्षा (CEN 01/2024) में आकृति खोज परीक्षण आया था, पर पाँचों की तैयारी करें। पोर्टल पर लॉगइन के बाद एक फुल मॉक मुफ़्त है, हर प्रैक्टिस पेपर में परीक्षा हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का हल मिलता है।"
+  "summaryHi": "स्मृति परीक्षण RRB ALP साइको टेस्ट का पहला टेस्ट है और परीक्षा हॉल में इसके छह प्रकारों में से एक ही आता है। मकान स्थिति, रेलवे ट्रैक रूट और आकृति खोज परीक्षण में 8 मिनट में 24 सवाल होते हैं, आकृति-अंक परीक्षण में 12 मिनट में 42 सवाल और आकृति-आकृति परीक्षण में 12 मिनट में 40 सवाल। हर प्रकार में पहले याद करने की स्क्रीन आती है, जो घड़ी शून्य होते ही बंद हो जाती है और वापस नहीं आती, फिर सवाल आते हैं; यही क्रम दूसरे भाग में अपनी स्क्रीन और अपनी घड़ी के साथ दोहराया जाता है। याद करते समय एक तय क्रम रखें, हर चीज़ का नाम मन में बोलें, जोड़ों को किसी कड़ी से बाँधें और घड़ी का पूरा समय इस्तेमाल करें। संस्थान के रिकॉर्ड के अनुसार पिछली परीक्षा (CEN 01/2024) में आकृति खोज परीक्षण आया था; CEN 01/2025 के रेलवे मॉक लिंक में वाहन व रेल संकेत स्थिति परीक्षण (1f) है, इसलिए उसे सबसे पहले करें, पर छहों की तैयारी करें। पोर्टल पर लॉगइन के बाद एक फुल मॉक मुफ़्त है, हर प्रैक्टिस पेपर में परीक्षा हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का हल मिलता है।"
  },
  {
   "kind": "battery",
@@ -179,7 +180,7 @@
    "The table or the circle sits at the left, and the questions sit at the right with their options. You read a direction, follow it across the letters or numbers in your head, and click where the path ends. The Time Left clock runs through the whole test; the table stays and only the question changes. This page gives you the three kinds, a step-by-step method, the mistakes that cost marks and a 7-day plan."
   ],
   "introHi": "निर्देश पालन परीक्षण RRB ALP के साइको टेस्ट (CBAT) का दूसरा टेस्ट है, जो CBT 2 के बाद होता है। परीक्षा हॉल में यह तीन में से एक रूप में आता है: लेटर टेबल टेस्ट (2a), वॉच टेबल टेस्ट (2b) या नंबर टेबल टेस्ट (2c)। लेटर टेबल और नंबर टेबल में 10 सवाल 5 मिनट में होते हैं और वॉच टेबल में 20 सवाल 10 मिनट में; हर सवाल एक वाक्य का निर्देश होता है, जिसे आपको घड़ी के भीतर ठीक-ठीक मानना होता है।",
-  "kindsIntro": "Test 2 comes as one kind only: Letter Table Test (2a), Watch Table Test (2b) or Number Table Test (2c). The hall does not say which in advance. In the last exam (CEN 01/2024) it gave the Watch Table Test, as the institute's records show.",
+  "kindsIntro": "Test 2 comes as one kind only: Letter Table Test (2a), Watch Table Test (2b) or Number Table Test (2c). The hall does not say which in advance. In the last exam (CEN 01/2024) it gave the Watch Table Test, as the institute's records show. The railway's mock link for CEN 01/2025 gives the Watch Table Test again.",
   "how": [
    {
     "h": "Instruction screen",
@@ -286,7 +287,7 @@
   "faq": [
    {
     "q": "Which kind of Following Directions Test comes in the ALP psycho test?",
-    "a": "One of three: the Letter Table Test, the Watch Table Test or the Number Table Test. The last exam (CEN 01/2024) gave the Watch Table Test, as the institute's records show. So practise the circle most, and keep both grids ready."
+    "a": "One of three: the Letter Table Test, the Watch Table Test or the Number Table Test. The last exam (CEN 01/2024) gave the Watch Table Test, as the institute's records show. So practise the circle most, and keep both grids ready. The railway's mock link for CEN 01/2025 gives the Watch Table Test again."
    },
    {
     "q": "How many questions are in the Following Directions Test for ALP?",
@@ -305,7 +306,7 @@
     "a": "Yes. The instruction screen and every question appear in Hindi and English together, in the hall and on the portal. Read the language you read faster; the direction is the same in both."
    }
   ],
-  "summaryHi": "निर्देश पालन परीक्षण RRB ALP साइको टेस्ट का दूसरा टेस्ट है और परीक्षा हॉल में लेटर टेबल टेस्ट (2a), वॉच टेबल टेस्ट (2b) या नंबर टेबल टेस्ट (2c) में से एक ही आता है। लेटर टेबल और नंबर टेबल में 10 सवाल 5 मिनट में और वॉच टेबल में 20 सवाल 10 मिनट में होते हैं, यानी हर सवाल के लिए 30 सेकंड। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, वॉच टेबल टेस्ट आया था, इसलिए गोले पर सबसे ज़्यादा अभ्यास करें और दोनों तालिकाएँ भी तैयार रखें। पूरा वाक्य पढ़कर ही चलना शुरू करें, हर कदम एक-एक करके लें और कोई सवाल खाली न छोड़ें। लॉगिन के बाद एक फुल मॉक मुफ़्त है; प्रैक्टिस पेपर में हॉल जितने ही सवाल और वही घड़ी होती है, और जमा करते ही T-Score और हर सवाल का हल दिखता है।"
+  "summaryHi": "निर्देश पालन परीक्षण RRB ALP साइको टेस्ट का दूसरा टेस्ट है और परीक्षा हॉल में लेटर टेबल टेस्ट (2a), वॉच टेबल टेस्ट (2b) या नंबर टेबल टेस्ट (2c) में से एक ही आता है। लेटर टेबल और नंबर टेबल में 10 सवाल 5 मिनट में और वॉच टेबल में 20 सवाल 10 मिनट में होते हैं, यानी हर सवाल के लिए 30 सेकंड। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, वॉच टेबल टेस्ट आया था, और CEN 01/2025 के रेलवे मॉक लिंक में भी वही है, इसलिए गोले पर सबसे ज़्यादा अभ्यास करें और दोनों तालिकाएँ भी तैयार रखें। पूरा वाक्य पढ़कर ही चलना शुरू करें, हर कदम एक-एक करके लें और कोई सवाल खाली न छोड़ें। लॉगिन के बाद एक फुल मॉक मुफ़्त है; प्रैक्टिस पेपर में हॉल जितने ही सवाल और वही घड़ी होती है, और जमा करते ही T-Score और हर सवाल का हल दिखता है।"
  },
  {
   "kind": "battery",
@@ -330,7 +331,7 @@
    "On screen you see a drawing of bricks or blocks, all the same size and shape. The questions and their number options sit beside it. You count, click a number and press Save & Next while the Time Left clock runs down. The depth must be read from the lines of the drawing alone. This page explains both kinds and gives the counting method, the mistakes that cost marks and a 7-day plan."
   ],
   "introHi": "गहराई बोध परीक्षण RRB ALP के साइको टेस्ट (CBAT) का तीसरा टेस्ट है। परीक्षा हॉल में यह दो में से एक रूप में आता है: ईंट परीक्षण (3a), जिसमें 50 सवाल 5 मिनट में होते हैं, या छिपे घन परीक्षण (3b), जिसमें 50 सवाल 10 मिनट में होते हैं। दोनों में ढेर का सपाट चित्र दिखता है और आपको समझना होता है कि कौन सा गुटका आगे है, कौन पीछे, और नीचे कितने गुटके होने ही चाहिए।",
-  "kindsIntro": "Test 3 opens as the Brick Test (3a) or the Hidden Cube Test (3b), and you learn which only then. In the last exam (CEN 01/2024) the hall gave the Hidden Cube Test, as the institute's records show, so prepare both.",
+  "kindsIntro": "Test 3 opens as the Brick Test (3a) or the Hidden Cube Test (3b), and you learn which only then. In the last exam (CEN 01/2024) the hall gave the Hidden Cube Test, as the institute's records show, so prepare both. The railway's mock link for CEN 01/2025 gives the Brick Test, so practise it first.",
   "how": [
    {
     "h": "Instruction screen",
@@ -434,7 +435,7 @@
   "faq": [
    {
     "q": "Is the ALP depth perception test the Brick Test or the Hidden Cube Test?",
-    "a": "Either one. The hall decides and does not say in advance, so practise both kinds on the portal, each with its own count and clock."
+    "a": "Either one. The hall decides and does not say in advance, so practise both kinds on the portal, each with its own count and clock. The railway's mock link for CEN 01/2025 gives the Brick Test, so practise it first."
    },
    {
     "q": "How many questions are in the RRB ALP Depth Perception Test?",
@@ -457,7 +458,7 @@
     "a": "Yes. The T-Score comes the moment you submit, with a review of every pile and its correct count. A pile you doubt can be reported to the institute from the review screen."
    }
   ],
-  "summaryHi": "गहराई बोध परीक्षण RRB ALP साइको टेस्ट का तीसरा टेस्ट है और परीक्षा हॉल में ईंट परीक्षण (3a) या छिपे घन परीक्षण (3b) में से एक ही आता है। ईंट परीक्षण में 50 सवाल 5 मिनट में होते हैं और हर अक्षर वाली ईंट को छूती ईंटें गिननी होती हैं। छिपे घन परीक्षण में 50 सवाल 10 मिनट में होते हैं और वे गुटके गिनने होते हैं जिनका कोई किनारा या कोना नहीं दिखता। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, छिपे घन परीक्षण आया था, इसलिए दोनों की तैयारी करें। ढेर को पीछे की पंक्ति और नीचे की परत से बनाएँ, हर बार एक ही क्रम में गिनें और कोई सवाल खाली न छोड़ें। लॉगिन के बाद एक फुल मॉक मुफ़्त है; प्रैक्टिस पेपर में हॉल जितने सवाल और वही घड़ी होती है, और जमा करते ही T-Score और हर सवाल का हल दिखता है।"
+  "summaryHi": "गहराई बोध परीक्षण RRB ALP साइको टेस्ट का तीसरा टेस्ट है और परीक्षा हॉल में ईंट परीक्षण (3a) या छिपे घन परीक्षण (3b) में से एक ही आता है। ईंट परीक्षण में 50 सवाल 5 मिनट में होते हैं और हर अक्षर वाली ईंट को छूती ईंटें गिननी होती हैं। छिपे घन परीक्षण में 50 सवाल 10 मिनट में होते हैं और वे गुटके गिनने होते हैं जिनका कोई किनारा या कोना नहीं दिखता। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, छिपे घन परीक्षण आया था, पर CEN 01/2025 के रेलवे मॉक लिंक में ईंट परीक्षण है, इसलिए उसे पहले करें और दोनों की तैयारी करें। ढेर को पीछे की पंक्ति और नीचे की परत से बनाएँ, हर बार एक ही क्रम में गिनें और कोई सवाल खाली न छोड़ें। लॉगिन के बाद एक फुल मॉक मुफ़्त है; प्रैक्टिस पेपर में हॉल जितने सवाल और वही घड़ी होती है, और जमा करते ही T-Score और हर सवाल का हल दिखता है।"
  },
  {
   "kind": "battery",
@@ -483,7 +484,7 @@
    "On screen the question is always small: two numbers side by side, four groups of digits, or two sets of figures. You look, decide and click Y or N, or a letter. The rows come in parts; Save & Next opens the next part while the Time Left clock runs. There is no study part and no break inside the test. The pace is the whole difficulty. This page gives the screen flow, a method, tips, the mistakes that cost marks, a 7-day plan and the FAQ."
   ],
   "introHi": "अवलोकन शक्ति परीक्षण RRB ALP के साइको टेस्ट (CBAT) का चौथा टेस्ट है, जो CBT 2 के बाद होता है। परीक्षा हॉल में यह चार में से एक ही प्रकार में आता है: हाँ या नहीं परीक्षण (4a) में 96 सवाल 4 मिनट में, 6 खोजो परीक्षण (4b) और 9 खोजो परीक्षण (4c) में 75 सवाल 4 मिनट में, और आकृति स्थान परीक्षण (4d) में 60 सवाल 7 मिनट में। यह टेस्ट मापता है कि आप स्क्रीन पर छोटे से अंतर को कितनी तेज़ी और कितनी सटीकता से पकड़ते हैं।",
-  "kindsIntro": "Test 4 comes as one kind only: Yes or No (4a), Find 6 (4b), Find 9 (4c) or Figure Placement (4d). In the last exam (CEN 01/2024) the hall gave Figure Placement, as the institute's records show: give it the most papers.",
+  "kindsIntro": "Test 4 comes as one kind only: Yes or No (4a), Find 6 (4b), Find 9 (4c) or Figure Placement (4d). In the last exam (CEN 01/2024) the hall gave Figure Placement, as the institute's records show: give it the most papers. The railway's mock link for CEN 01/2025 gives Figure Placement again.",
   "how": [
    {
     "h": "Instruction screen",
@@ -583,7 +584,7 @@
   "faq": [
    {
     "q": "Which kind of Power of Observation Test comes in the RRB ALP exam?",
-    "a": "One of four: Yes or No, Find 6, Find 9 or Figure Placement; the hall does not say in advance. In the last exam (CEN 01/2024) it gave Figure Placement, as the institute's records show."
+    "a": "One of four: Yes or No, Find 6, Find 9 or Figure Placement; the hall does not say in advance. In the last exam (CEN 01/2024) it gave Figure Placement, as the institute's records show. The railway's mock link for CEN 01/2025 gives Figure Placement again."
    },
    {
     "q": "How many questions are in the ALP Power of Observation Test?",
@@ -606,7 +607,7 @@
     "a": "Yes. The instruction screen and the example come in Hindi and English together. The questions themselves are digits and figures, so there is nothing to read in either language."
    }
   ],
-  "summaryHi": "अवलोकन शक्ति परीक्षण RRB ALP साइको टेस्ट का चौथा टेस्ट है और परीक्षा हॉल में चार में से एक ही प्रकार आता है: हाँ या नहीं परीक्षण (96 सवाल, 4 मिनट), 6 खोजो या 9 खोजो परीक्षण (75 सवाल, 4 मिनट), या आकृति स्थान परीक्षण (60 सवाल, 7 मिनट)। संस्थान के रिकॉर्ड के अनुसार पिछली परीक्षा (CEN 01/2024) में आकृति स्थान परीक्षण आया था, इसलिए उस पर सबसे ज़्यादा प्रैक्टिस पेपर दें, पर चारों की तैयारी करें। सवाल छोटे हैं, कठिनाई सिर्फ़ घड़ी की है: अपने प्रकार का नियम पहले तय करें, हर सवाल को एक ही क्रम में देखें, पूरा देखने के बाद ही क्लिक करें और वापस न लौटें। 6 या 9 एक से ज़्यादा समूह में हो तो E, और आकृति स्थान में गिनती कभी एक नहीं होती। इस पोर्टल पर लॉगिन के बाद एक फुल मॉक मुफ़्त है, प्रैक्टिस पेपर में हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का हल दिखता है। लक्ष्य T-Score 60 रखें; पास के लिए 42 चाहिए।"
+  "summaryHi": "अवलोकन शक्ति परीक्षण RRB ALP साइको टेस्ट का चौथा टेस्ट है और परीक्षा हॉल में चार में से एक ही प्रकार आता है: हाँ या नहीं परीक्षण (96 सवाल, 4 मिनट), 6 खोजो या 9 खोजो परीक्षण (75 सवाल, 4 मिनट), या आकृति स्थान परीक्षण (60 सवाल, 7 मिनट)। संस्थान के रिकॉर्ड के अनुसार पिछली परीक्षा (CEN 01/2024) में आकृति स्थान परीक्षण आया था, और CEN 01/2025 के रेलवे मॉक लिंक में भी वही है, इसलिए उस पर सबसे ज़्यादा प्रैक्टिस पेपर दें, पर चारों की तैयारी करें। सवाल छोटे हैं, कठिनाई सिर्फ़ घड़ी की है: अपने प्रकार का नियम पहले तय करें, हर सवाल को एक ही क्रम में देखें, पूरा देखने के बाद ही क्लिक करें और वापस न लौटें। 6 या 9 एक से ज़्यादा समूह में हो तो E, और आकृति स्थान में गिनती कभी एक नहीं होती। इस पोर्टल पर लॉगिन के बाद एक फुल मॉक मुफ़्त है, प्रैक्टिस पेपर में हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का हल दिखता है। लक्ष्य T-Score 60 रखें; पास के लिए 42 चाहिए।"
  },
  {
   "kind": "battery",
@@ -632,7 +633,7 @@
    "The given figure sits on the left, or above in the Same Figure Test. The five options, A to E, sit beside it or below it. You click the matching option for each figure; Save & Next saves the sheet or part on screen and opens the next, while the Time Left clock keeps running. The figures differ by kind: octagon patterns, circle figures, objects such as a radio, or plain figures. This page gives you the method, the mistakes that cost marks, a 7-day plan and candidates' questions."
   ],
   "introHi": "प्रत्यक्ष गति परीक्षण RRB ALP के साइको टेस्ट (CBAT) का पाँचवाँ और आखिरी टेस्ट है, जो देखता है कि आपकी आँख छोटा-सा अंतर कितनी जल्दी और कितनी सही पकड़ती है। परीक्षा हॉल में यह पाँच में से एक रूप में आता है: समानता परीक्षण, अष्टकोण परीक्षण, समानता परीक्षण प्रकार-II, समान वृत्त परीक्षण या समान आकृति परीक्षण। हर रूप में एक आकृति और पाँच विकल्प दिखते हैं और आपको उससे मिलती आकृति चुननी होती है, समानता परीक्षण और समानता परीक्षण प्रकार-II में सबसे अधिक मिलती-जुलती, और बाकी तीन रूपों में बिल्कुल वैसी ही; समय बहुत कम है, अष्टकोण परीक्षण में 96 सवाल 5 मिनट में और समान आकृति परीक्षण में 72 सवाल 8 मिनट में।",
-  "kindsIntro": "Test 5 has five kinds, and the hall gives only one of them. The kinds: Similarity Test (5a), Octagonal Test (5b), Similarity Test Type-II (5c), Same Circle Test (5d), Same Figure Test (5e). In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show: prepare it first.",
+  "kindsIntro": "Test 5 has five kinds, and the hall gives only one of them. The kinds: Similarity Test (5a), Octagonal Test (5b), Similarity Test Type-II (5c), Same Circle Test (5d), Same Figure Test (5e). In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show. The railway's mock link for CEN 01/2025 gives the Same Circle Test (5d): practise that one first.",
   "how": [
    {
     "h": "Instruction screen",
@@ -736,7 +737,7 @@
   "faq": [
    {
     "q": "Which kind of perceptual speed test comes in the ALP psycho test?",
-    "a": "Any one of its five kinds; the hall does not say which in advance. You learn the kind from the instruction screen's example on the day. In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show."
+    "a": "Any one of its five kinds; the hall does not say which in advance. You learn the kind from the instruction screen's example on the day. In the last exam (CEN 01/2024) the hall gave the Same Figure Test, as the institute's records show. The railway's mock link for CEN 01/2025 gives the Same Circle Test (5d)."
    },
    {
     "q": "How many questions are in the RRB ALP perceptual speed test?",
@@ -755,6 +756,6 @@
     "a": "Sit every paper at the hall's clock, not slower: speed comes from the key-and-sweep method, not from reading faster. Open the review after each paper and remove one cause of wrong clicks at a time."
    }
   ],
-  "summaryHi": "प्रत्यक्ष गति परीक्षण RRB ALP साइको टेस्ट का पाँचवाँ और आखिरी टेस्ट है, और परीक्षा हॉल में पाँच रूपों में से एक ही आता है: समानता परीक्षण (5a), अष्टकोण परीक्षण (5b), समानता परीक्षण प्रकार-II (5c), समान वृत्त परीक्षण (5d) या समान आकृति परीक्षण (5e)। हर सवाल में एक आकृति दी होती है और A से E तक पाँच विकल्पों में से उससे मिलती आकृति चुननी होती है; सवाल 60 से 96 तक और समय 5 से 8 मिनट तक, रूप के अनुसार। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, समान आकृति परीक्षण आया था, जिसमें 72 सवाल 8 मिनट में होते हैं, इसलिए उसकी तैयारी पहले कीजिए और बाकी चारों की उसके साथ। तरीका एक ही है: दी गई आकृति का एक खास निशान चुनिए, पाँचों विकल्पों में वही निशान खोजिए, उलटी (दर्पण) आकृति से बचिए, क्लिक करके Save & Next दबाइए और पीछे मुड़कर मत देखिए। एक फुल मॉक मुफ़्त है; हर रूप के प्रैक्टिस पेपर में परीक्षा हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का सही विकल्प दिखता है।"
+  "summaryHi": "प्रत्यक्ष गति परीक्षण RRB ALP साइको टेस्ट का पाँचवाँ और आखिरी टेस्ट है, और परीक्षा हॉल में पाँच रूपों में से एक ही आता है: समानता परीक्षण (5a), अष्टकोण परीक्षण (5b), समानता परीक्षण प्रकार-II (5c), समान वृत्त परीक्षण (5d) या समान आकृति परीक्षण (5e)। हर सवाल में एक आकृति दी होती है और A से E तक पाँच विकल्पों में से उससे मिलती आकृति चुननी होती है; सवाल 60 से 96 तक और समय 5 से 8 मिनट तक, रूप के अनुसार। पिछली परीक्षा (CEN 01/2024) में, संस्थान के रिकॉर्ड के अनुसार, समान आकृति परीक्षण आया था, पर CEN 01/2025 के रेलवे मॉक लिंक में समान वृत्त परीक्षण (5d) है, इसलिए अब उसकी तैयारी पहले कीजिए और बाकी चारों की उसके साथ। तरीका एक ही है: दी गई आकृति का एक खास निशान चुनिए, पाँचों विकल्पों में वही निशान खोजिए, उलटी (दर्पण) आकृति से बचिए, क्लिक करके Save & Next दबाइए और पीछे मुड़कर मत देखिए। एक फुल मॉक मुफ़्त है; हर रूप के प्रैक्टिस पेपर में परीक्षा हॉल की गिनती और घड़ी है, और जमा करते ही T-Score और हर सवाल का सही विकल्प दिखता है।"
  }
 ]

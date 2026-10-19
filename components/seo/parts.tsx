@@ -147,7 +147,7 @@ export function Sidebar({ packages, test, laptop = true }: { packages: Package[]
               <span className="text-[28px] font-extrabold text-[#0d2a6b]">{rupees(p.priceInr)}</span>
               {p.mrpInr && p.mrpInr > p.priceInr && <span className="text-[13px] text-gray-400 line-through">{rupees(p.mrpInr)}</span>}
             </div>
-            <p className="mt-1 text-[13px] text-gray-600">{p.kind === "combo" ? `Every practice paper of all 19 kinds of test, and every Full Mock.` : `Every practice paper of all 19 kinds of test.`}</p>
+            <p className="mt-1 text-[13px] text-gray-600">{p.kind === "combo" ? `Every practice paper of all 20 kinds of test, and every Full Mock.` : `Every practice paper of all 20 kinds of test.`}</p>
             <Link href="/packages" className={`mt-3 block rounded-md px-4 py-2.5 text-center text-[14px] font-bold ${i === 0 ? "bg-[#0d2a6b] text-white hover:bg-[#0a2158]" : "border border-[#0d2a6b] text-[#0d2a6b] hover:bg-[#eef2fb]"}`}>See package</Link>
           </section>
         ))}

@@ -105,7 +105,7 @@ The standard on the certificate is the medical standard of the Assistant Loco Pi
 - Anything more the call letter asks for.
 - A night's sleep and an early start, as RDSO advises in [exam day in the ALP psycho test](/blog/alp-psycho-test-exam-day-tips).
 
-The certificate gets you to the screen. What happens on the screen is the five tests, and a T-Score of 42 or more in each. [Create a free account](/signup?next=/mocks) and sit a free Full Mock in the hall's order, with the hall's timing and a T-Score in every test; the [list of all 19 kinds of question](/psycho-test) shows what each test can ask.
+The certificate gets you to the screen. What happens on the screen is the five tests, and a T-Score of 42 or more in each. [Create a free account](/signup?next=/mocks) and sit a free Full Mock in the hall's order, with the hall's timing and a T-Score in every test; the [list of all 20 kinds of question](/psycho-test) shows what each test can ask.
 
 ## हिंदी में: ALP CBAT का विज़न सर्टिफिकेट क्या है और कैसे बनवाएँ
 

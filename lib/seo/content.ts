@@ -2,19 +2,19 @@ import kindsJson from "@/content/seo/kinds.json";
 import batteriesJson from "@/content/seo/batteries.json";
 import guideJson from "@/content/seo/guide.json";
 import { BATTERIES } from "@/lib/wt/categories";
-import { LAST_EXAM_CODES, LAST_EXAM_LABEL, sectionByCode, type Section } from "@/lib/wt/sections";
+import { NEXT_EXAM_CODES, NEXT_EXAM_LABEL, sectionByCode, type Section } from "@/lib/wt/sections";
 
 /**
  * The public pages' words, kept as JSON under content/seo so the text can
  * be edited without touching code: the guide to the exam, one page per
- * test (battery) and one page per kind of question (the 19 the hall can
+ * test (battery) and one page per kind of question (the 20 the hall can
  * give). Counts and clocks are not in the JSON: they come from the hall
  * pattern in lib/wt/sections.ts, the one place that knows them.
  */
 export const SITE = "https://kautilyaonline.com";
 /** When the words were last revised: the sitemap and the article schema carry it. */
 export const CONTENT_PUBLISHED = "2026-10-08";
-export const CONTENT_UPDATED = "2026-10-10";
+export const CONTENT_UPDATED = "2026-10-19";
 
 export interface Faq {
   q: string;
@@ -42,6 +42,8 @@ export interface KindPage {
   intro: string[];
   introHi: string;
   answerStyle: string;
+  /** Where the count and clock come from, when not the RDSO guideline (the 1f kind: the railway's mock). */
+  hallNote?: string;
   how: Step[];
   example: { lines: string[]; answer: string };
   method: Step[];
@@ -64,6 +66,8 @@ export interface BatteryPage {
   intro: string[];
   introHi: string;
   kindsIntro: string;
+  /** One more sentence under the facts, when a kind's count and clock come from elsewhere than the guideline. */
+  hallNote?: string;
   how: Step[];
   method: Step[];
   tips: Step[];
@@ -114,11 +118,11 @@ export function kindUrl(k: KindPage): string {
 export function hallOf(k: KindPage): Section {
   return sectionByCode(k.code) as Section;
 }
-/** True when the last exam gave this kind for its battery. */
-export function lastExamGave(code: string): boolean {
-  return LAST_EXAM_CODES.includes(code);
+/** True when the railway's mock link for the coming exam gives this kind for its battery. */
+export function mockGives(code: string): boolean {
+  return NEXT_EXAM_CODES.includes(code);
 }
-export { LAST_EXAM_LABEL };
+export { NEXT_EXAM_LABEL };
 export function batteryTitle(battery: number): string {
   return BATTERIES.find((b) => b.id === battery)?.title ?? `Test ${battery}`;
 }

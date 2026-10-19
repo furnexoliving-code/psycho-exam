@@ -2,7 +2,7 @@ import Link from "next/link";
 import { StudentHeader } from "@/components/StudentHeader";
 import { BATTERIES } from "@/lib/wt/categories";
 import type { BatteryProgress } from "@/lib/wt/progress";
-import { LAST_EXAM_CODES, LAST_EXAM_LABEL, sectionsOfBattery, type Section } from "@/lib/wt/sections";
+import { NEXT_EXAM_CODES, NEXT_EXAM_LABEL, sectionsOfBattery, type Section } from "@/lib/wt/sections";
 import type { Series } from "@/lib/wt/series";
 import { formatDate, formatDayMonth, indianDay } from "@/lib/format-time";
 import { daysUntil } from "@/lib/settings";
@@ -16,8 +16,9 @@ import { daysUntil } from "@/lib/settings";
  * A series the index does not know (a name the admin made up) follows
  * the index in its battery.
  *
- * The five kinds the last exam gave are named at the top and framed in
- * gold below; the kind the student is weakest at is named and marked.
+ * The five kinds the railway's mock link for the coming exam gives are
+ * named at the top and framed in gold below; the kind the student is
+ * weakest at is named and marked.
  */
 export interface PracticeInput {
   profile: { full_name: string; photoUrl: string | null };
@@ -110,7 +111,7 @@ function lastOf(series: Series, lastAt: Map<string, string>): string | null {
   return latest;
 }
 
-const isLastExam = (code: string | null) => code !== null && LAST_EXAM_CODES.includes(code);
+const isMockKind = (code: string | null) => code !== null && NEXT_EXAM_CODES.includes(code);
 
 export function PracticeView({ profile, groups, hidden, progress, sat, bestT, lastAt, now, examDate, stages, locked = false }: PracticeInput) {
   const batteries = BATTERIES.filter((b) => !hidden.includes(b.id));
@@ -128,7 +129,7 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
     const t = bestOf(c.series, bestT);
     if (t !== null && (weakest === null || t < weakest.t)) weakest = { card: c, t };
   }
-  const lastExam = LAST_EXAM_CODES.map((code) => allCards.find((c) => c.code === code)).filter((c): c is (typeof allCards)[number] => c !== undefined);
+  const mockKinds = NEXT_EXAM_CODES.map((code) => allCards.find((c) => c.code === code)).filter((c): c is (typeof allCards)[number] => c !== undefined);
   // The kinds at the pass mark, today's sittings, and the days to the exam.
   const kindsPassed = allCards.filter((c) => c.series && (bestOf(c.series, bestT) ?? -1) >= stages.pass).length;
   const todayCount = progress.filter((p) => batteries.some((b) => b.id === p.battery)).reduce((n, p) => n + p.today, 0);
@@ -186,23 +187,24 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
           </div>
 
           <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_340px]">
-            {lastExam.length > 0 && (
-              // The five the last exam gave, one per battery: the first thing
-              // to practise, and framed in gold on their cards below.
+            {mockKinds.length > 0 && (
+              // The five the railway's mock link for the coming exam gives,
+              // one per battery: the first thing to practise, and framed in
+              // gold on their cards below.
               <div className="rounded-[14px] border-l-4 border-[#f59e0b] bg-[#fffaeb] p-3 text-gray-900 shadow-lg shadow-black/15 sm:p-4">
                 <div className="flex items-start gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#fef3c7] text-[18px]" aria-hidden="true">
-                    ⭐
+                    🌟
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[14px] font-extrabold leading-snug text-[#0d2a6b]" lang="hi">
-                      पिछली परीक्षा {LAST_EXAM_LABEL} में यही आए थे, इनका अभ्यास ज़रूर करें।
+                      {NEXT_EXAM_LABEL} में ये टेस्ट आएँगे, रेलवे के नए मॉक लिंक के अनुसार: इनका अभ्यास सबसे पहले करें।
                     </p>
-                    <p className="text-[11.5px] text-gray-600">Asked in the last exam ({LAST_EXAM_LABEL}): practise these five first.</p>
+                    <p className="text-[11.5px] text-gray-600">Coming in {NEXT_EXAM_LABEL}, as the railway&apos;s new mock link shows: practise these first.</p>
                   </div>
                 </div>
                 <div className="mt-2.5 flex flex-wrap gap-2 sm:pl-12">
-                  {lastExam.map((c) =>
+                  {mockKinds.map((c) =>
                     c.series ? (
                       <Link key={c.code} href={paperHref(locked, c.battery, c.series.slug)} className="rounded-full border border-[#f59e0b]/60 bg-white px-3 py-1 text-[12px] font-bold text-[#0d2a6b] shadow-sm transition hover:bg-[#fef3c7]">
                         <span className="text-[#b45309]">{c.code}</span> {c.name}
@@ -322,11 +324,11 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
                       sat={sat}
                       bestT={bestT}
                       stages={stages}
-                      marks={{ lastExam: isLastExam(c.code), weakest: weakest !== null && weakest.card.series === c.series, last: lastOf(c.series, lastAt), now }}
+                      marks={{ mockKind: isMockKind(c.code), weakest: weakest !== null && weakest.card.series === c.series, last: lastOf(c.series, lastAt), now }}
                       locked={locked}
                     />
                   ) : (
-                    <SoonCard key={c.code ?? c.name} card={c} lastExam={isLastExam(c.code)} />
+                    <SoonCard key={c.code ?? c.name} card={c} mockKind={isMockKind(c.code)} />
                   ),
                 )}
               </div>
@@ -336,8 +338,8 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
 
         <p className="mt-5 text-[11px] text-gray-500">
           <span className="rounded-full border border-dashed border-gray-300 bg-white px-1.5 py-0.5 font-bold text-gray-500">Coming soon</span> tests are in the hall&apos;s battery; their practice papers open here as they are published.
-          <span lang="hi"> ये टेस्ट हॉल की परीक्षा में हैं; इनके प्रैक्टिस पेपर जैसे-जैसे बनेंगे, यहीं खुलेंगे।</span> A gold frame marks a test the last exam gave.
-          <span lang="hi"> सुनहरा फ्रेम = पिछली परीक्षा में आया।</span>
+          <span lang="hi"> ये टेस्ट हॉल की परीक्षा में हैं; इनके प्रैक्टिस पेपर जैसे-जैसे बनेंगे, यहीं खुलेंगे।</span> A gold frame marks a test the railway&apos;s mock link gives for {NEXT_EXAM_LABEL}.
+          <span lang="hi"> सुनहरा फ्रेम = रेलवे के मॉक लिंक के अनुसार {NEXT_EXAM_LABEL} में आएगा।</span>
         </p>
       </main>
     </div>
@@ -397,15 +399,15 @@ function Chip({ children, muted }: { children: React.ReactNode; muted?: boolean 
   return <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${muted ? "bg-gray-100 text-gray-500" : "bg-[#eef2fb] text-[#0d2a6b]"}`}>{children}</span>;
 }
 
-/** The code in its battery's colour; a gold star on it for a test the last exam gave. */
+/** The code in its battery's colour; a gold star on it for a test the railway's mock link gives for the coming exam. */
 function CodeBadge({ code, battery, star, muted = false }: { code: string; battery: number; star: boolean; muted?: boolean }) {
   const tone = TONE[battery] ?? TONE[2];
   return (
     <span className="relative shrink-0">
       <span className={`flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-extrabold ${muted ? "bg-gray-200 text-gray-600" : `bg-gradient-to-br ${tone.bar} text-white shadow`}`}>{code}</span>
       {star && (
-        <span className="absolute -right-1.5 -top-1.5 text-[12px] drop-shadow" aria-label="Asked in the last exam" title={`Asked in the last exam (${LAST_EXAM_LABEL})`}>
-          ⭐
+        <span className="absolute -right-1.5 -top-1.5 text-[12px] drop-shadow" aria-label={`Coming in ${NEXT_EXAM_LABEL}, as the railway's mock link shows`} title={`Coming in ${NEXT_EXAM_LABEL}, as the railway's mock link shows`}>
+          🌟
         </span>
       )}
     </span>
@@ -414,8 +416,8 @@ function CodeBadge({ code, battery, star, muted = false }: { code: string; batte
 
 /** What a card is marked with besides its figures. */
 interface Marks {
-  /** One of the last exam's five. */
-  lastExam: boolean;
+  /** One of the five the railway's mock link gives for the coming exam. */
+  mockKind: boolean;
   /** The kind the student is weakest at. */
   weakest: boolean;
   /** When the kind was last practised. */
@@ -428,13 +430,13 @@ function OpenCard({ card, series, battery, sat, bestT, stages, marks, locked = f
   const done = series.papers.filter((p) => sat.has(p.id)).length;
   const pct = series.papers.length ? Math.round((done / series.papers.length) * 100) : 0;
   const t = bestOf(series, bestT);
-  const frame = marks.lastExam ? "border-[#f59e0b] bg-gradient-to-b from-[#fffbeb] to-white shadow-[0_0_0_3px_rgba(251,191,36,0.22)]" : `border-gray-200 bg-white ${tone.ring}`;
+  const frame = marks.mockKind ? "border-[#f59e0b] bg-gradient-to-b from-[#fffbeb] to-white shadow-[0_0_0_3px_rgba(251,191,36,0.22)]" : `border-gray-200 bg-white ${tone.ring}`;
   return (
     <Link href={paperHref(locked, battery, series.slug)} className={`group flex flex-col overflow-hidden rounded-[14px] border shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${frame}`}>
-      <div className={`h-1 bg-gradient-to-r ${marks.lastExam ? "from-[#f59e0b] to-[#fde68a]" : tone.bar}`} />
+      <div className={`h-1 bg-gradient-to-r ${marks.mockKind ? "from-[#f59e0b] to-[#fde68a]" : tone.bar}`} />
       <div className="flex flex-1 flex-col p-3.5">
         <div className="flex items-start gap-2.5">
-          {card.code && <CodeBadge code={card.code} battery={battery} star={marks.lastExam} />}
+          {card.code && <CodeBadge code={card.code} battery={battery} star={marks.mockKind} />}
           <div className="min-w-0 flex-1">
             <div className="text-[14px] font-extrabold leading-tight text-gray-900">{card.name}</div>
             {card.hindi && (
@@ -491,11 +493,11 @@ function OpenCard({ card, series, battery, sat, bestT, stages, marks, locked = f
   );
 }
 
-function SoonCard({ card, lastExam = false }: { card: Card; lastExam?: boolean }) {
+function SoonCard({ card, mockKind = false }: { card: Card; mockKind?: boolean }) {
   return (
-    <div className={`flex flex-col rounded-[14px] border border-dashed p-3.5 ${lastExam ? "border-[#f59e0b] bg-gradient-to-b from-[#fffbeb] to-[#fafbfd]" : "border-gray-300 bg-[#fafbfd]"}`} aria-label={`${card.name}: coming soon`}>
+    <div className={`flex flex-col rounded-[14px] border border-dashed p-3.5 ${mockKind ? "border-[#f59e0b] bg-gradient-to-b from-[#fffbeb] to-[#fafbfd]" : "border-gray-300 bg-[#fafbfd]"}`} aria-label={`${card.name}: coming soon`}>
       <div className="flex items-start gap-2.5">
-        {card.code && <CodeBadge code={card.code} battery={0} star={lastExam} muted />}
+        {card.code && <CodeBadge code={card.code} battery={0} star={mockKind} muted />}
         <div className="min-w-0 flex-1">
           <div className="text-[14px] font-extrabold leading-tight text-gray-700">{card.name}</div>
           {card.hindi && (

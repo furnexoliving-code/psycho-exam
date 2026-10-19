@@ -65,6 +65,14 @@ export const CATEGORIES = [
     blurb: "Memorise sets of shapes on a study screen; then find each set among five options. 2 parts of 12.",
   },
   {
+    id: "vehicle",
+    battery: 1,
+    kind: "figure",
+    title: "Vehicle & Signal Position Test",
+    hindi: "वाहन व रेल संकेत स्थिति परीक्षण",
+    blurb: "Memorise the vehicles on a street map, then the rail signals on a railway map; on each map lettered A to D, say where every one stood. 2 parts of 3 in the railway's mock.",
+  },
+  {
     id: "watch",
     battery: 2,
     kind: "directions",

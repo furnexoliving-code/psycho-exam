@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PublicFooter, PublicHeader } from "@/components/landing/LandingPage";
 import { FreeMockCta } from "@/components/FreeMockCta";
 import { Crumbs, Eyebrow, FaqList, H2, HindiSummary, JoinBand, LinkCards, Mistakes, PlanRows, Sidebar, Stat, Steps, Tips } from "@/components/seo/parts";
-import { BATTERY_PAGES, DEVICE_TIP, LAST_EXAM_LABEL, STANDARD_FAQ, batteryPageOf, batteryUrl, hallOf, kindUrl, kindsOfBattery, lastExamGave, type KindPage } from "@/lib/seo/content";
+import { BATTERY_PAGES, DEVICE_TIP, NEXT_EXAM_LABEL, STANDARD_FAQ, batteryPageOf, batteryUrl, hallOf, kindUrl, kindsOfBattery, mockGives, type KindPage } from "@/lib/seo/content";
 import type { Package } from "@/lib/packages";
 
 /**
@@ -18,7 +18,7 @@ export function KindPageView({ page, packages }: { page: KindPage; packages: Pac
   const siblings = kindsOfBattery(page.battery).filter((k) => k.slug !== page.slug);
   const others = BATTERY_PAGES.filter((b) => b.battery !== page.battery);
   const faq = [...page.faq, ...STANDARD_FAQ];
-  const last = lastExamGave(page.code);
+  const last = mockGives(page.code);
   return (
     <div className="bg-white text-gray-900">
       <PublicHeader />
@@ -33,7 +33,7 @@ export function KindPageView({ page, packages }: { page: KindPage; packages: Pac
             </h1>
             {last && (
               <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#ff9933] bg-[#fff7ee] px-3 py-1 text-[12.5px] font-semibold text-gray-800">
-                <span aria-hidden="true">★</span> The last exam ({LAST_EXAM_LABEL}) gave this kind for Test {page.battery}
+                <span aria-hidden="true">★</span> The railway&apos;s mock link for {NEXT_EXAM_LABEL} gives this kind for the {battery.name}
               </p>
             )}
             {page.intro.map((p) => (
@@ -46,7 +46,7 @@ export function KindPageView({ page, packages }: { page: KindPage; packages: Pac
               <Stat big={`${hall.timeMin} min`} label={hall.timeNote ? `time (${hall.timeNote})` : "time limit"} />
               <Stat big="42" label="T-Score to pass" />
             </div>
-            <p className="mt-2 text-[12.5px] text-gray-500">The hall&apos;s own count and clock, as the RDSO guideline (ALPs Guidelines CBT, Jan 2020) gives them. {page.answerStyle}</p>
+            <p className="mt-2 text-[12.5px] text-gray-500">{page.hallNote ?? "The hall's own count and clock, as the RDSO guideline (ALPs Guidelines CBT, Jan 2020) gives them."} {page.answerStyle}</p>
 
             <div className="mt-8">
               <FreeMockCta test={battery.name} />
@@ -91,7 +91,7 @@ export function KindPageView({ page, packages }: { page: KindPage; packages: Pac
             <H2>The other four tests of the CBAT</H2>
             <LinkCards items={others.map((b) => ({ href: batteryUrl(b), title: `Test ${b.battery} · ${b.name}`, hindi: b.hindi, note: `${kindsOfBattery(b.battery).length} kinds of question` }))} />
             <p className="mt-6 text-[14px] text-gray-600">
-              New to the exam? Start with the <Link href="/rrb-alp-psycho-test" className="font-semibold text-[#0d2a6b] hover:underline">complete guide to the RRB ALP psycho test</Link>, or see <Link href="/psycho-test" className="font-semibold text-[#0d2a6b] hover:underline">all 19 kinds of question</Link> on one page.
+              New to the exam? Start with the <Link href="/rrb-alp-psycho-test" className="font-semibold text-[#0d2a6b] hover:underline">complete guide to the RRB ALP psycho test</Link>, or see <Link href="/psycho-test" className="font-semibold text-[#0d2a6b] hover:underline">all 20 kinds of question</Link> on one page.
             </p>
           </article>
 

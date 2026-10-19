@@ -40,6 +40,7 @@ export const SECTIONS: readonly Section[] = [
   { code: "1c", battery: 1, name: "Railway Track Route Test", hindi: "रेलवे ट्रैक रूट परीक्षण", questions: 24, questionsNote: "12 + 12", timeMin: 8, timeNote: "2+2+2+2", blurb: "Memorise the stations on a railway map; then name the letter where each station was.", blurbHi: "रेलवे मानचित्र में स्टेशनों की जगह याद करें; फिर हर स्टेशन की जगह वाला अक्षर बताएँ।" },
   { code: "1d", battery: 1, name: "Figure to Figure Test", hindi: "आकृति-आकृति परीक्षण", questions: 40, questionsNote: "20 + 20", timeMin: 12, timeNote: "3+3+3+3", blurb: "Memorise pairs of shapes; then find the shape that went with each one.", blurbHi: "आकृतियों के जोड़े याद करें; फिर हर आकृति के साथ वाली आकृति खोजें।" },
   { code: "1e", battery: 1, name: "Figure Find Test", hindi: "आकृति खोज परीक्षण", questions: 24, questionsNote: "12 + 12", timeMin: 8, timeNote: "2+2+2+2", blurb: "Memorise sets of shapes; then find each set among five options.", blurbHi: "आकृतियों के सेट याद करें; फिर हर सेट को पाँच विकल्पों में खोजें।" },
+  { code: "1f", battery: 1, name: "Vehicle & Signal Position Test", hindi: "वाहन व रेल संकेत स्थिति परीक्षण", questions: 6, questionsNote: "3 + 3", timeMin: 4, timeNote: "1+1+1+1", blurb: "Memorise the vehicles on a street map, then the rail signals on a railway map; then name the letter at each one's place. New in the railway's mock for CEN 01/2025.", blurbHi: "मार्ग मानचित्र पर वाहनों और फिर रेल मानचित्र पर रेल संकेतों की जगह याद करें; फिर हर एक की जगह वाला अक्षर बताएँ। CEN 01/2025 के रेलवे मॉक में नया।" },
   // 2 · Following Directions Test
   { code: "2a", battery: 2, name: "Letter Table Test", hindi: "लेटर टेबल टेस्ट", questions: 10, questionsNote: "", timeMin: 5, timeNote: "", blurb: "Follow the directions across a table of letters.", blurbHi: "अक्षरों की तालिका में निर्देशों के अनुसार उत्तर खोजें।" },
   { code: "2b", battery: 2, name: "Watch Table Test", hindi: "वॉच टेबल टेस्ट", questions: 20, questionsNote: "", timeMin: 10, timeNote: "", blurb: "Letters and numbers around a circle, with a compass at the centre.", blurbHi: "गोले पर अक्षर और अंक, बीच में दिशा-सूचक।" },
@@ -61,12 +62,17 @@ export const SECTIONS: readonly Section[] = [
 ];
 
 /**
- * The kinds of test the last exam gave, one per battery: the ones every
- * candidate must have practised. Marked on the practice page.
+ * The kinds the coming exam gives, one per battery, as the railway's own
+ * mock link for it shows (which also says the count and clock of each
+ * test will vary in the actual exam): the ones every
+ * candidate must practise first. Starred on the practice page and on the
+ * public pages. In the battery's order here; the mock itself runs them
+ * as Memory, Depth Perception, Power of Observation, Following
+ * Directions, Perceptual Speed.
  */
-export const LAST_EXAM_CODES: readonly string[] = ["1e", "2b", "3b", "4d", "5e"];
-/** Which exam that was, as the notice names it. */
-export const LAST_EXAM_LABEL = "CEN 01/2024";
+export const NEXT_EXAM_CODES: readonly string[] = ["1f", "2b", "3a", "4d", "5d"];
+/** Which exam that is, as the notice names it. */
+export const NEXT_EXAM_LABEL = "CEN 01/2025";
 
 /** The section a paper with no series name belongs to, by its category. */
 const DEFAULT_SECTION: Record<string, string> = {
@@ -75,6 +81,7 @@ const DEFAULT_SECTION: Record<string, string> = {
   railway: "1c",
   figfig: "1d",
   memory: "1e",
+  vehicle: "1f",
   letter: "2a",
   watch: "2b",
   number: "2c",

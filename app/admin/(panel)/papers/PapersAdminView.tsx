@@ -11,7 +11,7 @@ import { PendingButton } from "@/components/admin/PendingButton";
  * The Test papers page: every paper, by battery and then by the kind of
  * test, in the hall's order. The form for a new paper stands at the top,
  * since that is what the page is opened for most; each battery folds up,
- * with its counts on the fold, so nineteen kinds of test stay one screen.
+ * with its counts on the fold, so twenty kinds of test stay one screen.
  */
 export function PapersAdminView({
   papers,

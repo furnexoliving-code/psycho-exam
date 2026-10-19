@@ -641,12 +641,15 @@ grant select on public.watch_questions_public to anon, authenticated;
 -- 6 and Find 9 Tests (find6, find9) ride the same engine with text
 -- questions the portal builds: a pair of numbers, or four lettered groups
 -- of digits. The Octagonal and Same Circle Tests (octagonal, circle) are
--- picture papers on the Same Figure engine.
+-- picture papers on the Same Figure engine. The Memory Test's own kinds
+-- (house, fignum, railway, figfig, and vehicle: the Vehicle & Signal
+-- Position Test of the railway's mock for CEN 01/2025) run on its
+-- schedule, a study screen before each part's questions.
 -- ---------------------------------------------------------------------------
 alter table public.watch_papers drop constraint if exists watch_papers_category_ck;
 alter table public.watch_papers
   add constraint watch_papers_category_ck
-  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation', 'yesno', 'find6', 'find9', 'octagonal', 'circle', 'brick', 'similarity', 'similarity2', 'house', 'fignum', 'railway', 'figfig'));
+  check (category in ('watch', 'letter', 'number', 'figure', 'memory', 'depth', 'observation', 'yesno', 'find6', 'find9', 'octagonal', 'circle', 'brick', 'similarity', 'similarity2', 'house', 'fignum', 'railway', 'figfig', 'vehicle'));
 
 -- ---------------------------------------------------------------------------
 -- Portal settings (added later)

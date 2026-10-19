@@ -1,6 +1,6 @@
 # Blog guide: writing articles that bring ALP students to the portal
 
-The 26 public pages (the guide, the 5 test pages, the 19 kind pages and the hub) cover the exam's pattern once, for good. The blog is where new words go: a question students ask this month, a rule RDSO clarified, a story from a batch, a mistake seen in the last mock. Search engines reward a site that adds a useful page every week or two, and every article is one more door into the portal.
+The 27 public pages (the guide, the 5 test pages, the 20 kind pages and the hub) cover the exam's pattern once, for good. The blog is where new words go: a question students ask this month, a rule RDSO clarified, a story from a batch, a mistake seen in the last mock. Search engines reward a site that adds a useful page every week or two, and every article is one more door into the portal.
 
 The first four articles (11 Oct 2026, `supabase/blog-2026-10-11.sql`) set the pattern: the T-Score formula with RDSO's examples, RDSO's FAQ explained, exam-day advice, and preparation with Kautilya Classes and Pindel Sir.
 
@@ -33,7 +33,7 @@ One article answers one question. The question should be one a student actually 
 2. "Memory test kaise hota hai: the study screen, part 1 and part 2, with a sample map"
 3. "Watch Table Test: how to read the watch and answer in time"
 4. "Hidden Cube Test vs Brick Test: which one is harder and how to count"
-5. "How many questions are in each test of the ALP CBAT?" (a one-page table of all 19 kinds)
+5. "How many questions are in each test of the ALP CBAT?" (a one-page table of all 20 kinds)
 6. "ALP psycho test result: how the scorecard is read, and what 'not qualified' in one test means"
 7. "CBT 2 to CBAT: what happens between the two, dates, documents, the admit card"
 8. "Seven mistakes from the last mock: what students did wrong in the Following Directions Test"

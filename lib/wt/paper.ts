@@ -18,6 +18,7 @@ import {
   RAILWAY_SAMPLE_ID,
   FIGNUM_SAMPLE_ID,
   FIGFIG_SAMPLE_ID,
+  VEHICLE_SAMPLE_ID,
   figureSamplePaper,
   memorySamplePaper,
   observationSamplePaper,
@@ -29,6 +30,7 @@ import {
   similaritySamplePaper,
   mapSamplePaper,
   rowMemorySamplePaper,
+  vehicleSamplePaper,
 } from "./figure-sample";
 
 /**
@@ -57,6 +59,7 @@ export function getBundledPaper(paperId: string): WatchPaper | undefined {
   if (paperId === RAILWAY_SAMPLE_ID) return mapSamplePaper("railway") as WatchPaper;
   if (paperId === FIGNUM_SAMPLE_ID) return rowMemorySamplePaper("fignum") as WatchPaper;
   if (paperId === FIGFIG_SAMPLE_ID) return rowMemorySamplePaper("figfig") as WatchPaper;
+  if (paperId === VEHICLE_SAMPLE_ID) return vehicleSamplePaper() as WatchPaper;
   return undefined;
 }
 

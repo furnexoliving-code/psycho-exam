@@ -15,7 +15,7 @@
   "railway aptitude test syllabus"
  ],
  "intro": [
-  "The RRB ALP psycho test is the Computer Based Aptitude Test, CBAT for short. It comes after CBT 2, only for candidates shortlisted for Assistant Loco Pilot. It follows the RDSO guideline (ALPs Guidelines CBT, Jan 2020). You sit five tests in a fixed order: Memory, Following Directions, Depth Perception, Power of Observation and Perceptual Speed. Each test has its own clock and its own T-Score. You need a T-Score of at least 42 in every one of the five. Below 42 in even one test means not qualified, whatever your CBT 2 marks. The CBAT also carries 30% weight in the final ALP merit.",
+  "The RRB ALP psycho test is the Computer Based Aptitude Test, CBAT for short. It comes after CBT 2, only for candidates shortlisted for Assistant Loco Pilot. It follows the RDSO guideline (ALPs Guidelines CBT, Jan 2020). You sit five tests: Memory, Following Directions, Depth Perception, Power of Observation and Perceptual Speed, numbered here in the guideline's order; the railway's mock link for CEN 01/2025 runs them as Memory, Depth Perception, Power of Observation, Following Directions and Perceptual Speed. Each test has its own clock and its own T-Score. You need a T-Score of at least 42 in every one of the five. Below 42 in even one test means not qualified, whatever your CBT 2 marks. The CBAT also carries 30% weight in the final ALP merit.",
   "This guide is for a candidate who has never seen the CBAT. It tells you what each of the five tests asks, how the hall screen behaves, and what a T-Score measures. It gives a 30-day plan and what to do on exam day. Each test has its own page, which goes deeper into its kinds and its method. On the Railway Psycho Test Portal of Kautilya Classes you get one free Full Mock after login. Then you can practise every kind with the hall's count and clock. Your T-Score appears as soon as you submit."
  ],
  "introHi": "RRB ALP का साइको टेस्ट असल में कंप्यूटर आधारित अभिरुचि परीक्षा (CBAT) है, जो CBT 2 के बाद असिस्टेंट लोको पायलट के लिए चुने गए उम्मीदवार देते हैं। इसमें पाँच टेस्ट एक तय क्रम में आते हैं और हर टेस्ट में कम से कम 42 का T-Score लाना ज़रूरी है; किसी एक में भी 42 से कम हुआ तो आप क्वालिफाई नहीं करते, चाहे CBT 2 के अंक कितने भी हों। अंतिम मेरिट में CBAT का वज़न 30% है।",
@@ -30,8 +30,8 @@
   {
    "h": "The five tests, in the hall's order",
    "paragraphs": [
-    "The hall gives the five tests in a fixed order. Test 1, the Memory Test: you study a map, pairs or shapes while a clock runs, then answer from memory. Test 2, the Following Directions Test: a table of letters or numbers, or a watch-like circle, stays on screen. Each question is a direction to follow across it. Test 3, the Depth Perception Test: a pile of bricks or blocks drawn in three dimensions. You count the ones touching a lettered brick, or the ones hidden on every side. Test 4, the Power of Observation Test: compare two numbers, find a digit among groups, or spot moved figures. Speed is everything. Test 5, the Perceptual Speed Test: one figure on the left, five on the right, find the match.",
-    "Each test has several kinds, 19 in all, and the hall gives only one kind of each test. You do not know in advance which kind, so prepare every kind. The table on this page lists every kind. In the last exam (CEN 01/2024) the hall gave Figure Find, Watch Table, Hidden Cube, Figure Placement and Same Figure Tests. That is what the institute's records show, not a promise for next time. The kinds of one test share a skill, but each has its own screen and its own trap. The count and clock are not the same for every kind."
+    "The hall gives the five tests in a fixed order. Test 1, the Memory Test: you study a map, pairs or shapes while a clock runs, then answer from memory. Test 2, the Following Directions Test: a table of letters or numbers, or a watch-like circle, stays on screen. Each question is a direction to follow across it. Test 3, the Depth Perception Test: a pile of bricks or blocks drawn in three dimensions. You count the ones touching a lettered brick, or the ones hidden on every side. Test 4, the Power of Observation Test: compare two numbers, find a digit among groups, or spot moved figures. Speed is everything. Test 5, the Perceptual Speed Test: one figure on the left, five on the right, find the match. The railway's mock link for CEN 01/2025 runs them as Memory, Depth Perception, Power of Observation, Following Directions and Perceptual Speed; the test numbers on this site follow the RDSO guideline.",
+    "Each test has several kinds, 20 in all, and the hall gives only one kind of each test. You do not know in advance which kind, so prepare every kind. The table on this page lists every kind. In the last exam (CEN 01/2024) the hall gave Figure Find, Watch Table, Hidden Cube, Figure Placement and Same Figure Tests. That is what the institute's records show, not a promise for next time. For CEN 01/2025 the railway's own mock link shows the kind of each test: Vehicle & Signal Position (1f), Watch Table (2b), Brick (3a), Figure Placement (4d) and Same Circle (5d), marked ★ in the table. Practise those five first. The kinds of one test share a skill, but each has its own screen and its own trap. The count and clock are not the same for every kind."
    ]
   },
   {
@@ -91,11 +91,15 @@
   },
   {
    "q": "How many tests are there in the ALP CBAT, and in which order?",
-   "a": "Five, always in this order: Memory Test, Following Directions Test, Depth Perception Test, Power of Observation Test and Perceptual Speed Test. Each appears as one of its kinds; there are 19 kinds in all."
+   "a": "Five: Memory Test, Following Directions Test, Depth Perception Test, Power of Observation Test and Perceptual Speed Test, numbered here in the RDSO guideline's order. The railway's mock link for CEN 01/2025 runs them as Memory, Depth Perception, Power of Observation, Following Directions and Perceptual Speed. Each appears as one of its kinds; there are 20 kinds in all."
   },
   {
    "q": "Which kinds came in the last RRB ALP psycho test (CEN 01/2024)?",
-   "a": "The institute's records show one kind of each test. They are 1e Figure Find, 2b Watch Table, 3b Hidden Cube, 4d Figure Placement and 5e Same Figure. The next exam can pick any other kind, so prepare all 19."
+   "a": "The institute's records show one kind of each test. They are 1e Figure Find, 2b Watch Table, 3b Hidden Cube, 4d Figure Placement and 5e Same Figure. For CEN 01/2025 the railway's mock link shows different kinds for three of the tests; see the next question."
+  },
+  {
+   "q": "Which kinds will come in the RRB ALP psycho test for CEN 01/2025?",
+   "a": "The railway's own mock link for CEN 01/2025 shows one kind of each test: Vehicle & Signal Position (1f) for the Memory Test, Brick (3a) for Depth Perception, Figure Placement (4d) for Power of Observation, Watch Table (2b) for Following Directions and Same Circle (5d) for Perceptual Speed. The mock runs the tests in that order and says the question count and clock of each will vary in the actual exam. Practise these five first, and keep the other kinds ready."
   },
   {
    "q": "What is the T-Score in the ALP CBAT?",
@@ -111,7 +115,7 @@
   },
   {
    "q": "How long does the whole psycho test take?",
-   "a": "Each test runs on its own clock, from 4 minutes for the shortest kinds to 12 for the longest. Added up, the five clocks give between 27 and 47 minutes of test time, depending on the kinds. The combination of CEN 01/2024 added up to 43 minutes. Instruction screens come on top, so plan on five separate clocks, not one figure."
+   "a": "Each test runs on its own clock, from 4 minutes for the shortest kinds to 12 for the longest. Added up, the five clocks give between 23 and 47 minutes of test time, depending on the kinds. The combination of CEN 01/2024 added up to 43 minutes. Instruction screens come on top, so plan on five separate clocks, not one figure."
   }
  ],
  "summaryHi": "RRB ALP का साइको टेस्ट यानी CBAT, CBT 2 के बाद चुने गए उम्मीदवारों की कंप्यूटर पर होने वाली परीक्षा है, जो RDSO की गाइडलाइन के अनुसार होती है। इसमें पाँच टेस्ट तय क्रम में आते हैं: स्मृति, निर्देश पालन, गहराई बोध, अवलोकन शक्ति और प्रत्यक्ष गति; हर टेस्ट परीक्षा हॉल में अपने किसी एक प्रकार में आता है और उसकी अपनी घड़ी होती है। हर टेस्ट में कम से कम 42 का T-Score ज़रूरी है, और अंतिम मेरिट में CBAT का वज़न 30% है। तैयारी की शुरुआत मुफ़्त फुल मॉक से करें, फिर कमज़ोर टेस्ट के प्रैक्टिस पेपर रोज़ करें और हर गलत सवाल को दोबारा देखें। लक्ष्य हर टेस्ट में 60 का T-Score रखें, ताकि कठिन पेपर में भी आप सुरक्षित रहें।"

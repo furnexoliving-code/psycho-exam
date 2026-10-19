@@ -14,7 +14,7 @@ values (
   $kc$The T-Score decides who qualifies in the RRB ALP CBAT. Here is RDSO's own formula, three worked examples (one of them a negative score), the composite score out of 30, and the target Pindel Sir sets for every student.$kc$,
   $kc$Every result in the RRB ALP psycho test, the Computer Based Aptitude Test (CBAT), is a T-Score, not a count of right answers. You need a T-Score of 42 or more in each of the five tests to qualify, and the five T-Scores together give a score out of 30 that goes into the final ALP merit. RDSO, the Research Designs and Standards Organisation of Indian Railways, designs the test, and its FAQ for candidates gives the formula and three worked examples. This article walks through them, in RDSO's own figures, and then says what they mean for the way you prepare.
 
-If you are new to the exam, read the [complete guide to the RRB ALP psycho test](/rrb-alp-psycho-test) first. It explains the five tests and the 19 kinds of question the hall can give. On the Kautilya Classes portal, every practice paper and every Full Mock reports this same T-Score, computed the same way, so the number you see in practice is the number that matters in the hall.
+If you are new to the exam, read the [complete guide to the RRB ALP psycho test](/rrb-alp-psycho-test) first. It explains the five tests and the 20 kinds of question the hall can give. On the Kautilya Classes portal, every practice paper and every Full Mock reports this same T-Score, computed the same way, so the number you see in practice is the number that matters in the hall.
 
 ## Why the railway reports a T-Score, not marks
 
@@ -86,7 +86,7 @@ The scores in the RRB examination and in the aptitude test are then apportioned 
 4. **Never leave a blank.** No negative marking means a guess can only help. When Time Left is nearly gone, answer everything that remains.
 5. **Practise where a T-Score is reported against other candidates.** A percentage tells you nothing about the group. On the portal every paper's T-Score is computed against every student who sat that paper, with the formula above, and the Full Mock gives all five T-Scores and the score out of 30 in one scorecard.
 
-Start with the free Full Mock: [create a free account](/signup?next=/mocks), sit the five tests in the hall's order, and read the five T-Scores. Then take the kinds of your weakest test from the [list of all 19 kinds of question](/psycho-test), and the [packages](/packages) when you want every practice paper.
+Start with the free Full Mock: [create a free account](/signup?next=/mocks), sit the five tests in the hall's order, and read the five T-Scores. Then take the kinds of your weakest test from the [list of all 20 kinds of question](/psycho-test), and the [packages](/packages) when you want every practice paper.
 
 ## सारांश (हिंदी में)
 
@@ -111,7 +111,7 @@ values (
   $kc$RDSO publishes a 15-question FAQ on the aptitude test, in English and Hindi. Pindel Sir goes through the answers that matter for the ALP CBAT: who takes the test, how it is scored, the rules, the mock test in the hall, and the five points RDSO itself asks you to keep in mind.$kc$,
   $kc$RDSO, the Research Designs and Standards Organisation of Indian Railways at Lucknow, is the body whose Psychology Directorate designs the aptitude tests the RRBs give. Its website has a Candidates' Corner with a 15-question FAQ, in English and Hindi. Some of the questions are about Station Masters, some about serving loco pilots, and the rest apply to every candidate, including the RRB ALP psycho test, the Computer Based Aptitude Test (CBAT). This article takes the FAQ answer by answer and says, in plain words, what each one means for an ALP candidate.
 
-Two things this article does not repeat. The pattern of the ALP test itself, the five tests and the 19 kinds of question with their counts and clocks, is in the [complete guide to the RRB ALP psycho test](/rrb-alp-psycho-test). And the T-Score formula with RDSO's worked examples has [its own article](/blog/alp-psycho-test-t-score-formula).
+Two things this article does not repeat. The pattern of the ALP test itself, the five tests and the 20 kinds of question with their counts and clocks, is in the [complete guide to the RRB ALP psycho test](/rrb-alp-psycho-test). And the T-Score formula with RDSO's worked examples has [its own article](/blog/alp-psycho-test-t-score-formula).
 
 ## Who takes the aptitude test, and why (questions 1 and 2)
 
@@ -148,7 +148,7 @@ What it means for you: the score is relative, so your practice must also be rela
 
 RDSO's Candidates' Corner describes the mechanics. In the computer-based test you record an answer by clicking the mouse on one of the alternatives for the question. A mock test is available before the aptitude test, so that you can get familiar with it. The answers you mark can be changed within the time limit specified for the test.
 
-Three things follow. First, the hall is a desktop with a mouse, so practise on a laptop or desktop, not only on a phone. Second, the mock in the hall is for the mouse and the screen, not for learning the 19 kinds of question; a candidate who meets the Watch Table Test for the first time in that mock has left it too late. Third, changing an answer is allowed, but going back costs seconds that the clock does not return. Give your most likely answer, press Save & Next, and change it only when you are sure.
+Three things follow. First, the hall is a desktop with a mouse, so practise on a laptop or desktop, not only on a phone. Second, the mock in the hall is for the mouse and the screen, not for learning the 20 kinds of question; a candidate who meets the Watch Table Test for the first time in that mock has left it too late. Third, changing an answer is allowed, but going back costs seconds that the clock does not return. Give your most likely answer, press Save & Next, and change it only when you are sure.
 
 ## What in the FAQ is not about ALP
 
@@ -158,7 +158,7 @@ Three things follow. First, the hall is a desktop with a mouse, so practise on a
 
 ## Where the ALP pattern itself is written
 
-The ALPs Guidelines CBT (Jan 2020) give the five tests in their order, Memory, Following Directions, Depth Perception, Power of Observation and Perceptual Speed, and the kinds of question each test can take, 19 in all, with the number of questions and the minutes for each kind. The Kautilya Classes portal follows that guideline for every practice paper and every Full Mock, and the [list of all 19 kinds of question](/psycho-test) gives the count and the clock of each one.
+The ALPs Guidelines CBT (Jan 2020) give the five tests in their order, Memory, Following Directions, Depth Perception, Power of Observation and Perceptual Speed, and the kinds of question each test can take, 20 in all, with the number of questions and the minutes for each kind. The Kautilya Classes portal follows that guideline for every practice paper and every Full Mock, and the [list of all 20 kinds of question](/psycho-test) gives the count and the clock of each one.
 
 Start with the free Full Mock: [create a free account](/signup?next=/mocks) and sit all five tests on a screen like the hall's, in the hall's order, with a T-Score in each.
 
@@ -237,7 +237,7 @@ RDSO also describes the mechanics: you answer by clicking the mouse on one of th
 7. **Every test is a fresh start.** Each test has its own T-Score. A weak Memory Test does not touch your Following Directions score, and worrying about it will. Close it and begin the next one clean.
 8. **Use the break to breathe, not to replay.** RDSO says it too: relax in the rest period so that you can focus again. Water, a slow breath, eyes off the screen. Do not count the answers of the last test.
 9. **Trust the pace you practised.** Every kind of question has its own rhythm, fast in the Yes or No Test and slower in the Hidden Cube Test. If you sat each kind with the hall's clock, your body keeps the pace on its own. Do not change it on the day.
-10. **Use the hall's mock test for the mouse, not for learning.** The mock before the aptitude test shows you the screen, the options and the Save & Next button. Check them and settle in. The 19 kinds of question must already be familiar; the mock is too late to meet one for the first time.
+10. **Use the hall's mock test for the mouse, not for learning.** The mock before the aptitude test shows you the screen, the options and the Save & Next button. Check them and settle in. The 20 kinds of question must already be familiar; the mock is too late to meet one for the first time.
 
 ## The night before: a short checklist
 
@@ -281,7 +281,7 @@ Er. Mahendra Pindel, Pindel Sir to his students, is the founder and director of 
 
 Three reasons, each from the way the test is scored.
 
-First, the hall gives one kind of question for each of the five tests, out of 19 kinds in all, and you do not know in advance which kind. A candidate who has practised only the kinds of the last exam can meet a new screen on the day. Every kind must be familiar.
+First, the hall gives one kind of question for each of the five tests, out of 20 kinds in all, and you do not know in advance which kind. A candidate who has practised only the kinds of the last exam can meet a new screen on the day. Every kind must be familiar.
 
 Second, the score is a T-Score. It compares you with everyone who sat the same test, so a percentage in practice tells you nothing. RDSO's own example is a candidate with 75 right out of 100 who gets a T-Score of 40 and fails, because the average was 85. You need to know where you stand in a group, test by test, before the day.
 
@@ -300,7 +300,7 @@ The [complete guide to the RRB ALP psycho test](/rrb-alp-psycho-test) turns thes
 ## What the portal gives you
 
 - **The hall's screen.** Instruction screen with the worked example, Save & Next, Time Left, the break screens between tests, in Hindi and English together, as per the RDSO pattern.
-- **Every kind, with the hall's count and clock.** Practice papers of all 19 kinds of question, each with the number of questions and the minutes that the RDSO guideline (ALPs Guidelines CBT, Jan 2020) gives it. New papers are added every week.
+- **Every kind, with the hall's count and clock.** Practice papers of all 20 kinds of question, each with the number of questions and the minutes that the RDSO guideline (ALPs Guidelines CBT, Jan 2020) gives it. New papers are added every week.
 - **A real T-Score.** Every paper is scored with RDSO's formula against every student who sat it. The Full Mock scorecard is out of 30, computed the way RDSO computes the composite score, with the T-Score of each test beside it.
 - **Three attempts and a review.** Up to 3 attempts per paper, the best T-Score counts, and every attempt can be reviewed with the correct answers.
 - **A plan that reads your scorecard.** The dashboard's Today's plan names the weakest test and the paper to open next.
@@ -313,7 +313,7 @@ The reasons students give are plain ones. The teacher has taught this one exam f
 ## How to start
 
 - **Free account, free Full Mock.** [Create a free account](/signup?next=/mocks) with your name, mobile number and a password. One Full Mock is free at once: all five tests, the hall's timing, a scorecard out of 30.
-- **A package for every practice paper.** The [packages](/packages) give the practice papers of all 19 kinds (Sectional), every Full Mock (Full Mock), or both together (Combo).
+- **A package for every practice paper.** The [packages](/packages) give the practice papers of all 20 kinds (Sectional), every Full Mock (Full Mock), or both together (Combo).
 - **Classroom batches in Jaipur and Jodhpur.** Message the team on WhatsApp from the button on this page for the current batch and timings.
 
 ## सारांश (हिंदी में)
@@ -321,9 +321,9 @@ The reasons students give are plain ones. The teacher has taught this one exam f
 ALP चयन में साइको टेस्ट (CBAT) ही वह चरण है जो ज़्यादातर उम्मीदवारों ने पहले कभी नहीं देखा: पाँच टेस्ट, हर एक की अपनी घड़ी, हर एक में T-Score और हर एक में 42 की कट-ऑफ। इसलिए इसकी तैयारी अलग से चाहिए। कौटिल्य क्लासेस के संस्थापक और निदेशक इंजीनियर महेंद्र पिंडेल (पिंडेल सर), M.Tech. NIT जालंधर, दस साल से जयपुर और जोधपुर में ALP साइको टेस्ट पढ़ा रहे हैं; संस्थान के नाम हज़ारों चयन हैं। उनकी विधि पाँच कदम की है: पहले फ्री फुल मॉक से नापें, फिर सबसे कमज़ोर टेस्ट ठीक करें, फिर सभी 19 प्रकार का अभ्यास करें, हॉल जैसी स्क्रीन और घड़ी पर लैपटॉप से अभ्यास करें, और आख़िरी हफ़्ते में फुल मॉक देकर हर टेस्ट में 60 का लक्ष्य रखें। पोर्टल पर हर पेपर का T-Score RDSO के सूत्र से, उसी पेपर में बैठे सभी छात्रों के मुकाबले निकलता है, और हर खाते के साथ एक फुल मॉक मुफ़्त है।$kc$,
   'alp',
   $kc$ALP Psycho Test Preparation: Kautilya Classes & Pindel Sir$kc$,
-  $kc$Pindel Sir's method for the RRB ALP psycho test: free Full Mock first, fix the weakest test, practise all 19 kinds with a real T-Score. Jaipur, Jodhpur, online.$kc$,
+  $kc$Pindel Sir's method for the RRB ALP psycho test: free Full Mock first, fix the weakest test, practise all 20 kinds with a real T-Score. Jaipur, Jodhpur, online.$kc$,
   $kc$alp psycho test preparation, best coaching for alp psycho test, kautilya classes alp psycho, pindel sir, alp psycho test coaching jaipur, alp psycho test coaching jodhpur, alp psycho test online practice, railway psycho test portal, alp psycho test ki taiyari kaise kare$kc$,
-  $kc$[{"q":"Who teaches the ALP psycho test at Kautilya Classes?","a":"Er. Mahendra Pindel, known to students as Pindel Sir. He holds an M.Tech. from NIT Jalandhar, has taught the RRB ALP psycho test for ten years and is the founder and director of Kautilya Classes."},{"q":"Where are the Kautilya Classes classrooms?","a":"In Jaipur and Jodhpur, Rajasthan. Students anywhere in India prepare on the portal at kautilyaonline.com, with the same papers and the same T-Score."},{"q":"Can I prepare for the ALP psycho test online only?","a":"Yes. The portal has practice papers of all 19 kinds of question with the hall's count and clock, Full Mocks in the hall's order, and a T-Score on every paper. Sit them on a laptop or desktop, as in the hall."},{"q":"What is free on the portal?","a":"One Full Mock with every account: all five tests in one sitting, the hall's timing, a scorecard out of 30 and a T-Score in each test. No package is needed for it."},{"q":"How many days does the ALP psycho test need?","a":"Thirty days with a job for every day is enough for most students: a Full Mock first, then the weakest test's kinds, then every kind, then Full Mocks in the last week. The guide on this site gives the day-by-day plan."}]$kc$::jsonb,
+  $kc$[{"q":"Who teaches the ALP psycho test at Kautilya Classes?","a":"Er. Mahendra Pindel, known to students as Pindel Sir. He holds an M.Tech. from NIT Jalandhar, has taught the RRB ALP psycho test for ten years and is the founder and director of Kautilya Classes."},{"q":"Where are the Kautilya Classes classrooms?","a":"In Jaipur and Jodhpur, Rajasthan. Students anywhere in India prepare on the portal at kautilyaonline.com, with the same papers and the same T-Score."},{"q":"Can I prepare for the ALP psycho test online only?","a":"Yes. The portal has practice papers of all 20 kinds of question with the hall's count and clock, Full Mocks in the hall's order, and a T-Score on every paper. Sit them on a laptop or desktop, as in the hall."},{"q":"What is free on the portal?","a":"One Full Mock with every account: all five tests in one sitting, the hall's timing, a scorecard out of 30 and a T-Score in each test. No package is needed for it."},{"q":"How many days does the ALP psycho test need?","a":"Thirty days with a job for every day is enough for most students: a Full Mock first, then the weakest test's kinds, then every kind, then Full Mocks in the last week. The guide on this site gives the day-by-day plan."}]$kc$::jsonb,
   true,
   now() - interval '0 minutes',
   $kc$Team Kautilya$kc$

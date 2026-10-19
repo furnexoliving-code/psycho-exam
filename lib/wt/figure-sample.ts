@@ -88,6 +88,14 @@ export function pictureInstructions(
         },
         ...timing,
       ];
+    case "vehicle":
+      return [
+        {
+          en: `This is a test of memory, in two parts. In each part there is a Study screen and a Test screen. In Part 1, on the Study screen you will see a street map with some automobiles shown on it. Your task is to memorise the location of these automobiles, for ${min(studyMin || 1, true)}. After the allotted time the Test screen will appear: the same street map having the English letters A, B, C and D in place of the automobiles, and beside it the automobiles one by one as questions. For each automobile shown, the letter that shows its location on the map is your answer. In Part 2, the Study screen shows a railway map with rail signals, and the Test screen the same railway map having the letters A, B, C and D in place of the rail signals; for each rail signal shown, the letter that shows its position on the map is your answer. Mark your answer by clicking the mouse.`,
+          hi: `यह स्मृति का परीक्षण है, दो भागों में। प्रत्येक भाग में एक अध्ययन स्क्रीन और एक परीक्षण स्क्रीन है। भाग 1 में अध्ययन स्क्रीन पर आप एक मार्ग मानचित्र देखेंगे जिसमें कुछ वाहन प्रदर्शित हैं। आपको मानचित्र में इन वाहनों की स्थिति ${min(studyMin || 1, false)} तक याद करनी है। नियत समय के बाद परीक्षण स्क्रीन आएगी: वही मार्ग मानचित्र जिसमें वाहनों की जगह अंग्रेज़ी अक्षर A, B, C तथा D हैं, और उसके पास प्रश्न के रूप में एक-एक वाहन। हर दिखाए गए वाहन के लिए वह अक्षर जो मानचित्र में उसके स्थान पर आता है, आपका उत्तर है। भाग 2 में अध्ययन स्क्रीन पर एक रेल मानचित्र होगा जिसमें रेल संकेत प्रदर्शित हैं, और परीक्षण स्क्रीन पर वही रेल मानचित्र जिसमें रेल संकेतों की जगह अक्षर A, B, C तथा D हैं; हर दिखाए गए रेल संकेत के लिए वह अक्षर जो मानचित्र में उसकी स्थिति दिखाता है, आपका उत्तर है। उत्तर माउस क्लिक करके दें।`,
+        },
+        ...timing,
+      ];
     case "figfig":
       return [
         {
@@ -222,7 +230,7 @@ export function optionValues(style: OptionStyle, count: number): (string | numbe
 
 /** How large a picture test draws its pictures when the paper does not say: percent of the usual size. */
 export function defaultPictureScale(category: string | undefined): number {
-  return category === "depth" || category === "brick" || category === "similarity" || category === "similarity2" || category === "house" || category === "railway"
+  return category === "depth" || category === "brick" || category === "similarity" || category === "similarity2" || category === "house" || category === "railway" || category === "vehicle"
     ? 225
     : category === "memory" || category === "fignum" || category === "figfig"
       ? 140
@@ -245,6 +253,7 @@ export function defaultOptionsFor(category: string): { style: OptionStyle; count
     case "figfig":
       return { style: "letters", count: 4 };
     case "observation":
+    case "vehicle":
       return { style: "letters", count: 4 };
     default:
       return { style: "letters", count: DEFAULT_OPTION_COUNT };
@@ -340,22 +349,33 @@ const SHEETS: Record<string, SheetSpec> = {
 
 /**
  * The map tests of the Memory battery (House Position, Railway Track
- * Route): after the study screen, one picture per part at the left (the
- * map lettered A to E) and its questions at the right, each a label (a
- * house's number, a station's name) answered by a letter. The labels are
+ * Route, Vehicle & Signal Position): after the study screen, one picture
+ * per part at the left (the map lettered A to E, or A to D) and its
+ * questions at the right, each a label (a house's number, a station's
+ * name) or a picture (a vehicle) answered by a letter. The labels are
  * the admin's, typed with the picture.
  */
 export interface MapSpec {
   noun: string;
   /** What the questions are called: "house", "station". */
   item: string;
+  /**
+   * What each part's questions are called when the parts differ (the
+   * Vehicle & Signal Position Test: vehicles on a street map, then rail
+   * signals on a railway map); `item` for every part otherwise.
+   */
+  partItems?: readonly string[];
+  /** One line for the admin on how the parts differ, when they do. */
+  partsNote?: string;
   /** The labels a part starts with, when they are always the same; null when the admin types them. */
   defaultLabels: string[] | null;
   /** The questions are pictures (the house to find), one uploaded per question, not labels typed. */
   pictureQuestions: boolean;
   topicPrefix: string;
-  /** Questions per part, and the hall's clock per part. */
+  /** Questions per part, and the clock per part. */
   perPart: number;
+  /** Whose count that is, for the admin: "in the hall" unless said otherwise (the railway's mock, for the vehicle test). */
+  countSource?: string;
   studyMin: number;
   partMin: number;
 }
@@ -363,6 +383,19 @@ export interface MapSpec {
 const MAPS: Record<string, MapSpec> = {
   house: { noun: "map", item: "house", defaultLabels: Array.from({ length: 12 }, (_, i) => String(i + 1)), pictureQuestions: true, topicPrefix: "House", perPart: 12, studyMin: 2, partMin: 2 },
   railway: { noun: "map", item: "station", defaultLabels: null, pictureQuestions: false, topicPrefix: "Station", perPart: 12, studyMin: 2, partMin: 2 },
+  vehicle: {
+    noun: "map",
+    item: "vehicle",
+    partItems: ["vehicle", "signal"],
+    partsNote: "Part 1 is the street map with its vehicles; Part 2 the railway map with its rail signals. The railway's mock gives 3 questions in each, and both parts must have the same count.",
+    defaultLabels: ["1", "2", "3"],
+    pictureQuestions: true,
+    topicPrefix: "Vehicle",
+    perPart: 3,
+    countSource: "in the railway's mock",
+    studyMin: 1,
+    partMin: 1,
+  },
 };
 
 export function mapOf(category: string | null | undefined): MapSpec | null {
@@ -377,6 +410,10 @@ export function memorySchedule(category: string): { studyTimeMin: number; partTi
     case "house":
     case "railway":
       return { studyTimeMin: 2, partTimeMin: 2, breakTimeMin: 1, questionsPerPart: 12 };
+    case "vehicle":
+      // The railway's mock for CEN 01/2025: a minute to study, a minute to
+      // answer, three questions a part; the hall's own count will vary.
+      return { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1, questionsPerPart: 3 };
     case "fignum":
       return { studyTimeMin: 3, partTimeMin: 3, breakTimeMin: 1, questionsPerPart: 21 };
     case "figfig":
@@ -768,11 +805,12 @@ export function similaritySamplePaper(category: "similarity" | "similarity2") {
   };
 }
 
-/** Samples of the four new Memory tests, on the Memory sample's short clock, for seeing each screen before a database exists. */
+/** Samples of the five newer Memory tests, on the Memory sample's short clock, for seeing each screen before a database exists. */
 export const HOUSE_SAMPLE_ID = "house-position-sample";
 export const RAILWAY_SAMPLE_ID = "railway-route-sample";
 export const FIGNUM_SAMPLE_ID = "figure-number-sample";
 export const FIGFIG_SAMPLE_ID = "figure-figure-sample";
+export const VEHICLE_SAMPLE_ID = "vehicle-signal-sample";
 
 const SHORT_CLOCK = { studyTimeMin: 0.05, partTimeMin: 0.05, breakTimeMin: 0.05 };
 
@@ -846,6 +884,127 @@ export function mapSamplePaper(category: "house" | "railway") {
     category,
     title: house ? "House Position Test" : "Railway Track Route Test",
     displayName: house ? "House Position Test - Sample" : "Railway Track Route Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 3, ...SHORT_CLOCK, studyImages: study },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions(category, 1, 5, 1),
+    example: { table: { label: "Example", cells: [] }, text: [] },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions,
+    resultView: {},
+  };
+}
+
+/** A picture of its own: a vehicle or a rail signal, as the Vehicle & Signal Position Test's questions are. */
+function iconSvg(body: string, width: number, height: number): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${body}</svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+/** A vehicle's strokes, in a 64 × 36 box: a car, a truck or a jeep, as the mock draws them, in silhouette. */
+function vehicleBody(kind: number): string {
+  const wheels = (a: number, b: number) =>
+    `<circle cx="${a}" cy="29" r="6" fill="#111"/><circle cx="${a}" cy="29" r="2.5" fill="#fff"/><circle cx="${b}" cy="29" r="6" fill="#111"/><circle cx="${b}" cy="29" r="2.5" fill="#fff"/>`;
+  switch (kind % 3) {
+    case 0: // a car
+      return `<path d="M4 28 L4 20 L14 18 L22 9 L42 9 L52 18 L60 20 L60 28 Z" fill="#111"/><path d="M24 11 L40 11 L46 17 L18 17 Z" fill="#fff"/>${wheels(17, 47)}`;
+    case 1: // a truck: a cab and a box
+      return `<rect x="2" y="7" width="38" height="21" fill="#111"/><path d="M40 13 L52 13 L60 21 L60 28 L40 28 Z" fill="#111"/><rect x="43" y="15" width="8" height="6" fill="#fff"/>${wheels(14, 50)}`;
+    default: // a jeep: a boxy body with a rack on the roof
+      return `<rect x="14" y="5" width="30" height="3" fill="#111"/><path d="M6 28 L6 18 L12 10 L46 10 L52 18 L60 18 L60 28 Z" fill="#111"/><rect x="15" y="12" width="12" height="6" fill="#fff"/><rect x="30" y="12" width="12" height="6" fill="#fff"/>${wheels(17, 49)}`;
+  }
+}
+
+/** A rail signal's strokes, in a 36 × 48 box: a post with round lights, a three-lamp signal, or crossed arms, as the mock draws them. */
+function signalBody(kind: number): string {
+  const post = `<rect x="16" y="24" width="4" height="20" fill="#111"/><rect x="9" y="43" width="18" height="3" fill="#111"/>`;
+  switch (kind % 3) {
+    case 0: // two round lights on a post
+      return `<circle cx="18" cy="9" r="7" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="18" cy="9" r="3" fill="#111"/><circle cx="18" cy="21" r="5" fill="#fff" stroke="#111" stroke-width="2.5"/>${post}`;
+    case 1: // three lamps in a box
+      return `<rect x="9" y="2" width="18" height="26" rx="4" fill="#111"/><circle cx="18" cy="8" r="3" fill="#fff"/><circle cx="18" cy="15" r="3" fill="#fff"/><circle cx="18" cy="22" r="3" fill="#fff"/>${post}`;
+    default: // crossed arms with a lamp below
+      return `<path d="M5 4 L31 22 M31 4 L5 22" stroke="#111" stroke-width="4" stroke-linecap="round"/><circle cx="18" cy="13" r="3" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="18" cy="27" r="4" fill="#fff" stroke="#111" stroke-width="2"/>${post.replace('y="24"', 'y="30"')}`;
+  }
+}
+
+/** Where the lettered places of the sample's two maps are: seven on each, like the mock's, so a letter can stand twice. */
+const STREET_SPOTS: [number, number][] = [[70, 50], [170, 95], [250, 60], [380, 70], [90, 150], [230, 165], [360, 160]];
+const RAIL_SPOTS: [number, number][] = [[340, 30], [150, 70], [60, 130], [240, 125], [400, 95], [120, 170], [330, 175]];
+
+/**
+ * The sample's street map (a few winding roads) or railway map (tracks
+ * that fork and cross), 480 × 200, with a letter at each place, or with
+ * a vehicle or a signal at the places that have one: the test map, or the
+ * study map.
+ */
+function placesMapSvg(kind: "street" | "rail", labels: string[] | null, icons: (number | undefined)[]): string {
+  const spots = kind === "street" ? STREET_SPOTS : RAIL_SPOTS;
+  const ground =
+    kind === "street"
+      ? `<path d="M0 70 C 80 30, 140 110, 220 80 S 400 20, 480 60" fill="none" stroke="#333" stroke-width="2"/><path d="M0 120 C 60 160, 120 110, 200 150 S 330 200, 480 130" fill="none" stroke="#333" stroke-width="2"/><path d="M130 0 C 150 60, 110 120, 160 200" fill="none" stroke="#333" stroke-width="2"/><path d="M300 40 C 330 100, 290 140, 320 200" fill="none" stroke="#333" stroke-width="2"/>`
+      : ["M0 130 C 120 110, 220 90, 480 100", "M60 140 C 160 70, 260 40, 360 10", "M100 110 C 200 160, 300 190, 460 170"]
+          .map((d) => `<path d="${d}" fill="none" stroke="#333" stroke-width="7"/><path d="${d}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="2 6"/>`)
+          .join("");
+  const marks = spots
+    .map(([x, y], i) => {
+      // A letter wears a white halo and an icon sits on a white patch: both
+      // must read where a road or a track runs under them, as on the mock.
+      if (labels) return `<text x="${x}" y="${y + 6}" font-size="17" font-family="serif" text-anchor="middle" fill="#111" stroke="#fff" stroke-width="5" paint-order="stroke">${labels[i] ?? ""}</text>`;
+      const icon = icons[i];
+      if (icon === undefined) return "";
+      return kind === "street"
+        ? `<rect x="${x - 28}" y="${y - 17}" width="56" height="34" rx="4" fill="#fff"/><g transform="translate(${x - 26} ${y - 15}) scale(0.8)">${vehicleBody(icon)}</g>`
+        : `<rect x="${x - 20}" y="${y - 26}" width="40" height="52" rx="4" fill="#fff"/><g transform="translate(${x - 18} ${y - 24})">${signalBody(icon)}</g>`;
+    })
+    .join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="200" viewBox="0 0 480 200"><rect x="1" y="1" width="478" height="198" fill="#fff" stroke="#999"/>${ground}${marks}</svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+/**
+ * The Vehicle & Signal Position Test's sample: Part 1 a street map with
+ * three vehicles, Part 2 a railway map with three rail signals, each on
+ * the mock's clock of a minute to study and a minute to answer, with the
+ * letters A to D standing at more places than there were vehicles.
+ */
+export function vehicleSamplePaper() {
+  const category = "vehicle";
+  const spec = mapOf(category)!;
+  const letters = OPTION_LETTERS.slice(0, 4);
+  // The test maps' letters, place by place, and where each question's
+  // picture stood: the mock's own answers, a jeep at C, a truck at D, a
+  // car at B; then the signals at B, C and A.
+  const parts: { kind: "street" | "rail"; lettered: string[]; icons: number[]; answers: string[] }[] = [
+    { kind: "street", lettered: ["B", "A", "B", "C", "D", "C", "A"], icons: [2, 1, 0], answers: ["C", "D", "B"] },
+    { kind: "rail", lettered: ["D", "D", "B", "A", "C", "A", "B"], icons: [2, 0, 1], answers: ["B", "C", "A"] },
+  ];
+  const study = parts.map((p) => {
+    const at: (number | undefined)[] = [];
+    p.icons.forEach((icon, i) => { at[p.lettered.indexOf(p.answers[i])] = icon; });
+    return placesMapSvg(p.kind, null, at);
+  });
+  const questions = parts.flatMap((p, pi) => {
+    const image = placesMapSvg(p.kind, p.lettered, []);
+    const prefix = spec.partItems?.[pi] ?? spec.item;
+    return p.icons.map((icon, li) => ({
+      id: `${category}-q${pi * 3 + li + 1}`,
+      tableIndex: 0,
+      prompt: { en: String(li + 1), hi: "" },
+      options: [...letters],
+      answer: p.answers[li],
+      working: { en: "", hi: "" },
+      topic: `${prefix[0].toUpperCase() + prefix.slice(1)} ${li + 1}`,
+      image,
+      promptImage: p.kind === "street" ? iconSvg(vehicleBody(icon), 64, 36) : iconSvg(signalBody(icon), 36, 48),
+    }));
+  });
+  return {
+    id: VEHICLE_SAMPLE_ID,
+    kind: "figure" as const,
+    category,
+    title: "Vehicle & Signal Position Test",
+    displayName: "Vehicle & Signal Position Test - Sample",
     features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 3, ...SHORT_CLOCK, studyImages: study },
     timeLimitMin: 1,
     instructionTimeLimitMin: 5,
