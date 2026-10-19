@@ -215,7 +215,9 @@ export async function createPaper(formData: FormData) {
       time_limit_min: built ? built.timeMin : figure ? pictureMin : 10,
       cells: figure ? [] : tables[0].cells,
       example_cells: figure ? [] : tables[0].cells,
-      instructions: figure ? pictureInstructions(category, built ? built.timeMin : pictureMin, 5, 1) : [],
+      // A test whose parts are introduced one by one opens on its first
+      // part's screen, with that part's own clock.
+      instructions: figure ? pictureInstructions(category, memorySchedule(category)?.partInstructionMin ? (memorySchedule(category)!.studyTimeMin + memorySchedule(category)!.partTimeMin) : built ? built.timeMin : pictureMin, 5, 1) : [],
       example_text: figure ? (matching ? matchingExampleText(category) : built ? built.example : sheet ? sheetExampleText(category) : []) : undefined,
       // The picture tests are answered with the mouse, in parts, and have
       // no question-paper page; the keyboard-only rules of the Following
@@ -357,7 +359,7 @@ export async function saveSettings(
     // the parts, so the two can never disagree.
     const studyRaw = formData.get("study_time_min");
     const partRaw = formData.get("part_time_min");
-    const schedule: { studyTimeMin?: number; partTimeMin?: number; breakTimeMin?: number } = {};
+    const schedule: { studyTimeMin?: number; partTimeMin?: number; breakTimeMin?: number; partInstructionMin?: number } = {};
     if (studyRaw !== null) {
       const n = numberOrNull(studyRaw) ?? 0;
       if (n < 0 || n > 60) throw new Error("Study time must be from 0 to 60 minutes");
@@ -379,6 +381,12 @@ export async function saveSettings(
       const n = numberOrNull(breakRaw) ?? 0;
       if (n < 0 || n > 30) throw new Error("Break time must be from 0 to 30 minutes");
       schedule.breakTimeMin = n;
+    }
+    const introRaw = formData.get("part_instruction_min");
+    if (introRaw !== null) {
+      const n = numberOrNull(introRaw) ?? 0;
+      if (n < 0 || n > 30) throw new Error("Instruction time before a part must be from 0 to 30 minutes");
+      schedule.partInstructionMin = n;
     }
 
     const publish = formData.get("is_published") === "on";

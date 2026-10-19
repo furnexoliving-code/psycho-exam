@@ -14,28 +14,45 @@ import { testNameOf } from "@/lib/wt/categories";
  * banner, which reopens it as a dialog once the test has started. There is one
  * copy of this text so the two can never drift apart.
  */
-export function InstructionsBody({ paper }: { paper: WatchPaper }) {
+/**
+ * What one part's instruction screen says in place of the paper's own
+ * words: a test whose parts are introduced one by one (the Vehicle &
+ * Signal Position Test) names the part, counts its questions and gives
+ * its own clock, and from the second part on brings its own text.
+ */
+export interface InstructionOverride {
+  heading?: { en: string; hi: string };
+  blocks?: InstructionBlock[];
+  questionCount?: number;
+  timeLimitMin?: number;
+  /** How that clock splits, as the hall writes it: "(1+1)". */
+  timeNote?: string;
+}
+
+export function InstructionsBody({ paper, override }: { paper: WatchPaper; override?: InstructionOverride }) {
   const { battery } = useExamChrome();
   const name = testNameOf(battery, paper.title);
+  const blocks = override?.blocks ?? paper.instructions;
   return (
     <div className="grid grid-cols-1 divide-x divide-gray-200 xl:grid-cols-2">
       {(["en", "hi"] as const).map((lang) => (
         <div key={lang} className="px-6 py-5" lang={lang}>
-          <h2 className="text-[19px] font-bold text-[#494949]">{name}</h2>
+          <h2 className="text-[19px] font-bold text-[#494949]">{override?.heading?.[lang] ?? name}</h2>
 
           <dl className="mt-3 space-y-1 text-[15px] text-[#494949]">
             <div className="flex gap-2">
               <dt className="font-bold">
                 {lang === "en" ? "No. of Questions:" : "प्रश्नों की संख्या:"}
               </dt>
-              <dd>{paper.questions.length}</dd>
+              <dd>{override?.questionCount ?? paper.questions.length}</dd>
             </div>
             <div className="flex gap-2">
               <dt className="font-bold">
                 {lang === "en" ? "Time Limit:" : "समय सीमा:"}
               </dt>
               <dd>
-                {shownTimeLimitMin(paper)} {lang === "en" ? "Minutes" : "मिनट"}
+                {override?.timeLimitMin ?? shownTimeLimitMin(paper)} {lang === "en" ? "Minutes" : "मिनट"}
+                {override?.timeNote ? ` ${override.timeNote}` : ""}
               </dd>
             </div>
           </dl>
@@ -44,21 +61,26 @@ export function InstructionsBody({ paper }: { paper: WatchPaper }) {
             {lang === "en" ? "Instructions:-" : "निर्देश:-"}
           </h3>
           <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-[#494949]">
-            {paper.instructions.map((line, i) => (
+            {blocks.map((line, i) => (
               <Block key={i} block={line} lang={lang} />
             ))}
           </div>
 
-          <h3 className="mt-5 text-[15px] font-bold text-[#494949]">
-            {lang === "en"
-              ? "Now look at the example given below :-"
-              : "अब नीचे दिए गए उदाहरण को देखें:-"}
-          </h3>
-          {paper.example.text.map((line, i) => (
-            <div key={i} className="mt-2 text-[15px] leading-relaxed text-[#494949]">
-              <Block block={line} lang={lang} />
-            </div>
-          ))}
+          {/* The paper's example belongs to its own words, not to a later part's screen. */}
+          {!override?.blocks && (
+            <>
+              <h3 className="mt-5 text-[15px] font-bold text-[#494949]">
+                {lang === "en"
+                  ? "Now look at the example given below :-"
+                  : "अब नीचे दिए गए उदाहरण को देखें:-"}
+              </h3>
+              {paper.example.text.map((line, i) => (
+                <div key={i} className="mt-2 text-[15px] leading-relaxed text-[#494949]">
+                  <Block block={line} lang={lang} />
+                </div>
+              ))}
+            </>
+          )}
 
         </div>
       ))}
@@ -67,10 +89,10 @@ export function InstructionsBody({ paper }: { paper: WatchPaper }) {
 }
 
 /** The full-screen instruction phase, before the test opens. */
-export function Instructions({ paper }: { paper: WatchPaper }) {
+export function Instructions({ paper, override }: { paper: WatchPaper; override?: InstructionOverride }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
-      <InstructionsBody paper={paper} />
+      <InstructionsBody paper={paper} override={override} />
     </div>
   );
 }
@@ -84,10 +106,12 @@ export function InstructionsDialog({
   paper,
   open,
   onClose,
+  override,
 }: {
   paper: WatchPaper;
   open: boolean;
   onClose: () => void;
+  override?: InstructionOverride;
 }) {
   const body = useRef<HTMLDivElement | null>(null);
   if (!open) return null;
@@ -116,7 +140,7 @@ export function InstructionsDialog({
 
         <div className="relative min-h-0 flex-1">
           <div ref={body} className="wt-scroll-host h-full pr-[9px]">
-            <InstructionsBody paper={paper} />
+            <InstructionsBody paper={paper} override={override} />
           </div>
           <ScrollRail target={body} axis="vertical" />
         </div>

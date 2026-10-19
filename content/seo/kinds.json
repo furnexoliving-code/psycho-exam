@@ -816,7 +816,7 @@
   "how": [
    {
     "h": "Instruction screen",
-    "p": "The test opens with its rules in Hindi and English. In the railway's mock the rules end with a worked example: a street map with five vehicles, then the same map lettered, with the answers. On the portal this screen allows 5 minutes; Skip Instruction starts the test sooner."
+    "p": "The test opens with Part 1's rules in Hindi and English: the street map and its automobiles, 3 questions, 2 minutes (1+1). In the railway's mock the rules end with a worked example: a street map with five vehicles, then the same map lettered, with the answers. On the portal this screen allows 5 minutes; Skip Instruction starts the test sooner."
    },
    {
     "h": "Study screen, Part 1",
@@ -828,7 +828,7 @@
    },
    {
     "h": "Break, then Part 2",
-    "p": "A short break with a summary follows. Then Part 2 opens by itself with a railway map and rail signals in place of the street map and vehicles: again 1 minute to study and 1 minute to answer, with the signals pictured beside the lettered map."
+    "p": "A short break with a summary follows. Then Part 2 opens with an instruction screen of its own, as the mock's second section does: the railway map and its rail signals, with Skip Instruction to go on sooner. Then again 1 minute to study and 1 minute to answer, with the signals pictured beside the lettered map."
    },
    {
     "h": "Submit",

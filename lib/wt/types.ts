@@ -146,6 +146,12 @@ export interface WatchFeatures {
   /** With study screens: minutes of break, with a summary, between one part and the next. */
   breakTimeMin?: number;
   /**
+   * With study screens: minutes of an instruction screen of its own before
+   * every part after the first, as the hall's new Memory Test introduces
+   * its second section (the Vehicle & Signal Position Test). Zero for none.
+   */
+  partInstructionMin?: number;
+  /**
    * Picture papers: how large the pictures are drawn, as a percentage of
    * the usual size. 0 means the test's own usual size (Depth Perception is
    * drawn half as large again, since its block piles are finer).
@@ -171,6 +177,7 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   studyImages: [],
   partTimeMin: 0,
   breakTimeMin: 0,
+  partInstructionMin: 0,
   pictureScale: 0,
   studyScale: 60,
 };

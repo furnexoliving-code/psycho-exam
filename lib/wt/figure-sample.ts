@@ -34,27 +34,60 @@ export function figureInstructions(testMin: number, instructionMin: number): Ins
  * the real test as far as it is known, with this paper's timing written
  * in. The institute edits it like any other paper's instructions.
  */
-export function pictureInstructions(
-  category: string,
-  testMin: number,
-  instructionMin: number,
-  studyMin = 0,
-): InstructionBlock[] {
-  const min = (n: number, en: boolean) => (en ? `${n} minute${n === 1 ? "" : "s"}` : `${n} मिनट`);
-  const timing: InstructionBlock[] = [
+/** "3 minutes" / "3 मिनट". */
+function minutes(n: number, en: boolean): string {
+  return en ? `${n} minute${n === 1 ? "" : "s"}` : `${n} मिनट`;
+}
+
+/** The closing lines of every picture test's instructions: the clock, the mouse, and the time to read. */
+function timingBlocks(testMin: number, instructionMin: number): InstructionBlock[] {
+  return [
     {
-      en: `The time limit for the test is ${min(testMin, true)}.`,
-      hi: `इस परीक्षण हेतु समय सीमा ${min(testMin, false)} है।`,
+      en: `The time limit for the test is ${minutes(testMin, true)}.`,
+      hi: `इस परीक्षण हेतु समय सीमा ${minutes(testMin, false)} है।`,
     },
     {
       en: "Give answer by clicking on the appropriate answer option through the mouse.",
       hi: "अपना उत्तर माउस की सहायता से उपयुक्त विकल्प पर क्लिक करके दें।",
     },
     {
-      en: `You have ${min(instructionMin, true)} to read these instructions. When that time is over the test begins by itself. Press Skip Instruction to begin sooner.`,
-      hi: `इन निर्देशों को पढ़ने के लिए आपके पास ${min(instructionMin, false)} हैं। यह समय समाप्त होते ही परीक्षण स्वतः प्रारंभ हो जाएगा। जल्दी शुरू करने के लिए Skip Instruction दबाएँ।`,
+      en: `You have ${minutes(instructionMin, true)} to read these instructions. When that time is over the test begins by itself. Press Skip Instruction to begin sooner.`,
+      hi: `इन निर्देशों को पढ़ने के लिए आपके पास ${minutes(instructionMin, false)} हैं। यह समय समाप्त होते ही परीक्षण स्वतः प्रारंभ हो जाएगा। जल्दी शुरू करने के लिए Skip Instruction दबाएँ।`,
     },
   ];
+}
+
+/**
+ * The instruction screen of one part of a test whose parts are introduced
+ * one by one, as the hall's new Memory Test is: Part 1 the street map and
+ * its automobiles, Part 2 the railway map and its rail signals, each in
+ * the mock's own words with its own clock. Null for a test whose one
+ * instruction screen covers every part.
+ */
+export function partInstructions(category: string, part: number, testMin: number, instructionMin: number, studyMin = 0): InstructionBlock[] | null {
+  if (category !== "vehicle") return null;
+  const study = studyMin || 1;
+  const text: InstructionBlock =
+    part === 0
+      ? {
+          en: `This is the first part of the test of memory. In this part there is a Study screen and then a Test screen. On the Study screen you will see a street map with some automobiles shown on it. Your task is to memorise the location of these automobiles, for ${minutes(study, true)}. After that the Test screen will appear. On this screen you will find the same street map having the English letters A, B, C and D in place of the automobiles, and beside it the automobiles one by one as questions. You are required to recall the location of each automobile on the map. The letter that shows the location of the automobile on the map is your answer.`,
+          hi: `यह स्मृति परीक्षण का पहला भाग है। इस भाग में एक अध्ययन स्क्रीन और फिर एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर आप एक मार्ग मानचित्र देखेंगे जिसमें कुछ वाहन प्रदर्शित हैं। आपको मानचित्र में इन वाहनों की स्थिति ${minutes(study, false)} तक याद करनी है। उसके बाद परीक्षण स्क्रीन दिखाई देगी। इस स्क्रीन पर आपको वही मार्ग मानचित्र मिलेगा किंतु वाहनों की जगह अंग्रेज़ी अक्षर A, B, C तथा D होंगे, और उसके पास प्रश्न के रूप में एक-एक वाहन। आपको मानचित्र में प्रत्येक वाहन की स्थिति बतानी है। वह अक्षर जो मानचित्र में वाहन के स्थान पर आता है, आपका उत्तर होगा।`,
+        }
+      : {
+          en: `This is the second part of the test of memory. In this part there is a Study screen and then a Test screen. On the Study screen you will see a railway map with rail signals. Your task is to memorise the location of the rail signals, for ${minutes(study, true)}. After that the Test screen will appear. On this screen you will find the same railway map having the English letters A, B, C and D in place of the rail signals, and beside it the rail signals one by one as questions. You are required to recall the location of each rail signal on the map. The letter that shows the position of the rail signal on the map is your answer.`,
+          hi: `यह स्मृति परीक्षण का दूसरा भाग है। इस भाग में एक अध्ययन स्क्रीन और फिर एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर आप एक रेल मानचित्र देखेंगे जिसमें कुछ रेल संकेत प्रदर्शित हैं। आपको मानचित्र में इन रेल संकेतों की स्थिति ${minutes(study, false)} तक याद करनी है। उसके बाद परीक्षण स्क्रीन दिखाई देगी। इस स्क्रीन पर आपको वही रेल मानचित्र मिलेगा किंतु रेल संकेतों की जगह अंग्रेज़ी अक्षर A, B, C तथा D होंगे, और उसके पास प्रश्न के रूप में एक-एक रेल संकेत। आपको मानचित्र में प्रत्येक संकेत की स्थिति बतानी है। वह अक्षर जो रेल मानचित्र में संकेत के स्थान पर आता है, वही आपका उत्तर होगा।`,
+        };
+  return [text, ...timingBlocks(testMin, instructionMin)];
+}
+
+export function pictureInstructions(
+  category: string,
+  testMin: number,
+  instructionMin: number,
+  studyMin = 0,
+): InstructionBlock[] {
+  const min = minutes;
+  const timing = timingBlocks(testMin, instructionMin);
   switch (category) {
     case "memory":
       return [
@@ -89,13 +122,9 @@ export function pictureInstructions(
         ...timing,
       ];
     case "vehicle":
-      return [
-        {
-          en: `This is a test of memory, in two parts. In each part there is a Study screen and a Test screen. In Part 1, on the Study screen you will see a street map with some automobiles shown on it. Your task is to memorise the location of these automobiles, for ${min(studyMin || 1, true)}. After the allotted time the Test screen will appear: the same street map having the English letters A, B, C and D in place of the automobiles, and beside it the automobiles one by one as questions. For each automobile shown, the letter that shows its location on the map is your answer. In Part 2, the Study screen shows a railway map with rail signals, and the Test screen the same railway map having the letters A, B, C and D in place of the rail signals; for each rail signal shown, the letter that shows its position on the map is your answer. Mark your answer by clicking the mouse.`,
-          hi: `यह स्मृति का परीक्षण है, दो भागों में। प्रत्येक भाग में एक अध्ययन स्क्रीन और एक परीक्षण स्क्रीन है। भाग 1 में अध्ययन स्क्रीन पर आप एक मार्ग मानचित्र देखेंगे जिसमें कुछ वाहन प्रदर्शित हैं। आपको मानचित्र में इन वाहनों की स्थिति ${min(studyMin || 1, false)} तक याद करनी है। नियत समय के बाद परीक्षण स्क्रीन आएगी: वही मार्ग मानचित्र जिसमें वाहनों की जगह अंग्रेज़ी अक्षर A, B, C तथा D हैं, और उसके पास प्रश्न के रूप में एक-एक वाहन। हर दिखाए गए वाहन के लिए वह अक्षर जो मानचित्र में उसके स्थान पर आता है, आपका उत्तर है। भाग 2 में अध्ययन स्क्रीन पर एक रेल मानचित्र होगा जिसमें रेल संकेत प्रदर्शित हैं, और परीक्षण स्क्रीन पर वही रेल मानचित्र जिसमें रेल संकेतों की जगह अक्षर A, B, C तथा D हैं; हर दिखाए गए रेल संकेत के लिए वह अक्षर जो मानचित्र में उसकी स्थिति दिखाता है, आपका उत्तर है। उत्तर माउस क्लिक करके दें।`,
-        },
-        ...timing,
-      ];
+      // The first part's screen; the second part has a screen of its own
+      // on the clock (see partInstructions).
+      return partInstructions(category, 0, testMin, instructionMin, studyMin) ?? [];
     case "figfig":
       return [
         {
@@ -403,7 +432,7 @@ export function mapOf(category: string | null | undefined): MapSpec | null {
 }
 
 /** The Memory battery's schedule per test: study, then questions, part by part, with a break between. */
-export function memorySchedule(category: string): { studyTimeMin: number; partTimeMin: number; breakTimeMin: number; questionsPerPart: number } | null {
+export function memorySchedule(category: string): { studyTimeMin: number; partTimeMin: number; breakTimeMin: number; questionsPerPart: number; partInstructionMin?: number } | null {
   switch (category) {
     case "memory":
       return { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1, questionsPerPart: 3 };
@@ -412,8 +441,9 @@ export function memorySchedule(category: string): { studyTimeMin: number; partTi
       return { studyTimeMin: 2, partTimeMin: 2, breakTimeMin: 1, questionsPerPart: 12 };
     case "vehicle":
       // The railway's mock for CEN 01/2025: a minute to study, a minute to
-      // answer, three questions a part; the hall's own count will vary.
-      return { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1, questionsPerPart: 3 };
+      // answer, three questions a part, and the second part introduced on
+      // an instruction screen of its own; the hall's own count will vary.
+      return { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1, questionsPerPart: 3, partInstructionMin: 2 };
     case "fignum":
       return { studyTimeMin: 3, partTimeMin: 3, breakTimeMin: 1, questionsPerPart: 21 };
     case "figfig":
@@ -1005,7 +1035,7 @@ export function vehicleSamplePaper() {
     category,
     title: "Vehicle & Signal Position Test",
     displayName: "Vehicle & Signal Position Test - Sample",
-    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 3, ...SHORT_CLOCK, studyImages: study },
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 3, ...SHORT_CLOCK, partInstructionMin: 0.05, studyImages: study },
     timeLimitMin: 1,
     instructionTimeLimitMin: 5,
     instructions: pictureInstructions(category, 1, 5, 1),

@@ -5,14 +5,14 @@ import { resolveFeatures, type WatchPaper } from "@/lib/wt/types";
 import { useAttempt } from "@/lib/wt/state";
 import { useScrollLock } from "@/lib/wt/useKeyboardOnly";
 import { phaseAt, scheduleOf, shownTimeLimitMin } from "@/lib/wt/schedule";
-import { defaultPictureScale, mapOf, sheetOf } from "@/lib/wt/figure-sample";
+import { defaultPictureScale, mapOf, partInstructions, sheetOf } from "@/lib/wt/figure-sample";
 import { PortalBanner } from "./PortalBanner";
 import { ExamTop, SectionChip } from "./ExamTop";
-import { Instructions, InstructionsDialog } from "./Instructions";
+import { Instructions, InstructionsBody, InstructionsDialog, type InstructionOverride } from "./Instructions";
 import { ConfirmBox } from "./ConfirmBox";
 import { ExamSummaryList } from "./ExamSummary";
 import { useExamChrome } from "./ExamChrome";
-import { testNameOf } from "@/lib/wt/categories";
+import { BATTERIES, testNameOf } from "@/lib/wt/categories";
 import { ScrollRail } from "./ScrollRail";
 import { splitGroups } from "@/lib/wt/find";
 
@@ -69,6 +69,7 @@ export function FigureExam({
   const [setsWidth, setSetsWidth] = useState(0);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
+  const [confirmPartSkip, setConfirmPartSkip] = useState(false);
   const column = useRef<HTMLDivElement | null>(null);
   // The Brick Test's question pane, which scrolls sideways under its own rail.
   const brickPane = useRef<HTMLOListElement | null>(null);
@@ -100,6 +101,24 @@ export function FigureExam({
   const partCount = Math.max(1, Math.ceil(paper.questions.length / perPart));
   const parts = useMemo(() => Array.from({ length: partCount }, (_, p) => paper.questions.slice(p * perPart, (p + 1) * perPart)), [paper.questions, partCount, perPart]);
 
+  // A test whose parts are introduced one by one, as the hall's new Memory
+  // Test is: every part's instruction screen names the part, counts its
+  // questions and gives its own clock, and from the second part on brings
+  // its own words; the paper's own words (the admin's) open the first.
+  const partIntro = features.studyTimeMin > 0 && features.partInstructionMin > 0;
+  const partMin = Math.max(1, Math.ceil(features.studyTimeMin + features.partTimeMin));
+  const batteryHindi = BATTERIES.find((b) => b.id === battery)?.hindi ?? testName;
+  const introOf = (p: number): InstructionOverride | undefined =>
+    partIntro
+      ? {
+          heading: { en: `${testName} (Part ${p + 1})`, hi: `${batteryHindi} (भाग ${p + 1})` },
+          blocks: p === 0 ? undefined : (partInstructions(paper.category ?? "", p, partMin, Math.max(1, Math.round(features.partInstructionMin)), features.studyTimeMin) ?? undefined),
+          questionCount: (parts[p] ?? []).length,
+          timeLimitMin: partMin,
+          timeNote: Number.isInteger(features.studyTimeMin) && Number.isInteger(features.partTimeMin) ? `(${features.studyTimeMin}+${features.partTimeMin})` : undefined,
+        }
+      : undefined;
+
   // The Memory Test runs on the clock alone: each part is a study screen
   // for the study time, then its questions for the part time, then a break
   // with a summary, and the next part takes over by itself — no button
@@ -117,6 +136,7 @@ export function FigureExam({
   const inQuestions = at?.phase === "questions";
   const inStudy = at?.phase === "study";
   const inBreak = at?.phase === "break";
+  const inInstruction = at?.phase === "instruction";
   // The same switch as the Following Directions paper, on every screen of
   // the paper, the study screen included: the wheel is off, as in the
   // hall, and the rail at the right is the way down a tall picture.
@@ -259,7 +279,7 @@ export function FigureExam({
       <ExamTop
         title={testName}
         paperName={paper.displayName}
-        label={!onTest ? "Instruction Time Left" : inStudy ? "Instruction Timer" : inBreak ? "Break Time Left" : "Time Left"}
+        label={!onTest || inInstruction ? "Instruction Time Left" : inStudy ? "Instruction Timer" : inBreak ? "Break Time Left" : "Time Left"}
         // On a schedule the panel counts the phase on screen — the study
         // time, this part's question time, or the break — as the real test
         // does; the whole sitting's clock is the server's concern.
@@ -303,8 +323,18 @@ export function FigureExam({
               a browser that hides its scrollbar until the wheel moves would
               otherwise show no way down a paper whose wheel is off. */}
           <div className="relative min-h-0 flex-1">
-            <div ref={column} className={`wt-scroll-host h-full px-5 py-4 ${inStudy ? "pr-[22px]" : "pr-[14px]"}`} style={{ fontSize: `${16 * fontScale}px` }}>
-              {inStudy ? (
+            <div ref={column} className={`wt-scroll-host h-full px-5 py-4 ${inStudy || inInstruction ? "pr-[22px]" : "pr-[14px]"}`} style={{ fontSize: `${16 * fontScale}px` }}>
+              {inInstruction ? (
+                // A later part introduced on a screen of its own, as the
+                // hall's second Memory section is: its words, count and
+                // clock, until its time runs out or Skip Instruction.
+                <div className="-mx-5 -mt-4">
+                  <div className="border-b border-[#dcdcdc] bg-[#e9ecef] px-5 py-2 text-center text-[1.05em] text-[#333]">
+                    {testName} Instructions (Part {part + 1})
+                  </div>
+                  <InstructionsBody paper={paper} override={introOf(part)} />
+                </div>
+              ) : inStudy ? (
                 // The study screen, as the real portal shows it: the group
                 // instructions bar, the picture in its box, and the study
                 // timer in the toolbar above.
@@ -604,13 +634,13 @@ export function FigureExam({
             {/* The map and sheet tests' question screens carry rails of
                 their own on a wide screen, so the column's is hidden there;
                 a study screen has no panes, so its rail always shows. */}
-            <div className={brick && !inStudy ? "contents lg:hidden" : "contents"}>
-              <ScrollRail target={column} axis="vertical" wide={inStudy} />
+            <div className={brick && !inStudy && !inInstruction ? "contents lg:hidden" : "contents"}>
+              <ScrollRail target={column} axis="vertical" wide={inStudy || inInstruction} />
             </div>
           </div>
         </div>
       ) : (
-        <Instructions paper={paper} />
+        <Instructions paper={paper} override={introOf(0)} />
       )}
 
       <div className="flex items-center gap-4 border-t border-[#c9dcea] bg-[#e8f4fb] px-4 py-3">
@@ -627,7 +657,12 @@ export function FigureExam({
           <div className="ml-auto flex items-center gap-3">
             {/* The answers are already saved as they are chosen; this button
                 is the way to the next part, as in the real test. */}
-            {scheduled ? (
+            {scheduled && inInstruction ? (
+              // A later part's instruction screen: the way on before its time is up.
+              <button type="button" data-allow-mouse="true" onClick={() => setConfirmPartSkip(true)} className="rounded bg-[#2a7fc0] px-8 py-2.5 text-[14px] font-semibold text-white hover:bg-[#2470ab]">
+                Skip Instruction
+              </button>
+            ) : scheduled ? (
               // The real Memory Test screen has a Save button; the answers
               // are already kept as they are chosen, so this sends them up
               // at once and otherwise changes nothing.
@@ -664,7 +699,7 @@ export function FigureExam({
         )}
       </div>
 
-      <InstructionsDialog paper={paper} open={instructionsOpen} onClose={() => setInstructionsOpen(false)} />
+      <InstructionsDialog paper={paper} open={instructionsOpen} onClose={() => setInstructionsOpen(false)} override={introOf(part)} />
 
       <ConfirmBox
         open={state.paused && !state.submitted}
@@ -687,6 +722,19 @@ export function FigureExam({
           dispatch({ type: "begin-test" });
         }}
         onCancel={() => setConfirmSkip(false)}
+      />
+
+      <ConfirmBox
+        open={confirmPartSkip}
+        title={`Start Part ${part + 1} now?`}
+        body={`The instruction screen closes and Part ${part + 1}'s study screen opens. You cannot come back to these instructions.`}
+        confirmLabel="Start part"
+        cancelLabel="Keep reading"
+        onConfirm={() => {
+          setConfirmPartSkip(false);
+          if (at && at.phase === "instruction") dispatch({ type: "skip", seconds: at.leftSec });
+        }}
+        onCancel={() => setConfirmPartSkip(false)}
       />
 
       <ConfirmBox

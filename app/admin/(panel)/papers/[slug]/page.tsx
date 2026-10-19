@@ -325,6 +325,15 @@ export default async function EditWatchPaper({
                 step="any"
                 hint="With a study time: minutes of break, with a summary of the part just finished, before the next part's study screen. The real test gives one minute."
               />
+              <Number
+                label="Instruction time before Part 2"
+                name="part_instruction_min"
+                defaultValue={features.partInstructionMin}
+                min={0}
+                max={30}
+                step="any"
+                hint="With a study time: minutes of an instruction screen of its own before every part after the first, as the hall's new Memory Test introduces its second section. 0 for none; the Vehicle & Signal Position Test gives 2."
+              />
               {features.studyTimeMin > 0 && (
                 <p className="text-[12px] text-gray-700 sm:col-span-3">
                   On this schedule the test time is set for you:{" "}
@@ -332,7 +341,7 @@ export default async function EditWatchPaper({
                   {Math.max(1, Math.ceil(paper.questions.length / features.questionsPerPart)) === 1 ? "" : "s"} × (
                   {features.studyTimeMin} study + {features.partTimeMin} questions) ={" "}
                   <strong>{scheduleMinutes(features, paper.questions.length, false)} minutes</strong>, as the
-                  candidate is told; with the breaks the sitting runs{" "}
+                  candidate is told; with the breaks and any instruction screens between parts the sitting runs{" "}
                   {scheduleMinutes(features, paper.questions.length)} minutes. It is kept up to date as
                   questions are added or removed.
                 </p>
