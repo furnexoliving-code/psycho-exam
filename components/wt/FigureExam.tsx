@@ -112,7 +112,13 @@ export function FigureExam({
     partIntro
       ? {
           heading: { en: `${testName} (Part ${p + 1})`, hi: `${batteryHindi} (भाग ${p + 1})` },
-          blocks: p === 0 ? undefined : (partInstructions(paper.category ?? "", p, partMin, Math.max(1, Math.round(features.partInstructionMin)), features.studyTimeMin) ?? undefined),
+          blocks:
+            p === 0
+              ? undefined
+              : features.partInstructions[p - 1]?.instructions.length
+                ? features.partInstructions[p - 1].instructions
+                : (partInstructions(paper.category ?? "", p, partMin, Math.max(1, Math.round(features.partInstructionMin)), features.studyTimeMin) ?? undefined),
+          example: p === 0 ? undefined : features.partInstructions[p - 1]?.example,
           questionCount: (parts[p] ?? []).length,
           timeLimitMin: partMin,
           timeNote: Number.isInteger(features.studyTimeMin) && Number.isInteger(features.partTimeMin) ? `(${features.studyTimeMin}+${features.partTimeMin})` : undefined,

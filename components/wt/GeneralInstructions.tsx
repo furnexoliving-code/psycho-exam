@@ -6,8 +6,9 @@ import { ScrollRail } from "./ScrollRail";
 /**
  * The general instructions of the aptitude test, as the hall screen shows
  * them before the first test: Hindi first, then English, as the board's
- * own sample does. Reached from the Instructions button in the exam
- * header at any time, and read through at the start of a Full Mock.
+ * own sample does, with the tests in the hall's order. Reached from the
+ * Instructions button in the exam header at any time, and read through
+ * at the start of a Full Mock.
  */
 export function GeneralInstructionsBody() {
   return (
@@ -39,21 +40,21 @@ export function GeneralInstructionsBody() {
         "दोनों भागों के मध्य 01 मिनट का विश्राम समय होगा।",
         "वास्तविक परीक्षण के समय प्रश्नों की संख्या तथा समय सीमा अलग होगी।",
       ]} />
-      <Section hi="परीक्षण 2 : निर्देश अनुपालन परीक्षण" items={[
-        "इस परीक्षण में आपको निर्देशों के अनुपालन पर आधारित प्रश्नों के उत्तर देने होंगे।",
-        "ध्यान रखें की वास्तविक परीक्षण के समय परीक्षण में प्रश्नों की संख्या तथा समय सीमा अलग होगी।",
-      ]} />
-      <Section hi="परीक्षण 3 : गहराई प्रात्यक्षीकरण परीक्षण" items={[
+      <Section hi="परीक्षण 2 : गहराई प्रात्यक्षीकरण परीक्षण" items={[
         "ब्लॉक के समूह पर आधारित प्रश्न हैं।",
         "प्रश्न भागों में प्रदर्शित होंगे।",
         "प्रत्येक भाग के बाद Save & Next बटन होगा। जब आप इस बटन पर क्लिक करेंगे तभी अगला भाग खुलेगा।",
         "वास्तविक परीक्षण के समय परीक्षण में प्रश्नों की संख्या तथा समय सीमा अलग होगी।",
       ]} />
-      <Section hi="परीक्षण 4 : अवलोकन क्षमता परीक्षण" items={[
+      <Section hi="परीक्षण 3 : अवलोकन क्षमता परीक्षण" items={[
         "इस परीक्षण में अवलोकन क्षमता पर आधारित प्रश्न हैं।",
         "प्रश्न भागों में प्रदर्शित होंगे।",
         "प्रत्येक भाग के बाद Save & Next बटन होगा। जब आप इस बटन पर क्लिक करेंगे, तभी अगला भाग खुलेगा।",
         "वास्तविक परीक्षण के समय परीक्षण में प्रश्नों की संख्या तथा समय-सीमा अलग होगी।",
+      ]} />
+      <Section hi="परीक्षण 4 : निर्देश अनुपालन परीक्षण" items={[
+        "इस परीक्षण में आपको निर्देशों के अनुपालन पर आधारित प्रश्नों के उत्तर देने होंगे।",
+        "ध्यान रखें की वास्तविक परीक्षण के समय परीक्षण में प्रश्नों की संख्या तथा समय सीमा अलग होगी।",
       ]} />
       <Section hi="परीक्षण 5 : प्रत्यक्षिक गति परीक्षण" items={[
         "प्रत्यक्षिक गति पर आधारित प्रश्न हैं।",
@@ -61,7 +62,6 @@ export function GeneralInstructionsBody() {
         "प्रत्येक भाग के बाद Save & Next बटन होगा। जब आप इस बटन पर क्लिक करेंगे, तभी अगला भाग खुलेगा।",
         "वास्तविक परीक्षण के समय परीक्षण में प्रश्नों की संख्या तथा समय-सीमा अलग होगी।",
       ]} />
-
       <h3 className="mt-5 font-bold" lang="hi">प्रश्नों को हल करने और उत्तर देने की विधि :</h3>
       <ol className="mt-2 list-decimal space-y-1.5 pl-7" lang="hi">
         <li>उत्तर चयन करने के लिए माउस की सहायता से इच्छित विकल्प पर क्लिक करें।</li>
@@ -107,21 +107,21 @@ export function GeneralInstructionsBody() {
         "There will be a 1-minute break between the two parts.",
         "The number of questions and time limit may vary in the actual test.",
       ]} en />
-      <Section hi="Test 2: Following Directions Test" items={[
-        "In this test, you will have to answer questions based on following the given instructions.",
-        "Note that in the actual test, the number of questions and time limit may vary.",
-      ]} en />
-      <Section hi="Test 3: Depth Perception Test" items={[
+      <Section hi="Test 2: Depth Perception Test" items={[
         "There will be questions based on group of blocks.",
         "The questions are shown in parts.",
         "After each part, there will be a “Save & Next” button. Only upon clicking this button will the next part open.",
         "In the actual test, the number of questions and time limit may vary.",
       ]} en />
-      <Section hi="Test 4: Power of Observation Test" items={[
+      <Section hi="Test 3: Power of Observation Test" items={[
         "This test contains questions based on power of observation.",
         "The questions are shown in parts.",
         "After each part, the “Save & Next” button will appear. Only after clicking this button will the next part open.",
         "In the actual test, the number of questions and time limit may vary.",
+      ]} en />
+      <Section hi="Test 4: Following Directions Test" items={[
+        "In this test, you will have to answer questions based on following the given instructions.",
+        "Note that in the actual test, the number of questions and time limit may vary.",
       ]} en />
       <Section hi="Test 5: Perceptual Speed Test" items={[
         "This test contains questions based on perceptual speed.",
@@ -129,7 +129,6 @@ export function GeneralInstructionsBody() {
         "After each part, the “Save & Next” button will appear. Only after clicking this button will the next part open.",
         "In the actual test, the number of questions and time limit may vary.",
       ]} en />
-
       <h3 className="mt-5 font-bold">Method of Solving and Answering Questions</h3>
       <ol className="mt-2 list-decimal space-y-1.5 pl-7">
         <li>To select an answer, click on the desired option using the mouse.</li>

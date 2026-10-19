@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { CATEGORIES, testNameOf } from "@/lib/wt/categories";
+import { CATEGORIES, hallPosition, testNameOf } from "@/lib/wt/categories";
 import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { headerOf, loadPaperHeader, loadPaperHeaderLive } from "@/lib/wt/db";
 import { getBundledPaper } from "@/lib/wt/paper";
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ paperId: 
   if (!header) return {};
   const battery = CATEGORIES.find((c) => c.id === header.category)?.battery ?? (header.kind === "figure" ? null : 2);
   const name = testNameOf(battery, header.displayName);
-  return { title: `${battery ? `Test ${battery} - ` : ""}${name} · Result | KAUTILYA CLASSES` };
+  return { title: `${battery ? `Test ${hallPosition(battery)} - ` : ""}${name} · Result | KAUTILYA CLASSES` };
 }
 
 export default async function ResultPage({
@@ -57,15 +57,19 @@ export default async function ResultPage({
 
   // A test just sat inside a Full Mock: the result page moves the mock on
   // instead of showing this test's own marks, which wait for the scorecard.
+  // Any test of the mock not yet sat counts, not only the one it is on:
+  // a candidate mid-test when the mock's order changed under the sitting
+  // still moves it on.
   const inMock = who ? await currentMockStep(who.id) : null;
+  const mockPaper = inMock?.papers.find((p) => p.slug === paperId && !inMock.done.includes(p.id));
   const mock =
-    inMock && inMock.paper.slug === paperId
+    inMock && mockPaper
       ? {
           name: inMock.mock.name,
           step: inMock.step,
           total: inMock.papers.length,
           gapSec: inMock.mock.gapMin * 60,
-          battery: inMock.paper.battery,
+          battery: mockPaper.battery,
           candidate: who?.full_name || "Candidate",
           rollNo: who?.roll_no || "",
           photoUrl: photoUrlOf(who),

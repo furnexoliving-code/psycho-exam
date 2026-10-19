@@ -76,6 +76,12 @@ export interface InstructionBlock extends Bilingual {
   imageWidthPct?: number;
 }
 
+/** One later part's instruction screen, as the admin wrote it. */
+export interface PartInstructions {
+  instructions: InstructionBlock[];
+  example: InstructionBlock[];
+}
+
 /**
  * What a question offers and what a candidate picks: a whole number (the
  * Watch and Number Tables) or a short letter label such as "A" or "AB" (the
@@ -152,6 +158,13 @@ export interface WatchFeatures {
    */
   partInstructionMin?: number;
   /**
+   * With a part instruction time: the admin's own words and worked example
+   * for the parts after the first, in part order (the first entry is Part
+   * 2's). A part with no entry, or an empty one, shows the portal's built-in
+   * text for that part (the mock's own wording).
+   */
+  partInstructions?: PartInstructions[];
+  /**
    * Picture papers: how large the pictures are drawn, as a percentage of
    * the usual size. 0 means the test's own usual size (Depth Perception is
    * drawn half as large again, since its block piles are finer).
@@ -178,6 +191,7 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   partTimeMin: 0,
   breakTimeMin: 0,
   partInstructionMin: 0,
+  partInstructions: [],
   pictureScale: 0,
   studyScale: 60,
 };

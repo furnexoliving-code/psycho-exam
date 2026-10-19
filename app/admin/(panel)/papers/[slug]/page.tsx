@@ -16,7 +16,7 @@ import { QuestionsPanel } from "./QuestionsPanel";
 import { FigureQuestionsPanel } from "./FigureQuestionsPanel";
 import { StudyPictures } from "./StudyPictures";
 import { scheduleMinutes } from "@/lib/wt/schedule";
-import { PICTURE_SCALES, defaultPictureScale, isMemoryTest } from "@/lib/wt/figure-sample";
+import { PICTURE_SCALES, defaultPictureScale, isMemoryTest, partInstructions } from "@/lib/wt/figure-sample";
 
 const STUDY_SCALES = [40, 50, 60, 70, 80, 90, 100];
 import { CATEGORIES, categoryTitle } from "@/lib/wt/categories";
@@ -332,7 +332,7 @@ export default async function EditWatchPaper({
                 min={0}
                 max={30}
                 step="any"
-                hint="With a study time: minutes of an instruction screen of its own before every part after the first, as the hall's new Memory Test introduces its second section. 0 for none; the Vehicle & Signal Position Test gives 2."
+                hint="With a study time: minutes of an instruction screen of its own before every part after the first, as the hall's new Memory Test introduces its second section. 0 for none; the railway's mock gives the Vehicle & Signal Position Test 3."
               />
               {features.studyTimeMin > 0 && (
                 <p className="text-[12px] text-gray-700 sm:col-span-3">
@@ -535,6 +535,30 @@ export default async function EditWatchPaper({
           exampleText={formatInstructionLines(paper.example.text)}
         />
       </section>
+
+      {/* A test whose parts are introduced one by one: a screen per later part. */}
+      {figure && features.partInstructionMin > 0 &&
+        Array.from({ length: Math.max(2, Math.ceil(paper.questions.length / Math.max(1, features.questionsPerPart))) - 1 }, (_, i) => i + 1).map((part) => {
+          const own = features.partInstructions[part - 1];
+          const builtIn =
+            partInstructions(paper.category ?? "", part, Math.max(1, Math.ceil(features.studyTimeMin + features.partTimeMin)), Math.max(1, Math.round(features.partInstructionMin)), features.studyTimeMin) ?? [];
+          return (
+            <section key={part} className="mt-6 rounded border border-gray-300 bg-white p-5">
+              <h2 className="text-[15px] font-bold text-gray-900">Part {part + 1}&apos;s instruction screen</h2>
+              <p className="mt-1 text-[12px] text-gray-600">
+                Shown after the break, before Part {part + 1}&apos;s study screen, for {features.partInstructionMin} minute{features.partInstructionMin === 1 ? "" : "s"} or until Skip
+                Instruction. The box starts with the portal&apos;s built-in text (the railway mock&apos;s own words); edit it, add a worked example below with its pictures, and save.
+                Leave it blank and save to go back to the built-in text.
+              </p>
+              <InstructionsEditor
+                slug={slug}
+                part={part}
+                instructions={formatInstructionLines(own?.instructions.length ? own.instructions : builtIn)}
+                exampleText={formatInstructionLines(own?.example ?? [])}
+              />
+            </section>
+          );
+        })}
 
       {/* --------------------------- Question image --------------------------- */}
       {!figure && (

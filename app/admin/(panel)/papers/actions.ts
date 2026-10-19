@@ -370,6 +370,9 @@ export async function saveSettings(
       if (n < 0 || n > 120) throw new Error("Time per part must be from 0 to 120 minutes");
       schedule.partTimeMin = n;
     }
+    if ((schedule.studyTimeMin ?? 0) > 0 && studyRaw !== null && partRaw !== null && (schedule.partTimeMin ?? 0) <= 0) {
+      throw new Error("With a study time, the question time per part must be more than 0 minutes");
+    }
     const scaleRaw = formData.get("picture_scale");
     const pictureScale =
       scaleRaw === null ? {} : { pictureScale: Math.min(400, Math.max(0, Math.round(Number(scaleRaw) || 0))) };
@@ -904,19 +907,39 @@ export async function deletePaper(formData: FormData) {
  *
  * Both are stored as bilingual paragraphs, so the English and Hindi columns
  * can never drift out of step: a paragraph exists in both languages or in
- * neither.
+ * neither. With a part number, it is a later part's own screen that is
+ * replaced (kept with the paper's features); left blank, that part shows
+ * the portal's built-in text again.
  */
 export async function saveInstructions(
   _prev: SaveState | null,
   formData: FormData,
 ): Promise<SaveState> {
   const slug = String(formData.get("slug"));
-  return attempt("Instructions", async () => {
+  const part = Math.floor(Number(formData.get("part") ?? 0)) || 0;
+  return attempt(part > 0 ? `Part ${part + 1} instructions` : "Instructions", async () => {
     await requireEditor();
     const supabase = await createClient();
 
-      const instructions = parseInstructionLines(String(formData.get("instructions") ?? ""));
+    const instructions = parseInstructionLines(String(formData.get("instructions") ?? ""));
     const exampleText = parseInstructionLines(String(formData.get("example_text") ?? ""));
+
+    if (part > 0) {
+      const { data: row } = await supabase.from("watch_papers").select("id, features").eq("slug", slug).maybeSingle();
+      if (!row) throw new Error(NOTHING_CHANGED);
+      const current = (row.features ?? {}) as { partInstructions?: unknown[] };
+      const list = Array.isArray(current.partInstructions) ? [...current.partInstructions] : [];
+      while (list.length < part) list.push({ instructions: [], example: [] });
+      list[part - 1] = { instructions, example: exampleText };
+      const { error } = await supabase
+        .from("watch_papers")
+        .update({ features: { ...current, partInstructions: list }, updated_at: new Date().toISOString() })
+        .eq("id", row.id);
+      if (error) throw new Error(error.message);
+      revalidatePath(`/admin/papers/${slug}`);
+      paperChanged(slug);
+      return;
+    }
 
     if (instructions.length === 0) {
       throw new Error("The instruction screen cannot be left blank");

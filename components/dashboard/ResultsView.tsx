@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatDateTime } from "@/lib/format-time";
 import { StudentHeader } from "@/components/StudentHeader";
-import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
+import { BATTERIES, CATEGORIES, HALL_ORDER } from "@/lib/wt/categories";
 import type { PastAttemptRow } from "@/lib/wt/history";
 import { scoreOutOf30, type MockResult } from "@/lib/wt/mock";
 
@@ -62,7 +62,8 @@ export function ResultsView({ profile, mockResults, attempts, battery, passT }: 
                 <tbody>
                   {mockResults.map((r) => {
                     const out30 = scoreOutOf30(r.tests);
-                    const ts = [1, 2, 3, 4, 5].map((b) => r.tests.find((t) => t.battery === b)?.tScore ?? null);
+                    // In the hall's order, as the scorecard lists them.
+                    const ts = HALL_ORDER.map((b) => r.tests.find((t) => t.battery === b)?.tScore ?? null);
                     return (
                       <tr key={r.id} className="border-t border-gray-100">
                         <td className="py-2.5 pr-3 font-semibold text-gray-900">{r.mockName}</td>
@@ -79,7 +80,7 @@ export function ResultsView({ profile, mockResults, attempts, battery, passT }: 
                                 className={`rounded px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
                                   t === null ? "bg-gray-100 text-gray-500" : t >= passT ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
                                 }`}
-                                title={`Test ${i + 1}`}
+                                title={`Test ${i + 1} · ${BATTERIES.find((x) => x.id === HALL_ORDER[i])?.title ?? ""}`}
                               >
                                 {t === null ? "—" : t.toFixed(0)}
                               </span>

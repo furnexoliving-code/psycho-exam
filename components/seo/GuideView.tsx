@@ -24,7 +24,7 @@ export function GuideView({ page, packages }: { page: GuidePage; packages: Packa
             <p className="mt-3 text-[15.5px] leading-relaxed text-gray-600" lang="hi">{page.introHi}</p>
 
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[["5", "tests, in the hall's order"], ["42", "T-Score needed in each"], ["30%", "of the final ALP merit"], ["0", "negative marking"]].map(([b, l]) => (
+              {[["5", "tests, one kind of each"], ["42", "T-Score needed in each"], ["30%", "of the final ALP merit"], ["0", "negative marking"]].map(([b, l]) => (
                 <div key={l} className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"><div className="text-[28px] font-extrabold text-[#0d2a6b]">{b}</div><div className="text-[12px] text-gray-600">{l}</div></div>
               ))}
             </div>

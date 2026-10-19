@@ -21,17 +21,21 @@ export function InstructionsEditor({
   slug,
   instructions,
   exampleText,
+  part = 0,
 }: {
   slug: string;
   instructions: string;
   exampleText: string;
+  /** A later part's own screen (1 for Part 2), on a test whose parts are introduced one by one; 0 for the paper's. */
+  part?: number;
 }) {
   const [body, setBody] = useState(instructions);
   const [example, setExample] = useState(exampleText);
 
   return (
-    <SaveForm action={saveInstructions} submitLabel="Save the instructions" className="mt-4">
+    <SaveForm action={saveInstructions} submitLabel={part > 0 ? `Save Part ${part + 1}'s instructions` : "Save the instructions"} className="mt-4">
       <input type="hidden" name="slug" value={slug} />
+      <input type="hidden" name="part" value={part} />
 
       <div className="rounded border border-gray-300 bg-gray-50 p-3">
         <p className="text-[13px] font-semibold text-gray-800">
@@ -63,7 +67,7 @@ export function InstructionsEditor({
         <textarea
           name="instructions"
           rows={9}
-          required
+          required={part === 0}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           className="w-full rounded border border-gray-400 px-3 py-2 font-mono text-[12px]"

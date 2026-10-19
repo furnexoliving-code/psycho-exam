@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { hallPosition } from "@/lib/wt/categories";
 import { useRouter } from "next/navigation";
 import { continueMock, type MockNext } from "@/app/mock/actions";
 import { clock } from "./PortalToolbar";
@@ -128,10 +129,16 @@ export function MockBreak({
             <div className="mt-3">
               <ExamSummaryList tests={next.summary} />
             </div>
-            <p className="mt-4 text-[0.75em] text-[#666]">
-              Test {next.step + 1} of {next.total} opens by itself when the break ends. Stay on this page.
-              <span className="ml-2" lang="hi">अवकाश समाप्त होते ही परीक्षण {next.step + 1} स्वतः खुलेगा। इसी पेज पर रहें।</span>
-            </p>
+            {(() => {
+              // The test that opens next, named as the hall numbers it.
+              const coming = next.summary.find((t) => t.status === "pending");
+              return (
+                <p className="mt-4 text-[0.75em] text-[#666]">
+                  {coming ? `Test ${hallPosition(coming.battery)} - ${coming.title}` : `Test ${next.step + 1}`} opens by itself when the break ends ({next.step + 1} of {next.total}). Stay on this page.
+                  <span className="ml-2" lang="hi">अवकाश समाप्त होते ही {coming ? `परीक्षण ${hallPosition(coming.battery)} - ${coming.hindi}` : `परीक्षण ${next.step + 1}`} स्वतः खुलेगा। इसी पेज पर रहें।</span>
+                </p>
+              );
+            })()}
           </div>
         ) : null}
       </div>

@@ -1,6 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { BATTERIES, hallPosition } from "@/lib/wt/categories";
+/** The battery's name without "Test", for a column head. */
+const titleOf = (b: number) => BATTERIES.find((x) => x.id === b)?.title.replace(" Test", "") ?? "";
+
 
 export interface MockResultRow {
   rank: number;
@@ -30,7 +34,7 @@ export function MockResultsTable({ rows, batteries }: { rows: MockResultRow[]; b
   }, [rows, q, only]);
 
   const csv = () => {
-    const head = ["Rank", "Name", "Mobile", "Date", ...batteries.flatMap((b) => [`Test ${b} marks`, `Test ${b} T`]), "Composite", "Out of 30", "Qualified"];
+    const head = ["Rank", "Name", "Mobile", "Date", ...batteries.flatMap((b) => [`Test ${hallPosition(b)} ${titleOf(b)} marks`, `Test ${hallPosition(b)} ${titleOf(b)} T`]), "Composite", "Out of 30", "Qualified"];
     const lines = visible.map((r) => [
       r.rank,
       r.name,
@@ -76,7 +80,10 @@ export function MockResultsTable({ rows, batteries }: { rows: MockResultRow[]; b
               <th className="border border-gray-300 px-2 py-2">Mobile</th>
               <th className="border border-gray-300 px-2 py-2">Date</th>
               {batteries.map((b) => (
-                <th key={b} className="border border-gray-300 px-2 py-2">Test {b}</th>
+                <th key={b} className="border border-gray-300 px-2 py-2">
+                  Test {hallPosition(b)}
+                  <span className="block text-[10px] font-normal text-gray-500">{titleOf(b)}</span>
+                </th>
               ))}
               <th className="border border-gray-300 px-2 py-2">Composite</th>
               <th className="border border-gray-300 px-2 py-2">/ 30</th>

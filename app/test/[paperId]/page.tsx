@@ -6,7 +6,7 @@ import { ExamChromeProvider } from "@/components/wt/ExamChrome";
 import { NoPrint } from "@/components/NoPrint";
 import { OneTab } from "@/components/wt/OneTab";
 import type { Metadata } from "next";
-import { CATEGORIES, testNameOf } from "@/lib/wt/categories";
+import { CATEGORIES, hallPosition, testNameOf } from "@/lib/wt/categories";
 import { headerOf, loadPaperHeader } from "@/lib/wt/db";
 import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ paperId: 
   if (!header) return {};
   const battery = CATEGORIES.find((c) => c.id === header.category)?.battery ?? (header.kind === "figure" ? null : 2);
   const name = testNameOf(battery, header.displayName);
-  return { title: `${battery ? `Test ${battery} - ` : ""}${name} | KAUTILYA CLASSES` };
+  return { title: `${battery ? `Test ${hallPosition(battery)} - ` : ""}${name} | KAUTILYA CLASSES` };
 }
 
 export default async function WatchTablePage({
@@ -72,7 +72,9 @@ export default async function WatchTablePage({
   // the battery's switch and the paper's own attempt limit say: the mock
   // chose it, and the mock's own limit was checked when it began.
   const inMock = who && paper.dbId ? await currentMockStep(who.id) : null;
-  const mockHere = inMock !== null && inMock.paper.id === paper.dbId;
+  // This paper is sat as part of the mock when it is one of the mock's
+  // papers not yet sat, whether or not it is the one the sitting is on.
+  const mockHere = inMock !== null && inMock.papers.some((p) => p.id === paper.dbId && !inMock.done.includes(p.id));
   // A battery still under test is open to the admin and the editor for
   // trying out, and to nobody else — not even by typing the address.
   // (The bundled samples, served only before a database exists, are a demo
@@ -180,7 +182,7 @@ export default async function WatchTablePage({
 }
 
 function mockSummary_(step: MockStep) {
-  return mockSummaryOf(step.papers, step.attemptIds, step.step);
+  return mockSummaryOf(step.papers, step.attemptIds);
 }
 
 /** What the editor sees in a student preview of a paper a student cannot open. */

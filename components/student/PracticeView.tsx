@@ -153,7 +153,7 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
               </span>
             </h1>
             <p className="mt-2 text-[13px] leading-relaxed text-blue-100">
-              All {allCards.length} tests of the RRB ALP CBAT, in the hall&apos;s own order, each with the hall&apos;s question count and time limit. T-Score {stages.pass} in every battery is the pass mark and opens the Full Mocks; then aim for{" "}
+              All {allCards.length} tests of the RRB ALP CBAT, numbered as the RDSO guideline numbers them, each with the hall&apos;s question count and time limit. T-Score {stages.pass} in every battery is the pass mark and opens the Full Mocks; then aim for{" "}
               {stages.average}, then {stages.target}.
             </p>
             <p className="mt-1 text-[12.5px] leading-relaxed text-blue-200" lang="hi">

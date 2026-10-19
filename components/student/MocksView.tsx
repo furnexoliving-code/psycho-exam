@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HALL_ORDER, hallPosition } from "@/lib/wt/categories";
 import { formatDateTime, formatDayMonth } from "@/lib/format-time";
 import { StudentHeader } from "@/components/StudentHeader";
 import { scoreOutOf30, type MockResult, type MockStatus, type MockTest } from "@/lib/wt/mock";
@@ -216,11 +217,11 @@ function FreeMockCard({ card, passT }: { card: MockCard; passT: number }) {
       </div>
       {latest && (
         <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-600">
-          {[1, 2, 3, 4, 5].map((b) => {
+          {HALL_ORDER.map((b) => {
             const t = latest.tests.find((x) => x.battery === b)?.tScore ?? null;
             return (
               <span key={b} className={`rounded-full px-2 py-0.5 font-bold ${t === null ? "bg-gray-100 text-gray-500" : t >= passT ? "bg-green-100 text-green-800" : "bg-red-100 text-red-700"}`}>
-                T{b} · {t === null ? "—" : t.toFixed(0)}
+                T{hallPosition(b)} · {t === null ? "—" : t.toFixed(0)}
               </span>
             );
           })}
@@ -262,9 +263,9 @@ function MockRow({ card, passT }: { card: MockCard; passT: number }) {
             <span className="text-[10px] font-semibold text-gray-500"> / 30 · {formatDayMonth(latest.submittedAt)}</span>
             {best && best.id !== latest.id && bestOut !== null && <span className="block text-[11px] text-gray-500">best {bestOut.toFixed(1)}</span>}
             <span className="ml-2 inline-flex gap-0.5 align-middle">
-              {[1, 2, 3, 4, 5].map((b) => {
+              {HALL_ORDER.map((b) => {
                 const t = latest.tests.find((x) => x.battery === b)?.tScore ?? null;
-                return <span key={b} className={`h-2 w-2 rounded-full ${t === null ? "bg-gray-300" : t >= passT ? "bg-green-500" : "bg-red-500"}`} title={`Test ${b}: ${t === null ? "—" : t.toFixed(0)}`} />;
+                return <span key={b} className={`h-2 w-2 rounded-full ${t === null ? "bg-gray-300" : t >= passT ? "bg-green-500" : "bg-red-500"}`} title={`Test ${hallPosition(b)}: ${t === null ? "—" : t.toFixed(0)}`} />;
               })}
             </span>
           </>

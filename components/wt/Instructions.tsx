@@ -27,12 +27,18 @@ export interface InstructionOverride {
   timeLimitMin?: number;
   /** How that clock splits, as the hall writes it: "(1+1)". */
   timeNote?: string;
+  /** A later part's own worked example, when the admin gave it one. */
+  example?: InstructionBlock[];
 }
 
 export function InstructionsBody({ paper, override }: { paper: WatchPaper; override?: InstructionOverride }) {
   const { battery } = useExamChrome();
   const name = testNameOf(battery, paper.title);
   const blocks = override?.blocks ?? paper.instructions;
+  // The paper's example belongs to its own words; a later part's screen
+  // shows an example only when it was given one of its own.
+  const example = override?.blocks ? (override.example ?? []) : paper.example.text;
+  const showExample = !override?.blocks || example.length > 0;
   return (
     <div className="grid grid-cols-1 divide-x divide-gray-200 xl:grid-cols-2">
       {(["en", "hi"] as const).map((lang) => (
@@ -66,15 +72,14 @@ export function InstructionsBody({ paper, override }: { paper: WatchPaper; overr
             ))}
           </div>
 
-          {/* The paper's example belongs to its own words, not to a later part's screen. */}
-          {!override?.blocks && (
+          {showExample && (
             <>
               <h3 className="mt-5 text-[15px] font-bold text-[#494949]">
                 {lang === "en"
                   ? "Now look at the example given below :-"
                   : "अब नीचे दिए गए उदाहरण को देखें:-"}
               </h3>
-              {paper.example.text.map((line, i) => (
+              {example.map((line, i) => (
                 <div key={i} className="mt-2 text-[15px] leading-relaxed text-[#494949]">
                   <Block block={line} lang={lang} />
                 </div>

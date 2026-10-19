@@ -442,8 +442,9 @@ export function memorySchedule(category: string): { studyTimeMin: number; partTi
     case "vehicle":
       // The railway's mock for CEN 01/2025: a minute to study, a minute to
       // answer, three questions a part, and the second part introduced on
-      // an instruction screen of its own; the hall's own count will vary.
-      return { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1, questionsPerPart: 3, partInstructionMin: 2 };
+      // an instruction screen of its own with a three-minute clock; the
+      // hall's own count will vary.
+      return { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1, questionsPerPart: 3, partInstructionMin: 3 };
     case "fignum":
       return { studyTimeMin: 3, partTimeMin: 3, breakTimeMin: 1, questionsPerPart: 21 };
     case "figfig":
