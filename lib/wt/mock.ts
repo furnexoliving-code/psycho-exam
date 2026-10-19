@@ -264,14 +264,17 @@ const isAttempt = (id: string | null | undefined): id is string => Boolean(id) &
  * papers may be re-ordered under it (the hall's order came in after some
  * mocks were made) and a test is never sat twice or skipped.
  */
-function papersDone(papers: MockPaper[], attemptIds: string[], attempts: { paper_id: string }[]): Set<string> {
+function papersDone(papers: MockPaper[], attemptIds: string[], attempts: { paper_id: string }[], namedIds: string[]): Set<string> {
   const paperIds = new Set(papers.map((p) => p.id));
+  // The papers as the mock named them: the order an older sitting's
+  // markers were written against, before the hall's order sorted the list.
+  const named = namedIds.filter((id) => paperIds.has(id));
   const done = new Set<string>();
   attemptIds.forEach((id, i) => {
     if (!id) return;
     if (paperIds.has(id)) done.add(id);
     // An older sitting marked the slot alone: the paper in that place then.
-    else if (id === NO_ATTEMPT && papers[i]) done.add(papers[i].id);
+    else if (id === NO_ATTEMPT && named[i]) done.add(named[i]);
   });
   attempts.forEach((a) => done.add(a.paper_id));
   return done;
@@ -317,10 +320,12 @@ export async function currentMockStep(userId: string): Promise<MockStep | null> 
   const papers = await papersOf(mock.paperIds);
   const attemptIds = (sitting.attempt_ids ?? []).map((id) => id ?? "");
   const realIds = attemptIdsIn(attemptIds, papers);
-  const { data: attempts } = realIds.length
+  const { data: attempts, error: attemptsError } = realIds.length
     ? await supabase.from("watch_attempts").select("id, paper_id").in("id", realIds)
-    : { data: [] as { id: string; paper_id: string }[] };
-  const done = papersDone(papers, attemptIds, (attempts ?? []) as { paper_id: string }[]);
+    : { data: [] as { id: string; paper_id: string }[], error: null };
+  // A read that failed must not pass for "nothing sat yet".
+  if (attemptsError) throw new Error(attemptsError.message);
+  const done = papersDone(papers, attemptIds, (attempts ?? []) as { paper_id: string }[], mock.paperIds);
   // The test on now: the first paper not yet sat, in the hall's order.
   const paper = papers.find((p) => !done.has(p.id));
   if (!paper) return null;
@@ -342,13 +347,14 @@ export async function currentMockStep(userId: string): Promise<MockStep | null> 
  * held and how many were answered, and for the rest "yet to attempt".
  * `finished` is how many tests from the start are done.
  */
-export async function mockSummary(papers: MockPaper[], attemptIds: string[]): Promise<MockSummaryTest[]> {
+export async function mockSummary(papers: MockPaper[], attemptIds: string[], namedIds: string[]): Promise<MockSummaryTest[]> {
   const supabase = createAdminClient();
   const realAttempts = attemptIdsIn(attemptIds, papers);
-  const { data: attempts } = realAttempts.length
+  const { data: attempts, error } = realAttempts.length
     ? await supabase.from("watch_attempts").select("id, paper_id, responses").in("id", realAttempts)
-    : { data: [] as { id: string; paper_id: string; responses: Record<string, unknown> | null }[] };
-  const done = papersDone(papers, attemptIds, (attempts ?? []) as { paper_id: string }[]);
+    : { data: [] as { id: string; paper_id: string; responses: Record<string, unknown> | null }[], error: null };
+  if (error) throw new Error(error.message);
+  const done = papersDone(papers, attemptIds, (attempts ?? []) as { paper_id: string }[], namedIds);
   const ids = papers.filter((p) => done.has(p.id)).map((p) => p.id);
   const [{ data: rows }, { data: questions }] = await Promise.all([
     ids.length ? supabase.from("watch_papers").select("id, title, features").in("id", ids) : Promise.resolve({ data: [] as { id: string; title: string; features: WatchFeatures | null }[] }),
@@ -504,12 +510,12 @@ export async function advanceMock(userId: string, paperDbId: string): Promise<{ 
       gapSec: current.mock.gapMin * 60,
       step: nextStep,
       total: current.papers.length,
-      summary: await mockSummary(current.papers, ids),
+      summary: await mockSummary(current.papers, ids, current.mock.paperIds),
     };
   }
 
   await finishMock(current, ids);
-  return { next: "done", slug: current.mock.slug, summary: await mockSummary(current.papers, ids) };
+  return { next: "done", slug: current.mock.slug, summary: await mockSummary(current.papers, ids, current.mock.paperIds) };
 }
 
 /** Writes the scorecard and closes the sitting. */

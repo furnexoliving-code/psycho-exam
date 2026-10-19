@@ -405,7 +405,9 @@ async function statsFor({
     // A test sat inside a Full Mock is not bound by the paper's own limit:
     // the mock's limit was checked when it began.
     const mock = await currentMockStep(userId);
-    const inMock = mock !== null && mock.paper.id === paper.id;
+    // Any test of the mock not yet sat is the mock's, not only the one it
+    // is on: the paper's own attempt limit then does not apply.
+    const inMock = mock !== null && mock.papers.some((p) => p.id === paper.id && !mock.done.includes(p.id));
     if (!inMock && history.length >= Number(paper.max_attempts)) record = false;
   }
 

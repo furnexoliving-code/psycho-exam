@@ -85,8 +85,9 @@ export default async function MockPage({ params, searchParams }: { params: Promi
           <ol className="mt-3 divide-y divide-gray-100">
             {papers.map((paper, i) => {
               const battery = BATTERIES.find((b) => b.id === paper.battery);
-              const done = inThis ? i < inThis.step : false;
-              const now = inThis ? i === inThis.step : false;
+              // By the papers the sitting has finished, not by position.
+              const done = inThis ? inThis.done.includes(paper.id) : false;
+              const now = inThis ? paper.id === inThis.paper.id : false;
               return (
                 <li key={paper.id} className="flex items-center gap-3 py-2.5 text-[13px]">
                   <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[12px] font-bold ${done ? "bg-green-100 text-green-800" : now ? "bg-[#1d4ed8] text-white" : "bg-gray-100 text-gray-700"}`}>{done ? "✓" : i + 1}</span>

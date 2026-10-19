@@ -182,7 +182,7 @@ export default async function WatchTablePage({
 }
 
 function mockSummary_(step: MockStep) {
-  return mockSummaryOf(step.papers, step.attemptIds);
+  return mockSummaryOf(step.papers, step.attemptIds, step.mock.paperIds);
 }
 
 /** What the editor sees in a student preview of a paper a student cannot open. */
