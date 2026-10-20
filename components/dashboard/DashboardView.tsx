@@ -373,22 +373,10 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                 <tr className="border-t border-gray-100 bg-[#fafafa]">
                   <td className="px-2 py-2.5 font-bold text-gray-900">Full Mock Tests</td>
                   <td className="whitespace-nowrap px-2 py-2.5" colSpan={2}>
-                    {plan.mocksUnlocked ? (
-                      <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">✓ Open · every test at {stages.pass}+</span>
-                    ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">
-                        🔒 Locked · {passed} of {inPlay.length} tests at {stages.pass}+
-                      </span>
-                    )}
+                    <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700">✓ Open</span>
                   </td>
                   <td className="px-2 py-2.5 whitespace-nowrap">
-                    {plan.mocksUnlocked ? (
-                      <>
-                        <b>2</b> mocks
-                      </>
-                    ) : (
-                      <span className="text-gray-500">2 a day, once open</span>
-                    )}
+                    <b>2</b> mocks
                   </td>
                   <td className="px-2 py-2.5 whitespace-nowrap">
                     <span className="mr-1.5 inline-block h-1.5 w-[70px] overflow-hidden rounded bg-[#eef1f6] align-middle">
@@ -523,19 +511,6 @@ export function DashboardView({ profile, now, today, notices, papers, hidden, pr
                   {inMock ? (
                     <p className="text-gray-700">
                       <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">⏵ In progress</span> <b>{inMock.mock.name}</b> · Test {inMock.step + 1} of {inMock.papers.length}
-                    </p>
-                  ) : !plan.mocksUnlocked && freeMock ? (
-                    <p className="text-gray-700">
-                      🎁 <b>{freeMock.name}</b> is free and open now.{" "}
-                      <Link href={`/mock/${freeMock.slug}`} className="font-semibold text-[#1d4ed8] hover:underline">
-                        Start →
-                      </Link>{" "}
-                      The others unlock at T-Score: {stages.pass}+ in every battery.
-                    </p>
-                  ) : !plan.mocksUnlocked ? (
-                    <p className="text-gray-600">
-                      🔒 Unlocks when every battery is at T-Score: {stages.pass}+.{" "}
-                      {inPlay.filter((p) => p.bestT === null || p.bestT < stages.pass).length === 1 ? "1 battery" : `${inPlay.filter((p) => p.bestT === null || p.bestT < stages.pass).length} batteries`} to go.
                     </p>
                   ) : featured ? (
                     <p className="text-gray-700">

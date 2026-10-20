@@ -6,8 +6,6 @@ import { BATTERIES, CATEGORIES, categoryKind, hallPosition } from "./categories"
 import { resolveFeatures, type WatchFeatures } from "./types";
 import { cohortFromMoments } from "./cohort";
 import { tScore } from "./tscore";
-import { batteryProgress, clearedBar } from "./progress";
-import { STAGES } from "./plan";
 
 /**
  * Full Mock tests: five published papers, one per battery, sat in the
@@ -440,13 +438,6 @@ export async function openMockSitting(slug: string, userId: string, role = "stud
   if (!canSitMock(await accessFor(userId, role), mock)) {
     return { ok: false, reason: "This Full Mock is part of a package. Buy the Full Mock package to sit it." };
   }
-  // The institute's rule: a Full Mock opens only once every battery in it
-  // has reached the pass bar in sectional practice. The free mock is the
-  // exception: it is there to be tried on day one.
-  if (!mock.isFree && !(await mockUnlockedFor(userId, papers))) {
-    return { ok: false, reason: `Full Mocks open once every battery is at T-Score: ${STAGES.pass} or above in sectional practice.` };
-  }
-
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("mock_sittings").insert({ mock_id: mock.id, user_id: userId }).select("id, started_at, step").single();
   if (error) {
@@ -461,12 +452,6 @@ export async function openMockSitting(slug: string, userId: string, role = "stud
   };
 }
 
-/** True once every battery of these papers has passed the bar in sectional practice. */
-export async function mockUnlockedFor(userId: string, papers: MockPaper[]): Promise<boolean> {
-  const batteries = [...new Set(papers.map((p) => p.battery))];
-  if (batteries.length === 0) return false;
-  return clearedBar(await batteryProgress(userId), batteries, STAGES.pass);
-}
 
 /** How many Full Mocks this candidate finished today (India). */
 export async function mocksFinishedToday(userId: string, dayStartIso: string): Promise<number> {

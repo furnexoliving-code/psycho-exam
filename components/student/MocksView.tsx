@@ -19,7 +19,6 @@ export interface MockCard {
   best: (MockResult & { mockName: string; mockSlug: string }) | null;
   /** The newest result, if any. */
   latest: (MockResult & { mockName: string; mockSlug: string }) | null;
-  unlocked: boolean;
   inProgress: boolean;
   /** False when the student's packages do not cover this mock (and it is not the free one). */
   inPackage: boolean;
@@ -65,7 +64,7 @@ export function MocksView({ profile, cards, passT, filter, hasPackage = true }: 
                 / पूर्ण मॉक टेस्ट
               </span>
             </h1>
-            <p className="mt-1 text-[13px] text-gray-600">All five tests in the hall&apos;s order, one sitting, one scorecard out of 30. A mock opens once every battery is at T-Score: {passT}+ in practice.</p>
+            <p className="mt-1 text-[13px] text-gray-600">All five tests in the hall&apos;s order, one sitting, one scorecard out of 30. Every Full Mock in your package is open to sit.</p>
           </div>
           <div className="flex gap-2">
             <Tile big={String(cards.length)} label="mocks" />
@@ -140,7 +139,7 @@ export function MocksView({ profile, cards, passT, filter, hasPackage = true }: 
 
 /**
  * The free Full Mock, on a card of its own: the first thing a new account
- * does, so it is not one row among the locked ones. Before the sitting a
+ * does, so it is not one row among the others. Before the sitting a
  * Start button; after it the score and the scorecard.
  */
 function FreeMockCard({ card, passT }: { card: MockCard; passT: number }) {
@@ -233,7 +232,7 @@ function FreeMockCard({ card, passT }: { card: MockCard; passT: number }) {
 }
 
 function MockRow({ card, passT }: { card: MockCard; passT: number }) {
-  const { mock, status, latest, best, used, unlocked, inProgress, inPackage } = card;
+  const { mock, status, latest, best, used, inProgress, inPackage } = card;
   const out30 = latest ? scoreOutOf30(latest.tests) : null;
   const bestOut = best ? scoreOutOf30(best.tests) : null;
   const left = mock.maxAttempts === null ? null : Math.max(0, mock.maxAttempts - used);
@@ -284,7 +283,7 @@ function MockRow({ card, passT }: { card: MockCard; passT: number }) {
               {latest.qualified === true ? "✓ Qualified" : latest.qualified === false ? "✕ Not qualified" : "? Pending"}
             </span>
             <span className="flex gap-2">
-              {status === "live" && unlocked && (left === null || left > 0) && (
+              {status === "live" && (left === null || left > 0) && (
                 <Link href={`/mock/${mock.slug}`} className="text-[11px] font-semibold text-[#1d4ed8] hover:underline">
                   Reattempt
                 </Link>
@@ -298,8 +297,6 @@ function MockRow({ card, passT }: { card: MockCard; passT: number }) {
           <Link href="/packages#full" className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 hover:bg-amber-200">
             🔒 In the Full Mock package
           </Link>
-        ) : status === "live" && !unlocked ? (
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">🔒 Locked · {passT}+ needed</span>
         ) : status === "live" ? (
           <Link href={`/mock/${mock.slug}`} className="rounded-lg bg-[#1d4ed8] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[#1e40af]">
             Start

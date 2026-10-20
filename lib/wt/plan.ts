@@ -107,13 +107,15 @@ export function planFor(
     };
   });
 
-  const mocksUnlocked = !anyBelowPass;
+  // Every Full Mock in the student's package is open to sit; the plan
+  // counts two a day. (A practice bar once stood before them.)
+  const mocksUnlocked = true;
   return {
     rows: rows.sort((a, b) => a.stage - b.stage || (a.bestT ?? -1) - (b.bestT ?? -1)),
     sectionalTarget: total,
     sectionalDone: rows.reduce((a, r) => a + Math.min(r.done, r.keepSharp ? r.done : r.target), 0),
     mocksUnlocked,
-    mocksTarget: mocksUnlocked ? 2 : 0,
+    mocksTarget: 2,
   };
 }
 

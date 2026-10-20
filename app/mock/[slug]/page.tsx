@@ -5,8 +5,7 @@ import { photoUrlOf } from "@/lib/photo";
 import { requireUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format-time";
 import { BATTERIES, hallPosition } from "@/lib/wt/categories";
-import { currentMockStep, latestMockResult, loadMock, mockAttemptsUsed, mockMinutes, mockStatus, mockUnlockedFor } from "@/lib/wt/mock";
-import { STAGES } from "@/lib/wt/plan";
+import { currentMockStep, latestMockResult, loadMock, mockAttemptsUsed, mockMinutes, mockStatus } from "@/lib/wt/mock";
 import { leaveMock } from "../actions";
 import { examSettings } from "@/lib/settings";
 import { accessFor, canSitMock } from "@/lib/packages";
@@ -23,16 +22,13 @@ export default async function MockPage({ params, searchParams }: { params: Promi
   if (!loaded || !loaded.mock.isPublished) notFound();
   const { mock, papers } = loaded;
 
-  const [current, used, latest, cleared, access] = await Promise.all([
+  const [current, used, latest, access] = await Promise.all([
     currentMockStep(who.id),
     mockAttemptsUsed(mock.id, who.id),
     latestMockResult(mock.id, who.id),
-    mock.isFree ? Promise.resolve(true) : mockUnlockedFor(who.id, papers),
     accessFor(who.id, who.role),
   ]);
   const inPackage = canSitMock(access, mock);
-  // The free mock is there to be tried on day one; the others wait for the practice bar.
-  const unlocked = mock.isFree || cleared;
   const status = mockStatus(mock);
   const exam = await examSettings();
   const inThis = current && current.mock.id === mock.id ? current : null;
@@ -177,13 +173,6 @@ export default async function MockPage({ params, searchParams }: { params: Promi
               .
               <span className="block text-[12px]" lang="hi">
                 यह फुल मॉक फुल मॉक पैकेज में है। पैकेज और कीमत देखें।
-              </span>
-            </p>
-          ) : status === "live" && !spent && !unlocked ? (
-            <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
-              🔒 This Full Mock opens once every battery in it is at <b>T-Score: {STAGES.pass}</b> or above in sectional practice. Your dashboard shows which battery still needs work.
-              <span className="block text-[12px]" lang="hi">
-                यह फुल मॉक तब खुलेगा जब हर बैटरी में सेक्शनल अभ्यास में T-स्कोर {STAGES.pass} या अधिक आ जाए।
               </span>
             </p>
           ) : status === "live" && !spent ? (
