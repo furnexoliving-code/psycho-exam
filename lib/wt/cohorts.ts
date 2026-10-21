@@ -25,8 +25,8 @@ export interface PaperStat {
 }
 
 /**
- * Every paper's cohort figures, worked out once and kept for a minute,
- * and dropped when attempts are removed. The dashboard, the practice list
+ * Every paper's cohort figures, read once and kept for a minute, and
+ * dropped when attempts are removed. The dashboard, the practice list
  * and a series page read these for a student's best T-scores; each used
  * to ask the database to work them out afresh on every visit, over every
  * attempt of every paper the student had sat.
@@ -38,24 +38,43 @@ export interface PaperStat {
  * those are the figures of record, and a minute's staleness there would show.
  */
 export async function allCohorts(): Promise<CohortRow[]> {
-  return unstable_cache(
-    async () => {
-      const supabase = createAdminClient();
-      const { data: papers } = await supabase.from("watch_papers").select("id");
-      const ids = (papers ?? []).map((p) => p.id as string);
-      if (ids.length === 0) return [];
-      const { data } = await supabase.rpc("watch_cohorts", { p_papers: ids });
-      return ((data as CohortRow[] | null) ?? []).map((r) => ({
-        paper_id: r.paper_id,
-        total: Number(r.total),
-        n: Number(r.n),
-        mean: Number(r.mean),
-        sd: Number(r.sd),
-      }));
-    },
-    ["wt-cohorts"],
-    { tags: [COHORTS_TAG], revalidate: 60 },
-  )();
+  // Kept in this instance too, for a minute: the shared cache was found
+  // missing far more often than once a minute, and an instance answers
+  // many visits in that time.
+  const now = Date.now();
+  if (held && now - held.at < HOLD_MS) return held.rows;
+  const rows = unstable_cache(readCohorts, ["wt-cohorts"], { tags: [COHORTS_TAG], revalidate: 60 })();
+  held = { at: now, rows };
+  rows.catch(() => {
+    held = null;
+  });
+  return rows;
+}
+
+let held: { at: number; rows: Promise<CohortRow[]> } | null = null;
+const HOLD_MS = 60_000;
+
+/**
+ * Every paper's cohort rows: from the table pg_cron keeps fresh every
+ * minute (supabase/cohort-stats.sql), or worked out live by the database
+ * until that file has been run.
+ */
+async function readCohorts(): Promise<CohortRow[]> {
+  const supabase = createAdminClient();
+  const toRow = (r: CohortRow) => ({ paper_id: r.paper_id, total: Number(r.total), n: Number(r.n), mean: Number(r.mean), sd: Number(r.sd) });
+  try {
+    const kept = await fetchAll<CohortRow>((from, to) =>
+      supabase.from("watch_cohort_stats").select("paper_id, total, n, mean, sd").order("paper_id").order("total").range(from, to),
+    );
+    return kept.map(toRow);
+  } catch {
+    // The table is not there yet: the live figures, as before.
+  }
+  const { data: papers } = await supabase.from("watch_papers").select("id");
+  const ids = (papers ?? []).map((p) => p.id as string);
+  if (ids.length === 0) return [];
+  const { data } = await supabase.rpc("watch_cohorts", { p_papers: ids });
+  return ((data as CohortRow[] | null) ?? []).map(toRow);
 }
 
 /** The cohort rows of the papers named. */

@@ -83,8 +83,8 @@ Run `supabase/schema.sql` first, then `supabase/watch-table-schema.sql`. The
 other files there are additions, each run once in the SQL editor, in any
 order: `packages.sql`, `coupons.sql`, `blog.sql`, `admin-note.sql`,
 `cohort-speed.sql`, `attempt-counts.sql`, `autosave-rpc.sql`,
-`admin-analytics.sql`, `admin-home.sql`. The portal works without the
-last five and falls back to a slower path; each file's header says what
+`admin-analytics.sql`, `admin-home.sql`, `cohort-stats.sql`. The portal works
+without the last six and falls back to a slower path; each file's header says what
 it speeds up.
 
 ### Accounts
