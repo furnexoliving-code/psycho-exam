@@ -263,10 +263,10 @@ export function FigureExam({
     void fetch("/api/watch-table/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paperId: paper.id }),
+      body: JSON.stringify({ paperId: paper.id, paperDbId: paper.dbId }),
       keepalive: true,
     }).catch(() => undefined);
-  }, [state, paper.id]);
+  }, [state, paper.id, paper.dbId]);
 
   // The lines above the questions: the way back to the instructions, and
   // the prompt to answer. Drawn once here, since the Brick Test's two-column

@@ -118,20 +118,28 @@ export async function openSitting(
 export async function markQuestionsStarted(
   paperSlug: string,
   userId: string,
+  /** The paper's row id when the page knows it, which saves looking the slug up. */
+  paperDbId?: string,
 ): Promise<void> {
   const supabase = createAdminClient();
 
-  const { data: paper } = await supabase
-    .from("watch_papers")
-    .select("id")
-    .eq("slug", paperSlug)
-    .maybeSingle();
-  if (!paper) return;
+  let paperId = paperDbId;
+  if (!paperId) {
+    const { data: paper } = await supabase
+      .from("watch_papers")
+      .select("id")
+      .eq("slug", paperSlug)
+      .maybeSingle();
+    if (!paper) return;
+    paperId = paper.id as string;
+  }
 
+  // A wrong id matches no sitting: the stamp lands only on the caller's own
+  // open sitting of this paper, and nothing else is written.
   await supabase
     .from("watch_sessions")
     .update({ questions_started_at: new Date().toISOString() })
-    .eq("paper_id", paper.id)
+    .eq("paper_id", paperId)
     .eq("user_id", userId)
     .is("submitted_at", null)
     // First call wins; a reload must not restart the clock.

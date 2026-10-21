@@ -4,8 +4,7 @@ import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { photoUrlOf } from "@/lib/photo";
 import { examSettings } from "@/lib/settings";
 import { listPublishedPapers } from "@/lib/wt/db";
-import { attemptsFor } from "@/lib/wt/history";
-import { batteryProgress, paperBestT } from "@/lib/wt/progress";
+import { batteryProgressWithAttempts, paperBestTFromRows } from "@/lib/wt/progress";
 import { groupPapers } from "@/lib/wt/series";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { STAGES } from "@/lib/wt/plan";
@@ -16,23 +15,24 @@ export default async function PracticePage() {
   const profile = await requireUser("/practice");
   if (profile.role !== "student" && profile.role !== "admin") redirect(panelHome(profile.role));
 
-  const [allPapers, hidden, progress, attempts, exam, access] = await Promise.all([listPublishedPapers(), hiddenBatteries(), batteryProgress(profile.id), attemptsFor(profile.id, 1000), examSettings(), accessFor(profile.id, profile.role)]);
+  // The student's attempts are read once, newest first, and serve the
+  // progress figures, which papers were sat and when, and each paper's best.
+  const [allPapers, hidden, { progress, attempts }, exam, access] = await Promise.all([listPublishedPapers(), hiddenBatteries(), batteryProgressWithAttempts(profile.id), examSettings(), accessFor(profile.id, profile.role)]);
   // Without the Sectional package the whole page still shows, every test
   // the hall gives with its count and clock, but each card leads to the
   // packages instead of its papers.
   const locked = !canPractice(access, "alp");
   const papers = allPapers.filter((p) => openToStudents(p.category, hidden));
-  const satSlugs = new Set(attempts.map((a) => a.paperSlug));
-  const sat = new Set(papers.filter((p) => satSlugs.has(p.slug)).map((p) => p.id));
+  const offered = new Set(papers.map((p) => p.id));
+  const mine = attempts.filter((a) => offered.has(a.paper_id));
+  const sat = new Set(mine.map((a) => a.paper_id));
   // When each paper was last sat: the attempts come newest first.
-  const idBySlug = new Map(papers.map((p) => [p.slug, p.id]));
   const lastAt = new Map<string, string>();
-  for (const a of attempts) {
-    const id = idBySlug.get(a.paperSlug);
-    if (id && !lastAt.has(id)) lastAt.set(id, a.submittedAt);
+  for (const a of mine) {
+    if (!lastAt.has(a.paper_id)) lastAt.set(a.paper_id, a.submitted_at);
   }
   // The best T-score of each paper sat, so every test type can show its own.
-  const bestT = await paperBestT(profile.id, [...sat]);
+  const bestT = await paperBestTFromRows(mine);
 
   return (
     <PracticeView

@@ -2,10 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import { SeriesView, type PaperStat } from "@/components/student/SeriesView";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { photoUrlOf } from "@/lib/photo";
-import { allowancesFor } from "@/lib/wt/attempts";
+import { allowancesFromRows } from "@/lib/wt/attempts";
 import { listPublishedPapers } from "@/lib/wt/db";
-import { attemptsFor } from "@/lib/wt/history";
-import { paperBestT } from "@/lib/wt/progress";
+import { attemptRecordsFor } from "@/lib/wt/history";
+import { paperBestTFromRows } from "@/lib/wt/progress";
 import { examSettings } from "@/lib/settings";
 import { STAGES } from "@/lib/wt/plan";
 import { findSeries, groupPapers } from "@/lib/wt/series";
@@ -27,20 +27,22 @@ export default async function SeriesPage({ params }: { params: Promise<{ battery
   const series = findSeries(list, slug);
   if (!series) notFound();
 
-  const [allowances, attempts, bestT, exam] = await Promise.all([
-    allowancesFor(series.papers, profile.id),
-    attemptsFor(profile.id, 1000, series.papers.map((p) => p.id)),
-    paperBestT(profile.id, series.papers.map((p) => p.id)),
+  // The student's attempts on this series are read once, newest first, and
+  // serve the attempts left, each paper's figures and its best T-score.
+  const [attempts, exam] = await Promise.all([
+    attemptRecordsFor(profile.id, 3000, series.papers.map((p) => p.id)),
     examSettings(),
   ]);
+  const allowances = allowancesFromRows(series.papers, attempts);
+  const bestT = await paperBestTFromRows(attempts);
   const stats = new Map<string, PaperStat>();
   for (const p of series.papers) {
-    const mine = attempts.filter((a) => a.paperSlug === p.slug);
+    const mine = attempts.filter((a) => a.paper_id === p.id);
     stats.set(p.id, {
       sat: mine.length,
       bestMarks: mine.length ? Math.max(...mine.map((a) => a.marks)) : null,
       total: mine[0]?.total ?? null,
-      lastAt: mine[0]?.submittedAt ?? null,
+      lastAt: mine[0]?.submitted_at ?? null,
       bestT: bestT.get(p.id) ?? null,
     });
   }

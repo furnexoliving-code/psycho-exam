@@ -18,9 +18,10 @@ export interface AttemptAllowance {
  * enforced from data the person being limited controls is not enforced at all.
  */
 export async function allowanceFor(paperDbId: string, max: number | null, userId: string): Promise<AttemptAllowance> {
+  // No limit, nothing to count: the exam page asks only when the paper sets
+  // one, and the lists tally their counts from rows they already hold.
+  if (max === null) return { max: null, used: 0, remaining: null, exhausted: false };
   const used = await countAttempts(paperDbId, userId);
-  // No limit: the count is still shown, so the card can say "Re-attempt".
-  if (max === null) return { max: null, used, remaining: null, exhausted: false };
 
   const remaining = Math.max(0, max - used);
   return { max, used, remaining, exhausted: remaining === 0 };

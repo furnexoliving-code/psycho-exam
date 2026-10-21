@@ -117,9 +117,10 @@ export default async function WatchTablePage({
   }
 
   // The limit is checked here, on the server, before the paper is handed over.
-  // Hiding the button on the dashboard is a courtesy; this is the rule.
-  if (who && paper.dbId && !mockHere) {
-    const allowance = await allowanceFor(paper.dbId, paper.maxAttempts ?? null, who.id);
+  // Hiding the button on the dashboard is a courtesy; this is the rule. A
+  // paper with no limit has nothing to check, so its attempts are not counted.
+  if (who && paper.dbId && !mockHere && paper.maxAttempts != null) {
+    const allowance = await allowanceFor(paper.dbId, paper.maxAttempts, who.id);
 
     if (allowance.exhausted) {
       return (

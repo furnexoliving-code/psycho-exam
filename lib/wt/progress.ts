@@ -135,11 +135,22 @@ export function clearedBar(progress: BatteryProgress[], batteries: number[], bar
  * figures). Papers never sat, or not yet measurable, are absent.
  */
 export async function paperBestT(userId: string, paperIds: string[]): Promise<Map<string, number>> {
+  if (paperIds.length === 0) return new Map();
+  const { data: attempts } = await createAdminClient().from("watch_attempts").select("paper_id, marks, total").eq("user_id", userId).in("paper_id", paperIds).limit(3000);
+  return paperBestTFromRows((attempts ?? []) as { paper_id: string; marks: number; total: number }[]);
+}
+
+/**
+ * The same best T-score per paper from attempt rows already in hand, so a
+ * page that has read the student's attempts for its other figures does not
+ * read them again. The papers' settings and the cohorts come from the caches.
+ */
+export async function paperBestTFromRows(attempts: { paper_id: string; marks: number; total: number }[]): Promise<Map<string, number>> {
   const out = new Map<string, number>();
+  const paperIds = [...new Set(attempts.map((a) => a.paper_id))];
   if (paperIds.length === 0) return out;
-  const supabase = createAdminClient();
-  const [{ data: attempts }, paperById, cohortRows] = await Promise.all([supabase.from("watch_attempts").select("paper_id, marks, total").eq("user_id", userId).in("paper_id", paperIds).limit(3000), paperStats(), cohortsFor(paperIds)]);
-  for (const a of attempts ?? []) {
+  const [paperById, cohortRows] = await Promise.all([paperStats(), cohortsFor(paperIds)]);
+  for (const a of attempts) {
     const paper = paperById.get(a.paper_id as string);
     if (!paper) continue;
     const total = Number(a.total);

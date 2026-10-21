@@ -159,10 +159,10 @@ export function WatchTableExam({
     void fetch("/api/watch-table/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paperId: paper.id }),
+      body: JSON.stringify({ paperId: paper.id, paperDbId: paper.dbId }),
       keepalive: true,
     }).catch(() => undefined);
-  }, [state, paper.id]);
+  }, [state, paper.id, paper.dbId]);
 
   const handlers = useMemo(
     () => ({
