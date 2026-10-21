@@ -16,7 +16,7 @@ const MAX_ANSWERS = 500;
  * time is up.
  *
  * The cheapest request the portal has, on purpose: every student sends it
- * every fifteen seconds. The token says who is asking, and the account check,
+ * every thirty seconds. The token says who is asking, and the account check,
  * the paper, the sitting and the update are one database call.
  */
 export async function POST(request: Request) {
