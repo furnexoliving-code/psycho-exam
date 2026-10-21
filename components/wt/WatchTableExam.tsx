@@ -124,10 +124,15 @@ export function WatchTableExam({
         keepalive,
       })
         .then(async (res) => {
-          // A save the server did not take (a token mid-refresh, a database
-          // hiccup) goes again on the next tick, which only a cleared sentRef does.
-          const body = (await res.json().catch(() => null)) as { ok?: boolean } | null;
-          if (!res.ok || body?.ok !== true) sentRef.current = "";
+          // A save the server could not take (a token mid-refresh, a
+          // database hiccup) goes again on the next tick, which only a
+          // cleared sentRef does. A save the server refused (no open
+          // sitting, the account on another device, the clock long over)
+          // is not sent again until the sheet changes: a tab left open
+          // after any of those used to send the same sheet every tick,
+          // for hours, and those tabs were most of the database's traffic.
+          if (!res.ok) sentRef.current = "";
+          else await res.json().catch(() => null);
         })
         .catch(() => {
           sentRef.current = "";
