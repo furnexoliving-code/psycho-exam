@@ -403,7 +403,7 @@ export interface MapSpec {
   topicPrefix: string;
   /** Questions per part, and the clock per part. */
   perPart: number;
-  /** Whose count that is, for the admin: "in the hall" unless said otherwise (the railway's mock, for the vehicle test). */
+  /** Whose count that is, for the admin: "in the hall" unless said otherwise (this portal's own setting, for the vehicle test). */
   countSource?: string;
   studyMin: number;
   partMin: number;
@@ -416,14 +416,14 @@ const MAPS: Record<string, MapSpec> = {
     noun: "map",
     item: "vehicle",
     partItems: ["vehicle", "signal"],
-    partsNote: "Part 1 is the street map with its vehicles; Part 2 the railway map with its rail signals. The railway's mock gives 3 questions in each, and both parts must have the same count.",
-    defaultLabels: ["1", "2", "3"],
+    partsNote: "Part 1 is the street map with its vehicles; Part 2 the railway map with its rail signals, 12 questions in each as the House Position Test has (the railway's mock gave 3), and both parts must have the same count.",
+    defaultLabels: Array.from({ length: 12 }, (_, i) => String(i + 1)),
     pictureQuestions: true,
     topicPrefix: "Vehicle",
-    perPart: 3,
-    countSource: "in the railway's mock",
-    studyMin: 1,
-    partMin: 1,
+    perPart: 12,
+    countSource: "on this portal",
+    studyMin: 2.5,
+    partMin: 2.5,
   },
 };
 
@@ -440,11 +440,13 @@ export function memorySchedule(category: string): { studyTimeMin: number; partTi
     case "railway":
       return { studyTimeMin: 2, partTimeMin: 2, breakTimeMin: 1, questionsPerPart: 12 };
     case "vehicle":
-      // The railway's mock for CEN 01/2025: a minute to study, a minute to
-      // answer, three questions a part, and the second part introduced on
-      // an instruction screen of its own with a three-minute clock; the
-      // hall's own count will vary.
-      return { studyTimeMin: 1, partTimeMin: 1, breakTimeMin: 1, questionsPerPart: 3, partInstructionMin: 3 };
+      // Set like the House Position Test with half a minute more each way:
+      // 2.5 minutes to study, 2.5 to answer and twelve questions a part, the
+      // second part introduced on an instruction screen of its own with a
+      // three-minute clock, as the railway's mock for CEN 01/2025 does. The
+      // mock itself gave a minute, a minute and three questions a part, and
+      // says the hall's own count and clock will vary.
+      return { studyTimeMin: 2.5, partTimeMin: 2.5, breakTimeMin: 1, questionsPerPart: 12, partInstructionMin: 3 };
     case "fignum":
       return { studyTimeMin: 3, partTimeMin: 3, breakTimeMin: 1, questionsPerPart: 21 };
     case "figfig":

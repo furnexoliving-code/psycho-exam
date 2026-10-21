@@ -70,7 +70,7 @@ export const CATEGORIES = [
     kind: "figure",
     title: "Vehicle & Signal Position Test",
     hindi: "वाहन व रेल संकेत स्थिति परीक्षण",
-    blurb: "Memorise the vehicles on a street map, then the rail signals on a railway map; on each map lettered A to D, say where every one stood. 2 parts of 3 in the railway's mock.",
+    blurb: "Memorise the vehicles on a street map, then the rail signals on a railway map; on each map lettered A to D, say where every one stood. 2 parts of 12 on this portal; 3 in the railway's mock.",
   },
   {
     id: "watch",
@@ -158,7 +158,7 @@ export const CATEGORIES = [
     kind: "figure",
     title: "Octagonal Test",
     hindi: "अष्टकोण परीक्षण",
-    blurb: "A figure on the left and five on the right: find the identical one. 96 questions in 5 minutes.",
+    blurb: "A figure on the left and five on the right: find the identical one. 96 questions in 6 minutes.",
   },
   {
     id: "similarity2",

@@ -34,7 +34,7 @@ export function GuideView({ page, packages }: { page: GuidePage; packages: Packa
             </div>
 
             <H2 id="tests" sub="पाँच टेस्ट">The five tests and their 20 kinds of question</H2>
-            <p className="mt-2 text-[15px] text-gray-600">The hall gives one kind of question for each test, with that kind&apos;s own count and clock (for 1f, the railway&apos;s mock&apos;s). ★ marks the kind the railway&apos;s mock link for {NEXT_EXAM_LABEL} gives. Click a test or a kind for its pattern, a worked example, the method and tips.</p>
+            <p className="mt-2 text-[15px] text-gray-600">The hall gives one kind of question for each test, with that kind&apos;s own count and clock (for 1f, this portal&apos;s own setting). ★ marks the kind the railway&apos;s mock link for {NEXT_EXAM_LABEL} gives. Click a test or a kind for its pattern, a worked example, the method and tips.</p>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full border-collapse text-[14px]">
                 <thead>
@@ -57,7 +57,7 @@ export function GuideView({ page, packages }: { page: GuidePage; packages: Packa
                             return (
                               <li key={k.code}>
                                 <Link href={kindUrl(k)} className="font-semibold text-[#0d2a6b] hover:underline">{k.code} {k.name}</Link>{mockGives(k.code) && <span className="ml-1 text-[#ff9933]">★</span>}
-                                <span className="text-gray-500"> · {h.questions} · {h.timeMin} min{k.hallNote ? " (railway's mock)" : ""}</span>
+                                <span className="text-gray-500"> · {h.questions} · {h.timeMin} min{k.hallNote ? " (portal's own setting)" : ""}</span>
                               </li>
                             );
                           })}

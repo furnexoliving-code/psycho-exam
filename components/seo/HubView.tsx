@@ -19,7 +19,7 @@ export function HubView({ packages }: { packages: Package[] }) {
               Every kind of question in the RRB ALP psycho test <span className="block text-[20px] font-semibold text-gray-500" lang="hi">ALP साइको टेस्ट के सभी 20 प्रकार के सवाल</span>
             </h1>
             <p className="mt-4 text-[17px] leading-relaxed text-gray-800">
-              The CBAT has five tests, and the hall gives each test as one of its kinds of question: six kinds for the Memory Test, three for Following Directions, two for Depth Perception, four for Power of Observation and five for Perceptual Speed. You do not know in advance which kind you will get, so every kind must be practised. Each page below gives that kind&apos;s count and clock (the hall&apos;s, or the railway&apos;s mock&apos;s for 1f), a worked example from the RDSO guideline or the railway&apos;s mock, the method, tips, mistakes and a 7-day plan.
+              The CBAT has five tests, and the hall gives each test as one of its kinds of question: six kinds for the Memory Test, three for Following Directions, two for Depth Perception, four for Power of Observation and five for Perceptual Speed. You do not know in advance which kind you will get, so every kind must be practised. Each page below gives that kind&apos;s count and clock (the hall&apos;s; this portal&apos;s own setting for 1f), a worked example from the RDSO guideline or the railway&apos;s mock, the method, tips, mistakes and a 7-day plan.
             </p>
             <p className="mt-3 text-[15.5px] text-gray-600" lang="hi">परीक्षा हॉल में हर टेस्ट किसी एक प्रकार में आता है, और पहले से पता नहीं होता कौन सा। इसलिए हर प्रकार का अभ्यास ज़रूरी है। ★ वाला प्रकार {NEXT_EXAM_LABEL} के रेलवे मॉक लिंक में है, इसलिए उसे सबसे पहले करें।</p>
 
@@ -42,7 +42,7 @@ export function HubView({ packages }: { packages: Package[] }) {
                         {mockGives(k.code) && <span className="ml-2 whitespace-nowrap rounded-full border border-[#ff9933] bg-[#fff7ee] px-2 py-0.5 text-[10.5px] font-bold text-gray-800">★ {NEXT_EXAM_LABEL} mock</span>}
                         <p className="text-[12px] text-gray-500" lang="hi">{k.hindi}</p>
                         <p className="mt-1 text-[13px] text-gray-700">{h.blurb}</p>
-                        <p className="mt-1 text-[12.5px] text-gray-500">{h.questions} questions{h.questionsNote ? ` (${h.questionsNote})` : ""} · {h.timeMin} min{h.timeNote ? ` (${h.timeNote})` : ""}{k.hallNote ? " · railway's mock" : ""}</p>
+                        <p className="mt-1 text-[12.5px] text-gray-500">{h.questions} questions{h.questionsNote ? ` (${h.questionsNote})` : ""} · {h.timeMin} min{h.timeNote ? ` (${h.timeNote})` : ""}{k.hallNote ? " · portal's own setting" : ""}</p>
                       </li>
                     );
                   })}

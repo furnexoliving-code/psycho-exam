@@ -14,7 +14,7 @@ import { NEXT_EXAM_CODES, NEXT_EXAM_LABEL, sectionByCode, type Section } from "@
 export const SITE = "https://kautilyaonline.com";
 /** When the words were last revised: the sitemap and the article schema carry it. */
 export const CONTENT_PUBLISHED = "2026-10-08";
-export const CONTENT_UPDATED = "2026-10-19";
+export const CONTENT_UPDATED = "2026-10-21";
 
 export interface Faq {
   q: string;
@@ -42,7 +42,7 @@ export interface KindPage {
   intro: string[];
   introHi: string;
   answerStyle: string;
-  /** Where the count and clock come from, when not the RDSO guideline (the 1f kind: the railway's mock). */
+  /** Where the count and clock come from, when not the RDSO guideline (the 1f kind: this portal's own setting). */
   hallNote?: string;
   how: Step[];
   example: { lines: string[]; answer: string };

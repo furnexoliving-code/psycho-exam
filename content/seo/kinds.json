@@ -807,28 +807,28 @@
    "alp cbat mock test 2025 memory test"
   ],
   "intro": [
-   "The Vehicle & Signal Position Test is kind 1f of the Memory Test, Test 1 of the RRB ALP CBAT. It is new: the railway's own mock test for CEN 01/2025 gives Test 1 as this kind, in two sections. In the mock each section has 3 questions in 2 minutes: 1 minute to study a map and 1 minute to answer, and the mock says the count and the clock will vary in the actual exam. In the first section you memorise where each vehicle stands on a street map; in the second, where each rail signal stands on a railway map. Then, on the same map lettered A to D, you name the letter at each one's place.",
-   "On the study screen a map appears: in Part 1 a street map with a few vehicles on it, in Part 2 a railway map with rail signals. When its clock ends, the test screen opens. The same map returns with letters at the places, more places than there were vehicles, and the vehicles or signals sit as pictures beside it, one question each with A to D. You click the letter at each one's old place; the click is kept at once, and the part closes when its clock reaches zero or on Submit. This page gives the screen flow, a method for both stages, the mock's own examples and a 7-day plan."
+   "The Vehicle & Signal Position Test is kind 1f of the Memory Test, Test 1 of the RRB ALP CBAT. It is new: the railway's own mock test for CEN 01/2025 gives Test 1 as this kind, in two sections. In the mock each section has 3 questions in 2 minutes: 1 minute to study a map and 1 minute to answer, and the mock says the count and the clock will vary in the actual exam. This portal sets the kind like the House Position Test: 12 questions a part, 2.5 minutes to study and 2.5 minutes to answer, 24 questions in 10 minutes. In the first section you memorise where each vehicle stands on a street map; in the second, where each rail signal stands on a railway map. Then, on the same map lettered A to D, you name the letter at each one's place.",
+   "On the study screen a map appears: in Part 1 a street map with vehicles on it, in Part 2 a railway map with rail signals. When its clock ends, the test screen opens. The same map returns with letters at the places, more places than there were vehicles, and the vehicles or signals sit as pictures beside it, one question each with A to D. You click the letter at each one's old place; the click is kept at once, and the part closes when its clock reaches zero or on Submit. This page gives the screen flow, a method for both stages, the mock's own examples and a 7-day plan."
   ],
-  "introHi": "वाहन व रेल संकेत स्थिति परीक्षण (1f) RRB ALP CBAT के पहले टेस्ट यानी स्मृति परीक्षण का नया प्रकार है, जो रेलवे के CEN 01/2025 के मॉक टेस्ट में आया है। मॉक में यह दो खंडों में है: पहले में मार्ग मानचित्र पर वाहनों की स्थिति याद करनी है, दूसरे में रेल मानचित्र पर रेल संकेतों की; फिर वही नक्शा A से D अक्षरों के साथ आता है और हर वाहन या संकेत के लिए उसकी जगह वाला अक्षर चुनना है। हर खंड में 3 सवाल 2 मिनट में, यानी 1 मिनट नक्शा याद करने के लिए और 1 मिनट जवाब देने के लिए; मॉक कहता है कि असली परीक्षा में सवालों की संख्या और समय अलग हो सकते हैं।",
+  "introHi": "वाहन व रेल संकेत स्थिति परीक्षण (1f) RRB ALP CBAT के पहले टेस्ट यानी स्मृति परीक्षण का नया प्रकार है, जो रेलवे के CEN 01/2025 के मॉक टेस्ट में आया है। मॉक में यह दो खंडों में है: पहले में मार्ग मानचित्र पर वाहनों की स्थिति याद करनी है, दूसरे में रेल मानचित्र पर रेल संकेतों की; फिर वही नक्शा A से D अक्षरों के साथ आता है और हर वाहन या संकेत के लिए उसकी जगह वाला अक्षर चुनना है। हर खंड में 3 सवाल 2 मिनट में, यानी 1 मिनट नक्शा याद करने के लिए और 1 मिनट जवाब देने के लिए; मॉक कहता है कि असली परीक्षा में सवालों की संख्या और समय अलग हो सकते हैं। इस पोर्टल पर यह मकान स्थिति परीक्षण की तरह चलता है: हर भाग में 12 सवाल, 2.5 मिनट नक्शा याद करने के लिए और 2.5 मिनट जवाब के लिए, यानी 24 सवाल 10 मिनट में।",
   "answerStyle": "Four options A to D against each pictured vehicle or signal; click the letter that now stands where it stood. A letter may stand at more than one place on the map, so recall the spot, not the letter.",
-  "hallNote": "The count and clock of the railway's own mock test for CEN 01/2025, which says the hall's will vary.",
+  "hallNote": "This portal's own count and clock: 12 questions a part as in the House Position Test, with half a minute more to study and to answer. The railway's mock test for CEN 01/2025 gave 3 questions a part, 1 minute to study and 1 minute to answer, and says the hall's will vary.",
   "how": [
    {
     "h": "Instruction screen",
-    "p": "The test opens with Part 1's rules in Hindi and English: the street map and its automobiles, 3 questions, 2 minutes (1+1). In the railway's mock the rules end with a worked example: a street map with five vehicles, then the same map lettered, with the answers. On the portal this screen allows 5 minutes; Skip Instruction starts the test sooner."
+    "p": "The test opens with Part 1's rules in Hindi and English: the street map and its automobiles, 12 questions, 5 minutes (2.5+2.5). In the railway's mock the rules end with a worked example: a street map with five vehicles, then the same map lettered, with the answers. On the portal this screen allows 5 minutes; Skip Instruction starts the test sooner."
    },
    {
     "h": "Study screen, Part 1",
-    "p": "A street map appears under a Time Left clock of 1 minute: winding roads, and a vehicle at a few places, such as a car, a truck and a jeep. There is nothing to click or write; at zero the map closes and will not return."
+    "p": "A street map appears under a Time Left clock of 2.5 minutes: winding roads, and a vehicle at each of 12 places: cars, trucks, jeeps and the like. There is nothing to click or write; at zero the map closes and will not return."
    },
    {
     "h": "Test screen, Part 1",
-    "p": "The lettered map sits at the left, A to D at the places, some letters at two places. The vehicles stand at the right as questions, one picture each with A to D. Click the letter at each vehicle's old place; the click is kept at once, and Save only sends it up. The clock gives 1 minute for the mock's 3 vehicles."
+    "p": "The lettered map sits at the left, A to D at the places, each letter at several places. The vehicles stand at the right as questions, one picture each with A to D. Click the letter at each vehicle's old place; the click is kept at once, and Save only sends it up. The clock gives 2.5 minutes for the part's 12 vehicles."
    },
    {
     "h": "Break, then Part 2",
-    "p": "A short break with a summary follows. Then Part 2 opens with an instruction screen of its own, as the mock's second section does: the railway map and its rail signals, with Skip Instruction to go on sooner. Then again 1 minute to study and 1 minute to answer, with the signals pictured beside the lettered map."
+    "p": "A short break with a summary follows. Then Part 2 opens with an instruction screen of its own, as the mock's second section does: the railway map and its rail signals, with Skip Instruction to go on sooner. Then again 2.5 minutes to study and 2.5 minutes to answer, with the signals pictured beside the lettered map."
    },
    {
     "h": "Submit",
@@ -850,21 +850,21 @@
    },
    {
     "h": "Give every vehicle an address",
-    "p": "Name each vehicle by the road it stands on and what is near it: the car on the top road at the bend, the truck below the fork. An address survives the minute; a picture of the whole map does not. In Part 2 do the same with the signals: the signal where the tracks cross, the one at the end of the upper line."
+    "p": "Name each vehicle by the road it stands on and what is near it: the car on the top road at the bend, the truck below the fork. An address survives the study clock; a picture of the whole map does not. In Part 2 do the same with the signals: the signal where the tracks cross, the one at the end of the upper line."
    },
    {
     "h": "Test yourself before the clock ends",
-    "p": "The study clock is 1 minute, so the self-test comes early: after about 40 seconds look away from the map and recall each vehicle's address. One more look for any that will not come. At zero the map is gone."
+    "p": "The study clock is 2.5 minutes. At about 2 minutes look away from the map and recall each vehicle's address. One more look for any that will not come. At zero the map is gone."
    },
    {
     "h": "Go picture, address, letter",
-    "p": "Look at the pictured vehicle or signal, recall its address, find that spot on the lettered map and read the letter standing there. Click it; the answer is kept at once, and there is no Save & Next on this screen. The same letter may stand at two places, so the spot decides, not the letter."
+    "p": "Look at the pictured vehicle or signal, recall its address, find that spot on the lettered map and read the letter standing there. Click it; the answer is kept at once, and there is no Save & Next on this screen. The same letter stands at several places, so the spot decides, not the letter."
    }
   ],
   "tips": [
    {
     "h": "Expect extra letters",
-    "p": "The lettered map carries more lettered places than there were vehicles: A to D, with some letters at two places. A letter you half remember proves nothing. Fix the place; the letter at that place is the answer."
+    "p": "The lettered map carries more lettered places than there were vehicles: A to D, each at several places. A letter you half remember proves nothing. Fix the place; the letter at that place is the answer."
    },
    {
     "h": "Tell the vehicles apart",
@@ -875,8 +875,8 @@
     "p": "The signals in Part 2 differ in shape: a post with round lights, a three-lamp signal, crossed arms. Name each by its shape as you fix its place, so the picture beside the test map calls up the place at once."
    },
    {
-    "h": "Mind the short clock",
-    "p": "One minute to study and one to answer is less than the other map kinds give. There is no time for a second pass over the whole map; one pass with addresses, then a quick self-test, is the whole plan."
+    "h": "Spend the extra half minute on the self-test",
+    "p": "2.5 minutes to study is half a minute more than the House Position Test gives for the same 12. Do not spend it on a third pass over the map; one pass with addresses, one check, then the self-test is the whole plan."
    },
    {
     "h": "Treat Part 2 as a new map",
@@ -886,14 +886,14 @@
   "mistakes": [
    "Memorising the vehicles as pictures without tying each one to a road or a bend.",
    "Clicking a letter because it was somewhere near, when the same letter also stands at another place.",
-   "Spending the whole minute looking at the map and leaving no time to test the recall.",
+   "Spending the whole study time looking at the map and leaving no time to test the recall.",
    "Carrying the street map into Part 2 and placing a signal where a vehicle had stood.",
    "Mixing up two vehicles of a similar look, so both go to the wrong place."
   ],
   "plan": [
    {
     "day": "Day 1",
-    "task": "Read the instruction screen in full and place the mock example's five vehicles yourself. Check your letters against the answer above. Then sit one practice paper to meet the two maps and the short clock."
+    "task": "Read the instruction screen in full and place the mock example's five vehicles yourself. Check your letters against the answer above. Then sit one practice paper to meet the two maps and the clock."
    },
    {
     "day": "Day 2",
@@ -901,7 +901,7 @@
    },
    {
     "day": "Day 3",
-    "task": "Study stage. Sit a paper and spend the full minute on each map: roads or tracks first, then addresses, then a self-test in the last 20 seconds."
+    "task": "Study stage. Sit a paper and spend the full 2.5 minutes on each map: roads or tracks first, then addresses, then a self-test in the last 30 seconds."
    },
    {
     "day": "Day 4",
@@ -927,22 +927,22 @@
    },
    {
     "q": "How many questions does it have and how much time do I get?",
-    "a": "In the mock, 3 questions a section and 2 minutes a section: 1 minute to study the map and 1 minute to answer, so 6 questions in 4 minutes. The mock says the count and the clock will vary in the actual exam. The portal's practice papers keep the mock's count and clock."
+    "a": "In the railway's mock, 3 questions a section and 2 minutes a section: 1 minute to study the map and 1 minute to answer, so 6 questions in 4 minutes; the mock says the count and the clock will vary in the actual exam. This portal's practice papers are set like the House Position Test: 12 questions a part, 2.5 minutes to study and 2.5 minutes to answer, so 24 questions in 10 minutes."
    },
    {
     "q": "Vehicle and signal position test kaise hota hai: what exactly is asked?",
-    "a": "A map with vehicles, or with rail signals, is shown for 1 minute. Then the map returns with the letters A to D at the places, some letters twice, and the vehicles or signals pictured beside it. For each picture you click the letter at its old place."
+    "a": "A map with vehicles, or with rail signals, is shown for 2.5 minutes. Then the map returns with the letters A to D at the places, each letter at several places, and the vehicles or signals pictured beside it. For each picture you click the letter at its old place."
    },
    {
-    "q": "Why does the same letter appear twice on the test map?",
+    "q": "Why does the same letter appear more than once on the test map?",
     "a": "The letters are only four, A to D, and the map carries more lettered places than there were vehicles. The extra places hold nothing. Recall the spot where the vehicle stood and take the letter at that spot."
    },
    {
     "q": "How is it different from the House Position Test and the Railway Track Route Test?",
-    "a": "All three are map kinds of the Memory Test. House Position (1a) places houses on a map of roads and Railway Track Route (1c) places stations on a railway map, each with 12 questions a part, 2 minutes to study and five options. This kind gives a street map and then a railway map, 1 minute each, four options and pictured questions."
+    "a": "All three are map kinds of the Memory Test. House Position (1a) places houses on a map of roads and Railway Track Route (1c) places stations on a railway map, each with 12 questions a part, 2 minutes to study and five options. This kind gives a street map and then a railway map, 12 questions a part too, with 2.5 minutes to study, four options and pictured questions."
    }
   ],
-  "summaryHi": "वाहन व रेल संकेत स्थिति परीक्षण RRB ALP CBAT के स्मृति परीक्षण का नया प्रकार 1f है, जो रेलवे के CEN 01/2025 के मॉक टेस्ट में दो खंडों में आया है। पहले खंड में मार्ग मानचित्र पर वाहन और दूसरे में रेल मानचित्र पर रेल संकेत होते हैं; हर खंड में 1 मिनट नक्शा याद करने के लिए और 1 मिनट में मॉक के 3 सवाल, हर चित्र के लिए A से D में से उसकी जगह वाला अक्षर। परीक्षण नक्शे में एक ही अक्षर दो जगह भी हो सकता है, इसलिए अक्षर नहीं, जगह याद रखें। पहले सड़कें या पटरियाँ पढ़ें, फिर हर वाहन या संकेत को उसके पड़ोसी से नाम दें, और घड़ी खत्म होने से पहले खुद को परखें। दूसरे खंड में पहले नक्शे को भूल जाएँ। पोर्टल पर लॉगइन के बाद एक फुल मॉक मुफ़्त है, और हर प्रैक्टिस पेपर में मॉक जैसी गिनती और घड़ी के साथ T-Score तुरंत मिलता है।"
+  "summaryHi": "वाहन व रेल संकेत स्थिति परीक्षण RRB ALP CBAT के स्मृति परीक्षण का नया प्रकार 1f है, जो रेलवे के CEN 01/2025 के मॉक टेस्ट में दो खंडों में आया है। पहले खंड में मार्ग मानचित्र पर वाहन और दूसरे में रेल मानचित्र पर रेल संकेत होते हैं; पोर्टल पर हर भाग में 2.5 मिनट नक्शा याद करने के लिए और 2.5 मिनट में 12 सवाल (मॉक में 1-1 मिनट में 3 सवाल थे), हर चित्र के लिए A से D में से उसकी जगह वाला अक्षर। परीक्षण नक्शे में एक ही अक्षर कई जगह होता है, इसलिए अक्षर नहीं, जगह याद रखें। पहले सड़कें या पटरियाँ पढ़ें, फिर हर वाहन या संकेत को उसके पड़ोसी से नाम दें, और घड़ी खत्म होने से पहले खुद को परखें। दूसरे खंड में पहले नक्शे को भूल जाएँ। पोर्टल पर लॉगइन के बाद एक फुल मॉक मुफ़्त है, और हर प्रैक्टिस पेपर में इसी गिनती और घड़ी के साथ T-Score तुरंत मिलता है।"
  },
  {
   "kind": "kind",
@@ -2541,7 +2541,7 @@
   "name": "Octagonal Test",
   "hindi": "अष्टकोण परीक्षण",
   "title": "Octagonal Test for RRB ALP CBAT: Pattern, Example, Tips",
-  "description": "Octagonal Test of the RRB ALP CBAT: 96 questions in 5 minutes, find the identical octagon among five. Example, method, tips and a free Full Mock.",
+  "description": "Octagonal Test of the RRB ALP CBAT: 96 questions in 6 minutes, find the identical octagon among five. Example, method, tips and a free Full Mock.",
   "keywords": [
    "octagonal test alp",
    "octagonal test rrb psycho",
@@ -2554,10 +2554,10 @@
    "rrb alp octagon figure test"
   ],
   "intro": [
-   "The Octagonal Test is kind 5b of the Perceptual Speed Test, the fifth and last test of the RRB ALP CBAT. The hall gives 96 questions in 5 minutes on one Time Left clock. In every question an octagon with a mark inside stands on the left and five on the right; one is identical, and you click its letter. The test measures how fast your eye picks the exact copy out of four look-alikes, and whether you stay accurate at that pace.",
-   "On screen each question is one row: the given octagon, then options A to E, each with a radio button beneath. You find the identical octagon, click its button and drop to the next row; Save & Next opens the next part. Read on for the screen as the hall shows it, the RDSO guideline's three example rows and a method built for a 3-second row. After that come the clicks that lose marks, a week's plan and the portal's papers and free Full Mock."
+   "The Octagonal Test is kind 5b of the Perceptual Speed Test, the fifth and last test of the RRB ALP CBAT. The hall gives 96 questions in 6 minutes on one Time Left clock. In every question an octagon with a mark inside stands on the left and five on the right; one is identical, and you click its letter. The test measures how fast your eye picks the exact copy out of four look-alikes, and whether you stay accurate at that pace.",
+   "On screen each question is one row: the given octagon, then options A to E, each with a radio button beneath. You find the identical octagon, click its button and drop to the next row; Save & Next opens the next part. Read on for the screen as the hall shows it, the RDSO guideline's three example rows and a method built for a row of under 4 seconds. After that come the clicks that lose marks, a week's plan and the portal's papers and free Full Mock."
   ],
-  "introHi": "अष्टकोण परीक्षण RRB ALP CBAT के पाँचवें और अंतिम टेस्ट, यानी प्रत्यक्ष गति परीक्षण, का 5b प्रकार है। परीक्षा हॉल में 96 सवाल 5 मिनट में आते हैं; हर सवाल में बाईं ओर निशान वाला एक अष्टकोण होता है और दाईं ओर पाँच अष्टकोण, जिनमें से बिल्कुल वैसा ही एक चुनना है। यह टेस्ट मापता है कि चार मिलती-जुलती आकृतियों के बीच आपकी नज़र बिल्कुल वैसी ही आकृति को कितनी तेज़ी से और कितनी सटीकता से पकड़ती है।",
+  "introHi": "अष्टकोण परीक्षण RRB ALP CBAT के पाँचवें और अंतिम टेस्ट, यानी प्रत्यक्ष गति परीक्षण, का 5b प्रकार है। परीक्षा हॉल में 96 सवाल 6 मिनट में आते हैं; हर सवाल में बाईं ओर निशान वाला एक अष्टकोण होता है और दाईं ओर पाँच अष्टकोण, जिनमें से बिल्कुल वैसा ही एक चुनना है। यह टेस्ट मापता है कि चार मिलती-जुलती आकृतियों के बीच आपकी नज़र बिल्कुल वैसी ही आकृति को कितनी तेज़ी से और कितनी सटीकता से पकड़ती है।",
   "answerStyle": "Five octagons A to E with a radio button under each; click the letter of the one identical to the left figure.",
   "how": [
    {
@@ -2578,7 +2578,7 @@
    },
    {
     "h": "After question 96",
-    "p": "When the last row is clicked, Submit ends the paper; if the 5 minutes run out first, the clock ends it. Your T-Score follows at once on the portal, and the review marks the right letter on each of the 96 rows."
+    "p": "When the last row is clicked, Submit ends the paper; if the 6 minutes run out first, the clock ends it. Your T-Score follows at once on the portal, and the review marks the right letter on each of the 96 rows."
    }
   ],
   "example": {
@@ -2608,8 +2608,8 @@
   ],
   "tips": [
    {
-    "h": "A little over 3 seconds a question",
-    "p": "96 questions in 5 minutes is about 19 a minute, a little over 3 seconds each. That is enough for one look left, one sweep right and one click, nothing more."
+    "h": "Under 4 seconds a question",
+    "p": "96 questions in 6 minutes is 16 a minute, under 4 seconds each. That is enough for one look left, one sweep right and one click, nothing more."
    },
    {
     "h": "Only the exact copy is right",
@@ -2621,7 +2621,7 @@
    },
    {
     "h": "Hold a steady rhythm",
-    "p": "A steady 3 seconds a row beats a careful 10 followed by a panic. If a row will not settle, click the better of two and go on."
+    "p": "A steady 4 seconds a row beats a careful 10 followed by a panic. If a row will not settle, click the better of two and go on."
    },
    {
     "h": "Stay on your line",
@@ -2638,7 +2638,7 @@
   "plan": [
    {
     "day": "Day 1",
-    "task": "Open the instruction screen and read the three example rows as clock times until D, A and D are obvious. Then sit one paper on a laptop and let the 5-minute clock run out if it must; today you are learning the row, not the score."
+    "task": "Open the instruction screen and read the three example rows as clock times until D, A and D are obvious. Then sit one paper on a laptop and let the 6-minute clock run out if it must; today you are learning the row, not the score."
    },
    {
     "day": "Day 2",
@@ -2650,11 +2650,11 @@
    },
    {
     "day": "Day 4",
-    "task": "Two papers in one sitting. On the first, hold the 3-second rhythm and let accuracy fall where it will. On the second, bring accuracy back without losing the rhythm, so question 96 is on screen before Time Left shows zero."
+    "task": "Two papers in one sitting. On the first, hold the 4-second rhythm and let accuracy fall where it will. On the second, bring accuracy back without losing the rhythm, so question 96 is on screen before Time Left shows zero."
    },
    {
     "day": "Day 5",
-    "task": "Free Full Mock on a laptop or desktop. Test 5 comes after four other tests; count how many of its rows you reached, and whether the 3-second rhythm came back by the second part."
+    "task": "Free Full Mock on a laptop or desktop. Test 5 comes after four other tests; count how many of its rows you reached, and whether the 4-second rhythm came back by the second part."
    },
    {
     "day": "Day 6",
@@ -2662,13 +2662,13 @@
    },
    {
     "day": "Day 7",
-    "task": "Sit one paper in the morning at the 3-second rhythm, then stop. Compare the week's first T-Score with the last: the gap shows whether the rhythm has settled and how far you are from the portal's target, T-Score 60."
+    "task": "Sit one paper in the morning at the 4-second rhythm, then stop. Compare the week's first T-Score with the last: the gap shows whether the rhythm has settled and how far you are from the portal's target, T-Score 60."
    }
   ],
   "faq": [
    {
     "q": "How many questions does the Octagonal Test have and how much time?",
-    "a": "The hall gives 96 questions in 5 minutes on one Time Left clock; Save & Next moves you from part to part without stopping it. This portal's practice papers keep the same count and clock."
+    "a": "The hall gives 96 questions in 6 minutes on one Time Left clock; Save & Next moves you from part to part without stopping it. This portal's practice papers keep the same count and clock."
    },
    {
     "q": "What does the figure in the Octagonal Test look like?",
@@ -2676,18 +2676,18 @@
    },
    {
     "q": "What is the difference between the Octagonal Test and the Same Figure Test?",
-    "a": "Both are kinds of the Perceptual Speed Test and both ask for the identical figure. The Octagonal Test uses only octagons with an inner mark: 96 questions in 5 minutes. The Same Figure Test, kind 5e, uses mixed figures: 72 questions in 8 minutes."
+    "a": "Both are kinds of the Perceptual Speed Test and both ask for the identical figure. The Octagonal Test uses only octagons with an inner mark: 96 questions in 6 minutes. The Same Figure Test, kind 5e, uses mixed figures: 72 questions in 8 minutes."
    },
    {
     "q": "Did the last RRB ALP exam give the Octagonal Test?",
-    "a": "No. In the last exam (CEN 01/2024) the hall gave the Same Figure Test for Test 5, as the institute's records show. The Octagonal Test has the shortest clock of the five kinds, so a candidate who can hold its pace finds the others slower; practise all five. For CEN 01/2025 the railway's mock link gives this kind, so practise it first."
+    "a": "No. In the last exam (CEN 01/2024) the hall gave the Same Figure Test for Test 5, as the institute's records show. The Octagonal Test has the fastest pace of the five kinds, under 4 seconds a question, so a candidate who can hold it finds the others slower; practise all five. For CEN 01/2025 the railway's mock link gives this kind, so practise it first."
    },
    {
     "q": "Why is it called the Octagonal Test?",
     "a": "Because every figure is an octagon, a shape with eight sides. In most rows the octagons look alike and only the mark inside differs."
    }
   ],
-  "summaryHi": "अष्टकोण परीक्षण में बाईं ओर निशान वाला एक अष्टकोण दिया होता है और दाईं ओर A से E तक पाँच अष्टकोण; उनमें से बिल्कुल वैसा ही एक चुनना है। परीक्षा हॉल में 96 सवाल 5 मिनट में आते हैं, यानी हर सवाल के लिए 3 सेकंड से थोड़ा अधिक। तरीका यह है: निशान की दिशा को घड़ी के समय की तरह पकड़ें, पाँचों विकल्पों में सिर्फ़ वही दिशा खोजें, दर्पण जैसी उलटी आकृति से बचें, क्लिक करें और अगली पंक्ति पर जाएँ। यहाँ सबसे मिलती-जुलती नहीं, बिल्कुल वैसी ही आकृति सही है, और पंक्ति का क्रम कभी न खोएँ। पोर्टल के प्रैक्टिस पेपर में भी 96 सवाल और 5 मिनट की वही घड़ी है; हर पेपर में 3 प्रयास तक मिलते हैं और सबसे ऊँचा T-Score गिना जाता है। लॉगिन के बाद पहला फुल मॉक मुफ़्त है।"
+  "summaryHi": "अष्टकोण परीक्षण में बाईं ओर निशान वाला एक अष्टकोण दिया होता है और दाईं ओर A से E तक पाँच अष्टकोण; उनमें से बिल्कुल वैसा ही एक चुनना है। परीक्षा हॉल में 96 सवाल 6 मिनट में आते हैं, यानी हर सवाल के लिए 4 सेकंड से कम। तरीका यह है: निशान की दिशा को घड़ी के समय की तरह पकड़ें, पाँचों विकल्पों में सिर्फ़ वही दिशा खोजें, दर्पण जैसी उलटी आकृति से बचें, क्लिक करें और अगली पंक्ति पर जाएँ। यहाँ सबसे मिलती-जुलती नहीं, बिल्कुल वैसी ही आकृति सही है, और पंक्ति का क्रम कभी न खोएँ। पोर्टल के प्रैक्टिस पेपर में भी 96 सवाल और 6 मिनट की वही घड़ी है; हर पेपर में 3 प्रयास तक मिलते हैं और सबसे ऊँचा T-Score गिना जाता है। लॉगिन के बाद पहला फुल मॉक मुफ़्त है।"
  },
  {
   "kind": "kind",
@@ -2984,7 +2984,7 @@
    },
    {
     "q": "What is the difference between the Same Circle Test and the Octagonal Test?",
-    "a": "The rule is the same, find the exact copy, but the figures and the clock differ. The Octagonal Test shows octagons with one inner mark, 96 in 5 minutes. Here the figures are circles with several arrows, 60 in 8 minutes, so each row gives you more time."
+    "a": "The rule is the same, find the exact copy, but the figures and the clock differ. The Octagonal Test shows octagons with one inner mark, 96 in 6 minutes. Here the figures are circles with several arrows, 60 in 8 minutes, so each row gives you more time."
    },
    {
     "q": "Did the last RRB ALP exam give the Same Circle Test?",

@@ -107,6 +107,8 @@ export function FigureExam({
   // its own words; the paper's own words (the admin's) open the first.
   const partIntro = features.studyTimeMin > 0 && features.partInstructionMin > 0;
   const partMin = Math.max(1, Math.ceil(features.studyTimeMin + features.partTimeMin));
+  // Whole or half minutes read as a note, (2+2) or (2.5+2.5); a sample's few seconds do not.
+  const noteMinutes = (n: number) => n > 0 && Number.isInteger(n * 2);
   const batteryHindi = BATTERIES.find((b) => b.id === battery)?.hindi ?? testName;
   const introOf = (p: number): InstructionOverride | undefined =>
     partIntro
@@ -121,7 +123,7 @@ export function FigureExam({
           example: p === 0 ? undefined : features.partInstructions[p - 1]?.example,
           questionCount: (parts[p] ?? []).length,
           timeLimitMin: partMin,
-          timeNote: Number.isInteger(features.studyTimeMin) && Number.isInteger(features.partTimeMin) ? `(${features.studyTimeMin}+${features.partTimeMin})` : undefined,
+          timeNote: noteMinutes(features.studyTimeMin) && noteMinutes(features.partTimeMin) ? `(${features.studyTimeMin}+${features.partTimeMin})` : undefined,
         }
       : undefined;
 

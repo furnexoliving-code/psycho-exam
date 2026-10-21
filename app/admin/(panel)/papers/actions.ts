@@ -187,10 +187,11 @@ export async function createPaper(formData: FormData) {
   const matching = category === "figure" || category === "octagonal" || category === "circle";
   // A sheet test (Brick, Similarity): a picture per part with its questions; the hall's own clock.
   const sheet = sheetOf(category);
-  // A Memory test's clock is its parts' study and answering time together,
-  // as the hall's index gives it; the schedule keeps it in step afterwards.
-  const hallClock = memorySchedule(category) ? sectionOf("", category)?.timeMin : undefined;
-  const pictureMin = sheet ? sheet.timeMin : (hallClock ?? (category === "circle" ? 8 : 5));
+  // A picture test's clock is the one the hall's index gives its kind. A
+  // Memory test's is its parts' study and answering time together, and the
+  // schedule keeps it in step afterwards.
+  const hallClock = sectionOf("", category)?.timeMin;
+  const pictureMin = sheet ? sheet.timeMin : (hallClock ?? 5);
 
   // A fresh Following Directions paper starts with a generated diagram and a
   // full set of questions, so it is usable immediately rather than an empty
@@ -217,7 +218,7 @@ export async function createPaper(formData: FormData) {
       example_cells: figure ? [] : tables[0].cells,
       // A test whose parts are introduced one by one opens on its first
       // part's screen, with that part's own clock.
-      instructions: figure ? pictureInstructions(category, memorySchedule(category)?.partInstructionMin ? (memorySchedule(category)!.studyTimeMin + memorySchedule(category)!.partTimeMin) : built ? built.timeMin : pictureMin, 5, 1) : [],
+      instructions: figure ? pictureInstructions(category, memorySchedule(category)?.partInstructionMin ? (memorySchedule(category)!.studyTimeMin + memorySchedule(category)!.partTimeMin) : built ? built.timeMin : pictureMin, 5, memorySchedule(category)?.studyTimeMin ?? 0) : [],
       example_text: figure ? (matching ? matchingExampleText(category) : built ? built.example : sheet ? sheetExampleText(category) : []) : undefined,
       // The picture tests are answered with the mouse, in parts, and have
       // no question-paper page; the keyboard-only rules of the Following
@@ -414,7 +415,7 @@ export async function saveSettings(
       .select("id, features")
       .eq("slug", slug)
       .maybeSingle();
-    const current = (before?.features ?? null) as { studyImages?: string[] } | null;
+    const current = (before?.features ?? null) as { studyImages?: string[]; partInstructions?: unknown[] } | null;
 
     // On a schedule, the test clock is parts × (study + questions): the
     // admin sets the parts' times, and the clock follows.
@@ -461,8 +462,9 @@ export async function saveSettings(
           ...schedule,
           ...pictureScale,
           ...studyScale,
-          // Kept as they are: set from their own uploader, not this form.
+          // Kept as they are: set from their own uploader and editor, not this form.
           ...(current?.studyImages ? { studyImages: current.studyImages } : {}),
+          ...(Array.isArray(current?.partInstructions) ? { partInstructions: current.partInstructions } : {}),
         },
         updated_at: new Date().toISOString(),
       })
