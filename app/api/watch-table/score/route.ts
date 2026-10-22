@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProfile, isConfigured, isVerifiedEditor } from "@/lib/auth";
+import { getProfile, isConfigured, isVerifiedEditor, mayOpen } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { readQuestionRows } from "@/lib/wt/db";
@@ -130,7 +130,9 @@ export async function POST(request: Request) {
   // The role alone is not enough for what follows — a draft's questions, a
   // marking with no sitting behind it. Only the admin who passed the second
   // factor in this session (an admin, or an editor) gets more than a student.
-  const admin = await isVerifiedEditor();
+  // A student's role settles it from the profile already read: the check
+  // reads the profile again, and a route handler does not share that read.
+  const admin = mayOpen(profile.role, "papers") ? await isVerifiedEditor() : false;
 
   // With a database, every paper is in it. The bundled sample is not served
   // alongside: it has no sitting, no record, and marking it on demand would
