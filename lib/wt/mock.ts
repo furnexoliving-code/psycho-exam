@@ -639,14 +639,20 @@ export async function latestMockResult(mockId: string, userId: string): Promise<
 /**
  * Where a composite stands among everyone who sat the mock: one entry per
  * candidate, their best. Rank 1 is the best; equal composites share a rank.
+ * The percentile is the share of candidates strictly below, as the sectional
+ * result counts it.
  */
-export async function mockStanding(mockId: string, userId: string): Promise<{ rank: number; outOf: number } | null> {
+export async function mockStanding(mockId: string, userId: string): Promise<{ rank: number; outOf: number; percentile: number } | null> {
   const best = await bestComposites(mockId);
   const mine = best.get(userId);
   if (mine === undefined) return null;
   let better = 0;
-  for (const [, c] of best) if (c > mine) better++;
-  return { rank: better + 1, outOf: best.size };
+  let worse = 0;
+  for (const [, c] of best) {
+    if (c > mine) better++;
+    else if (c < mine) worse++;
+  }
+  return { rank: better + 1, outOf: best.size, percentile: (worse / best.size) * 100 };
 }
 
 /** Each candidate's best composite of this mock. */

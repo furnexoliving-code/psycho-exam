@@ -30,7 +30,7 @@ export function MockScorecard({
   cutOffT: number;
   allowedMin: number;
   result: MockResult;
-  standing: { rank: number; outOf: number } | null;
+  standing: { rank: number; outOf: number; percentile: number } | null;
   leaders: LeaderRow[];
   batteries: { id: number; title: string }[];
   myId: string;
@@ -80,7 +80,7 @@ export function MockScorecard({
         <Tile big={verdict} small={`every battery T ≥ ${cutOffT} · हर बैटरी में`} tone={verdictColor} />
         <Tile big={out30 === null ? "—" : `${out30.toFixed(1)} / 30`} small="Score out of 30" tone="text-[#0d2a6b]" />
         <Tile big={result.composite === null ? "—" : result.composite.toFixed(1)} small="Composite T-score" />
-        <Tile big={standing ? `${standing.rank} / ${standing.outOf}` : "—"} small="Rank among candidates" />
+        <Tile big={standing ? standing.percentile.toFixed(1) : "—"} small={standing ? `Percentile · scored below you, of ${standing.outOf.toLocaleString("en-IN")} candidate${standing.outOf === 1 ? "" : "s"}` : "Percentile"} />
         <Tile big={`${marks} / ${total}`} small="Total marks" />
         <Tile
           big={result.durationSec ? `${Math.round(result.durationSec / 60)} min` : "—"}

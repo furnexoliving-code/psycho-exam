@@ -13,7 +13,7 @@ import { listPublishedPapers } from "@/lib/wt/db";
 import { batteryOf } from "@/lib/wt/series";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 
-/** The scorecard: every test's T-score, the composite, the verdict and the rank. */
+/** The scorecard: every test's T-score, the composite, the verdict and the percentile. */
 export default async function MockResultPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const who = await requireUser(`/mock/${slug}/result`);
