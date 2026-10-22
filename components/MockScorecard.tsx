@@ -150,7 +150,7 @@ export function MockScorecard({
 
       {leaders.length > 0 && (
         <section className="mt-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="text-[15px] font-bold text-gray-900">Leaderboard · {mockName}</h2>
+          <h2 className="text-[15px] font-bold text-gray-900">Leaderboard · {mockName} · Top 10</h2>
           <ol className="mt-2 divide-y divide-gray-100">
             {leaders.map((row) => (
               <li
@@ -162,13 +162,6 @@ export function MockScorecard({
                 <span className="font-bold tabular-nums text-gray-900">{row.composite.toFixed(1)}</span>
               </li>
             ))}
-            {standing && !leaders.some((l) => l.userId === myId) && (
-              <li className="-mx-2 flex items-center gap-3 rounded-lg bg-blue-50 px-2 py-2 text-[13px] font-semibold">
-                <span className="w-7 text-gray-500">{standing.rank}</span>
-                <span className="flex-1 text-gray-900">{candidate} (you)</span>
-                <span className="tabular-nums text-gray-900">{result.composite?.toFixed(1) ?? "—"}</span>
-              </li>
-            )}
           </ol>
         </section>
       )}
