@@ -158,7 +158,7 @@ export const CATEGORIES = [
     kind: "figure",
     title: "Octagonal Test",
     hindi: "अष्टकोण परीक्षण",
-    blurb: "A figure on the left and five on the right: find the identical one. 96 questions in 6 minutes.",
+    blurb: "A figure on the left and five on the right: find the identical one. 96 questions in 5 minutes.",
   },
   {
     id: "similarity2",

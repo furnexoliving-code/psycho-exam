@@ -14,7 +14,7 @@ import { NEXT_EXAM_CODES, NEXT_EXAM_LABEL, sectionByCode, type Section } from "@
 export const SITE = "https://kautilyaonline.com";
 /** When the words were last revised: the sitemap and the article schema carry it. */
 export const CONTENT_PUBLISHED = "2026-10-08";
-export const CONTENT_UPDATED = "2026-10-21";
+export const CONTENT_UPDATED = "2026-10-22";
 
 export interface Faq {
   q: string;

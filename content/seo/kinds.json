@@ -2541,7 +2541,7 @@
   "name": "Octagonal Test",
   "hindi": "अष्टकोण परीक्षण",
   "title": "Octagonal Test for RRB ALP CBAT: Pattern, Example, Tips",
-  "description": "Octagonal Test of the RRB ALP CBAT: 96 questions in 6 minutes, find the identical octagon among five. Example, method, tips and a free Full Mock.",
+  "description": "Octagonal Test of the RRB ALP CBAT: 96 questions in 5 minutes, find the identical octagon among five. Example, method, tips and a free Full Mock.",
   "keywords": [
    "octagonal test alp",
    "octagonal test rrb psycho",
@@ -2554,10 +2554,10 @@
    "rrb alp octagon figure test"
   ],
   "intro": [
-   "The Octagonal Test is kind 5b of the Perceptual Speed Test, the fifth and last test of the RRB ALP CBAT. The hall gives 96 questions in 6 minutes on one Time Left clock. In every question an octagon with a mark inside stands on the left and five on the right; one is identical, and you click its letter. The test measures how fast your eye picks the exact copy out of four look-alikes, and whether you stay accurate at that pace.",
-   "On screen each question is one row: the given octagon, then options A to E, each with a radio button beneath. You find the identical octagon, click its button and drop to the next row; Save & Next opens the next part. Read on for the screen as the hall shows it, the RDSO guideline's three example rows and a method built for a row of under 4 seconds. After that come the clicks that lose marks, a week's plan and the portal's papers and free Full Mock."
+   "The Octagonal Test is kind 5b of the Perceptual Speed Test, the fifth and last test of the RRB ALP CBAT. The hall gives 96 questions in 5 minutes on one Time Left clock. In every question an octagon with a mark inside stands on the left and five on the right; one is identical, and you click its letter. The test measures how fast your eye picks the exact copy out of four look-alikes, and whether you stay accurate at that pace.",
+   "On screen each question is one row: the given octagon, then options A to E, each with a radio button beneath. You find the identical octagon, click its button and drop to the next row; Save & Next opens the next part. Read on for the screen as the hall shows it, the RDSO guideline's three example rows and a method built for a 3-second row. After that come the clicks that lose marks, a week's plan and the portal's papers and free Full Mock."
   ],
-  "introHi": "अष्टकोण परीक्षण RRB ALP CBAT के पाँचवें और अंतिम टेस्ट, यानी प्रत्यक्ष गति परीक्षण, का 5b प्रकार है। परीक्षा हॉल में 96 सवाल 6 मिनट में आते हैं; हर सवाल में बाईं ओर निशान वाला एक अष्टकोण होता है और दाईं ओर पाँच अष्टकोण, जिनमें से बिल्कुल वैसा ही एक चुनना है। यह टेस्ट मापता है कि चार मिलती-जुलती आकृतियों के बीच आपकी नज़र बिल्कुल वैसी ही आकृति को कितनी तेज़ी से और कितनी सटीकता से पकड़ती है।",
+  "introHi": "अष्टकोण परीक्षण RRB ALP CBAT के पाँचवें और अंतिम टेस्ट, यानी प्रत्यक्ष गति परीक्षण, का 5b प्रकार है। परीक्षा हॉल में 96 सवाल 5 मिनट में आते हैं; हर सवाल में बाईं ओर निशान वाला एक अष्टकोण होता है और दाईं ओर पाँच अष्टकोण, जिनमें से बिल्कुल वैसा ही एक चुनना है। यह टेस्ट मापता है कि चार मिलती-जुलती आकृतियों के बीच आपकी नज़र बिल्कुल वैसी ही आकृति को कितनी तेज़ी से और कितनी सटीकता से पकड़ती है।",
   "answerStyle": "Five octagons A to E with a radio button under each; click the letter of the one identical to the left figure.",
   "how": [
    {
@@ -2578,7 +2578,7 @@
    },
    {
     "h": "After question 96",
-    "p": "When the last row is clicked, Submit ends the paper; if the 6 minutes run out first, the clock ends it. Your T-Score follows at once on the portal, and the review marks the right letter on each of the 96 rows."
+    "p": "When the last row is clicked, Submit ends the paper; if the 5 minutes run out first, the clock ends it. Your T-Score follows at once on the portal, and the review marks the right letter on each of the 96 rows."
    }
   ],
   "example": {
@@ -2608,8 +2608,8 @@
   ],
   "tips": [
    {
-    "h": "Under 4 seconds a question",
-    "p": "96 questions in 6 minutes is 16 a minute, under 4 seconds each. That is enough for one look left, one sweep right and one click, nothing more."
+    "h": "A little over 3 seconds a question",
+    "p": "96 questions in 5 minutes is about 19 a minute, a little over 3 seconds each. That is enough for one look left, one sweep right and one click, nothing more."
    },
    {
     "h": "Only the exact copy is right",
@@ -2621,7 +2621,7 @@
    },
    {
     "h": "Hold a steady rhythm",
-    "p": "A steady 4 seconds a row beats a careful 10 followed by a panic. If a row will not settle, click the better of two and go on."
+    "p": "A steady 3 seconds a row beats a careful 10 followed by a panic. If a row will not settle, click the better of two and go on."
    },
    {
     "h": "Stay on your line",
@@ -2638,7 +2638,7 @@
   "plan": [
    {
     "day": "Day 1",
-    "task": "Open the instruction screen and read the three example rows as clock times until D, A and D are obvious. Then sit one paper on a laptop and let the 6-minute clock run out if it must; today you are learning the row, not the score."
+    "task": "Open the instruction screen and read the three example rows as clock times until D, A and D are obvious. Then sit one paper on a laptop and let the 5-minute clock run out if it must; today you are learning the row, not the score."
    },
    {
     "day": "Day 2",
@@ -2650,11 +2650,11 @@
    },
    {
     "day": "Day 4",
-    "task": "Two papers in one sitting. On the first, hold the 4-second rhythm and let accuracy fall where it will. On the second, bring accuracy back without losing the rhythm, so question 96 is on screen before Time Left shows zero."
+    "task": "Two papers in one sitting. On the first, hold the 3-second rhythm and let accuracy fall where it will. On the second, bring accuracy back without losing the rhythm, so question 96 is on screen before Time Left shows zero."
    },
    {
     "day": "Day 5",
-    "task": "Free Full Mock on a laptop or desktop. Test 5 comes after four other tests; count how many of its rows you reached, and whether the 4-second rhythm came back by the second part."
+    "task": "Free Full Mock on a laptop or desktop. Test 5 comes after four other tests; count how many of its rows you reached, and whether the 3-second rhythm came back by the second part."
    },
    {
     "day": "Day 6",
@@ -2662,13 +2662,13 @@
    },
    {
     "day": "Day 7",
-    "task": "Sit one paper in the morning at the 4-second rhythm, then stop. Compare the week's first T-Score with the last: the gap shows whether the rhythm has settled and how far you are from the portal's target, T-Score 60."
+    "task": "Sit one paper in the morning at the 3-second rhythm, then stop. Compare the week's first T-Score with the last: the gap shows whether the rhythm has settled and how far you are from the portal's target, T-Score 60."
    }
   ],
   "faq": [
    {
     "q": "How many questions does the Octagonal Test have and how much time?",
-    "a": "The hall gives 96 questions in 6 minutes on one Time Left clock; Save & Next moves you from part to part without stopping it. This portal's practice papers keep the same count and clock."
+    "a": "The hall gives 96 questions in 5 minutes on one Time Left clock; Save & Next moves you from part to part without stopping it. This portal's practice papers keep the same count and clock."
    },
    {
     "q": "What does the figure in the Octagonal Test look like?",
@@ -2676,18 +2676,18 @@
    },
    {
     "q": "What is the difference between the Octagonal Test and the Same Figure Test?",
-    "a": "Both are kinds of the Perceptual Speed Test and both ask for the identical figure. The Octagonal Test uses only octagons with an inner mark: 96 questions in 6 minutes. The Same Figure Test, kind 5e, uses mixed figures: 72 questions in 8 minutes."
+    "a": "Both are kinds of the Perceptual Speed Test and both ask for the identical figure. The Octagonal Test uses only octagons with an inner mark: 96 questions in 5 minutes. The Same Figure Test, kind 5e, uses mixed figures: 72 questions in 8 minutes."
    },
    {
     "q": "Did the last RRB ALP exam give the Octagonal Test?",
-    "a": "No. In the last exam (CEN 01/2024) the hall gave the Same Figure Test for Test 5, as the institute's records show. The Octagonal Test has the fastest pace of the five kinds, under 4 seconds a question, so a candidate who can hold it finds the others slower; practise all five. For CEN 01/2025 the railway's mock link gives this kind, so practise it first."
+    "a": "No. In the last exam (CEN 01/2024) the hall gave the Same Figure Test for Test 5, as the institute's records show. The Octagonal Test has the shortest clock of the five kinds, so a candidate who can hold its pace finds the others slower; practise all five. For CEN 01/2025 the railway's mock link gives this kind, so practise it first."
    },
    {
     "q": "Why is it called the Octagonal Test?",
     "a": "Because every figure is an octagon, a shape with eight sides. In most rows the octagons look alike and only the mark inside differs."
    }
   ],
-  "summaryHi": "अष्टकोण परीक्षण में बाईं ओर निशान वाला एक अष्टकोण दिया होता है और दाईं ओर A से E तक पाँच अष्टकोण; उनमें से बिल्कुल वैसा ही एक चुनना है। परीक्षा हॉल में 96 सवाल 6 मिनट में आते हैं, यानी हर सवाल के लिए 4 सेकंड से कम। तरीका यह है: निशान की दिशा को घड़ी के समय की तरह पकड़ें, पाँचों विकल्पों में सिर्फ़ वही दिशा खोजें, दर्पण जैसी उलटी आकृति से बचें, क्लिक करें और अगली पंक्ति पर जाएँ। यहाँ सबसे मिलती-जुलती नहीं, बिल्कुल वैसी ही आकृति सही है, और पंक्ति का क्रम कभी न खोएँ। पोर्टल के प्रैक्टिस पेपर में भी 96 सवाल और 6 मिनट की वही घड़ी है; हर पेपर में 3 प्रयास तक मिलते हैं और सबसे ऊँचा T-Score गिना जाता है। लॉगिन के बाद पहला फुल मॉक मुफ़्त है।"
+  "summaryHi": "अष्टकोण परीक्षण में बाईं ओर निशान वाला एक अष्टकोण दिया होता है और दाईं ओर A से E तक पाँच अष्टकोण; उनमें से बिल्कुल वैसा ही एक चुनना है। परीक्षा हॉल में 96 सवाल 5 मिनट में आते हैं, यानी हर सवाल के लिए 3 सेकंड से थोड़ा अधिक। तरीका यह है: निशान की दिशा को घड़ी के समय की तरह पकड़ें, पाँचों विकल्पों में सिर्फ़ वही दिशा खोजें, दर्पण जैसी उलटी आकृति से बचें, क्लिक करें और अगली पंक्ति पर जाएँ। यहाँ सबसे मिलती-जुलती नहीं, बिल्कुल वैसी ही आकृति सही है, और पंक्ति का क्रम कभी न खोएँ। पोर्टल के प्रैक्टिस पेपर में भी 96 सवाल और 5 मिनट की वही घड़ी है; हर पेपर में 3 प्रयास तक मिलते हैं और सबसे ऊँचा T-Score गिना जाता है। लॉगिन के बाद पहला फुल मॉक मुफ़्त है।"
  },
  {
   "kind": "kind",
@@ -2984,7 +2984,7 @@
    },
    {
     "q": "What is the difference between the Same Circle Test and the Octagonal Test?",
-    "a": "The rule is the same, find the exact copy, but the figures and the clock differ. The Octagonal Test shows octagons with one inner mark, 96 in 6 minutes. Here the figures are circles with several arrows, 60 in 8 minutes, so each row gives you more time."
+    "a": "The rule is the same, find the exact copy, but the figures and the clock differ. The Octagonal Test shows octagons with one inner mark, 96 in 5 minutes. Here the figures are circles with several arrows, 60 in 8 minutes, so each row gives you more time."
    },
    {
     "q": "Did the last RRB ALP exam give the Same Circle Test?",

@@ -1,7 +1,6 @@
 -- ---------------------------------------------------------------------------
--- Vehicle & Signal Position Test (1f) on the House Position Test's pattern,
--- and the Octagonal Test (5b) on a six-minute clock — run once in the
--- Supabase SQL editor after the matching code is deployed.
+-- Vehicle & Signal Position Test (1f) on the House Position Test's pattern —
+-- run once in the Supabase SQL editor after the matching code is deployed.
 --
 -- New papers get these settings by themselves. This file brings the papers
 -- already made into line; it touches nothing else.
@@ -21,8 +20,6 @@
 --     questions, set Questions per part to 12 in its Settings, and upload
 --     12 vehicles and then 12 signals. The last query lists every paper
 --     with what it needs.
--- 5b: every Octagonal paper still on the old five-minute clock goes to six,
---     and its instruction line with it.
 -- ---------------------------------------------------------------------------
 
 -- 1f · the schedule: the clocks on every paper; the count a part from the
@@ -106,16 +103,6 @@ update public.watch_papers
      or features::text like '%1 मिनट तक याद करनी है%'
      or features::text like '%The time limit for the test is 2 minutes.%'
      or features::text like '%समय सीमा 2 मिनट है%');
-
--- 5b · six minutes
-update public.watch_papers
-   set time_limit_min = 6,
-       instructions = replace(replace(instructions::text,
-         'The time limit for the test is 5 minutes.', 'The time limit for the test is 6 minutes.'),
-         'समय सीमा 5 मिनट है', 'समय सीमा 6 मिनट है')::jsonb,
-       updated_at = now()
- where category = 'octagonal'
-   and time_limit_min = 5;
 
 -- What the 1f papers hold now. A paper short of 12 + 12 runs on as it is,
 -- with the new clocks; the note says what it needs.
