@@ -13,7 +13,9 @@ export const MAX_IMAGE_WIDTH_PCT = 100;
  *     Look at the picture below.     | नीचे चित्र देखें। | https://…/example.png | 60
  *
  * The third field is an optional picture shown under that paragraph, so words
- * and image travel together and cannot fall out of order. The fourth, also
+ * and image travel together and cannot fall out of order. It is a web
+ * address, or a picture drawn by the portal itself (a data:image/… link,
+ * such as the Letter Table Test Type-II's example grid). The fourth, also
  * optional, is how wide that picture is drawn as a percentage of its column;
  * left out, the picture fills the column.
  *
@@ -48,7 +50,7 @@ export function parseInstructionLines(raw: string): InstructionBlock[] {
     const image = (parts[2] ?? "").trim();
     const width = (parts[3] ?? "").trim();
 
-    if (image && !/^https?:\/\//i.test(image)) {
+    if (image && !isPictureLink(image)) {
       // Nearly always two paragraphs run together on one line: the third
       // field is then a paragraph's Hindi, not a picture. Say what to do.
       throw new Error(
@@ -80,6 +82,11 @@ export function parseInstructionLines(raw: string): InstructionBlock[] {
   });
 
   return out;
+}
+
+/** A web address, or a picture the portal drew itself (a data:image/… link). */
+export function isPictureLink(url: string): boolean {
+  return /^(https?:\/\/|data:image\/)/i.test(url);
 }
 
 /** Turns saved paragraphs back into the editor's text. */

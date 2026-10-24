@@ -89,6 +89,7 @@ export default async function ResultPage({
       imageUrl={paper.imageUrl}
       imageWidthPct={paper.imageWidthPct}
       studyImages={paper.studyImages}
+      partImages={paper.partImages}
       questionsPerPart={paper.questionsPerPart}
       category={paper.category}
       candidate={who ? { name: who.full_name || "", photoUrl: photoUrlOf(who) } : null}

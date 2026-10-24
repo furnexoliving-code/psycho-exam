@@ -397,6 +397,12 @@ export interface PaperHeader {
   imageWidthPct?: number;
   /** A Memory Test paper's study screens, one per part, for the review. */
   studyImages: string[];
+  /**
+   * A paper in parts on the Following Directions engine (Letter Table Test
+   * Type-II): the tables of the parts after the first, each a picture; the
+   * first part's is imageUrl. Empty for a paper of one table.
+   */
+  partImages: string[];
   questionsPerPart: number;
   /** Which battery's paper it is, for the window title. */
   category: string | null;
@@ -456,6 +462,7 @@ async function readHeader(
     imageUrl: row.image_url ?? undefined,
     imageWidthPct: row.image_width_pct ?? undefined,
     studyImages: headerFeatures.studyImages,
+    partImages: headerFeatures.partImages.filter((url) => typeof url === "string" && url),
     questionsPerPart: headerFeatures.questionsPerPart,
     category: (row.category as string | null) ?? null,
   };
@@ -470,6 +477,7 @@ export function headerOf(paper: WatchPaper): PaperHeader {
     imageUrl: paper.imageUrl,
     imageWidthPct: paper.imageWidthPct,
     studyImages: resolveFeatures(paper.features).studyImages,
+    partImages: resolveFeatures(paper.features).partImages,
     questionsPerPart: resolveFeatures(paper.features).questionsPerPart,
     category: paper.category ?? null,
   };

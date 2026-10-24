@@ -53,7 +53,7 @@ export default async function MockEditor({
 
         <h2 className="text-[13px] font-bold uppercase tracking-wide text-gray-500">Step 1 · The five tests, in the hall&apos;s order</h2>
         <p className="mt-1 text-[12px] text-gray-600">
-          One paper per battery, sat in the hall&apos;s order (the railway&apos;s mock for CEN 01/2025: Memory, Depth Perception, Power of Observation, Following Directions, Perceptual Speed). Only a published paper with questions can go into a published mock; a battery left blank is left out.
+          One paper per battery, sat in the hall&apos;s order (the railway&apos;s second mock link for CEN 01/2025: Memory, Following Directions, Depth Perception, Power of Observation, Perceptual Speed). Only a published paper with questions can go into a published mock; a battery left blank is left out.
           Prefer papers marked <b>MOCK ONLY</b> (tick &ldquo;Only for Full Mocks&rdquo; in the paper&apos;s settings): students cannot practise
           those, so the mock tests them fresh. A paper &ldquo;also in practice&rdquo; may already have been sat.
         </p>

@@ -77,6 +77,7 @@ export function ResultView({
   imageWidthPct,
   kind = "directions",
   studyImages = [],
+  partImages = [],
   questionsPerPart = 10,
   category,
   candidate,
@@ -96,6 +97,13 @@ export function ResultView({
   kind?: "directions" | "figure";
   /** A Memory Test paper's study screens: each part's picture is shown again above its questions. */
   studyImages?: string[];
+  /**
+   * A paper in parts on the Following Directions engine (Letter Table Test
+   * Type-II): the tables of the parts after the first; the first part's is
+   * imageUrl. Each part's table is then shown above its questions, as it
+   * was asked against, rather than one table beside them all.
+   */
+  partImages?: string[];
   questionsPerPart?: number;
   /** The paper's kind of test: a sheet test's review shows each pile, sheet or map once, above its questions. */
   category?: string | null;
@@ -123,6 +131,9 @@ export function ResultView({
   // of it on every row.
   const noun = sheetOf(category)?.noun ?? mapOf(category)?.noun ?? null;
   const sheetNoun = noun ? noun[0].toUpperCase() + noun.slice(1) : null;
+  // The tables of a paper in parts, the first part's first; empty for a
+  // paper of one table, which sits beside the questions instead.
+  const partTables: (string | undefined)[] = partImages.length > 0 ? [imageUrl, ...partImages] : [];
   const [marked, setMarked] = useState<MarkedQuestion[] | null>(null);
   const [score, setScore] = useState<Score | null>(null);
   const [tScore, setTScore] = useState<TScore | null>(null);
@@ -520,7 +531,9 @@ export function ResultView({
           <p className="mt-1 text-[13px]" style={{ color: "var(--text-secondary)" }}>
             {kind === "figure"
               ? "Each question is shown as it was, with your answer and the correct one."
-              : "The diagram stays beside the questions, so each one can be worked through again against it."}
+              : partTables.length > 0
+                ? "Each part's table sits above its questions, so each one can be worked through again against the table it was asked on."
+                : "The diagram stays beside the questions, so each one can be worked through again against it."}
             {filter === "incorrect" && counts.incorrect > 0 && (
               <span className="ml-1 font-semibold" style={{ color: "var(--text-primary)" }}>
                 Showing the {counts.incorrect} you got wrong; tap All for every question.
@@ -578,8 +591,9 @@ export function ResultView({
           <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-start">
             {/* Left half — the diagram. Sticky rather than repeated per question:
                 one paper has one diagram, and scrolling must not lose sight of it.
-                A picture paper has none: each question shows its own. */}
-            {kind !== "figure" && (
+                A picture paper has none: each question shows its own; a paper in
+                parts shows each part's table above that part's questions. */}
+            {kind !== "figure" && partTables.length === 0 && (
             <aside className="lg:sticky lg:top-4 lg:w-1/2 lg:shrink-0">
               <Card>
                 {/* Capped and scrollable: a tall diagram must not push the
@@ -608,10 +622,24 @@ export function ResultView({
               // its questions, as it did in the test — the review then shows
               // what was to be remembered next to what was answered.
               const perPart = Math.max(1, Math.floor(questionsPerPart) || 1);
-              const partNo = Math.floor(i / perPart);
-              const previous = vi > 0 ? Math.floor(visible[vi - 1].i / perPart) : -1;
+              // On a paper in parts the last table takes every question past
+              // it, as the test did (lib/wt/db.ts toPaper), so the review
+              // never names a part the test did not have.
+              const partOf = (at: number) => {
+                const n = Math.floor(at / perPart);
+                return partTables.length > 0 ? Math.min(n, partTables.length - 1) : n;
+              };
+              const partNo = partOf(i);
+              const previous = vi > 0 ? partOf(visible[vi - 1].i) : -1;
               const study = studyImages.length > 0 && partNo !== previous ? studyImages[partNo] : undefined;
               const sheet = sheetNoun && q.image && partNo !== previous ? q.image : undefined;
+              // A paper in parts: the part's table heads its questions, so
+              // Part 2's answers are read against Part 2's table. A part
+              // without a picture of its own is drawn from the paper's
+              // positions, as the test screen drew it.
+              const partHead = partTables.length > 0 && partNo !== previous;
+              const grid = partHead ? partTables[partNo] : undefined;
+              const partLast = partNo === partTables.length - 1 ? numbered.length : Math.min((partNo + 1) * perPart, numbered.length);
               return (
                 <li
                   key={q.id}
@@ -623,7 +651,7 @@ export function ResultView({
                     borderLeft: `4px solid ${OUTCOME[outcome].color}`,
                   }}
                 >
-                  {(study || sheet) && (
+                  {(study || sheet || partHead) && (
                     <div
                       className="-mx-4 -mt-4 mb-4 rounded-t-lg px-4 py-3"
                       style={{ background: "var(--plane)", borderBottom: "1px solid var(--hairline)" }}
@@ -645,6 +673,27 @@ export function ResultView({
                           <p className="mt-3 text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
                             Test Screen Part {partNo + 1} / <span lang="hi">परीक्षण स्क्रीन भाग -{partNo + 1}</span>
                           </p>
+                        </>
+                      )}
+                      {partHead && (
+                        <>
+                          <p className="text-[12px] font-semibold" style={{ color: "var(--text-secondary)" }}>
+                            Part {partNo + 1} · Questions {partNo * perPart + 1}–{partLast} / <span lang="hi">भाग {partNo + 1} की तालिका</span>
+                          </p>
+                          <div className="mt-2 inline-block border border-[#555] bg-white p-3">
+                            {grid ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={grid}
+                                alt={`Table of part ${partNo + 1}`}
+                                className="h-auto max-h-[60vh] max-w-full"
+                                style={{ width: `${imageWidthPct ?? 100}%` }}
+                                draggable={false}
+                              />
+                            ) : (
+                              <WatchTableDiagram table={table} />
+                            )}
+                          </div>
                         </>
                       )}
                       {sheet && (

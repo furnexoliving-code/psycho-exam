@@ -183,9 +183,9 @@ export async function createPaper(formData: FormData) {
   const built = builtSpec(category);
   const seed = Math.floor(Date.now() / 1000);
   // The picture-matching tests, on one engine: a figure against five.
-  // Same Figure (5e), Octagonal (5b) and Same Circle (5d), each with the
-  // hall's own clock.
-  const matching = category === "figure" || category === "octagonal" || category === "circle";
+  // Same Figure (5e), Same Figure Type-II (5f), Octagonal (5b) and Same
+  // Circle (5d), each with the hall's own clock.
+  const matching = category === "figure" || category === "figure2" || category === "octagonal" || category === "circle";
   // A sheet test (Brick, Similarity): a picture per part with its questions; the hall's own clock.
   const sheet = sheetOf(category);
   // The Letter Table Test Type-II: the Following Directions engine in two

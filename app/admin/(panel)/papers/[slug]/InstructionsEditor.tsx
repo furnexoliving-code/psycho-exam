@@ -5,6 +5,7 @@ import { ImageUpload } from "@/components/admin/ImageUpload";
 import { SaveForm } from "@/components/admin/SaveForm";
 import { saveInstructions } from "../actions";
 import { IMAGE_WIDTHS } from "./labels";
+import { isPictureLink } from "@/lib/wt/parse-instructions";
 
 const SAMPLE = `Read every question carefully. | हर प्रश्न ध्यान से पढ़ें।
 Look at the picture below. | नीचे दिया चित्र देखें। | https://…/example.png | 60`;
@@ -115,7 +116,7 @@ function picturesIn(text: string): { line: number; url: string; width: string }[
   return text.split(/\r?\n/).flatMap((raw, line) => {
     const parts = raw.split("|");
     const url = (parts[2] ?? "").trim();
-    if (!/^https?:\/\//i.test(url)) return [];
+    if (!isPictureLink(url)) return [];
     const width = (parts[3] ?? "").trim().replace(/%$/, "") || "100";
     return [{ line, url, width }];
   });
