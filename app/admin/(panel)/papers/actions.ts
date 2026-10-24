@@ -13,6 +13,7 @@ import { parseInstructionLines } from "@/lib/wt/parse-instructions";
 import { paperChanged, readQuestionRows } from "@/lib/wt/db";
 import { BATTERIES, CATEGORIES, categoryKind, categoryTitle } from "@/lib/wt/categories";
 import { sectionOf } from "@/lib/wt/sections";
+import { LETTER2_EXAMPLE_TEXT, letterTable2Instructions } from "@/lib/wt/letter-table";
 import { matchingExampleText, memorySchedule, pictureInstructions, sheetExampleText, sheetOf } from "@/lib/wt/figure-sample";
 import { builtQuestions, builtSpec } from "@/lib/wt/built";
 import { syncScheduleClock } from "./figure-actions";
@@ -187,6 +188,10 @@ export async function createPaper(formData: FormData) {
   const matching = category === "figure" || category === "octagonal" || category === "circle";
   // A sheet test (Brick, Similarity): a picture per part with its questions; the hall's own clock.
   const sheet = sheetOf(category);
+  // The Letter Table Test Type-II: the Following Directions engine in two
+  // parts, a table of letters to each, ten questions on each, eight
+  // minutes; its questions are the institute's own, typed in.
+  const letterParts = category === "letter2";
   // A picture test's clock is the one the hall's index gives its kind. A
   // Memory test's is its parts' study and answering time together, and the
   // schedule keeps it in step afterwards.
@@ -213,13 +218,17 @@ export async function createPaper(formData: FormData) {
       title: String(formData.get("title") ?? "").trim() || categoryTitle(category),
       display_name: displayName,
       instruction_time_min: 5,
-      time_limit_min: built ? built.timeMin : figure ? pictureMin : 10,
+      time_limit_min: built ? built.timeMin : figure ? pictureMin : letterParts ? (sectionOf("", category)?.timeMin ?? 8) : 10,
       cells: figure ? [] : tables[0].cells,
       example_cells: figure ? [] : tables[0].cells,
       // A test whose parts are introduced one by one opens on its first
       // part's screen, with that part's own clock.
-      instructions: figure ? pictureInstructions(category, memorySchedule(category)?.partInstructionMin ? (memorySchedule(category)!.studyTimeMin + memorySchedule(category)!.partTimeMin) : built ? built.timeMin : pictureMin, 5, memorySchedule(category)?.studyTimeMin ?? 0) : [],
-      example_text: figure ? (matching ? matchingExampleText(category) : built ? built.example : sheet ? sheetExampleText(category) : []) : undefined,
+      instructions: figure
+        ? pictureInstructions(category, memorySchedule(category)?.partInstructionMin ? (memorySchedule(category)!.studyTimeMin + memorySchedule(category)!.partTimeMin) : built ? built.timeMin : pictureMin, 5, memorySchedule(category)?.studyTimeMin ?? 0)
+        : letterParts
+          ? letterTable2Instructions(sectionOf("", category)?.timeMin ?? 8, 5, sectionOf("", category)?.questions ?? 20, 2)
+          : [],
+      example_text: figure ? (matching ? matchingExampleText(category) : built ? built.example : sheet ? sheetExampleText(category) : []) : letterParts ? LETTER2_EXAMPLE_TEXT : undefined,
       // The picture tests are answered with the mouse, in parts, and have
       // no question-paper page; the keyboard-only rules of the Following
       // Directions engine do not apply to them. The Memory Test runs on a
@@ -234,7 +243,9 @@ export async function createPaper(formData: FormData) {
             // that part's questions, part by part, with a break between.
             ...(memorySchedule(category) ?? {}),
           }
-        : {},
+        : letterParts
+          ? { questionsPerPart: Math.round((sectionOf("", category)?.questions ?? 20) / 2) }
+          : {},
       category,
     })
     .select("id, slug")
@@ -250,7 +261,7 @@ export async function createPaper(formData: FormData) {
 
   const { error: questionError } = built
     ? await questionStore().from("watch_questions").insert(builtRows(category, data.id, seed, built.count))
-    : figure
+    : figure || letterParts
     ? { error: null }
     : await questionStore().from("watch_questions").insert(
     questions.map((q, i) => ({
@@ -415,7 +426,7 @@ export async function saveSettings(
       .select("id, features")
       .eq("slug", slug)
       .maybeSingle();
-    const current = (before?.features ?? null) as { studyImages?: string[]; partInstructions?: unknown[] } | null;
+    const current = (before?.features ?? null) as { studyImages?: string[]; partInstructions?: unknown[]; partImages?: string[] } | null;
 
     // On a schedule, the test clock is parts × (study + questions): the
     // admin sets the parts' times, and the clock follows.
@@ -465,6 +476,7 @@ export async function saveSettings(
           // Kept as they are: set from their own uploader and editor, not this form.
           ...(current?.studyImages ? { studyImages: current.studyImages } : {}),
           ...(Array.isArray(current?.partInstructions) ? { partInstructions: current.partInstructions } : {}),
+          ...(Array.isArray(current?.partImages) ? { partImages: current.partImages } : {}),
         },
         updated_at: new Date().toISOString(),
       })
@@ -490,12 +502,24 @@ export async function saveDiagram(
 
       const cells = readCells(formData);
 
+    // A paper in parts carries the later parts' tables in its features; a
+    // form without the field leaves them as they are.
+    const partRaw = formData.get("part_image_2");
+    let partImages: { features?: Record<string, unknown> } = {};
+    if (partRaw !== null) {
+      const { data: row } = await supabase.from("watch_papers").select("features").eq("slug", slug).maybeSingle();
+      const current = (row?.features ?? {}) as Record<string, unknown>;
+      const second = imageUrlOrNull(partRaw);
+      partImages = { features: { ...current, partImages: second ? [second] : [] } };
+    }
+
     const { data: updated, error } = await supabase
       .from("watch_papers")
       .update({
         cells,
         example_cells: cells,
         image_url: imageUrlOrNull(formData.get("image_url")),
+        ...partImages,
         image_width_pct: Math.min(
           100,
           Math.max(30, Math.round(Number(formData.get("image_width_pct") ?? 100) || 100)),

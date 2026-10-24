@@ -19,6 +19,8 @@ import {
   FIGNUM_SAMPLE_ID,
   FIGFIG_SAMPLE_ID,
   VEHICLE_SAMPLE_ID,
+  SIGNAL_SAMPLE_ID,
+  FIGURE2_SAMPLE_ID,
   figureSamplePaper,
   memorySamplePaper,
   observationSamplePaper,
@@ -31,7 +33,10 @@ import {
   mapSamplePaper,
   rowMemorySamplePaper,
   vehicleSamplePaper,
+  signalSamplePaper,
+  figure2SamplePaper,
 } from "./figure-sample";
+import { LETTER2_SAMPLE_ID, letterTable2SamplePaper } from "./letter-table";
 
 /**
  * The bundled sample paper. Admin-created papers come from Supabase; this one
@@ -60,6 +65,9 @@ export function getBundledPaper(paperId: string): WatchPaper | undefined {
   if (paperId === FIGNUM_SAMPLE_ID) return rowMemorySamplePaper("fignum") as WatchPaper;
   if (paperId === FIGFIG_SAMPLE_ID) return rowMemorySamplePaper("figfig") as WatchPaper;
   if (paperId === VEHICLE_SAMPLE_ID) return vehicleSamplePaper() as WatchPaper;
+  if (paperId === SIGNAL_SAMPLE_ID) return signalSamplePaper() as WatchPaper;
+  if (paperId === FIGURE2_SAMPLE_ID) return figure2SamplePaper() as WatchPaper;
+  if (paperId === LETTER2_SAMPLE_ID) return letterTable2SamplePaper() as WatchPaper;
   return undefined;
 }
 

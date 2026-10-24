@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { SAMPLE_PAPER, defaultInstructions } from "./paper";
 import { categoryKind, categoryTitle } from "./categories";
-import { resolveFeatures, type OptionValue, type WatchCell, type WatchPaper, type WatchQuestion } from "./types";
+import { resolveFeatures, type OptionValue, type WatchCell, type WatchPaper, type WatchQuestion, type WatchTable } from "./types";
 
 /**
  * Loads Watch Table papers from Supabase, mapping them onto the same shape the
@@ -94,10 +94,19 @@ export async function readQuestionRows<T>(
 function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
   const cells = row.cells?.length ? row.cells : SAMPLE_PAPER.tables[0].cells;
   const example = row.example_cells?.length ? row.example_cells : cells;
+  // A paper in parts (the Letter Table Test Type-II): a table per part,
+  // the first the paper's own picture, and each question against the
+  // table of its part.
+  const features = resolveFeatures(row.features ?? undefined);
+  const partImages = features.partImages.filter((url) => typeof url === "string" && url);
+  const perPart = Math.max(1, Math.floor(features.questionsPerPart) || 1);
+  const tables: WatchTable[] = partImages.length
+    ? [{ label: "Part 1", cells, imageUrl: row.image_url ?? undefined }, ...partImages.map((imageUrl, i) => ({ label: `Part ${i + 2}`, cells, imageUrl }))]
+    : [{ label: "No. 1", cells }];
 
-  const questions: WatchQuestion[] = rows.map((q) => ({
+  const questions: WatchQuestion[] = rows.map((q, i) => ({
     id: q.id,
-    tableIndex: 0,
+    tableIndex: partImages.length ? Math.min(Math.floor(i / perPart), tables.length - 1) : 0,
     prompt: { en: q.prompt_en, hi: q.prompt_hi },
     options: q.options,
     // Absent for candidates; the submit route scores server-side instead.
@@ -132,7 +141,7 @@ function toPaper(row: PaperRow, rows: QuestionRow[]): WatchPaper {
       // rather than the sample coming back.
       text: row.example_text === null ? SAMPLE_PAPER.example.text : row.example_text,
     },
-    tables: [{ label: "No. 1", cells }],
+    tables,
     questions,
     imageUrl: row.image_url ?? undefined,
     fontScale: row.font_scale ?? undefined,

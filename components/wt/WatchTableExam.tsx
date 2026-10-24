@@ -69,7 +69,16 @@ export function WatchTableExam({
   useScrollLock(features.lockScroll && state.scrollLocked && onTest && !state.submitted);
 
   const current = paper.questions[state.currentIndex];
-  const table = paper.tables[current?.tableIndex ?? 0];
+  // A paper in parts (the Letter Table Test Type-II): a table per part,
+  // and only the current part's questions on screen, as the hall shows
+  // them; Save & Next and Previous move between the parts.
+  const parts = paper.tables.length;
+  const part = Math.min(current?.tableIndex ?? 0, parts - 1);
+  const table = paper.tables[part];
+  const tableImage = table?.imageUrl ?? (part === 0 ? paper.imageUrl : undefined);
+  const partCount = (p: number) => paper.questions.filter((q) => (q.tableIndex ?? 0) === p).length;
+  const firstOfPart = (p: number) => Math.max(0, paper.questions.findIndex((q) => (q.tableIndex ?? 0) === p));
+  const partLabel = parts > 1 ? `${table?.label ?? `Part ${part + 1}`} of ${parts} · Questions ${firstOfPart(part) + 1}–${firstOfPart(part) + partCount(part)}` : table?.label;
 
   const finish = useCallback(() => {
     dispatch({ type: "submit" });
@@ -240,10 +249,10 @@ export function WatchTableExam({
                 {/* Centred while it fits; wider than the pane, it starts at
                     the left so the rail reaches every part of it. */}
                 <div className="mx-auto w-max max-w-full">
-                  <div className="w-full max-w-[520px] text-[13px] font-bold text-gray-800">{table?.label}</div>
-                  {paper.imageUrl ? (
+                  <div className="w-full max-w-[520px] text-[13px] font-bold text-gray-800">{partLabel}</div>
+                  {tableImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={paper.imageUrl} alt="Watch table diagram" className="mt-2 h-auto max-w-[520px]" style={{ width: `${paper.imageWidthPct ?? 100}%` }} draggable={false} />
+                    <img src={tableImage} alt="Table diagram" className="mt-2 h-auto max-w-[520px]" style={{ width: `${paper.imageWidthPct ?? 100}%` }} draggable={false} />
                   ) : (
                     table && <WatchTableDiagram table={table} className="mt-2" />
                   )}
@@ -268,6 +277,7 @@ export function WatchTableExam({
                   container={questionColumn}
                   scrollToken={scrollToken}
                   overflow={features.overflowQuestions}
+                  tableIndex={parts > 1 ? part : undefined}
                   onSelect={(qi, oi) => {
                     const q = paper.questions[qi];
                     const value = q.options[oi];
@@ -305,9 +315,37 @@ export function WatchTableExam({
         </span>
 
         {onTest ? (
-          <button type="button" data-allow-mouse="true" onClick={() => setConfirmSubmit(true)} className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90">
-            Submit Test
-          </button>
+          <>
+            {parts > 1 && part > 0 && (
+              <button
+                type="button"
+                data-allow-mouse="true"
+                onClick={() => {
+                  dispatch({ type: "goto", index: firstOfPart(part - 1) });
+                  setScrollToken((t) => t + 1);
+                }}
+                className="ml-auto rounded border border-gray-400 bg-white px-5 py-2.5 text-[14px] font-semibold text-gray-800 hover:bg-gray-50"
+              >
+                Previous
+              </button>
+            )}
+            {parts > 1 && part < parts - 1 && (
+              <button
+                type="button"
+                data-allow-mouse="true"
+                onClick={() => {
+                  dispatch({ type: "goto", index: firstOfPart(part + 1) });
+                  setScrollToken((t) => t + 1);
+                }}
+                className={`${part > 0 ? "" : "ml-auto "}rounded bg-[#1d4ed8] px-5 py-2.5 text-[14px] font-semibold text-white hover:opacity-90`}
+              >
+                Save &amp; Next
+              </button>
+            )}
+            <button type="button" data-allow-mouse="true" onClick={() => setConfirmSubmit(true)} className={`${parts > 1 ? "" : "ml-auto "}rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90`}>
+              Submit Test
+            </button>
+          </>
         ) : (
           // The only route from the instructions to the test.
           <button type="button" data-allow-mouse="true" onClick={() => setConfirmSkip(true)} className="ml-auto rounded bg-wt-submit px-8 py-2.5 text-[14px] font-semibold text-white hover:opacity-90">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { StudentHeader } from "@/components/StudentHeader";
 import { BATTERIES } from "@/lib/wt/categories";
 import type { BatteryProgress } from "@/lib/wt/progress";
-import { NEXT_EXAM_CODES, NEXT_EXAM_LABEL, sectionsOfBattery, type Section } from "@/lib/wt/sections";
+import { MOCK_LINK_CODES, NEXT_EXAM_LABEL, sectionsOfBattery, type Section } from "@/lib/wt/sections";
 import type { Series } from "@/lib/wt/series";
 import { formatDate, formatDayMonth, indianDay } from "@/lib/format-time";
 import { daysUntil } from "@/lib/settings";
@@ -111,7 +111,7 @@ function lastOf(series: Series, lastAt: Map<string, string>): string | null {
   return latest;
 }
 
-const isMockKind = (code: string | null) => code !== null && NEXT_EXAM_CODES.includes(code);
+const isMockKind = (code: string | null) => code !== null && MOCK_LINK_CODES.includes(code);
 
 export function PracticeView({ profile, groups, hidden, progress, sat, bestT, lastAt, now, examDate, stages, locked = false }: PracticeInput) {
   const batteries = BATTERIES.filter((b) => !hidden.includes(b.id));
@@ -129,7 +129,7 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
     const t = bestOf(c.series, bestT);
     if (t !== null && (weakest === null || t < weakest.t)) weakest = { card: c, t };
   }
-  const mockKinds = NEXT_EXAM_CODES.map((code) => allCards.find((c) => c.code === code)).filter((c): c is (typeof allCards)[number] => c !== undefined);
+  const mockKinds = MOCK_LINK_CODES.map((code) => allCards.find((c) => c.code === code)).filter((c): c is (typeof allCards)[number] => c !== undefined);
   // The kinds at the pass mark, today's sittings, and the days to the exam.
   const kindsPassed = allCards.filter((c) => c.series && (bestOf(c.series, bestT) ?? -1) >= stages.pass).length;
   const todayCount = progress.filter((p) => batteries.some((b) => b.id === p.battery)).reduce((n, p) => n + p.today, 0);

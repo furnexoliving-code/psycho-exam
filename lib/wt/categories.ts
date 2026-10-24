@@ -73,6 +73,14 @@ export const CATEGORIES = [
     blurb: "Memorise the vehicles on a street map, then the rail signals on a railway map; on each map lettered A to D, say where every one stood. 2 parts of 12 on this portal; 3 in the railway's mock.",
   },
   {
+    id: "signal",
+    battery: 1,
+    kind: "figure",
+    title: "Rail Signal Position Test",
+    hindi: "रेल संकेत स्थिति परीक्षण",
+    blurb: "Memorise the rail signals on a railway map, in two sections; on each map lettered A to D, say where every signal stood. 2 parts of 12.",
+  },
+  {
     id: "watch",
     battery: 2,
     kind: "directions",
@@ -95,6 +103,14 @@ export const CATEGORIES = [
     title: "Number Table Test",
     hindi: "नंबर टेबल टेस्ट",
     blurb: "Follow the directions across a table of numbers.",
+  },
+  {
+    id: "letter2",
+    battery: 2,
+    kind: "directions",
+    title: "Letter Table Test Type-II",
+    hindi: "लेटर टेबल टेस्ट प्रकार-II",
+    blurb: "Two tables of letters, ten questions on each: the letter above, below or beside the one named. 20 questions in 8 minutes.",
   },
   {
     id: "brick",
@@ -184,6 +200,14 @@ export const CATEGORIES = [
     hindi: "समान आकृति परीक्षण",
     blurb: "Find which of the five figures is identical to the one given. 72 questions in 8 minutes.",
   },
+  {
+    id: "figure2",
+    battery: 5,
+    kind: "figure",
+    title: "Same Figure Test Type-II",
+    hindi: "समान आकृति परीक्षण प्रकार-II",
+    blurb: "Find which of the five figures is identical to the one given. 96 questions in 9 minutes.",
+  },
 ] as const satisfies readonly {
   id: string;
   battery: number;
@@ -194,14 +218,14 @@ export const CATEGORIES = [
 }[];
 
 /**
- * The order the hall gives the five tests, as the railway's own mock for
- * CEN 01/2025 runs them: Memory, Depth Perception, Power of Observation,
- * Following Directions, Perceptual Speed. The batteries keep the RDSO
- * guideline's numbering (1 to 5) in their codes and on the practice and
- * public pages; a Full Mock sits them in this order, and the exam screens
- * number the tests by it.
+ * The order the hall gives the five tests, as the railway's second mock
+ * link for CEN 01/2025 (24 October) runs them: Memory, Following
+ * Directions, Depth Perception, Power of Observation, Perceptual Speed,
+ * the RDSO guideline's own order. (The first link ran Depth Perception
+ * and Power of Observation before Following Directions.) A Full Mock sits
+ * the tests in this order, and the exam screens number them by it.
  */
-export const HALL_ORDER: readonly number[] = [1, 3, 4, 2, 5];
+export const HALL_ORDER: readonly number[] = [1, 2, 3, 4, 5];
 
 /** Where a battery comes in the hall's order, 1 to 5; a battery outside the order keeps its number. */
 export function hallPosition(battery: number): number {

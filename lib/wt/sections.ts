@@ -41,10 +41,12 @@ export const SECTIONS: readonly Section[] = [
   { code: "1d", battery: 1, name: "Figure to Figure Test", hindi: "आकृति-आकृति परीक्षण", questions: 40, questionsNote: "20 + 20", timeMin: 12, timeNote: "3+3+3+3", blurb: "Memorise pairs of shapes; then find the shape that went with each one.", blurbHi: "आकृतियों के जोड़े याद करें; फिर हर आकृति के साथ वाली आकृति खोजें।" },
   { code: "1e", battery: 1, name: "Figure Find Test", hindi: "आकृति खोज परीक्षण", questions: 24, questionsNote: "12 + 12", timeMin: 8, timeNote: "2+2+2+2", blurb: "Memorise sets of shapes; then find each set among five options.", blurbHi: "आकृतियों के सेट याद करें; फिर हर सेट को पाँच विकल्पों में खोजें।" },
   { code: "1f", battery: 1, name: "Vehicle & Signal Position Test", hindi: "वाहन व रेल संकेत स्थिति परीक्षण", questions: 24, questionsNote: "12 + 12", timeMin: 10, timeNote: "2.5+2.5+2.5+2.5", blurb: "Memorise the vehicles on a street map, then the rail signals on a railway map; then name the letter at each one's place. New in the railway's mock for CEN 01/2025.", blurbHi: "मार्ग मानचित्र पर वाहनों और फिर रेल मानचित्र पर रेल संकेतों की जगह याद करें; फिर हर एक की जगह वाला अक्षर बताएँ। CEN 01/2025 के रेलवे मॉक में नया।" },
+  { code: "1g", battery: 1, name: "Rail Signal Position Test", hindi: "रेल संकेत स्थिति परीक्षण", questions: 24, questionsNote: "12 + 12", timeMin: 8, timeNote: "2+2+2+2", blurb: "Memorise the rail signals on a railway map, in two sections; then name the letter at each signal's place. The kind the railway's second mock link for CEN 01/2025 gives.", blurbHi: "रेल मानचित्र पर रेल संकेतों की जगह याद करें, दो खंडों में; फिर हर संकेत की जगह वाला अक्षर बताएँ। CEN 01/2025 के रेलवे के दूसरे मॉक लिंक का प्रकार।" },
   // 2 · Following Directions Test
   { code: "2a", battery: 2, name: "Letter Table Test", hindi: "लेटर टेबल टेस्ट", questions: 10, questionsNote: "", timeMin: 5, timeNote: "", blurb: "Follow the directions across a table of letters.", blurbHi: "अक्षरों की तालिका में निर्देशों के अनुसार उत्तर खोजें।" },
   { code: "2b", battery: 2, name: "Watch Table Test", hindi: "वॉच टेबल टेस्ट", questions: 20, questionsNote: "", timeMin: 10, timeNote: "", blurb: "Letters and numbers around a circle, with a compass at the centre.", blurbHi: "गोले पर अक्षर और अंक, बीच में दिशा-सूचक।" },
   { code: "2c", battery: 2, name: "Number Table Test", hindi: "नंबर टेबल टेस्ट", questions: 10, questionsNote: "", timeMin: 5, timeNote: "", blurb: "Follow the directions across a table of numbers.", blurbHi: "अंकों की तालिका में निर्देशों के अनुसार उत्तर खोजें।" },
+  { code: "2d", battery: 2, name: "Letter Table Test Type-II", hindi: "लेटर टेबल टेस्ट प्रकार-II", questions: 20, questionsNote: "10 + 10", timeMin: 8, timeNote: "", blurb: "Two tables of letters, ten questions on each: which letter stands above, below or beside the one named. The kind the railway's second mock link for CEN 01/2025 gives.", blurbHi: "अक्षरों की दो तालिकाएँ, हर एक पर दस सवाल: बताए गए अक्षर के ऊपर, नीचे या बगल में कौन सा अक्षर है। CEN 01/2025 के रेलवे के दूसरे मॉक लिंक का प्रकार।" },
   // 3 · Depth Perception Test
   { code: "3a", battery: 3, name: "Brick Test", hindi: "ईंट परीक्षण", questions: 50, questionsNote: "", timeMin: 5, timeNote: "", blurb: "A pile of bricks, some lettered: count the bricks touching each lettered one.", blurbHi: "ईंटों का ढेर, कुछ पर अक्षर: हर अक्षर वाली ईंट को छूती ईंटें गिनें।" },
   { code: "3b", battery: 3, name: "Hidden Cube Test", hindi: "छिपे घन परीक्षण", questions: 50, questionsNote: "", timeMin: 10, timeNote: "", blurb: "A pile of blocks: count the blocks hidden on every side by the others.", blurbHi: "गुटकों का ढेर: हर ओर से छिपे गुटके गिनें।" },
@@ -59,6 +61,7 @@ export const SECTIONS: readonly Section[] = [
   { code: "5c", battery: 5, name: "Similarity Test Type-II", hindi: "समानता परीक्षण प्रकार-II", questions: 72, questionsNote: "18 × 4", timeMin: 6, timeNote: "", blurb: "An object (a radio) on the left: which of the five on the right matches it?", blurbHi: "बाईं ओर एक वस्तु (रेडियो): दाईं ओर की पाँच में से कौन सी मिलती है?" },
   { code: "5d", battery: 5, name: "Same Circle Test", hindi: "समान वृत्त परीक्षण", questions: 60, questionsNote: "", timeMin: 8, timeNote: "", blurb: "A circle figure on the left: find the exactly similar one among A to E.", blurbHi: "बाईं ओर वृत्त आकृति: A से E में से बिल्कुल समान खोजें।" },
   { code: "5e", battery: 5, name: "Same Figure Test", hindi: "समान आकृति परीक्षण", questions: 72, questionsNote: "", timeMin: 8, timeNote: "", blurb: "Find which of the five figures is identical to the one given.", blurbHi: "दी गई आकृति से बिल्कुल मिलती आकृति पाँच में से खोजें।" },
+  { code: "5f", battery: 5, name: "Same Figure Test Type-II", hindi: "समान आकृति परीक्षण प्रकार-II", questions: 96, questionsNote: "", timeMin: 9, timeNote: "", blurb: "A figure above, five below: find the identical one. The kind the railway's second mock link for CEN 01/2025 gives.", blurbHi: "ऊपर एक आकृति, नीचे पाँच: बिल्कुल वैसी ही खोजें। CEN 01/2025 के रेलवे के दूसरे मॉक लिंक का प्रकार।" },
 ];
 
 /**
@@ -73,6 +76,14 @@ export const SECTIONS: readonly Section[] = [
 export const NEXT_EXAM_CODES: readonly string[] = ["1f", "2b", "3a", "4d", "5b"];
 /** Which exam that is, as the notice names it. */
 export const NEXT_EXAM_LABEL = "CEN 01/2025";
+/**
+ * The kinds the railway's SECOND mock link for the exam gives (24 October
+ * 2026): the Rail Signal Position Test, the Letter Table Test Type-II, the
+ * Brick Test, the Figure Placement Test and the Same Figure Test Type-II.
+ * The practice page stars these; the public pages still describe the
+ * first link (NEXT_EXAM_CODES) until they are rewritten.
+ */
+export const MOCK_LINK_CODES: readonly string[] = ["1g", "2d", "3a", "4d", "5f"];
 
 /** The section a paper with no series name belongs to, by its category. */
 const DEFAULT_SECTION: Record<string, string> = {
@@ -82,9 +93,11 @@ const DEFAULT_SECTION: Record<string, string> = {
   figfig: "1d",
   memory: "1e",
   vehicle: "1f",
+  signal: "1g",
   letter: "2a",
   watch: "2b",
   number: "2c",
+  letter2: "2d",
   brick: "3a",
   depth: "3b",
   yesno: "4a",
@@ -96,6 +109,7 @@ const DEFAULT_SECTION: Record<string, string> = {
   similarity2: "5c",
   circle: "5d",
   figure: "5e",
+  figure2: "5f",
 };
 
 /** Names compared loosely: case, spaces, hyphens and "Test" at the end do not matter. */

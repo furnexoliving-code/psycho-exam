@@ -15,17 +15,22 @@ import { ImageUpload } from "@/components/admin/ImageUpload";
 export function DiagramImageField({
   defaultUrl,
   children,
+  name = "image_url",
+  label = "Upload the question image…",
 }: {
   defaultUrl: string;
   /** The width control, rendered by the server component. */
   children?: React.ReactNode;
+  /** The form field the link is saved under; a paper in parts has one per part. */
+  name?: string;
+  label?: string;
 }) {
   const [url, setUrl] = useState(defaultUrl);
 
   return (
     <div>
       <div>
-        <ImageUpload label="Upload the question image…" hint="Fills the box below for you." onUploaded={setUrl} />
+        <ImageUpload label={label} hint="Fills the box below for you." onUploaded={setUrl} />
       </div>
 
       <label className="mt-3 block">
@@ -33,7 +38,7 @@ export function DiagramImageField({
           Image link
         </span>
         <input
-          name="image_url"
+          name={name}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://…/question-image.png"

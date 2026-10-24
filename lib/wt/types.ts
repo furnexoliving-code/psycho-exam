@@ -46,6 +46,8 @@ export interface WatchTable {
   /** Shown above the diagram, e.g. "No. 1". */
   label: string;
   cells: WatchCell[];
+  /** An uploaded picture of this table, shown in place of the drawn circle (a paper in parts: one per part). */
+  imageUrl?: string;
 }
 
 /** Clockwise is "right-handedly"; anticlockwise is "left-handedly". */
@@ -172,6 +174,14 @@ export interface WatchFeatures {
   pictureScale?: number;
   /** With study screens: how tall the study picture may be drawn, as a share of the screen's height (20–100). */
   studyScale?: number;
+  /**
+   * A Following Directions paper in parts (the Letter Table Test Type-II):
+   * the pictures of the tables of the parts after the first, in part order;
+   * the first part's table is the paper's own question image. Each part's
+   * questions, questionsPerPart of them, are asked against its own table,
+   * and Save & Next moves between the parts.
+   */
+  partImages?: string[];
 }
 
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
@@ -194,6 +204,7 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   partInstructions: [],
   pictureScale: 0,
   studyScale: 60,
+  partImages: [],
 };
 
 export function resolveFeatures(features?: WatchFeatures): Required<WatchFeatures> {

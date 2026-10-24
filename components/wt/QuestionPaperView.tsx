@@ -56,9 +56,9 @@ export function QuestionPaperView({
 
               <div className="flex flex-col gap-6 lg:flex-row">
                 <div className="shrink-0 lg:w-[330px]">
-                  {paper.imageUrl && ti === 0 ? (
+                  {(table.imageUrl ?? (ti === 0 ? paper.imageUrl : undefined)) ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={paper.imageUrl} alt="Watch table diagram" className="w-full" />
+                    <img src={table.imageUrl ?? paper.imageUrl} alt="Table diagram" className="w-full" />
                   ) : (
                     <WatchTableDiagram table={table} />
                   )}

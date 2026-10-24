@@ -65,6 +65,7 @@ function timingBlocks(testMin: number, instructionMin: number): InstructionBlock
  * instruction screen covers every part.
  */
 export function partInstructions(category: string, part: number, testMin: number, instructionMin: number, studyMin = 0): InstructionBlock[] | null {
+  if (category === "signal") return signalPartInstructions(part, testMin, instructionMin, studyMin);
   if (category !== "vehicle") return null;
   const study = studyMin || 1;
   const text: InstructionBlock =
@@ -77,6 +78,22 @@ export function partInstructions(category: string, part: number, testMin: number
           en: `This is the second part of the test of memory. In this part there is a Study screen and then a Test screen. On the Study screen you will see a railway map with rail signals. Your task is to memorise the location of the rail signals, for ${minutes(study, true)}. After that the Test screen will appear. On this screen you will find the same railway map having the English letters A, B, C and D in place of the rail signals, and beside it the rail signals one by one as questions. You are required to recall the location of each rail signal on the map. The letter that shows the position of the rail signal on the map is your answer.`,
           hi: `यह स्मृति परीक्षण का दूसरा भाग है। इस भाग में एक अध्ययन स्क्रीन और फिर एक परीक्षण स्क्रीन है। अध्ययन स्क्रीन पर आप एक रेल मानचित्र देखेंगे जिसमें कुछ रेल संकेत प्रदर्शित हैं। आपको मानचित्र में इन रेल संकेतों की स्थिति ${minutes(study, false)} तक याद करनी है। उसके बाद परीक्षण स्क्रीन दिखाई देगी। इस स्क्रीन पर आपको वही रेल मानचित्र मिलेगा किंतु रेल संकेतों की जगह अंग्रेज़ी अक्षर A, B, C तथा D होंगे, और उसके पास प्रश्न के रूप में एक-एक रेल संकेत। आपको मानचित्र में प्रत्येक संकेत की स्थिति बतानी है। वह अक्षर जो रेल मानचित्र में संकेत के स्थान पर आता है, वही आपका उत्तर होगा।`,
         };
+  return [text, ...timingBlocks(testMin, instructionMin)];
+}
+
+/**
+ * The Rail Signal Position Test's two sections, each a railway map with
+ * symbols on it, in the words of the railway's second mock link for CEN
+ * 01/2025; only "first" and "second" differ between them.
+ */
+function signalPartInstructions(part: number, testMin: number, instructionMin: number, studyMin = 0): InstructionBlock[] {
+  const study = studyMin || 1;
+  const nth = part === 0 ? "first" : part === 1 ? "second" : "next";
+  const nthHi = part === 0 ? "प्रथम" : part === 1 ? "द्वितीय" : "अगला";
+  const text: InstructionBlock = {
+    en: `This is the ${nth} section of the test of memory. This section is in two parts. In the first part there is a study screen and in the second part there is a test screen. On the study screen you will see a railway map with symbols. Your task is to memorise the location of the symbols. After the allotted time of ${minutes(study, true)} you will be asked to go to the test screen. On this screen you will find the same railway map having the English alphabets A, B, C and D in place of the symbols, and beside it the symbols one by one as questions. You are required to recall the location of each symbol in the map. The option of the alphabet that shows the position of the symbol in the map will be your answer.`,
+    hi: `यह स्मृति परीक्षण का ${nthHi} खंड है। इस खंड में दो भाग हैं। प्रथम भाग में एक अध्ययन स्क्रीन और दूसरे भाग में एक परीक्षण स्क्रीन होगा। अध्ययन स्क्रीन पर आप एक रेल मानचित्र देखेंगे जिसमें कुछ चिन्ह दिए गए हैं। आपको मानचित्र में इन चिन्हों की स्थिति याद करनी है। ${minutes(study, false)} के नियत समय के बाद आपको परीक्षण स्क्रीन दिखाई देगी। इस स्क्रीन पर आपको वही रेल मानचित्र मिलेगा किंतु चिन्हों की जगह अंग्रेज़ी अक्षर A, B, C तथा D होंगे, और उसके पास प्रश्न के रूप में एक-एक चिन्ह। आपको मानचित्र में प्रत्येक चिन्ह की स्थिति बतानी है। वह अक्षर का विकल्प जो रेल मानचित्र में चिन्ह के स्थान पर आता है, वही आपका उत्तर होगा।`,
+  };
   return [text, ...timingBlocks(testMin, instructionMin)];
 }
 
@@ -122,6 +139,7 @@ export function pictureInstructions(
         ...timing,
       ];
     case "vehicle":
+    case "signal":
       // The first part's screen; the second part has a screen of its own
       // on the clock (see partInstructions).
       return partInstructions(category, 0, testMin, instructionMin, studyMin) ?? [];
@@ -259,7 +277,7 @@ export function optionValues(style: OptionStyle, count: number): (string | numbe
 
 /** How large a picture test draws its pictures when the paper does not say: percent of the usual size. */
 export function defaultPictureScale(category: string | undefined): number {
-  return category === "depth" || category === "brick" || category === "similarity" || category === "similarity2" || category === "house" || category === "railway" || category === "vehicle"
+  return category === "depth" || category === "brick" || category === "similarity" || category === "similarity2" || category === "house" || category === "railway" || category === "vehicle" || category === "signal"
     ? 225
     : category === "memory" || category === "fignum" || category === "figfig"
       ? 140
@@ -283,6 +301,7 @@ export function defaultOptionsFor(category: string): { style: OptionStyle; count
       return { style: "letters", count: 4 };
     case "observation":
     case "vehicle":
+    case "signal":
       return { style: "letters", count: 4 };
     default:
       return { style: "letters", count: DEFAULT_OPTION_COUNT };
@@ -425,6 +444,18 @@ const MAPS: Record<string, MapSpec> = {
     studyMin: 2.5,
     partMin: 2.5,
   },
+  signal: {
+    noun: "map",
+    item: "signal",
+    partsNote: "Part 1 and Part 2 are each a railway map with its rail signals, 12 questions in each, and both parts must have the same count.",
+    defaultLabels: Array.from({ length: 12 }, (_, i) => String(i + 1)),
+    pictureQuestions: true,
+    topicPrefix: "Signal",
+    perPart: 12,
+    countSource: "on this portal",
+    studyMin: 2,
+    partMin: 2,
+  },
 };
 
 export function mapOf(category: string | null | undefined): MapSpec | null {
@@ -447,6 +478,13 @@ export function memorySchedule(category: string): { studyTimeMin: number; partTi
       // mock itself gave a minute, a minute and three questions a part, and
       // says the hall's own count and clock will vary.
       return { studyTimeMin: 2.5, partTimeMin: 2.5, breakTimeMin: 1, questionsPerPart: 12, partInstructionMin: 3 };
+    case "signal":
+      // The railway's second mock link for CEN 01/2025: two sections, each
+      // introduced on an instruction screen of its own, a railway map with
+      // symbols to study and the same map lettered to answer on; this
+      // portal gives twelve questions a section, two minutes to study and
+      // two to answer (the mock gave three, a minute and a minute).
+      return { studyTimeMin: 2, partTimeMin: 2, breakTimeMin: 1, questionsPerPart: 12, partInstructionMin: 3 };
     case "fignum":
       return { studyTimeMin: 3, partTimeMin: 3, breakTimeMin: 1, questionsPerPart: 21 };
     case "figfig":
@@ -844,6 +882,8 @@ export const RAILWAY_SAMPLE_ID = "railway-route-sample";
 export const FIGNUM_SAMPLE_ID = "figure-number-sample";
 export const FIGFIG_SAMPLE_ID = "figure-figure-sample";
 export const VEHICLE_SAMPLE_ID = "vehicle-signal-sample";
+export const SIGNAL_SAMPLE_ID = "rail-signal-sample";
+export const FIGURE2_SAMPLE_ID = "same-figure-2-sample";
 
 const SHORT_CLOCK = { studyTimeMin: 0.05, partTimeMin: 0.05, breakTimeMin: 0.05 };
 
@@ -1046,6 +1086,71 @@ export function vehicleSamplePaper() {
     tables: [{ label: "No. 1", cells: [] }],
     questions,
     resultView: {},
+  };
+}
+
+/**
+ * The Rail Signal Position Test's sample: two sections, each a railway map
+ * with three rail signals, on the second mock's clock of a minute to study
+ * and a minute to answer, the letters A to D standing at more places than
+ * there were signals.
+ */
+export function signalSamplePaper() {
+  const category = "signal";
+  const spec = mapOf(category)!;
+  const letters = OPTION_LETTERS.slice(0, 4);
+  // The mock's own answers: D, B and A in the first section, then B, C
+  // and A in the second.
+  const parts: { lettered: string[]; icons: number[]; answers: string[] }[] = [
+    { lettered: ["D", "A", "B", "C", "D", "A", "B"], icons: [0, 1, 2], answers: ["D", "B", "A"] },
+    { lettered: ["D", "D", "B", "A", "C", "A", "B"], icons: [2, 0, 1], answers: ["B", "C", "A"] },
+  ];
+  const study = parts.map((p) => {
+    const at: (number | undefined)[] = [];
+    p.icons.forEach((icon, i) => { at[p.lettered.indexOf(p.answers[i])] = icon; });
+    return placesMapSvg("rail", null, at);
+  });
+  const questions = parts.flatMap((p, pi) => {
+    const image = placesMapSvg("rail", p.lettered, []);
+    return p.icons.map((icon, li) => ({
+      id: `${category}-q${pi * 3 + li + 1}`,
+      tableIndex: 0,
+      prompt: { en: String(li + 1), hi: "" },
+      options: [...letters],
+      answer: p.answers[li],
+      working: { en: "", hi: "" },
+      topic: `${spec.topicPrefix} ${li + 1}`,
+      image,
+      promptImage: iconSvg(signalBody(icon), 36, 48),
+    }));
+  });
+  return {
+    id: SIGNAL_SAMPLE_ID,
+    kind: "figure" as const,
+    category,
+    title: "Rail Signal Position Test",
+    displayName: "Rail Signal Position Test - Sample",
+    features: { showQuestionPaperButton: false, lockScroll: true, overflowQuestions: false, questionsPerPart: 3, ...SHORT_CLOCK, partInstructionMin: 0.05, studyImages: study },
+    timeLimitMin: 1,
+    instructionTimeLimitMin: 5,
+    instructions: pictureInstructions(category, 1, 5, 1),
+    example: { table: { label: "Example", cells: [] }, text: [] },
+    tables: [{ label: "No. 1", cells: [] }],
+    questions,
+    resultView: {},
+  };
+}
+
+/** The Same Figure Test Type-II's sample: the Perceptual Speed sample under the kind's own name. */
+export function figure2SamplePaper() {
+  const base = figureSamplePaper();
+  return {
+    ...base,
+    id: FIGURE2_SAMPLE_ID,
+    category: "figure2",
+    title: "Same Figure Test Type-II",
+    displayName: "Same Figure Test Type-II - Sample",
+    questions: base.questions.map((q) => ({ ...q, id: `figure2-${q.id}` })),
   };
 }
 

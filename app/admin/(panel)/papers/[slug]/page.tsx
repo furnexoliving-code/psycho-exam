@@ -67,6 +67,8 @@ export default async function EditWatchPaper({
   // A Perceptual Speed paper has no diagram and its questions are pictures;
   // the Following Directions sections are simply not shown for it.
   const figure = paper.kind === "figure";
+  // A Following Directions paper in parts, a table to each: the Letter Table Test Type-II.
+  const inParts = paper.category === "letter2";
   const resultView = resolveResultView(row?.result_view ?? undefined);
 
   return (
@@ -252,6 +254,19 @@ export default async function EditWatchPaper({
             </span>
           </label>
 
+          {inParts && (
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              <Number
+                label="Questions per part"
+                name="questions_per_part"
+                defaultValue={features.questionsPerPart}
+                min={1}
+                max={100}
+                unit="questions"
+                hint="Part 1's questions are asked against the first table, Part 2's against the second. The hall gives 10 and 10."
+              />
+            </div>
+          )}
           {figure && (
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               <Number
@@ -563,16 +578,25 @@ export default async function EditWatchPaper({
       {/* --------------------------- Question image --------------------------- */}
       {!figure && (
       <section className="mt-6 rounded border border-gray-300 bg-white p-5">
-        <h2 className="text-[15px] font-bold text-gray-900">Question Image</h2>
+        <h2 className="text-[15px] font-bold text-gray-900">{inParts ? "Tables of the parts" : "Question Image"}</h2>
         <p className="mt-1 text-[12px] text-gray-600">
-          The picture shown beside the questions during the test.
+          {inParts
+            ? `One picture per part: the table its questions are asked against. Part 1 holds questions 1 to ${features.questionsPerPart}, Part 2 the next ${features.questionsPerPart}; Save & Next moves the candidate between them.`
+            : "The picture shown beside the questions during the test."}
         </p>
 
         <SaveForm action={saveDiagram} submitLabel="Save" className="mt-3">
           <input type="hidden" name="slug" value={slug} />
 
+          {inParts && (
+            <div className="mt-2 max-w-xl rounded border border-gray-200 bg-gray-50 p-3">
+              <p className="text-[12px] font-semibold text-gray-700">Part 2 · the second table</p>
+              <DiagramImageField name="part_image_2" label="Upload Part 2's table…" defaultUrl={features.partImages[0] ?? ""} />
+            </div>
+          )}
           <div className="max-w-xl">
-            <DiagramImageField defaultUrl={row?.image_url ?? ""}>
+            {inParts && <p className="mt-4 text-[12px] font-semibold text-gray-700">Part 1 · the first table</p>}
+            <DiagramImageField defaultUrl={row?.image_url ?? ""} label={inParts ? "Upload Part 1's table…" : "Upload the question image…"}>
               <label className="mt-4 block max-w-xs">
                 <span className="mb-1 block text-[12px] font-semibold text-gray-700">
                   How wide the image is drawn

@@ -50,6 +50,7 @@ export function QuestionList({
   container,
   scrollToken,
   overflow = true,
+  tableIndex,
   onSelect,
 }: {
   questions: WatchQuestion[];
@@ -68,6 +69,8 @@ export function QuestionList({
   scrollToken: number;
   /** Run the column past the panel's right edge, as the reference does. */
   overflow?: boolean;
+  /** A paper in parts: only the questions of this table are shown, numbered as in the whole paper. */
+  tableIndex?: number;
   onSelect: (questionIndex: number, optionIndex: number) => void;
 }) {
   const wide = useWide();
@@ -103,6 +106,7 @@ export function QuestionList({
       style={{ width: overflow && wide ? `${WIDTH_RATIO * 100}%` : "100%" }}
     >
       {questions.map((question, qi) => {
+        if (tableIndex !== undefined && (question.tableIndex ?? 0) !== tableIndex) return null;
         const current = qi === currentIndex;
         const chosen = answers[question.id];
 

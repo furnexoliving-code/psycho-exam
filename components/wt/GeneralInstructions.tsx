@@ -107,21 +107,22 @@ export function GeneralInstructionsBody() {
         "There will be a 1-minute break between the two parts.",
         "The number of questions and time limit may vary in the actual test.",
       ]} en />
-      <Section hi="Test 2: Depth Perception Test" items={[
+      <Section hi="Test 2: Following Directions Test" items={[
+        "In this test, you will have to answer questions based on following the given instructions.",
+        "Where the questions come in parts, the “Save & Next” button moves to the next part.",
+        "Note that in the actual test, the number of questions and time limit may vary.",
+      ]} en />
+      <Section hi="Test 3: Depth Perception Test" items={[
         "There will be questions based on group of blocks.",
         "The questions are shown in parts.",
         "After each part, there will be a “Save & Next” button. Only upon clicking this button will the next part open.",
         "In the actual test, the number of questions and time limit may vary.",
       ]} en />
-      <Section hi="Test 3: Power of Observation Test" items={[
+      <Section hi="Test 4: Power of Observation Test" items={[
         "This test contains questions based on power of observation.",
         "The questions are shown in parts.",
         "After each part, the “Save & Next” button will appear. Only after clicking this button will the next part open.",
         "In the actual test, the number of questions and time limit may vary.",
-      ]} en />
-      <Section hi="Test 4: Following Directions Test" items={[
-        "In this test, you will have to answer questions based on following the given instructions.",
-        "Note that in the actual test, the number of questions and time limit may vary.",
       ]} en />
       <Section hi="Test 5: Perceptual Speed Test" items={[
         "This test contains questions based on perceptual speed.",
