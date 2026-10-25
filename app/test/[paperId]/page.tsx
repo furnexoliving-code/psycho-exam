@@ -13,6 +13,7 @@ import { allowanceFor } from "@/lib/wt/attempts";
 import { openSitting } from "@/lib/wt/session";
 import { loadPaperForCandidate, loadPaperLive } from "@/lib/wt/db";
 import { getBundledPaper, withoutAnswerKey } from "@/lib/wt/paper";
+import { shuffledForSitting } from "@/lib/wt/shuffle";
 import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { currentMockStep, mockSummary as mockSummaryOf, type MockStep } from "@/lib/wt/mock";
 import { photoUrlOf } from "@/lib/photo";
@@ -145,6 +146,11 @@ export default async function WatchTablePage({
   // back from the server's clock, so a second tab cannot buy a fresh
   // countdown and a reload cannot rewind one.
   const sitting = who && paper.dbId ? await openSitting(paper.dbId, who.id) : null;
+  // With a shuffle switch on, this sitting's own order of the questions
+  // or of each question's options, drawn from the sitting so a reload
+  // shows the same paper; the result page gets the same order from the
+  // sitting. With both switches off, the paper as it is.
+  const shown = shuffledForSitting(paper, sitting?.id ?? `${paper.id}:${who?.id ?? "guest"}`);
 
   // The key never goes to the browser; /api/watch-table/score marks the paper.
   // A Perceptual Speed paper has its own screen; everything else is the
@@ -170,7 +176,7 @@ export default async function WatchTablePage({
     )}
     <ExamChromeProvider battery={battery} mockSummary={mockSummary} photoUrl={photoUrlOf(who)}>
       <Screen
-        paper={withoutAnswerKey(paper)}
+        paper={withoutAnswerKey(shown)}
         candidateName={who?.full_name || "Candidate"}
         rollNo={who?.roll_no || ""}
         elapsedSec={sitting?.elapsedSec ?? null}

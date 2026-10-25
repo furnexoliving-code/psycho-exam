@@ -6,6 +6,7 @@ import { BATTERIES, CATEGORIES, categoryKind, hallPosition } from "./categories"
 import { resolveFeatures, type WatchFeatures } from "./types";
 import { cohortFromMoments } from "./cohort";
 import { tScore } from "./tscore";
+import { inSittingOrder, sittingOrder } from "./shuffle";
 
 /**
  * Full Mock tests: five published papers, one per battery, sat in the
@@ -349,17 +350,26 @@ export async function mockSummary(papers: MockPaper[], attemptIds: string[], nam
   const supabase = createAdminClient();
   const realAttempts = attemptIdsIn(attemptIds, papers);
   const { data: attempts, error } = realAttempts.length
-    ? await supabase.from("watch_attempts").select("id, paper_id, responses").in("id", realAttempts)
-    : { data: [] as { id: string; paper_id: string; responses: Record<string, unknown> | null }[], error: null };
+    ? await supabase.from("watch_attempts").select("id, paper_id, user_id, responses").in("id", realAttempts)
+    : { data: [] as { id: string; paper_id: string; user_id: string; responses: Record<string, unknown> | null }[], error: null };
   if (error) throw new Error(error.message);
   const done = papersDone(papers, attemptIds, (attempts ?? []) as { paper_id: string }[], namedIds);
   const ids = papers.filter((p) => done.has(p.id)).map((p) => p.id);
-  const [{ data: rows }, { data: questions }] = await Promise.all([
+  // The candidate's finished sittings of these papers, newest first: a
+  // paper with its shuffle switch on was sat in its sitting's own order,
+  // and its parts are counted in that order (lib/wt/shuffle.ts).
+  const userId = (attempts ?? [])[0]?.user_id as string | undefined;
+  const [{ data: rows }, { data: questions }, { data: sittings }] = await Promise.all([
     ids.length ? supabase.from("watch_papers").select("id, title, features").in("id", ids) : Promise.resolve({ data: [] as { id: string; title: string; features: WatchFeatures | null }[] }),
     ids.length ? supabase.from("watch_questions").select("id, paper_id, position").in("paper_id", ids).order("position") : Promise.resolve({ data: [] as { id: string; paper_id: string; position: number }[] }),
+    ids.length && userId
+      ? supabase.from("watch_sessions").select("id, paper_id").in("paper_id", ids).eq("user_id", userId).not("submitted_at", "is", null).order("submitted_at", { ascending: false })
+      : Promise.resolve({ data: [] as { id: string; paper_id: string }[] }),
   ]);
   const rowById = new Map((rows ?? []).map((r) => [r.id as string, r]));
   const attemptByPaper = new Map((attempts ?? []).map((a) => [a.paper_id as string, a]));
+  const sittingByPaper = new Map<string, string>();
+  for (const s of sittings ?? []) if (!sittingByPaper.has(s.paper_id as string)) sittingByPaper.set(s.paper_id as string, s.id as string);
 
   return papers.map((paper) => {
     const battery = BATTERIES.find((b) => b.id === paper.battery);
@@ -378,8 +388,10 @@ export async function mockSummary(papers: MockPaper[], attemptIds: string[], nam
     // own group; a Following Directions paper is one group.
     if (categoryKind(paper.category) === "figure") {
       const per = Math.max(1, features.questionsPerPart);
+      const sittingId = sittingByPaper.get(paper.id);
+      const sat = features.shuffleQuestions && sittingId ? inSittingOrder(qids, sittingOrder(qids.length, paper.category, features, sittingId)) : qids;
       const parts: string[][] = [];
-      for (let at = 0; at < qids.length; at += per) parts.push(qids.slice(at, at + per));
+      for (let at = 0; at < sat.length; at += per) parts.push(sat.slice(at, at + per));
       if (parts.length === 0) parts.push([]);
       const scheduled = features.studyTimeMin > 0;
       return {

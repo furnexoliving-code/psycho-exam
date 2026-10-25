@@ -6,6 +6,7 @@ import { readQuestionRows } from "@/lib/wt/db";
 import { tScore, type Cohort } from "@/lib/wt/tscore";
 import { resolveFeatures, resolveResultView, type ResultView, type WatchFeatures } from "@/lib/wt/types";
 import { closeExpiredSitting, closeSitting, lastSubmission } from "@/lib/wt/session";
+import { inSittingOrder, sittingOrder } from "@/lib/wt/shuffle";
 import { decideCutOff, type CutOffVerdict } from "@/lib/wt/cutoff";
 import { isOptionValue } from "@/lib/wt/parse-questions";
 import { currentMockStep } from "@/lib/wt/mock";
@@ -161,9 +162,13 @@ export async function POST(request: Request) {
   let answers = given;
   let record = false;
   let durationSec: number | null = null;
+  // The sitting the answers belong to: with the paper's shuffle switch on,
+  // its id seeds the order the candidate saw the questions in.
+  let sittingId: string | null = null;
 
   if (closed) {
     durationSec = closed.durationSec;
+    sittingId = closed.sittingId;
     // A sitting that never reached the questions, with nothing answered, is
     // closed but not counted: a paper opened by mistake and shut again must
     // not spend an attempt or put a zero into everyone's cohort.
@@ -189,10 +194,12 @@ export async function POST(request: Request) {
       answers = toAnswers(expired.snapshot ?? {});
       record = expired.questionsOpened || answers.size > 0;
       durationSec = expired.durationSec;
+      sittingId = expired.sittingId;
     } else {
       const last = await lastSubmission(paper.id, profile.id, limitSec);
       if (last) {
         durationSec = last.durationSec;
+        sittingId = last.sittingId;
         // The server's copy, always — never the browser's. A sitting closed
         // before answers were kept with it falls back to the attempt's own
         // copy inside lastSubmission; one with neither is marked as blank.
@@ -206,7 +213,14 @@ export async function POST(request: Request) {
     }
   }
 
-  const marked = mark(rows, answers);
+  // The questions in the order the candidate sat them, so the review's
+  // numbering is the one they remember. Marking is by question id and
+  // does not depend on it.
+  const ordered =
+    sittingId && resolveFeatures(paper.features ?? undefined).shuffleQuestions
+      ? inSittingOrder(rows, sittingOrder(rows.length, paper.category, paper.features ?? undefined, sittingId))
+      : rows;
+  const marked = mark(ordered, answers);
   const attempted = marked.filter((q) => q.given !== null).length;
   const correct = marked.filter((q) => q.isCorrect).length;
 
@@ -493,6 +507,7 @@ interface PaperRow {
   features: WatchFeatures | null;
   instruction_time_min: number | null;
   time_limit_min: number | null;
+  category: string | null;
 }
 
 /** The paper's scoring settings, in one query. */
@@ -500,7 +515,7 @@ async function fetchPaperRow(slug: string): Promise<PaperRow | null> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("watch_papers")
-    .select("id, is_published, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view, features, instruction_time_min, time_limit_min")
+    .select("id, is_published, reference_mean, reference_sd, stats_min_attempts, cut_off_marks, cut_off_tscore, expert_comment, max_attempts, result_view, features, instruction_time_min, time_limit_min, category")
     .eq("slug", slug)
     .maybeSingle();
   return (data as PaperRow) ?? null;

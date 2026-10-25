@@ -17,6 +17,8 @@ export interface Sitting {
 
 /** What ending a sitting establishes about it. */
 export interface Closed {
+  /** The sitting's id: the seed of its order of the questions. */
+  sittingId: string;
   /** How long the questions took, by the server's clock. */
   durationSec: number;
   /** False when the candidate never left the instruction screen. */
@@ -41,6 +43,8 @@ export interface Submission {
   responses: Record<string, OptionValue> | null;
   /** How long the questions took, by the server's clock. */
   durationSec: number | null;
+  /** The sitting the answers came from, the seed of its order of the questions; null when only the attempt's own copy remains. */
+  sittingId: string | null;
 }
 
 interface SittingRow {
@@ -193,6 +197,7 @@ export async function closeSitting(
   if (!closed?.length) return null;
 
   return {
+    sittingId: row.id,
     durationSec: duration(row, now, limitSec),
     questionsOpened: row.questions_started_at !== null,
     late,
@@ -315,6 +320,7 @@ export async function closeExpiredSitting(
   if (!closed?.length) return null;
 
   return {
+    sittingId: row.id,
     durationSec: duration(row, now, limitSec),
     questionsOpened: row.questions_started_at !== null,
     late: false,
@@ -365,7 +371,7 @@ export async function lastSubmission(
     : null;
 
   if (sitting && sittingResponses) {
-    return { responses: sittingResponses, durationSec: sittingDuration };
+    return { responses: sittingResponses, durationSec: sittingDuration, sittingId: sitting.id as string };
   }
 
   // No sitting, or one closed before answers were kept with it: the attempt
@@ -382,11 +388,14 @@ export async function lastSubmission(
   if (!attempt) {
     // A closed sitting with nothing recorded — over the limit, or nothing
     // answered on a paper never opened. It is a submission, of a blank sheet.
-    return sitting ? { responses: {}, durationSec: sittingDuration } : null;
+    return sitting ? { responses: {}, durationSec: sittingDuration, sittingId: sitting.id as string } : null;
   }
   return {
     responses: (attempt.responses as Record<string, OptionValue> | null) ?? {},
     durationSec: sittingDuration ?? attempt.duration_sec ?? null,
+    // The sitting's order of the questions still stands when its answers
+    // come from the attempt's copy; only an attempt with no sitting has none.
+    sittingId: sitting ? (sitting.id as string) : null,
   };
 }
 

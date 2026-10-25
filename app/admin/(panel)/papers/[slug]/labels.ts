@@ -41,6 +41,16 @@ export const FEATURE_LABELS: {
     label: "Run questions past the right edge",
     hint: "Matches the real portal, where part of each line is hidden until you scroll sideways.",
   },
+  {
+    name: "shuffleQuestions",
+    label: "Shuffle the questions",
+    hint: "Off, as every paper so far: the questions come in the order they were uploaded. On: every sitting gets its own order — within each part, where the paper has parts with their own picture — and the result shows the questions in that order.",
+  },
+  {
+    name: "shuffleOptions",
+    label: "Shuffle the options",
+    hint: "Off, as every paper so far. On: every sitting gets each question's options in their own order — on the Figure Placement Test (A to D), the Brick and Hidden Cube Tests (1 to 10) and the Following Directions tests, where an option is the answer itself. Options that point at a picture (A to E of a Same Figure or Similarity question, A to D on a map, the Find tests, Y or N) keep their order whatever this says.",
+  },
 ];
 
 /**

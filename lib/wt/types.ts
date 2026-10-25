@@ -182,6 +182,23 @@ export interface WatchFeatures {
    * and Save & Next moves between the parts.
    */
   partImages?: string[];
+  /**
+   * Every sitting gets the questions in an order of its own, kept for that
+   * sitting and shown again on its result (lib/wt/shuffle.ts). Where the
+   * paper's parts carry a picture of their own — a study screen, a map, a
+   * table, a pile — a question moves only within its part. Off for every
+   * paper made before the switch existed.
+   */
+  shuffleQuestions?: boolean;
+  /**
+   * Every sitting gets each question's options in an order of its own, on
+   * the kinds whose option is the answer itself — a count on the Brick and
+   * Hidden Cube Tests, A to D on the Figure Placement Test, the values of
+   * the Following Directions tests (lib/wt/shuffle.ts). An option that
+   * points at a picture keeps its place. Off for every paper made before
+   * the switch existed.
+   */
+  shuffleOptions?: boolean;
 }
 
 export const DEFAULT_FEATURES: Required<WatchFeatures> = {
@@ -205,6 +222,8 @@ export const DEFAULT_FEATURES: Required<WatchFeatures> = {
   pictureScale: 0,
   studyScale: 60,
   partImages: [],
+  shuffleQuestions: false,
+  shuffleOptions: false,
 };
 
 export function resolveFeatures(features?: WatchFeatures): Required<WatchFeatures> {

@@ -469,6 +469,8 @@ export async function saveSettings(
           allowFullscreen: formData.get("allowFullscreen") === "on",
           lockScroll: formData.get("lockScroll") === "on",
           overflowQuestions: formData.get("overflowQuestions") === "on",
+          shuffleQuestions: formData.get("shuffleQuestions") === "on",
+          shuffleOptions: formData.get("shuffleOptions") === "on",
           ...partsField,
           ...schedule,
           ...pictureScale,
