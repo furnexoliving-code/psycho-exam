@@ -18,6 +18,7 @@ export interface StudentRow {
   last_seen_at: string | null;
   signup_source: string | null;
   valid_until: string | null;
+  photo_path?: string | null;
 }
 
 export interface Held {
@@ -34,7 +35,7 @@ export interface ListFilter {
   pkg: string;
 }
 
-const COLUMNS = "id, full_name, phone, created_at, is_active, last_seen_at, signup_source, valid_until";
+const COLUMNS = "id, full_name, phone, created_at, is_active, last_seen_at, signup_source, valid_until, photo_path";
 
 /** The filters the database applies, on any query over profiles. */
 // A select builder's exact type depends on its column string; the filters
@@ -119,18 +120,50 @@ export async function studentsMatching(filter: ListFilter): Promise<{ id: string
   return all.filter((r) => !keep || keep(r.id)).map((r) => ({ id: r.id, validUntil: r.valid_until }));
 }
 
+/**
+ * Every student the filter matches, oldest account first, with what each
+ * holds: the list as a file. Read whole, as the package filter already
+ * reads it, which thousands of accounts allow.
+ */
+export async function studentsForExport(filter: ListFilter): Promise<{ rows: StudentRow[]; held: Map<string, Held[]> }> {
+  const supabase = createAdminClient();
+  const [all, held] = await Promise.all([
+    fetchAll<StudentRow>((a, b) => applyDb(supabase.from("profiles").select(COLUMNS), filter).order("created_at", { ascending: true }).order("id").range(a, b)),
+    heldByStudent(),
+  ]);
+  const keep = wantsPackage(filter, held);
+  return { rows: keep ? all.filter((r) => keep(r.id)) : all, held };
+}
+
 /** The filter off the page's query string. */
 export function filterOf(params: { q?: string; quiet?: string; pkg?: string }): ListFilter {
   return { q: (params.q ?? "").trim(), quietDays: params.quiet === "7" ? 7 : params.quiet === "30" ? 30 : 0, pkg: (params.pkg ?? "").trim() };
 }
 
-/** The query string for a filter, with the page. */
-export function listHref(filter: ListFilter, page = 1): string {
+/** The filter as a query string's parameters. */
+function filterParams(filter: ListFilter): URLSearchParams {
   const p = new URLSearchParams();
   if (filter.q) p.set("q", filter.q);
   if (filter.quietDays) p.set("quiet", String(filter.quietDays));
   if (filter.pkg) p.set("pkg", filter.pkg);
+  return p;
+}
+
+/** The query string for a filter, with the page. */
+export function listHref(filter: ListFilter, page = 1): string {
+  const p = filterParams(filter);
   if (page > 1) p.set("page", String(page));
   const qs = p.toString();
   return `/admin/students${qs ? `?${qs}` : ""}#list`;
+}
+
+/** The address of the list as a CSV file, under the same filter. */
+export function exportHref(filter: ListFilter): string {
+  const qs = filterParams(filter).toString();
+  return `/admin/export/students${qs ? `?${qs}` : ""}`;
+}
+
+/** A word for the filter in a file's name: "quiet-30", "no-package", "self", a package's slug. */
+export function filterSlug(filter: ListFilter): string {
+  return [filter.quietDays ? `quiet-${filter.quietDays}` : "", filter.pkg === "none" ? "no-package" : filter.pkg, filter.q ? "search" : ""].filter(Boolean).join("-");
 }

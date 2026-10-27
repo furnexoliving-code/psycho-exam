@@ -7,7 +7,7 @@ import { RowForm } from "@/components/admin/RowForm";
 import { PendingButton } from "@/components/admin/PendingButton";
 import { Admissions } from "./Admissions";
 import { BulkGrant } from "./BulkGrant";
-import { filterOf, listHref, loadStudents, type Held, type ListFilter } from "./list";
+import { exportHref, filterOf, listHref, loadStudents, type Held, type ListFilter } from "./list";
 import { defaultPackage, listPackages, studentsWithoutPackage } from "@/lib/packages";
 
 /** Forty seconds for this page's actions, as the admin layout allows; the default is fifteen. */
@@ -100,6 +100,15 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                 Clear
               </Link>
             ) : null}
+            {/* The list as it stands — this filter, every page of it — as a file
+                for Excel: name, mobile, package and when each was last seen. */}
+            <a
+              href={exportHref(filter)}
+              className="rounded border border-indigo-800 bg-white px-3 py-1.5 text-[12px] font-semibold text-indigo-900 hover:bg-indigo-50"
+              title={`Download ${filter.pkg || filter.q || filter.quietDays ? `this list (${filterLabel})` : "every student"} as a CSV file for Excel`}
+            >
+              ⬇ Download CSV
+            </a>
           </form>
         </div>
 

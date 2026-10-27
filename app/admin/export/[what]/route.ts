@@ -5,23 +5,29 @@ import { formatDateTime, indianDay } from "@/lib/format-time";
 import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
 import { scoreOutOf30, type MockTestResult } from "@/lib/wt/mock";
 import { logAction } from "@/lib/audit";
+import { filterOf, filterSlug, studentsForExport, type ListFilter } from "@/app/admin/(panel)/students/list";
 
 export const dynamic = "force-dynamic";
 
 /**
  * The institute's own copy of its data, as a CSV the panel downloads:
- * every paper result, every Full Mock result, or the student list. Read
+ * every paper result, every Full Mock result, or the student list — the
+ * whole of it, or the part the Students page is filtered to (quiet
+ * days, package, search), by the same query string. Read
  * a page at a time and streamed as it goes, so a file of any size leaves
  * without being held whole, and opened in Excel with the Hindi names
  * intact (the byte-order mark at the start sees to that).
  */
 const PAGE = 1000;
 
-export async function GET(_req: Request, { params }: { params: Promise<{ what: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ what: string }> }) {
   const { what } = await params;
   if (what !== "results" && what !== "mocks" && what !== "students") return new NextResponse(null, { status: 404 });
   await requireResults(`/admin/results`);
-  await logAction("export", what);
+  const search = new URL(req.url).searchParams;
+  const filter = filterOf({ q: search.get("q") ?? undefined, quiet: search.get("quiet") ?? undefined, pkg: search.get("pkg") ?? undefined });
+  const part = what === "students" ? filterSlug(filter) : "";
+  await logAction("export", part ? `${what} (${part})` : what);
 
   const day = indianDay(Date.now());
   const encoder = new TextEncoder();
@@ -32,7 +38,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ what: s
       try {
         if (what === "results") await results(write);
         else if (what === "mocks") await mocks(write);
-        else await students(write);
+        else await students(write, filter);
       } catch (error) {
         write(`\n"Export stopped: ${cell(error instanceof Error ? error.message : String(error))}"\n`);
       }
@@ -42,7 +48,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ what: s
   return new Response(stream, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="kautilya-${what}-${day}.csv"`,
+      "Content-Disposition": `attachment; filename="kautilya-${what}${part ? `-${part}` : ""}-${day}.csv"`,
       "Cache-Control": "no-store",
     },
   });
@@ -159,30 +165,24 @@ async function mocks(write: Write): Promise<void> {
   }
 }
 
-async function students(write: Write): Promise<void> {
-  const supabase = createAdminClient();
-  write(row(["Name", "Mobile", "Registered (IST)", "Last seen (IST)", "Account", "Photo"]));
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "student")
-      .order("created_at", { ascending: true })
-      .range(from, from + PAGE - 1);
-    if (error) throw new Error(error.message);
-    if (!data?.length) break;
-    for (const s of data) {
-      write(
-        row([
-          s.full_name ?? "",
-          s.phone ?? "",
-          s.created_at ? formatDateTime(s.created_at as string) : "",
-          s.last_seen_at ? formatDateTime(s.last_seen_at as string) : "",
-          s.is_active === false ? "Off" : "On",
-          s.photo_path ? "Yes" : "No",
-        ]),
-      );
-    }
-    if (data.length < PAGE) break;
+/** The students the filter matches, as the Students page lists them, with what each holds. */
+async function students(write: Write, filter: ListFilter): Promise<void> {
+  const { rows, held } = await studentsForExport(filter);
+  write(row(["Name", "Mobile", "Package", "Package ends", "Registered (IST)", "Last seen (IST)", "Account", "Sign-up", "Photo"]));
+  for (const s of rows) {
+    const own = held.get(s.id) ?? [];
+    write(
+      row([
+        s.full_name ?? "",
+        s.phone ?? "",
+        own.length ? own.map((h) => h.name).join("; ") : "No package",
+        own.length ? own.map((h) => (h.expiresAt ? formatDateTime(h.expiresAt) : "no expiry")).join("; ") : "",
+        s.created_at ? formatDateTime(s.created_at) : "",
+        s.last_seen_at ? formatDateTime(s.last_seen_at) : "never",
+        s.is_active === false ? "Off" : "On",
+        s.signup_source === "self" ? "Self" : "Institute",
+        s.photo_path ? "Yes" : "No",
+      ]),
+    );
   }
 }
