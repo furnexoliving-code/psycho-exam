@@ -3,7 +3,7 @@ import { MocksView, type MockCard } from "@/components/student/MocksView";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { photoUrlOf } from "@/lib/photo";
 import { examSettings } from "@/lib/settings";
-import { currentMockStep, listPublishedMocks, mockResultsFor, mockStatus, scoreOutOf30 } from "@/lib/wt/mock";
+import { currentMockStep, listPublishedMocks, mockResultsFor, mockSizes, mockStatus, scoreOutOf30 } from "@/lib/wt/mock";
 import { accessFor, canSitMock } from "@/lib/packages";
 
 export default async function MocksPage({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
@@ -20,6 +20,8 @@ export default async function MocksPage({ searchParams }: { searchParams: Promis
     examSettings(),
     accessFor(profile.id, profile.role),
   ]);
+  // Each mock's questions and minutes, for its line in the list.
+  const sizes = await mockSizes(mocks);
 
   const cards: MockCard[] = mocks.map((mock) => {
     const mine = results.filter((r) => r.mockId === mock.id);
@@ -35,6 +37,7 @@ export default async function MocksPage({ searchParams }: { searchParams: Promis
       best,
       inProgress: inMock?.mock.id === mock.id,
       inPackage: canSitMock(access, mock),
+      size: sizes.get(mock.id) ?? null,
     };
   });
 

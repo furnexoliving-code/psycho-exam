@@ -218,6 +218,34 @@ export function mockMinutes(mock: MockTest, papers: MockPaper[]): number {
   return tests + Math.max(0, papers.length - 1) * mock.gapMin;
 }
 
+/** What a mock comes to: its tests' questions together, and the whole sitting's minutes. */
+export interface MockSize {
+  questions: number;
+  minutes: number;
+}
+
+/**
+ * The size of every mock listed, by mock id, in two reads for the lot
+ * rather than two per mock, from the shared cache: the list page shows
+ * each mock's questions and minutes beside its name.
+ */
+export async function mockSizes(mocks: MockTest[]): Promise<Map<string, MockSize>> {
+  const ids = [...new Set(mocks.flatMap((m) => m.paperIds))].sort();
+  if (ids.length === 0) return new Map();
+  const sizes = await unstable_cache(
+    async () => {
+      const papers = new Map((await papersOf(ids)).map((p) => [p.id, p]));
+      return mocks.map((mock) => {
+        const own = mock.paperIds.flatMap((id) => papers.get(id) ?? []);
+        return [mock.id, { questions: own.reduce((n, p) => n + p.questionCount, 0), minutes: mockMinutes(mock, own) }] as const;
+      });
+    },
+    ["mock-sizes", ids.join(","), mocks.map((m) => `${m.id}:${m.gapMin}:${m.paperIds.join("+")}`).join("|")],
+    { tags: [MOCKS_TAG], revalidate: 300 },
+  )();
+  return new Map(sizes);
+}
+
 // ---------------------------------------------------------------------------
 // Sittings
 // ---------------------------------------------------------------------------

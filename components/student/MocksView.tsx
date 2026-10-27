@@ -2,7 +2,7 @@ import Link from "next/link";
 import { HALL_ORDER, hallPosition } from "@/lib/wt/categories";
 import { formatDateTime, formatDayMonth } from "@/lib/format-time";
 import { StudentHeader } from "@/components/StudentHeader";
-import { scoreOutOf30, type MockResult, type MockStatus, type MockTest } from "@/lib/wt/mock";
+import { scoreOutOf30, type MockResult, type MockSize, type MockStatus, type MockTest } from "@/lib/wt/mock";
 
 /**
  * Every Full Mock, sorted into what matters now: the one in progress, the
@@ -22,6 +22,8 @@ export interface MockCard {
   inProgress: boolean;
   /** False when the student's packages do not cover this mock (and it is not the free one). */
   inPackage: boolean;
+  /** The mock's questions together and the whole sitting's minutes; null when not known. */
+  size?: MockSize | null;
 }
 
 export interface MocksInput {
@@ -163,7 +165,7 @@ function FreeMockCard({ card, passT }: { card: MockCard; passT: number }) {
           </p>
           <h2 className="mt-0.5 text-[20px] font-extrabold leading-tight text-gray-900">{mock.name}</h2>
           <p className="mt-1 text-[13px] text-gray-700">
-            All {mock.paperIds.length} tests in the hall&apos;s order, one sitting, a scorecard with every test&apos;s T-Score and a score out of 30.
+            All {mock.paperIds.length} tests in the hall&apos;s order{card.size && card.size.questions > 0 ? ` — ${card.size.questions} questions, about ${card.size.minutes} minutes` : ""}, one sitting, a scorecard with every test&apos;s T-Score and a score out of 30.
             {left !== null && (
               <>
                 {" "}
@@ -232,7 +234,7 @@ function FreeMockCard({ card, passT }: { card: MockCard; passT: number }) {
 }
 
 function MockRow({ card, passT }: { card: MockCard; passT: number }) {
-  const { mock, status, latest, best, used, inProgress, inPackage } = card;
+  const { mock, status, latest, best, used, inProgress, inPackage, size } = card;
   const out30 = latest ? scoreOutOf30(latest.tests) : null;
   const bestOut = best ? scoreOutOf30(best.tests) : null;
   const left = mock.maxAttempts === null ? null : Math.max(0, mock.maxAttempts - used);
@@ -246,7 +248,14 @@ function MockRow({ card, passT }: { card: MockCard; passT: number }) {
           {mock.isFree && <span className="ml-2 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-green-800">Free</span>}
         </Link>
         <div className="text-[11px] text-gray-500">
-          {mock.paperIds.length} tests · {when}
+          {mock.paperIds.length} tests
+          {size && size.questions > 0 && (
+            <>
+              {" "}
+              · <span className="font-semibold text-gray-700">{size.questions} Q · {size.minutes} min</span>
+            </>
+          )}{" "}
+          · {when}
           {left !== null && (
             <>
               {" "}
