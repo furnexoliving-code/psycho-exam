@@ -2,7 +2,7 @@ import Link from "next/link";
 import { StudentHeader } from "@/components/StudentHeader";
 import { BATTERIES } from "@/lib/wt/categories";
 import type { BatteryProgress } from "@/lib/wt/progress";
-import { MOCK_LINK_CODES, NEXT_EXAM_LABEL, sectionsOfBattery, type Section } from "@/lib/wt/sections";
+import { MOCK_LINK_CODES, NEXT_EXAM_LABEL, studentSectionsOfBattery, type Section } from "@/lib/wt/sections";
 import type { Series } from "@/lib/wt/series";
 import { formatDate, formatDayMonth, indianDay } from "@/lib/format-time";
 import { daysUntil } from "@/lib/settings";
@@ -16,8 +16,8 @@ import { daysUntil } from "@/lib/settings";
  * A series the index does not know (a name the admin made up) follows
  * the index in its battery.
  *
- * The five kinds the railway's mock link for the coming exam gives are
- * named at the top and framed in gold below; the kind the student is
+ * The five kinds to practise first for the coming exam (MOCK_LINK_CODES)
+ * are named at the top and framed in gold below; the kind the student is
  * weakest at is named and marked.
  */
 export interface PracticeInput {
@@ -74,7 +74,7 @@ function cardsOf(battery: number, series: Series[]): Card[] {
     time: s.timeNote ? `${s.timeMin} min (${s.timeNote})` : `${s.timeMin} min`,
     series: found ?? null,
   });
-  const indexed = sectionsOfBattery(battery).map((s) =>
+  const indexed = studentSectionsOfBattery(battery).map((s) =>
     ofSection(
       s,
       series.find((x) => x.section === s),
@@ -198,9 +198,9 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[14px] font-extrabold leading-snug text-[#0d2a6b]" lang="hi">
-                      {NEXT_EXAM_LABEL} में ये टेस्ट आएँगे, रेलवे के नए मॉक लिंक के अनुसार: इनका अभ्यास सबसे पहले करें।
+                      {NEXT_EXAM_LABEL} में ये टेस्ट आएँगे: इनका अभ्यास सबसे पहले करें।
                     </p>
-                    <p className="text-[11.5px] text-gray-600">Coming in {NEXT_EXAM_LABEL}, as the railway&apos;s new mock link shows: practise these first.</p>
+                    <p className="text-[11.5px] text-gray-600">Coming in {NEXT_EXAM_LABEL}: practise these first.</p>
                   </div>
                 </div>
                 <div className="mt-2.5 flex flex-wrap gap-2 sm:pl-12">
@@ -338,8 +338,8 @@ export function PracticeView({ profile, groups, hidden, progress, sat, bestT, la
 
         <p className="mt-5 text-[11px] text-gray-500">
           <span className="rounded-full border border-dashed border-gray-300 bg-white px-1.5 py-0.5 font-bold text-gray-500">Coming soon</span> tests are in the hall&apos;s battery; their practice papers open here as they are published.
-          <span lang="hi"> ये टेस्ट हॉल की परीक्षा में हैं; इनके प्रैक्टिस पेपर जैसे-जैसे बनेंगे, यहीं खुलेंगे।</span> A gold frame marks a test the railway&apos;s mock link gives for {NEXT_EXAM_LABEL}.
-          <span lang="hi"> सुनहरा फ्रेम = रेलवे के मॉक लिंक के अनुसार {NEXT_EXAM_LABEL} में आएगा।</span>
+          <span lang="hi"> ये टेस्ट हॉल की परीक्षा में हैं; इनके प्रैक्टिस पेपर जैसे-जैसे बनेंगे, यहीं खुलेंगे।</span> A gold frame marks a test to practise first for {NEXT_EXAM_LABEL}.
+          <span lang="hi"> सुनहरा फ्रेम = {NEXT_EXAM_LABEL} के लिए सबसे पहले अभ्यास करें।</span>
         </p>
       </main>
     </div>
@@ -406,7 +406,7 @@ function CodeBadge({ code, battery, star, muted = false }: { code: string; batte
     <span className="relative shrink-0">
       <span className={`flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-extrabold ${muted ? "bg-gray-200 text-gray-600" : `bg-gradient-to-br ${tone.bar} text-white shadow`}`}>{code}</span>
       {star && (
-        <span className="absolute -right-1.5 -top-1.5 text-[12px] drop-shadow" aria-label={`Coming in ${NEXT_EXAM_LABEL}, as the railway's mock link shows`} title={`Coming in ${NEXT_EXAM_LABEL}, as the railway's mock link shows`}>
+        <span className="absolute -right-1.5 -top-1.5 text-[12px] drop-shadow" aria-label={`Coming in ${NEXT_EXAM_LABEL}: practise this first`} title={`Coming in ${NEXT_EXAM_LABEL}: practise this first`}>
           🌟
         </span>
       )}

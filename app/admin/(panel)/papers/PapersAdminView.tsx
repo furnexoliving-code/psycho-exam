@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
+import { BATTERIES, CATEGORIES, HIDDEN_CATEGORIES } from "@/lib/wt/categories";
 import { sectionOf } from "@/lib/wt/sections";
 import { RowForm } from "@/components/admin/RowForm";
 import type { PaperSummary } from "@/lib/wt/db";
@@ -94,6 +94,8 @@ export function PapersAdminView({
         const categories = CATEGORIES.filter((c) => c.battery === battery.id);
         const inBattery = papers.filter((p) => categories.some((c) => c.id === p.category));
         const isHidden = hidden.includes(battery.id);
+        // Kinds of this battery kept off the student portal whatever its switch says.
+        const keptOff = CATEGORIES.filter((c) => c.battery === battery.id && HIDDEN_CATEGORIES.includes(c.id)).map((c) => c.title);
         return (
           <details key={battery.id} id={`battery-${battery.id}`} open className="group mt-5 scroll-mt-4 rounded border border-gray-300 bg-white">
             <summary className="flex cursor-pointer flex-wrap items-center gap-3 px-4 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
@@ -115,7 +117,9 @@ export function PapersAdminView({
                   <input type="hidden" name="battery" value={battery.id} />
                   <input type="hidden" name="hidden" value={String(!isHidden)} />
                   <span className="text-[12px] text-gray-600">
-                    {isHidden ? "Students do not see this battery; admin and test setter can still preview its papers." : "Published papers of this battery are on the student portal."}
+                    {isHidden
+                      ? "Students do not see this battery; admin and test setter can still preview its papers."
+                      : `Published papers of this battery are on the student portal${keptOff.length ? `, except the ${keptOff.join(" and ")}, kept off it (students sit it only inside a Full Mock)` : ""}.`}
                   </span>
                   <PendingButton
                     pendingLabel="Saving…"
@@ -203,7 +207,7 @@ function PaperTable({ papers, canDelete }: { papers: PaperSummary[]; canDelete: 
                       : "bg-gray-200 text-gray-700"
                   }`}
                 >
-                  {paper.isPublished ? "Published" : "Draft"}{paper.mockOnly ? " · Mock only" : ""}
+                  {paper.isPublished ? "Published" : "Draft"}{paper.mockOnly ? " · Mock only" : ""}{HIDDEN_CATEGORIES.includes(paper.category) ? " · Off the student portal" : ""}
                 </span>
               </td>
               <td className="border border-gray-300 px-3 py-2">

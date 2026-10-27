@@ -7,6 +7,7 @@ import { getBundledPaper } from "@/lib/wt/paper";
 import { ResultView } from "./ResultView";
 import { listPublishedPapers } from "@/lib/wt/db";
 import { groupPapers } from "@/lib/wt/series";
+import { hiddenBatteries, openToStudents } from "@/lib/wt/visibility";
 import { NoPrint } from "@/components/NoPrint";
 import { currentMockStep } from "@/lib/wt/mock";
 import { photoUrlOf } from "@/lib/photo";
@@ -52,8 +53,11 @@ export default async function ResultPage({
 
   // Where to go next: the next paper of the same kind of test, and that
   // kind's page under Practice. Read from the published list; a result
-  // still shows without it.
-  const nav = await nextPaper(paperId).catch(() => null);
+  // still shows without it. A paper students can no longer open — its
+  // battery hidden, or its kind kept off the portal — leads nowhere: the
+  // result stays, the buttons to sit it again go.
+  const open = !isConfigured() || openToStudents(paper.category, await hiddenBatteries());
+  const nav = open ? await nextPaper(paperId).catch(() => null) : null;
 
   // A test just sat inside a Full Mock: the result page moves the mock on
   // instead of showing this test's own marks, which wait for the scorecard.
@@ -94,6 +98,7 @@ export default async function ResultPage({
       category={paper.category}
       candidate={who ? { name: who.full_name || "", photoUrl: photoUrlOf(who) } : null}
       nav={nav}
+      reattempt={open}
       storageOwner={who?.id ?? "guest"}
     />
     </NoPrint>
@@ -102,7 +107,8 @@ export default async function ResultPage({
 
 async function nextPaper(slug: string): Promise<{ nextSlug: string | null; nextName: string | null; seriesHref: string; seriesName: string } | null> {
   if (!isConfigured()) return null;
-  const papers = (await listPublishedPapers()).filter((p) => !p.mockOnly);
+  const hidden = await hiddenBatteries();
+  const papers = (await listPublishedPapers()).filter((p) => !p.mockOnly && openToStudents(p.category, hidden));
   for (const [battery, list] of groupPapers(papers)) {
     for (const series of list) {
       const at = series.papers.findIndex((p) => p.slug === slug);

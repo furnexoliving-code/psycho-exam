@@ -1,4 +1,4 @@
-import { BATTERIES, CATEGORIES } from "./categories";
+import { BATTERIES, CATEGORIES, HIDDEN_CATEGORIES } from "./categories";
 
 /**
  * The hall's own test index: every kind of test in the ALP aptitude
@@ -46,7 +46,7 @@ export const SECTIONS: readonly Section[] = [
   { code: "2a", battery: 2, name: "Letter Table Test", hindi: "लेटर टेबल टेस्ट", questions: 10, questionsNote: "", timeMin: 5, timeNote: "", blurb: "Follow the directions across a table of letters.", blurbHi: "अक्षरों की तालिका में निर्देशों के अनुसार उत्तर खोजें।" },
   { code: "2b", battery: 2, name: "Watch Table Test", hindi: "वॉच टेबल टेस्ट", questions: 20, questionsNote: "", timeMin: 10, timeNote: "", blurb: "Letters and numbers around a circle, with a compass at the centre.", blurbHi: "गोले पर अक्षर और अंक, बीच में दिशा-सूचक।" },
   { code: "2c", battery: 2, name: "Number Table Test", hindi: "नंबर टेबल टेस्ट", questions: 10, questionsNote: "", timeMin: 5, timeNote: "", blurb: "Follow the directions across a table of numbers.", blurbHi: "अंकों की तालिका में निर्देशों के अनुसार उत्तर खोजें।" },
-  { code: "2d", battery: 2, name: "Letter Table Test Type-II", hindi: "लेटर टेबल टेस्ट प्रकार-II", questions: 20, questionsNote: "10 + 10", timeMin: 8, timeNote: "", blurb: "Two tables of letters, ten questions on each: which letter stands above, below or beside the one named. The kind the railway's second mock link for CEN 01/2025 gives.", blurbHi: "अक्षरों की दो तालिकाएँ, हर एक पर दस सवाल: बताए गए अक्षर के ऊपर, नीचे या बगल में कौन सा अक्षर है। CEN 01/2025 के रेलवे के दूसरे मॉक लिंक का प्रकार।" },
+  { code: "2d", battery: 2, name: "Letter Table Test Type-II", hindi: "लेटर टेबल टेस्ट प्रकार-II", questions: 20, questionsNote: "10 + 10", timeMin: 10, timeNote: "", blurb: "Two tables of letters, ten questions on each: which letter stands above, below or beside the one named. The kind the railway's second mock link for CEN 01/2025 gives.", blurbHi: "अक्षरों की दो तालिकाएँ, हर एक पर दस सवाल: बताए गए अक्षर के ऊपर, नीचे या बगल में कौन सा अक्षर है। CEN 01/2025 के रेलवे के दूसरे मॉक लिंक का प्रकार।" },
   // 3 · Depth Perception Test
   { code: "3a", battery: 3, name: "Brick Test", hindi: "ईंट परीक्षण", questions: 50, questionsNote: "", timeMin: 5, timeNote: "", blurb: "A pile of bricks, some lettered: count the bricks touching each lettered one.", blurbHi: "ईंटों का ढेर, कुछ पर अक्षर: हर अक्षर वाली ईंट को छूती ईंटें गिनें।" },
   { code: "3b", battery: 3, name: "Hidden Cube Test", hindi: "छिपे घन परीक्षण", questions: 50, questionsNote: "", timeMin: 10, timeNote: "", blurb: "A pile of blocks: count the blocks hidden on every side by the others.", blurbHi: "गुटकों का ढेर: हर ओर से छिपे गुटके गिनें।" },
@@ -77,13 +77,15 @@ export const NEXT_EXAM_CODES: readonly string[] = ["1f", "2b", "3a", "4d", "5b"]
 /** Which exam that is, as the notice names it. */
 export const NEXT_EXAM_LABEL = "CEN 01/2025";
 /**
- * The kinds the railway's SECOND mock link for the exam gives (24 October
- * 2026): the Rail Signal Position Test, the Letter Table Test Type-II, the
- * Brick Test, the Figure Placement Test and the Same Figure Test Type-II.
- * The practice page stars these; the public pages still describe the
- * first link (NEXT_EXAM_CODES) until they are rewritten.
+ * The kinds the practice page stars for the coming exam: the Rail Signal
+ * Position Test, the Letter Table Test Type-II, the Brick Test and the
+ * Figure Placement Test, as the railway's SECOND mock link for the exam
+ * (24 October 2026) gives them, and the Same Figure Test — the exam gives
+ * the 72-question, 8-minute kind, not the link's Type-II, which is kept
+ * off the student portal (HIDDEN_CATEGORIES). The public pages still
+ * describe the first link (NEXT_EXAM_CODES) until they are rewritten.
  */
-export const MOCK_LINK_CODES: readonly string[] = ["1g", "2d", "3a", "4d", "5f"];
+export const MOCK_LINK_CODES: readonly string[] = ["1g", "2d", "3a", "4d", "5e"];
 
 /** The section a paper with no series name belongs to, by its category. */
 const DEFAULT_SECTION: Record<string, string> = {
@@ -146,6 +148,12 @@ export function sectionOf(series: string, category: string): Section | undefined
 
 export function sectionsOfBattery(battery: number): Section[] {
   return SECTIONS.filter((s) => s.battery === battery);
+}
+
+/** The sections of a battery the student portal shows: a kind kept off the portal (HIDDEN_CATEGORIES) is left out of its index too. */
+export function studentSectionsOfBattery(battery: number): Section[] {
+  const hiddenCodes = HIDDEN_CATEGORIES.map((c) => DEFAULT_SECTION[c]).filter((code): code is string => typeof code === "string");
+  return sectionsOfBattery(battery).filter((s) => !hiddenCodes.includes(s.code));
 }
 
 /** "24 Q · 8 min", with the hall's split when it has one: "24 Q (12 + 12) · 8 min (2+2+2+2)". */

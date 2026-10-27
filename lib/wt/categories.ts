@@ -110,7 +110,7 @@ export const CATEGORIES = [
     kind: "directions",
     title: "Letter Table Test Type-II",
     hindi: "लेटर टेबल टेस्ट प्रकार-II",
-    blurb: "Two tables of letters, ten questions on each: the letter above, below or beside the one named. 20 questions in 8 minutes.",
+    blurb: "Two tables of letters, ten questions on each: the letter above, below or beside the one named. 20 questions in 10 minutes.",
   },
   {
     id: "brick",
@@ -260,3 +260,13 @@ export function categoryKind(id: string | null | undefined): PaperKind {
  * in the lists, or by typing a paper's address.
  */
 export const HIDDEN_BATTERIES: readonly number[] = [1, 3, 4];
+
+/**
+ * Kinds kept off the student portal altogether, whatever their battery's
+ * switch says: not on the practice page, not in the lists, not by typing
+ * a paper's address. The admin panel still shows and edits their papers,
+ * an admin or editor can still preview them, and a Full Mock may still
+ * use one. The Same Figure Test Type-II: the exam gives the Same Figure
+ * Test (72 questions, 8 minutes), so students practise that one.
+ */
+export const HIDDEN_CATEGORIES: readonly string[] = ["figure2"];

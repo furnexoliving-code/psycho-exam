@@ -1,6 +1,6 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { CATEGORIES, HIDDEN_BATTERIES } from "./categories";
+import { CATEGORIES, HIDDEN_BATTERIES, HIDDEN_CATEGORIES } from "./categories";
 
 /**
  * Which batteries the student portal shows: a switch per battery, flipped
@@ -38,11 +38,11 @@ export async function hiddenBatteries(): Promise<number[]> {
   )();
 }
 
-/** True when a category's battery is open to students, given the hidden list. */
+/** True when a category is open to students: its battery is not hidden, and the kind itself is not kept off the portal. */
 export function openToStudents(categoryId: string | null | undefined, hidden: readonly number[]): boolean {
   const category = CATEGORIES.find((c) => c.id === categoryId);
   if (!category) return true;
-  return !hidden.includes(category.battery);
+  return !hidden.includes(category.battery) && !HIDDEN_CATEGORIES.includes(category.id);
 }
 
 /** Hides or shows one battery on the student portal. Admin only; the caller checks. */

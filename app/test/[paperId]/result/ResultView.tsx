@@ -82,6 +82,7 @@ export function ResultView({
   category,
   candidate,
   nav,
+  reattempt = true,
   storageOwner = "guest",
   mock,
 }: {
@@ -111,6 +112,8 @@ export function ResultView({
   candidate?: { name: string; photoUrl: string | null } | null;
   /** Where to go next: the next paper of this kind, and this kind's page under Practice. */
   nav?: { nextSlug: string | null; nextName: string | null; seriesHref: string; seriesName: string } | null;
+  /** Whether the student may sit this paper again: off for a paper no longer open to students. */
+  reattempt?: boolean;
   /** Whose attempt to look for in this browser. */
   storageOwner?: string;
   /** Set when this test was sat as part of a Full Mock: the mock moves on from here. */
@@ -436,13 +439,15 @@ export function ResultView({
               ▶ Next paper
             </Link>
           ) : null}
-          <Link
-            href={`/test/${paperId}`}
-            className={`rounded-xl px-6 py-2.5 text-sm font-bold ${nav?.nextSlug ? "" : "text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"}`}
-            style={nav?.nextSlug ? { background: "var(--surface-1)", color: "var(--text-primary)", border: "1px solid var(--hairline)" } : { background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
-          >
-            🔁 Re-attempt
-          </Link>
+          {reattempt && (
+            <Link
+              href={`/test/${paperId}`}
+              className={`rounded-xl px-6 py-2.5 text-sm font-bold ${nav?.nextSlug ? "" : "text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"}`}
+              style={nav?.nextSlug ? { background: "var(--surface-1)", color: "var(--text-primary)", border: "1px solid var(--hairline)" } : { background: "linear-gradient(120deg,#1565b0,#0f766e)" }}
+            >
+              🔁 Re-attempt
+            </Link>
+          )}
           {nav && (
             <Link
               href={nav.seriesHref}

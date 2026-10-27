@@ -13,7 +13,7 @@ import type { InstructionBlock, WatchQuestion } from "./types";
  * WatchFeatures.partImages).
  */
 
-/** "8 minutes" / "8 मिनट". */
+/** "10 minutes" / "10 मिनट". */
 function minutes(n: number, en: boolean): string {
   return en ? `${n} minute${n === 1 ? "" : "s"}` : `${n} मिनट`;
 }

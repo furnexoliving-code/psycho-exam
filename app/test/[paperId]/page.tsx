@@ -6,7 +6,7 @@ import { ExamChromeProvider } from "@/components/wt/ExamChrome";
 import { NoPrint } from "@/components/NoPrint";
 import { OneTab } from "@/components/wt/OneTab";
 import type { Metadata } from "next";
-import { CATEGORIES, hallPosition, testNameOf } from "@/lib/wt/categories";
+import { CATEGORIES, HIDDEN_CATEGORIES, hallPosition, testNameOf } from "@/lib/wt/categories";
 import { headerOf, loadPaperHeader } from "@/lib/wt/db";
 import { isConfigured, isVerifiedEditor, requireUser } from "@/lib/auth";
 import { allowanceFor } from "@/lib/wt/attempts";
@@ -81,7 +81,18 @@ export default async function WatchTablePage({
   // (The bundled samples, served only before a database exists, are a demo
   // for whoever is setting the portal up, and stay reachable.)
   if (isConfigured() && !editor && !mockHere && !openToStudents(paper.category, await hiddenBatteries())) {
-    if (preview) return <PreviewShut reason="This paper's battery is hidden from students (Test Papers → Show to students)." paperId={paperId} />;
+    if (preview) {
+      return (
+        <PreviewShut
+          reason={
+            HIDDEN_CATEGORIES.includes(paper.category ?? "")
+              ? "This kind of test is kept off the student portal; its papers open for students only inside a Full Mock."
+              : "This paper's battery is hidden from students (Test Papers → Show to students)."
+          }
+          paperId={paperId}
+        />
+      );
+    }
     notFound();
   }
   // A paper kept for Full Mocks is no sectional test: outside its mock it is not there.

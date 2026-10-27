@@ -189,7 +189,7 @@ export async function createPaper(formData: FormData) {
   // A sheet test (Brick, Similarity): a picture per part with its questions; the hall's own clock.
   const sheet = sheetOf(category);
   // The Letter Table Test Type-II: the Following Directions engine in two
-  // parts, a table of letters to each, ten questions on each, eight
+  // parts, a table of letters to each, ten questions on each, ten
   // minutes; its questions are the institute's own, typed in.
   const letterParts = category === "letter2";
   // A picture test's clock is the one the hall's index gives its kind. A
