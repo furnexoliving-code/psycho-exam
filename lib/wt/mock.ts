@@ -7,6 +7,7 @@ import { resolveFeatures, type WatchFeatures } from "./types";
 import { cohortFromMoments } from "./cohort";
 import { tScore } from "./tscore";
 import { inSittingOrder, sittingOrder } from "./shuffle";
+import { PAPERS_TAG } from "./db";
 
 /**
  * Full Mock tests: five published papers, one per battery, sat in the
@@ -181,14 +182,36 @@ export async function loadMock(slug: string): Promise<{ mock: MockTest; papers: 
 
 /** The papers named, in the hall's order; a deleted paper is simply absent. */
 export async function papersOf(ids: string[]): Promise<MockPaper[]> {
-  if (ids.length === 0) return [];
+  return (await readMockPapers(ids)).papers;
+}
+
+/** So many ids to a read: they travel in the request's address, which has a limit. */
+const IDS_PER_READ = 300;
+
+/**
+ * The papers named, in the hall's order, and whether every read came
+ * back. A deleted paper is simply absent; a read that failed leaves the
+ * papers it would have held absent too, and `ok` false, so a caller that
+ * caches can refuse to keep the gap.
+ */
+async function readMockPapers(ids: string[]): Promise<{ papers: MockPaper[]; ok: boolean }> {
+  if (ids.length === 0) return { papers: [], ok: true };
   const supabase = createAdminClient();
-  const [{ data: rows }, { data: counts }] = await Promise.all([
-    supabase.from("watch_papers").select("id, slug, display_name, category, is_published, instruction_time_min, time_limit_min").in("id", ids),
-    supabase.from("watch_question_counts").select("paper_id, question_count").in("paper_id", ids),
-  ]);
-  const count = new Map((counts ?? []).map((c) => [c.paper_id as string, Number(c.question_count)]));
-  const byId = new Map((rows ?? []).map((r) => [r.id as string, r]));
+  const chunks: string[][] = [];
+  for (let at = 0; at < ids.length; at += IDS_PER_READ) chunks.push(ids.slice(at, at + IDS_PER_READ));
+  const reads = await Promise.all(
+    chunks.map((chunk) =>
+      Promise.all([
+        supabase.from("watch_papers").select("id, slug, display_name, category, is_published, instruction_time_min, time_limit_min").in("id", chunk),
+        supabase.from("watch_question_counts").select("paper_id, question_count").in("paper_id", chunk),
+      ]),
+    ),
+  );
+  const ok = reads.every(([a, b]) => !a.error && !b.error);
+  const rows = reads.flatMap(([a]) => a.data ?? []);
+  const counts = reads.flatMap(([, b]) => b.data ?? []);
+  const count = new Map(counts.map((c) => [c.paper_id as string, Number(c.question_count)]));
+  const byId = new Map(rows.map((r) => [r.id as string, r]));
   const named = ids.flatMap((id) => {
     const r = byId.get(id);
     if (!r) return [];
@@ -209,7 +232,7 @@ export async function papersOf(ids: string[]): Promise<MockPaper[]> {
   });
   // A mock sits its papers in the hall's order, whatever order they were
   // named in: a mock made before the order was known follows it too.
-  return named.map((p, i) => [p, i] as const).sort((a, b) => hallPosition(a[0].battery) - hallPosition(b[0].battery) || a[1] - b[1]).map(([p]) => p);
+  return { papers: named.map((p, i) => [p, i] as const).sort((a, b) => hallPosition(a[0].battery) - hallPosition(b[0].battery) || a[1] - b[1]).map(([p]) => p), ok };
 }
 
 /** The whole sitting's length in minutes: every test's reading and clock, plus the gaps. */
@@ -234,14 +257,20 @@ export async function mockSizes(mocks: MockTest[]): Promise<Map<string, MockSize
   if (ids.length === 0) return new Map();
   const sizes = await unstable_cache(
     async () => {
-      const papers = new Map((await papersOf(ids)).map((p) => [p.id, p]));
+      // A failed read is thrown, never kept: a cached "no questions" would
+      // blank every mock's line for five minutes.
+      const read = await readMockPapers(ids);
+      if (!read.ok) throw new Error("Could not read the mocks' papers");
+      const papers = new Map(read.papers.map((p) => [p.id, p]));
       return mocks.map((mock) => {
         const own = mock.paperIds.flatMap((id) => papers.get(id) ?? []);
         return [mock.id, { questions: own.reduce((n, p) => n + p.questionCount, 0), minutes: mockMinutes(mock, own) }] as const;
       });
     },
     ["mock-sizes", ids.join(","), mocks.map((m) => `${m.id}:${m.gapMin}:${m.paperIds.join("+")}`).join("|")],
-    { tags: [MOCKS_TAG], revalidate: 300 },
+    // Emptied when a mock changes and when any paper does: the counts and
+    // clocks are the papers' own.
+    { tags: [MOCKS_TAG, PAPERS_TAG], revalidate: 300 },
   )();
   return new Map(sizes);
 }
