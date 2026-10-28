@@ -57,12 +57,17 @@ function applyDb(request: ProfilesQuery, filter: ListFilter): ProfilesQuery {
   return q;
 }
 
-/** Every running enrollment, by student. One paged read of the table. */
+/** Every running enrollment, by student. One paged read of the table; a failed read reads as nobody holding anything, so the list still shows. */
 export async function heldByStudent(): Promise<Map<string, Held[]>> {
+  return readHeld().catch(() => new Map());
+}
+
+/** The same read, which throws when it fails: for the export, where a file saying "No package" of everyone must not leave quietly. */
+async function readHeld(): Promise<Map<string, Held[]>> {
   const supabase = createAdminClient();
   const rows = await fetchAll<{ user_id: string; expires_at: string | null; package: { slug: string; name: string; kind: PackageKind } | null }>(
     (from, to) => supabase.from("enrollments").select("user_id, expires_at, package:packages(slug, name, kind)").order("id").range(from, to) as never,
-  ).catch(() => []);
+  );
   return groupHeld(rows);
 }
 
@@ -129,7 +134,7 @@ export async function studentsForExport(filter: ListFilter): Promise<{ rows: Stu
   const supabase = createAdminClient();
   const [all, held] = await Promise.all([
     fetchAll<StudentRow>((a, b) => applyDb(supabase.from("profiles").select(COLUMNS), filter).order("created_at", { ascending: true }).order("id").range(a, b)),
-    heldByStudent(),
+    readHeld(),
   ]);
   const keep = wantsPackage(filter, held);
   return { rows: keep ? all.filter((r) => keep(r.id)) : all, held };
