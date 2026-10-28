@@ -35,30 +35,46 @@ interface Params {
   quietLimit: number;
 }
 
-/** The row the database refreshes every ten minutes (supabase/admin-analytics-snapshot.sql). */
+/** The row the database cuts in the background (supabase/admin-analytics-snapshot.sql). */
 interface Snapshot {
   params: Params | null;
   data: Aggregates | null;
   computed_at: string | null;
+  requested_at: string | null;
 }
 
-/** A snapshot older than this is worked out afresh: the database's refresh has stopped, or never started. */
+/** A snapshot older than this is worked out afresh: the database's job has stopped, or never started. */
 const SNAPSHOT_FRESH_MS = 30 * 60 * 1000;
+/** How long a cut asked for may take before the job is taken to have stopped. */
+const CUT_WAIT_MS = 15 * 60 * 1000;
+
+/** The snapshot row exists and its first cut has not been made yet: the page says so and asks for a reload. */
+export class AnalyticsPending extends Error {
+  constructor() {
+    super("The figures are being cut in the database");
+    this.name = "AnalyticsPending";
+  }
+}
 
 /**
  * The whole batch in figures.
  *
  * Worked out by the database in one call (admin_analytics,
  * supabase/admin-analytics.sql) — and, once supabase/admin-analytics-
- * snapshot.sql has run, worked out there every ten minutes into one row
- * this reads in an instant, since past a few lakh attempts the call
- * itself outran the time a page may take. The row's parameters are kept
- * in step with the portal's own, so a new target or a new kind of paper
- * reaches the next refresh. Without the row, or with one gone stale, the
- * figures are worked out live and kept in the row for the refresh to
- * carry on from. On a database without the function yet, the rows are
- * read and counted here as before, so the deploy and the SQL may land in
- * either order.
+ * snapshot.sql has run, cut there in the background, every ten minutes
+ * or on request, into one row this reads in an instant, since past a few
+ * lakh attempts the call itself outran the time a page may take.
+ *
+ * The row carries the parameters the cut is made with. When the portal's
+ * own differ — a new target, a new kind of paper — they are written to
+ * the row and a cut asked for, and the figures last cut are shown
+ * meanwhile, with their time: the page never waits on the long call
+ * while a snapshot exists. Without the row, or with one gone stale (the
+ * job stopped), the figures are worked out live and kept in the row for
+ * the job to carry on from; and if that live call runs out of time, the
+ * figures last cut are shown rather than no page at all. On a database
+ * without the function yet, the rows are read and counted here as
+ * before, so the deploy and the SQL may land in either order.
  */
 async function compute(passT: number, targetT: number): Promise<Analytics> {
   const supabase = createAdminClient();
@@ -73,12 +89,32 @@ async function compute(passT: number, targetT: number): Promise<Analytics> {
     quietLimit: QUIET_LIMIT,
   };
 
-  // The snapshot first: fresh and worked out with these parameters, it is the page.
-  const { data: snapshot } = await supabase.from("admin_analytics_snapshot").select("params, data, computed_at").eq("key", "default").maybeSingle();
+  // The snapshot first.
+  const { data: snapshot } = await supabase.from("admin_analytics_snapshot").select("params, data, computed_at, requested_at").eq("key", "default").maybeSingle();
   const snap = (snapshot as Snapshot | null) ?? null;
   const snapAt = snap?.computed_at ? new Date(snap.computed_at).getTime() : null;
-  const snapUsable = snap?.data != null && snapAt !== null && sameParams(snap.params, params);
-  if (snapUsable && now - snapAt < SNAPSHOT_FRESH_MS) return assemble(snap.data as Aggregates, passT, targetT, snapAt);
+  const hasFigures = snap?.data != null && snapAt !== null;
+  if (snap && !sameParams(snap.params, params)) {
+    // The portal's parameters have moved on: the row takes them, and the
+    // next cut, asked for now, is made with them. The figures last cut
+    // stand meanwhile, with their time, rather than the long call.
+    await supabase
+      .from("admin_analytics_snapshot")
+      .update({ params, requested_at: new Date(now).toISOString() })
+      .eq("key", "default")
+      .then(() => undefined, () => undefined);
+    if (hasFigures) return assemble(snap.data as Aggregates, passT, targetT, snapAt as number);
+  } else if (hasFigures && now - (snapAt as number) < SNAPSHOT_FRESH_MS) {
+    return assemble(snap!.data as Aggregates, passT, targetT, snapAt as number);
+  }
+  if (snap && !hasFigures) {
+    // The row is there and its first cut is on its way: the page says so
+    // rather than making the long call itself — unless the cut asked for
+    // has not come in a quarter of an hour, when the job is not running
+    // and the live call is all there is.
+    const askedAt = snap.requested_at ? new Date(snap.requested_at).getTime() : null;
+    if (askedAt === null || now - askedAt < CUT_WAIT_MS) throw new AnalyticsPending();
+  }
 
   const { data, error } = await supabase.rpc("admin_analytics", {
     p_pass_t: passT,
@@ -90,7 +126,7 @@ async function compute(passT: number, targetT: number): Promise<Analytics> {
     p_quiet_limit: QUIET_LIMIT,
   });
   if (!error && data) {
-    // Kept for the database's refresh to carry on from, with the parameters
+    // Kept for the database's job to carry on from, with the parameters
     // it should use. A table not yet made is no reason to lose the page.
     await supabase
       .from("admin_analytics_snapshot")
@@ -102,7 +138,7 @@ async function compute(passT: number, targetT: number): Promise<Analytics> {
     // The live figures could not be worked out — a call that outran its
     // time on a big table. The figures last cut, stale as they are, beat
     // a page that does not open; the page says when they were cut.
-    if (snapUsable) return assemble(snap.data as Aggregates, passT, targetT, snapAt);
+    if (hasFigures) return assemble(snap!.data as Aggregates, passT, targetT, snapAt as number);
     throw new Error(error.message);
   }
   return assemble(aggregateRows(await readRows(supabase), passT, targetT, now), passT, targetT, now);
@@ -128,13 +164,17 @@ function sameParams(stored: Params | null, own: Params): boolean {
 }
 
 /**
- * Asks the database to cut the figures afresh now, as its ten-minute
- * refresh does. True when it did; false when the database has no refresh
- * yet, or the call ran out of time (the refresh will still come round).
+ * Asks the database to cut the figures afresh: its job, which looks every
+ * minute, makes the cut in the background. True when the request was
+ * noted; false when the database has no snapshot row yet.
  */
 export async function refreshSnapshot(): Promise<boolean> {
-  const { error } = await createAdminClient().rpc("admin_analytics_refresh");
-  return !error;
+  const { data, error } = await createAdminClient()
+    .from("admin_analytics_snapshot")
+    .update({ requested_at: new Date().toISOString() })
+    .eq("key", "default")
+    .select("key");
+  return !error && (data?.length ?? 0) > 0;
 }
 
 /** Every row the figures need, through the API. */
