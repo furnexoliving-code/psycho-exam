@@ -77,16 +77,17 @@ values ('default', jsonb_build_object(
 ))
 on conflict (key) do nothing;
 
--- The first figures now (this may take a while on a big table; the editor waits).
-select public.admin_analytics_refresh();
-
--- Then every ten minutes. Scheduling by the same name again replaces the job.
+-- Every ten minutes from now. Scheduling by the same name again replaces
+-- the job. The first figures come with the first run, within ten minutes;
+-- to have them sooner, run supabase/admin-analytics-refresh-now.sql on its
+-- own afterwards. (Not here: the editor runs a file as one transaction,
+-- and a first cut that outran the editor's own time would undo the lot.)
 select cron.schedule(
   'admin-analytics',
   '*/10 * * * *',
   $$select public.admin_analytics_refresh()$$
 );
 
--- When the figures were last cut, and how long they took
+-- The row as it stands: no figures until the first run
 select key, computed_at, took_ms, data is not null as has_figures
   from public.admin_analytics_snapshot;
