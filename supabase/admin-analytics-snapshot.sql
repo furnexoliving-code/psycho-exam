@@ -33,7 +33,9 @@ grant select, insert, update on public.admin_analytics_snapshot to service_role;
 
 -- The cut: admin_analytics with the row's parameters, the target read
 -- afresh from the exam settings, kept with the time it took. One at a
--- time: a cut still running when the next minute comes is left to finish.
+-- time: a cut still running when the next minute comes is left to
+-- finish. The lock lasts the transaction, so a cut cut short — cancelled,
+-- timed out — lets go of it by itself.
 create or replace function public.admin_analytics_refresh()
 returns void
 language plpgsql
@@ -45,40 +47,33 @@ declare
   t0     timestamptz := clock_timestamp();
   result jsonb;
 begin
-  if not pg_try_advisory_lock(hashtext('admin_analytics_refresh')) then
+  if not pg_try_advisory_xact_lock(hashtext('admin_analytics_refresh')) then
     return;
   end if;
-  begin
-    select params into p from public.admin_analytics_snapshot where key = 'default';
-    if p is null then
-      perform pg_advisory_unlock(hashtext('admin_analytics_refresh'));
-      return;
-    end if;
-    -- The institute's target as it stands now (lib/settings.ts: portal_settings 'exam').
-    p := p || jsonb_build_object('targetT', coalesce(
-           (select (value ->> 'targetT')::double precision from public.portal_settings where key = 'exam'),
-           (p ->> 'targetT')::double precision, 60));
-    result := public.admin_analytics(
-      (p ->> 'passT')::double precision,
-      (p ->> 'targetT')::double precision,
-      p -> 'batteries',
-      (select array_agg(x::integer) from jsonb_array_elements_text(p -> 'batteryIds') x),
-      coalesce((p ->> 'days')::integer, 14),
-      coalesce((p ->> 'quietDays')::integer, 7),
-      coalesce((p ->> 'quietLimit')::integer, 30)
-    );
-    update public.admin_analytics_snapshot
-       set params = p,
-           data = result,
-           computed_at = now(),
-           took_ms = (extract(epoch from clock_timestamp() - t0) * 1000)::integer,
-           requested_at = null
-     where key = 'default';
-  exception when others then
-    perform pg_advisory_unlock(hashtext('admin_analytics_refresh'));
-    raise;
-  end;
-  perform pg_advisory_unlock(hashtext('admin_analytics_refresh'));
+  select params into p from public.admin_analytics_snapshot where key = 'default';
+  if p is null then
+    return;
+  end if;
+  -- The institute's target as it stands now (lib/settings.ts: portal_settings 'exam').
+  p := p || jsonb_build_object('targetT', coalesce(
+         (select (value ->> 'targetT')::double precision from public.portal_settings where key = 'exam'),
+         (p ->> 'targetT')::double precision, 60));
+  result := public.admin_analytics(
+    (p ->> 'passT')::double precision,
+    (p ->> 'targetT')::double precision,
+    p -> 'batteries',
+    (select array_agg(x::integer) from jsonb_array_elements_text(p -> 'batteryIds') x),
+    coalesce((p ->> 'days')::integer, 14),
+    coalesce((p ->> 'quietDays')::integer, 7),
+    coalesce((p ->> 'quietLimit')::integer, 30)
+  );
+  update public.admin_analytics_snapshot
+     set params = p,
+         data = result,
+         computed_at = now(),
+         took_ms = (extract(epoch from clock_timestamp() - t0) * 1000)::integer,
+         requested_at = null
+   where key = 'default';
 end;
 $$;
 

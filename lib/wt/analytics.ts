@@ -89,8 +89,10 @@ async function compute(passT: number, targetT: number): Promise<Analytics> {
     quietLimit: QUIET_LIMIT,
   };
 
-  // The snapshot first.
-  const { data: snapshot } = await supabase.from("admin_analytics_snapshot").select("params, data, computed_at, requested_at").eq("key", "default").maybeSingle();
+  // The snapshot first. Every column, so a table from before a column was
+  // added still serves its figures (the deploy and the SQL may land in
+  // either order).
+  const { data: snapshot } = await supabase.from("admin_analytics_snapshot").select("*").eq("key", "default").maybeSingle();
   const snap = (snapshot as Snapshot | null) ?? null;
   const snapAt = snap?.computed_at ? new Date(snap.computed_at).getTime() : null;
   const hasFigures = snap?.data != null && snapAt !== null;
@@ -103,17 +105,27 @@ async function compute(passT: number, targetT: number): Promise<Analytics> {
       .update({ params, requested_at: new Date(now).toISOString() })
       .eq("key", "default")
       .then(() => undefined, () => undefined);
-    if (hasFigures) return assemble(snap.data as Aggregates, passT, targetT, snapAt as number);
+    if (hasFigures) return { ...assemble(snap.data as Aggregates, passT, targetT, snapAt as number), cutPending: true };
   } else if (hasFigures && now - (snapAt as number) < SNAPSHOT_FRESH_MS) {
-    return assemble(snap!.data as Aggregates, passT, targetT, snapAt as number);
+    const asked = snap!.requested_at ? new Date(snap!.requested_at).getTime() : null;
+    return { ...assemble(snap!.data as Aggregates, passT, targetT, snapAt as number), cutPending: asked !== null && asked > (snapAt as number) };
   }
   if (snap && !hasFigures) {
     // The row is there and its first cut is on its way: the page says so
     // rather than making the long call itself — unless the cut asked for
     // has not come in a quarter of an hour, when the job is not running
-    // and the live call is all there is.
+    // and the live call is all there is. A row nobody asked a cut of yet
+    // (seeded before the request flag existed) is asked now, and the live
+    // call made this once.
     const askedAt = snap.requested_at ? new Date(snap.requested_at).getTime() : null;
-    if (askedAt === null || now - askedAt < CUT_WAIT_MS) throw new AnalyticsPending();
+    if (askedAt !== null && now - askedAt < CUT_WAIT_MS) throw new AnalyticsPending();
+    if (askedAt === null) {
+      await supabase
+        .from("admin_analytics_snapshot")
+        .update({ requested_at: new Date(now).toISOString() })
+        .eq("key", "default")
+        .then(() => undefined, () => undefined);
+    }
   }
 
   const { data, error } = await supabase.rpc("admin_analytics", {
@@ -164,17 +176,22 @@ function sameParams(stored: Params | null, own: Params): boolean {
 }
 
 /**
- * Asks the database to cut the figures afresh: its job, which looks every
- * minute, makes the cut in the background. True when the request was
- * noted; false when the database has no snapshot row yet.
+ * Asks the database to cut the figures afresh, and tries to have it done
+ * at once: the request is noted, so the job that looks every minute makes
+ * the cut whatever happens to the call that follows, which runs the same
+ * cut now and is simply let go if it runs out of time. True when the
+ * request was noted; false when the database has no snapshot row yet.
  */
 export async function refreshSnapshot(): Promise<boolean> {
-  const { data, error } = await createAdminClient()
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
     .from("admin_analytics_snapshot")
     .update({ requested_at: new Date().toISOString() })
     .eq("key", "default")
     .select("key");
-  return !error && (data?.length ?? 0) > 0;
+  if (error || !(data?.length ?? 0)) return false;
+  await supabase.rpc("admin_analytics_tick").then(() => undefined, () => undefined);
+  return true;
 }
 
 /** Every row the figures need, through the API. */
@@ -198,12 +215,12 @@ async function readRows(supabase: ReturnType<typeof createAdminClient>): Promise
 }
 
 /**
- * The batch's figures, kept for five minutes. Keeping them means an admin
+ * The batch's figures, kept for a minute. Keeping them means an admin
  * who opens the page ten times in a morning costs the database one small
  * read of the snapshot, and the students' own pages none.
  */
 export async function batchAnalytics(passT: number, targetT: number): Promise<Analytics> {
-  return unstable_cache(() => compute(passT, targetT), ["admin-analytics", String(passT), String(targetT)], { tags: [TAG], revalidate: 300 })();
+  return unstable_cache(() => compute(passT, targetT), ["admin-analytics", String(passT), String(targetT)], { tags: [TAG], revalidate: 60 })();
 }
 
 /** The admin asked for fresh figures: the next visit works them out again. */

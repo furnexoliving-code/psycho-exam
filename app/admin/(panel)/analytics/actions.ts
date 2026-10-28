@@ -12,6 +12,6 @@ export async function refreshAnalytics(_prev: SaveState | null, _formData: FormD
     const asked = await refreshSnapshot();
     analyticsChanged();
     revalidatePath("/admin/analytics");
-    return asked ? "a fresh cut is being made in the database; reload in a minute or two" : "worked out afresh";
+    return asked ? "a fresh cut is being made in the database" : "worked out afresh (no snapshot yet: run supabase/admin-analytics-snapshot.sql)";
   });
 }

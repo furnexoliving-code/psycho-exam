@@ -76,6 +76,8 @@ export interface MockSummary {
 
 export interface Analytics {
   asOf: string;
+  /** A fresh cut of the figures has been asked of the database and is on its way. */
+  cutPending?: boolean;
   passT: number;
   targetT: number;
   days: DayActivity[];
