@@ -47,6 +47,15 @@ interface Snapshot {
 const SNAPSHOT_FRESH_MS = 30 * 60 * 1000;
 /** How long a cut asked for may take before the job is taken to have stopped. */
 const CUT_WAIT_MS = 15 * 60 * 1000;
+/**
+ * How long the page waits on the live call before giving it up for the
+ * figures last cut. The database puts no limit on the server's calls, and
+ * a page is cut off at forty seconds with nothing shown: the limit has to
+ * be the page's own, with time left to answer.
+ */
+const LIVE_CALL_MS = 25 * 1000;
+/** How long Refresh now waits for the cut it starts; past that the job makes it. */
+const REFRESH_CALL_MS = 8 * 1000;
 
 /** The snapshot row exists and its first cut has not been made yet: the page says so and asks for a reload. */
 export class AnalyticsPending extends Error {
@@ -109,6 +118,14 @@ async function compute(passT: number, targetT: number): Promise<Analytics> {
   } else if (hasFigures && now - (snapAt as number) < SNAPSHOT_FRESH_MS) {
     const asked = snap!.requested_at ? new Date(snap!.requested_at).getTime() : null;
     return { ...assemble(snap!.data as Aggregates, passT, targetT, snapAt as number), cutPending: asked !== null && asked > (snapAt as number) };
+  } else if (hasFigures) {
+    // Figures gone stale: the job has stopped, or a cut keeps failing. A
+    // cut is asked for all the same, and the live call tried below.
+    await supabase
+      .from("admin_analytics_snapshot")
+      .update({ requested_at: new Date(now).toISOString() })
+      .eq("key", "default")
+      .then(() => undefined, () => undefined);
   }
   if (snap && !hasFigures) {
     // The row is there and its first cut is on its way: the page says so
@@ -128,15 +145,17 @@ async function compute(passT: number, targetT: number): Promise<Analytics> {
     }
   }
 
-  const { data, error } = await supabase.rpc("admin_analytics", {
-    p_pass_t: passT,
-    p_target_t: targetT,
-    p_batteries: params.batteries,
-    p_battery_ids: params.batteryIds,
-    p_days: DAYS,
-    p_quiet_days: QUIET_AFTER_DAYS,
-    p_quiet_limit: QUIET_LIMIT,
-  });
+  const { data, error } = await supabase
+    .rpc("admin_analytics", {
+      p_pass_t: passT,
+      p_target_t: targetT,
+      p_batteries: params.batteries,
+      p_battery_ids: params.batteryIds,
+      p_days: DAYS,
+      p_quiet_days: QUIET_AFTER_DAYS,
+      p_quiet_limit: QUIET_LIMIT,
+    })
+    .abortSignal(AbortSignal.timeout(LIVE_CALL_MS));
   if (!error && data) {
     // Kept for the database's job to carry on from, with the parameters
     // it should use. A table not yet made is no reason to lose the page.
@@ -190,7 +209,10 @@ export async function refreshSnapshot(): Promise<boolean> {
     .eq("key", "default")
     .select("key");
   if (error || !(data?.length ?? 0)) return false;
-  await supabase.rpc("admin_analytics_tick").then(() => undefined, () => undefined);
+  await supabase
+    .rpc("admin_analytics_tick")
+    .abortSignal(AbortSignal.timeout(REFRESH_CALL_MS))
+    .then(() => undefined, () => undefined);
   return true;
 }
 
