@@ -29,7 +29,7 @@ export function AnalyticsView({ a }: { a: Analytics }) {
           </p>
         </div>
         <RowForm action={refreshAnalytics} className="flex items-center gap-2 text-[11.5px] text-gray-500">
-          <span>Figures as of {formatDateTime(a.asOf)} · kept for 5 minutes</span>
+          <span>Figures as of {formatDateTime(a.asOf)} · cut every 10 minutes</span>
           <PendingButton pendingLabel="Working…" className="rounded border border-gray-400 bg-white px-3 py-1 font-semibold text-gray-800 hover:bg-gray-100">
             Refresh now
           </PendingButton>
