@@ -8,6 +8,7 @@ import { cohortFromMoments } from "./cohort";
 import { tScore } from "./tscore";
 import { inSittingOrder, sittingOrder } from "./shuffle";
 import { PAPERS_TAG } from "./db";
+import { missingFunction } from "./session";
 
 /**
  * Full Mock tests: five published papers, one per battery, sat in the
@@ -172,12 +173,34 @@ export async function listPublishedMocks(): Promise<MockTest[]> {
   )();
 }
 
-/** One mock by slug, with its papers in order. Null when there is none. */
+/** One mock by slug, with its papers in order, from the shared cache. Null when there is none. */
 export async function loadMock(slug: string): Promise<{ mock: MockTest; papers: MockPaper[] } | null> {
-  const { data, error } = await selectMocks((q) => q.eq("slug", slug).maybeSingle());
-  if (error || !data) return null;
-  const mock = toMock(data as unknown as MockRow);
-  return { mock, papers: await papersOf(mock.paperIds) };
+  return mockWithPapers("slug", slug);
+}
+
+/**
+ * A mock and its papers, by slug or by id, from the shared cache: every
+ * page of a sitting (the test, its result, the break, the dashboard) asks
+ * for them, and they change only when the admin saves the mock or a
+ * paper, which empties the cache. Three reads a view become none.
+ */
+async function mockWithPapers(by: "slug" | "id", key: string): Promise<{ mock: MockTest; papers: MockPaper[] } | null> {
+  return unstable_cache(
+    async () => {
+      const { data, error } = await selectMocks((q) => q.eq(by, key).maybeSingle());
+      if (error) throw new Error(error.message);
+      if (!data) return null;
+      const mock = toMock(data as unknown as MockRow);
+      // A failed read of the papers is thrown, never kept: a cached mock
+      // with no papers, or with none ready, would shut the mock for every
+      // candidate on it until the cache turned over.
+      const read = await readMockPapers(mock.paperIds);
+      if (!read.ok) throw new Error("Could not read the mock's papers");
+      return { mock, papers: read.papers };
+    },
+    ["mock-with-papers", by, key],
+    { tags: [MOCKS_TAG, PAPERS_TAG], revalidate: 120 },
+  )();
 }
 
 /** The papers named, in the hall's order; a deleted paper is simply absent. */
@@ -370,10 +393,9 @@ export async function currentMockStep(userId: string): Promise<MockStep | null> 
   if (error || !data) return null;
   const sitting = data as SittingRow;
 
-  const { data: mockRow } = await selectMocks((q) => q.eq("id", sitting.mock_id).maybeSingle());
-  if (!mockRow) return null;
-  const mock = toMock(mockRow as unknown as MockRow);
-  const papers = await papersOf(mock.paperIds);
+  const loaded = await mockWithPapers("id", sitting.mock_id).catch(() => null);
+  if (!loaded) return null;
+  const { mock, papers } = loaded;
   const attemptIds = (sitting.attempt_ids ?? []).map((id) => id ?? "");
   const realIds = attemptIdsIn(attemptIds, papers);
   const { data: attempts, error: attemptsError } = realIds.length
@@ -712,26 +734,48 @@ export async function latestMockResult(mockId: string, userId: string): Promise<
  * result counts it.
  */
 export async function mockStanding(mockId: string, userId: string): Promise<{ rank: number; outOf: number; percentile: number } | null> {
-  const best = await bestComposites(mockId);
-  const mine = best.get(userId);
-  if (mine === undefined) return null;
-  let better = 0;
-  let worse = 0;
-  for (const [, c] of best) {
-    if (c > mine) better++;
-    else if (c < mine) worse++;
-  }
-  return { rank: better + 1, outOf: best.size, percentile: (worse / best.size) * 100 };
+  // Kept for two minutes per candidate: a scorecard reopened a few times
+  // after the mock costs one call, not one pass over every result each time.
+  return unstable_cache(
+    async () => {
+      const { data, error } = await createAdminClient().rpc("mock_standing", { p_mock: mockId, p_user: userId });
+      if (!error) {
+        const row = (data as { rank: number; out_of: number; percentile: number | null }[] | null)?.[0];
+        return row ? { rank: Number(row.rank), outOf: Number(row.out_of), percentile: Number(row.percentile ?? 0) } : null;
+      }
+      if (!missingFunction(error)) throw new Error(error.message);
+      // A database without the function yet: the rows, as before.
+      const best = await bestComposites(mockId);
+      const mine = best.get(userId);
+      if (mine === undefined) return null;
+      let better = 0;
+      let worse = 0;
+      for (const [, c] of best) {
+        if (c > mine) better++;
+        else if (c < mine) worse++;
+      }
+      return { rank: better + 1, outOf: best.size, percentile: (worse / best.size) * 100 };
+    },
+    ["mock-standing", mockId, userId],
+    { tags: [MOCKS_TAG], revalidate: 120 },
+  )();
 }
 
-/** Each candidate's best composite of this mock. */
-async function bestComposites(mockId: string): Promise<Map<string, number>> {
-  const best = new Map<string, number>();
+/**
+ * Each candidate's best composite of this mock, best first — the top
+ * `limit`, or all — worked out by the database (supabase/mock-standing.sql);
+ * on a database without the function yet, read from the rows as before.
+ */
+async function bestComposites(mockId: string, limit?: number): Promise<Map<string, number>> {
   const supabase = createAdminClient();
-  const data = await fetchAll<{ user_id: string | null; composite: number | string | null }>((from, to) =>
+  const { data, error } = await supabase.rpc("mock_best_composites", { p_mock: mockId, p_limit: limit ?? null });
+  if (!error) return new Map(((data as { user_id: string; composite: number | string }[] | null) ?? []).map((r) => [r.user_id, Number(r.composite)]));
+  if (!missingFunction(error)) throw new Error(error.message);
+  const best = new Map<string, number>();
+  const rows = await fetchAll<{ user_id: string | null; composite: number | string | null }>((from, to) =>
     supabase.from("mock_results").select("user_id, composite").eq("mock_id", mockId).not("composite", "is", null).not("user_id", "is", null).order("id").range(from, to),
   );
-  for (const r of data) {
+  for (const r of rows) {
     const c = Number(r.composite);
     const u = r.user_id as string;
     if (!best.has(u) || (best.get(u) as number) < c) best.set(u, c);
@@ -746,26 +790,32 @@ export interface LeaderRow {
   rank: number;
 }
 
-/** The top of a mock's table, with names. */
+/** The top of a mock's table, with names, kept for two minutes: the same for everyone who looks. */
 export async function mockLeaderboard(mockId: string, limit = 10): Promise<LeaderRow[]> {
-  const best = await bestComposites(mockId);
-  const sorted = [...best.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit);
-  if (sorted.length === 0) return [];
-  const { data: profiles } = await createAdminClient()
-    .from("profiles")
-    .select("id, full_name")
-    .in(
-      "id",
-      sorted.map(([u]) => u),
-    );
-  const name = new Map((profiles ?? []).map((p) => [p.id as string, (p.full_name as string) || "Candidate"]));
-  let rank = 0;
-  let last: number | null = null;
-  return sorted.map(([userId, composite], i) => {
-    if (last === null || composite < last) rank = i + 1;
-    last = composite;
-    return { userId, name: name.get(userId) ?? "Candidate", composite, rank };
-  });
+  return unstable_cache(
+    async () => {
+      const best = await bestComposites(mockId, limit);
+      const sorted = [...best.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit);
+      if (sorted.length === 0) return [];
+      const { data: profiles } = await createAdminClient()
+        .from("profiles")
+        .select("id, full_name")
+        .in(
+          "id",
+          sorted.map(([u]) => u),
+        );
+      const name = new Map((profiles ?? []).map((p) => [p.id as string, (p.full_name as string) || "Candidate"]));
+      let rank = 0;
+      let last: number | null = null;
+      return sorted.map(([userId, composite], i) => {
+        if (last === null || composite < last) rank = i + 1;
+        last = composite;
+        return { userId, name: name.get(userId) ?? "Candidate", composite, rank };
+      });
+    },
+    ["mock-leaderboard", mockId, String(limit)],
+    { tags: [MOCKS_TAG], revalidate: 120 },
+  )();
 }
 
 /** Every result of a mock, for the panel's table. */

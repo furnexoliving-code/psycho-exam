@@ -5,7 +5,7 @@ import { NameForm } from "@/components/NameForm";
 import { ChangePassword } from "@/components/ChangePassword";
 import { isConfigured, panelHome, requireUser } from "@/lib/auth";
 import { photoUrlOf } from "@/lib/photo";
-import Link from "next/link";
+import Link from "@/components/Link";
 import { formatDate } from "@/lib/format-time";
 import { enrollmentActive, enrollmentsOf, KIND_LABEL } from "@/lib/packages";
 
