@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { formatDate, formatDateTime, formatDayMonth } from "@/lib/format-time";
 import { daysUntil, type ExamSettings } from "@/lib/settings";
 import type { Notice } from "@/lib/notices";

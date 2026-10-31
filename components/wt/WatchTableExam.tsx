@@ -16,7 +16,7 @@ import { QuestionPaperView } from "./QuestionPaperView";
 import { ConfirmBox } from "./ConfirmBox";
 
 /** How often the answer sheet goes up to the server while the questions are open. */
-const SAVE_EVERY_MS = 30000;
+const SAVE_EVERY_MS = 60000;
 
 /**
  * The exam screen: the diagram fixed on the left, the questions scrolling on
@@ -110,8 +110,8 @@ export function WatchTableExam({
   }, [helpOpen]);
 
   // The sheet goes up to the server while the questions are open — every
-  // thirty seconds when it has changed, and at once when the tab is hidden —
-  // so a browser that dies mid-paper has lost at most a few seconds, and a
+  // minute when it has changed, and at once when the tab is hidden —
+  // so a browser that dies mid-paper has lost at most a minute, and a
   // paper submitted after the bell is marked from what the server held at
   // the bell. It used to go up after every answer; on a busy evening that
   // was most of what the database wrote.

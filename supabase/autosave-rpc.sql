@@ -1,6 +1,6 @@
 -- The autosave in one round trip (14 Oct 2026). Run once in the Supabase SQL editor.
 --
--- The exam page sends the sheet every fifteen seconds while the clock runs. Each
+-- The exam page sends the sheet every minute while the clock runs. Each
 -- save used to cost four statements: who is asking (profiles), the paper,
 -- the open sitting, then the update. With the busiest hour at 2.5 lakh saves
 -- that was most of the database's work. This function does all of it in one

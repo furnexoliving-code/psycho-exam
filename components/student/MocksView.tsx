@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { HALL_ORDER, hallPosition } from "@/lib/wt/categories";
 import { formatDateTime, formatDayMonth } from "@/lib/format-time";
 import { StudentHeader } from "@/components/StudentHeader";

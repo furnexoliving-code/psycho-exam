@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { StudentHeader } from "@/components/StudentHeader";
 import { BATTERIES } from "@/lib/wt/categories";
 import type { BatteryProgress } from "@/lib/wt/progress";

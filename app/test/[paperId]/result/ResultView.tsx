@@ -5,7 +5,7 @@ import { ShareResult } from "@/components/ShareResult";
 import { ReportQuestion } from "@/components/wt/ReportQuestion";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/Link";
 import { PortalBanner } from "@/components/wt/PortalBanner";
 import type {
   CutOff,

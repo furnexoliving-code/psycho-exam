@@ -3,9 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { LAUNCH } from "@/lib/launch";
 
 /**
- * Refreshes the Supabase session on every request and guards the private
- * areas. Admin pages are checked again on the server inside the page itself —
- * middleware is a convenience redirect, never the only gate.
+ * Refreshes the Supabase session on every page request and guards the
+ * private areas. Admin pages are checked again on the server inside the
+ * page itself — middleware is a convenience redirect, never the only gate.
+ *
+ * The API routes are left out (the matcher below): none of the redirects
+ * here applies to them, each one checks the account itself, and the
+ * autosave alone called this a lakh times a day for nothing.
  */
 export async function middleware(request: NextRequest) {
   // The sample test, while closed, is a real 404: the page's own
@@ -86,5 +90,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg)$).*)"],
+  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg)$).*)"],
 };

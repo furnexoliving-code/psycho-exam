@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { ShareResult } from "@/components/ShareResult";
 import { scoreOutOf30, type LeaderRow, type MockResult } from "@/lib/wt/mock";
 import { hallPosition } from "@/lib/wt/categories";

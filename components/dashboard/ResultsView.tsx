@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { formatDateTime } from "@/lib/format-time";
 import { StudentHeader } from "@/components/StudentHeader";
 import { BATTERIES, CATEGORIES, HALL_ORDER } from "@/lib/wt/categories";

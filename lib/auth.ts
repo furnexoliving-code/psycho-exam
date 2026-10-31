@@ -150,7 +150,7 @@ const readProfile = cache(async (): Promise<Session> => {
 
 /**
  * Who the request's token says is signed in, with no profile lookup: for
- * the autosave, which runs every thirty seconds and only ever writes the
+ * the autosave, which runs every minute and only ever writes the
  * caller's own open sitting. A switched-off or elsewhere-signed-in account
  * can at most keep saving its own sheet until the token runs out; the
  * pages, which decide what may be seen, keep the full check.

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { formatDayMonth } from "@/lib/format-time";
 import { StudentHeader } from "@/components/StudentHeader";
 import { BATTERIES } from "@/lib/wt/categories";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { BuyButton } from "@/components/BuyButton";
 import { CONTACT } from "@/components/landing/LandingPage";
 import { formatDate } from "@/lib/format-time";
