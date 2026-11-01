@@ -184,7 +184,7 @@ export interface BatchOutcome {
   writeMs: number;
   /** How many the database listed for this batch; none means every picture has been tried. */
   listed: number;
-  /** The last name listed: where the next batch starts from. */
+  /** The last name the batch got to: where the next batch starts from. Names listed but not reached stay pending. */
   last: string;
 }
 
@@ -210,6 +210,11 @@ export async function mirrorBatch(after: string): Promise<BatchOutcome> {
   const deadline = started + BATCH_MS + GRACE_MS;
   const queue: { name: string; mimetype: string | null }[] = [];
   const failed: Failure[] = [];
+  // The list is in the database's name order and the workers take from
+  // its front, so the name taken last is the furthest the batch got (in
+  // that order, not the browser's: assigned, never compared); the names
+  // behind it that time ran out for are listed again by the next batch.
+  let reached = after;
   let copied = 0;
   let readMs = 0;
   let writeMs = 0;
@@ -236,6 +241,7 @@ export async function mirrorBatch(after: string): Promise<BatchOutcome> {
     else {
       failed.push({ name: row.name, error: BAD_NAME });
       pending.push({ name: row.name, bytes: null, content_type: null, mirrored_at: null, error: BAD_NAME });
+      reached = row.name;
     }
   }
 
@@ -243,6 +249,7 @@ export async function mirrorBatch(after: string): Promise<BatchOutcome> {
     Array.from({ length: AT_ONCE }, async () => {
       while (queue.length > 0 && Date.now() - started < BATCH_MS) {
         const row = queue.shift()!;
+        reached = row.name;
         try {
           const t0 = Date.now();
           const { bytes, contentType } = await readFromSupabase(row.name, row.mimetype, deadline);
@@ -266,15 +273,14 @@ export async function mirrorBatch(after: string): Promise<BatchOutcome> {
   console.log(`pictures: batch of ${(data ?? []).length} — ${copied} copied, ${failed.length} failed in ${Date.now() - started} ms (read ${copied ? Math.round(readMs / copied) : 0} ms, write ${copied ? Math.round(writeMs / copied) : 0} ms a picture)${recordError ? `; record failed: ${recordError}` : ""}`);
   if (recordError) throw new Error(`${copied} copied, but could not record them all: ${recordError}`);
 
-  const listed = (data ?? []) as { name: string }[];
   return {
     copied,
     failed,
     seconds: Math.round((Date.now() - started) / 100) / 10,
     readMs: copied ? Math.round(readMs / copied) : 0,
     writeMs: copied ? Math.round(writeMs / copied) : 0,
-    listed: listed.length,
-    last: listed.length ? listed[listed.length - 1].name : after,
+    listed: (data ?? []).length,
+    last: reached,
   };
 }
 

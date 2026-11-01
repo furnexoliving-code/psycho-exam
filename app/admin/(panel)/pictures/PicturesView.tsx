@@ -109,6 +109,14 @@ export function PicturesView({
             : p,
         );
         if (outcome.listed === 0) {
+          // Nothing left after where this run got to. A run that began
+          // part-way (after a reload or a retry) looks again from the top
+          // before calling the copy done, so nothing before its start, and
+          // nothing uploaded meanwhile, is left behind.
+          if (cursor.current !== "") {
+            cursor.current = "";
+            continue;
+          }
           const counted = await countProgress().catch(() => null);
           const final = counted && counted.ok ? counted.value : null;
           if (final) setProgress(final);
