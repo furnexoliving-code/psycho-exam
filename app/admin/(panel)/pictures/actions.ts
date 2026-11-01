@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAdmin } from "@/lib/auth";
-import { checkCopies, forgetFailures, mirrorBatch, probeConnection, type BatchOutcome, type Checked, type Probe } from "@/lib/images/mirror";
+import { checkCopies, forgetFailures, mirrorBatch, mirrorProgress, probeConnection, type BatchOutcome, type Checked, type MirrorProgress, type Probe } from "@/lib/images/mirror";
 
 /** What a button gets back: the value, or why not — never a thrown error the browser would swallow. */
 export type Reply<T> = { ok: true; value: T } | { ok: false; error: string };
@@ -15,9 +15,14 @@ async function reply<T>(body: () => Promise<T>): Promise<Reply<T>> {
   }
 }
 
-/** Copies the next batch of pictures not yet copied. */
-export async function copyNextBatch(): Promise<Reply<BatchOutcome>> {
-  return reply(mirrorBatch);
+/** Copies the next batch of pictures not yet tried, from after the name given. */
+export async function copyNextBatch(after: string): Promise<Reply<BatchOutcome>> {
+  return reply(() => mirrorBatch(String(after ?? "")));
+}
+
+/** A true count of the copy, taken once a run ends. */
+export async function countProgress(): Promise<Reply<MirrorProgress>> {
+  return reply(mirrorProgress);
 }
 
 /** Forgets the failures so Copy tries them again. */

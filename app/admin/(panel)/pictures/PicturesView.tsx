@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { isMissing, type Failure } from "@/lib/images/failures";
 import type { BatchOutcome, Checked, MirrorProgress, Probe } from "@/lib/images/mirror";
-import { checkPictures, copyNextBatch, retryFailures, testConnection } from "./actions";
+import { checkPictures, copyNextBatch, countProgress, retryFailures, testConnection } from "./actions";
 
 /**
  * The pictures' copy on Cloudflare R2, run from here: Copy takes the next
@@ -47,6 +47,8 @@ export function PicturesView({
   const [probes, setProbes] = useState<Probe[] | null>(null);
   const [probeError, setProbeError] = useState<string | null>(null);
   const stop = useRef(false);
+  /** Where the next batch starts: the last name the previous one listed. Empty: from the top. */
+  const cursor = useRef("");
 
   const ready = missing.length === 0 && progress !== null;
   /** Every picture tried. */
@@ -62,21 +64,39 @@ export function PicturesView({
     setNote(null);
     try {
       for (;;) {
-        const reply = await copyNextBatch();
+        const reply = await copyNextBatch(cursor.current);
         if (!reply.ok) {
           setError(reply.error);
           break;
         }
         const outcome = reply.value;
-        setProgress(outcome.progress);
+        cursor.current = outcome.last;
         setLast(outcome);
         if (outcome.failed.length > 0) setFailures((f) => [...outcome.failed, ...f].slice(0, 20));
-        if (outcome.progress.remaining === 0) {
-          const left = outcome.progress.failed - outcome.progress.missing;
+        // The page keeps its own count from what each batch reports; a true
+        // one from the database is taken when the run ends.
+        const missingNow = outcome.failed.filter(isMissing).length;
+        setProgress((p) =>
+          p
+            ? {
+                ...p,
+                copied: p.copied + outcome.copied,
+                failed: p.failed + outcome.failed.length,
+                missing: p.missing + missingNow,
+                remaining: Math.max(0, p.remaining - outcome.copied - outcome.failed.length),
+              }
+            : p,
+        );
+        if (outcome.listed === 0) {
+          const counted = await countProgress().catch(() => null);
+          const final = counted && counted.ok ? counted.value : null;
+          if (final) setProgress(final);
+          const left = final ? final.failed - final.missing : 0;
+          const missing = final ? final.missing : 0;
           if (left > 0) {
             setNote({ tone: "warn", text: `Every picture has been tried, but ${left} ${left === 1 ? "was" : "were"} refused. Read the reasons below, press Retry the failed ones, then Copy again.` });
-          } else if (outcome.progress.missing > 0) {
-            setNote({ tone: "good", text: `Every picture is copied. ${outcome.progress.missing} ${outcome.progress.missing === 1 ? "is" : "are"} missing from Supabase itself, so students never saw ${outcome.progress.missing === 1 ? "it" : "them"}; leave ${outcome.progress.missing === 1 ? "it" : "them"} be.` });
+          } else if (missing > 0) {
+            setNote({ tone: "good", text: `Every picture is copied. ${missing} ${missing === 1 ? "is" : "are"} missing from Supabase itself, so students never saw ${missing === 1 ? "it" : "them"}; leave ${missing === 1 ? "it" : "them"} be.` });
           } else {
             setNote({ tone: "good", text: "Every picture is copied." });
           }
@@ -117,6 +137,7 @@ export function PicturesView({
       return;
     }
     setFailures([]);
+    cursor.current = "";
     setProgress((p) => (p ? { ...p, remaining: p.remaining + p.failed, failed: 0, missing: 0 } : p));
     setNote({ tone: "warn", text: `${reply.value} failure${reply.value === 1 ? "" : "s"} forgotten. Press Copy to try ${reply.value === 1 ? "it" : "them"} again.` });
   };
@@ -188,7 +209,7 @@ export function PicturesView({
         <Card title="Database">
           {progressError ? (
             <p className="text-[13px] text-red-700">
-              Not ready: run <code className="rounded bg-gray-100 px-1">supabase/images-r2.sql</code> in the Supabase SQL editor, then reload this page.
+              {/took too long/.test(progressError) ? "The count ran out of time: reload this page in a minute." : <>Not ready: run <code className="rounded bg-gray-100 px-1">supabase/images-r2.sql</code> in the Supabase SQL editor, then reload this page.</>}
               <span className="mt-1 block break-words text-[11px] text-gray-500">{progressError}</span>
             </p>
           ) : (
@@ -265,7 +286,7 @@ export function PicturesView({
           </ul>
         )}
         <p className="mt-2 text-[11.5px] text-gray-500">
-          Each batch copies up to 150 pictures and the next starts by itself. Keep this tab open until it says every picture is copied; closing it
+          Each batch copies up to 300 pictures and the next starts by itself. Keep this tab open until it says every picture is copied; closing it
           only pauses — Copy goes on from where it stopped.
           <span className="block" lang="hi">यह tab खुला रखें; बंद करने पर काम रुकता है, मिटता नहीं — दोबारा Copy दबाने पर वहीं से आगे बढ़ता है।</span>
         </p>

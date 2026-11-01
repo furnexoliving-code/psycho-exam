@@ -31,8 +31,8 @@ const CACHE_CONTROL = "public, max-age=31536000, immutable";
  * not answered in sixty seconds — and what is done is recorded as the
  * batch goes, so a call cut off part-way still keeps its copies.
  */
-const PER_BATCH = 150;
-const AT_ONCE = 8;
+const PER_BATCH = 300;
+const AT_ONCE = 16;
 const BATCH_MS = 12_000;
 /**
  * A copy under way when the batch's time is up may run on this much
@@ -157,7 +157,12 @@ export interface MirrorProgress {
 /** Where the copy stands, counted in the database. */
 export async function mirrorProgress(): Promise<MirrorProgress> {
   const { data, error } = await createAdminClient().rpc("image_mirror_progress");
-  if (error) throw new Error(`Could not count the pictures: ${error.message} — run supabase/images-r2.sql in the Supabase SQL editor first`);
+  if (error) {
+    // A count that ran out of time on a small, cold database is not the
+    // SQL missing: say which, since the fix differs (wait and reload).
+    if (/statement timeout/i.test(error.message)) throw new Error(`Counting the pictures took too long (${error.message}). Reload the page in a minute; if it keeps happening, run the newest supabase/images-r2.sql, which counts in one pass.`);
+    throw new Error(`Could not count the pictures: ${error.message} — run supabase/images-r2.sql in the Supabase SQL editor first`);
+  }
   const row = (Array.isArray(data) ? data[0] : data) as Partial<Record<keyof MirrorProgress, number | string>> | undefined;
   const n = (v: number | string | undefined) => Number(v ?? 0) || 0;
   return { total: n(row?.total), copied: n(row?.copied), failed: n(row?.failed), missing: n(row?.missing), remaining: n(row?.remaining) };
@@ -177,17 +182,29 @@ export interface BatchOutcome {
   /** Where the time went, per picture: the read from Supabase and the write to R2, on average. */
   readMs: number;
   writeMs: number;
-  progress: MirrorProgress;
+  /** How many the database listed for this batch; none means every picture has been tried. */
+  listed: number;
+  /** The last name listed: where the next batch starts from. */
+  last: string;
 }
 
 type MirrorRow = { name: string; bytes: number | null; content_type: string | null; mirrored_at: string | null; error: string | null };
 
-/** One press of Copy: the next pictures not yet tried, AT_ONCE at a time, until the batch or its time is done. */
-export async function mirrorBatch(): Promise<BatchOutcome> {
+/**
+ * One press of Copy: the next pictures not yet tried, from after the
+ * name the last batch ended on, AT_ONCE at a time, until the batch or
+ * its time is done. The count of the whole bucket is not taken here —
+ * on a small database that is seconds of work each time, felt by every
+ * student's page — the page keeps the count itself from what each batch
+ * reports, and takes a true one at the end.
+ */
+export async function mirrorBatch(after: string): Promise<BatchOutcome> {
   const r2 = settings();
   const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("image_mirror_pending", { p_limit: PER_BATCH });
+  const listedAt = Date.now();
+  const { data, error } = await supabase.rpc("image_mirror_pending", { p_limit: PER_BATCH, p_after: String(after ?? "").slice(0, 300) });
   if (error) throw new Error(`Could not list the pictures still to copy: ${error.message} — run supabase/images-r2.sql in the Supabase SQL editor first`);
+  console.log(`pictures: ${(data ?? []).length} listed in ${Date.now() - listedAt} ms`);
 
   const started = Date.now();
   const deadline = started + BATCH_MS + GRACE_MS;
@@ -246,15 +263,18 @@ export async function mirrorBatch(): Promise<BatchOutcome> {
   );
   record();
   await recording;
+  console.log(`pictures: batch of ${(data ?? []).length} — ${copied} copied, ${failed.length} failed in ${Date.now() - started} ms (read ${copied ? Math.round(readMs / copied) : 0} ms, write ${copied ? Math.round(writeMs / copied) : 0} ms a picture)${recordError ? `; record failed: ${recordError}` : ""}`);
   if (recordError) throw new Error(`${copied} copied, but could not record them all: ${recordError}`);
 
+  const listed = (data ?? []) as { name: string }[];
   return {
     copied,
     failed,
     seconds: Math.round((Date.now() - started) / 100) / 10,
     readMs: copied ? Math.round(readMs / copied) : 0,
     writeMs: copied ? Math.round(writeMs / copied) : 0,
-    progress: await mirrorProgress(),
+    listed: listed.length,
+    last: listed.length ? listed[listed.length - 1].name : after,
   };
 }
 
@@ -278,7 +298,7 @@ export async function probeConnection(): Promise<Probe[]> {
   const supabase = createAdminClient();
   let name: string | null = null;
   await timed(out, "List one picture still to copy (database)", async () => {
-    const { data, error } = await supabase.rpc("image_mirror_pending", { p_limit: 1 });
+    const { data, error } = await supabase.rpc("image_mirror_pending", { p_limit: 1, p_after: "" });
     if (error) throw new Error(error.message);
     const first = (data as { name: string }[] | null)?.[0]?.name ?? null;
     name = first && isObjectName(first) ? first : null;
