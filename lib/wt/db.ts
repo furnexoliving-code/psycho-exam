@@ -1,4 +1,5 @@
 import { revalidateTag, unstable_cache } from "next/cache";
+import { rehostDeep } from "@/lib/images/host";
 import { requireEditor } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -165,7 +166,11 @@ const PUBLIC_QUESTION_COLUMNS =
  */
 export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | null> {
   try {
-    return await unstable_cache(
+    // The links are rewritten to the picture domain (lib/images/host.ts)
+    // on the way out, not inside the cached read: the cache then holds
+    // the database's own links, and a change of domain — or a return to
+    // Supabase — takes effect with the deploy, not when the cache turns.
+    return rehostDeep(await unstable_cache(
       async () => {
         const supabase = createAdminClient();
 
@@ -193,7 +198,7 @@ export async function loadPaperForCandidate(slug: string): Promise<WatchPaper | 
       },
       ["published-paper", slug],
       { tags: [PAPERS_TAG, paperTag(slug)], revalidate: CACHE_SECONDS },
-    )();
+    )());
   } catch (error) {
     if (error instanceof NotPublished) return null;
     throw error;
@@ -230,10 +235,13 @@ export async function loadPaperLive(slug: string): Promise<WatchPaper | null> {
     throw new Error(`Could not read the questions for "${slug}": ${error.message}`);
   }
 
-  return toPaper(row as PaperRow, (questions ?? []) as QuestionRow[]);
+  return rehostDeep(toPaper(row as PaperRow, (questions ?? []) as QuestionRow[]));
 }
 
-/** The paper as the admin edits it, answer key included. */
+/**
+ * The paper as the admin edits it, answer key included. Its links are the
+ * database's own, never rewritten: the editor's forms write them back.
+ */
 export async function loadPaperForAdmin(slug: string): Promise<WatchPaper | null> {
   await requireEditor();
   // SELECT on watch_questions is revoked from `authenticated` so a candidate
@@ -415,7 +423,7 @@ export interface PaperHeader {
  */
 export async function loadPaperHeader(slug: string): Promise<PaperHeader | null> {
   try {
-    return await unstable_cache(
+    return rehostDeep(await unstable_cache(
       async () => {
         const header = await readHeader(createAdminClient(), slug, true);
         if (!header) throw new NotPublished();
@@ -423,7 +431,7 @@ export async function loadPaperHeader(slug: string): Promise<PaperHeader | null>
       },
       ["published-paper-header", slug],
       { tags: [PAPERS_TAG, paperTag(slug)], revalidate: CACHE_SECONDS },
-    )();
+    )());
   } catch (error) {
     if (error instanceof NotPublished) return null;
     throw error;
@@ -432,7 +440,7 @@ export async function loadPaperHeader(slug: string): Promise<PaperHeader | null>
 
 /** The header read live, under the caller's rights — for an admin's draft. */
 export async function loadPaperHeaderLive(slug: string): Promise<PaperHeader | null> {
-  return readHeader(await createClient(), slug, false);
+  return rehostDeep(await readHeader(await createClient(), slug, false));
 }
 
 async function readHeader(

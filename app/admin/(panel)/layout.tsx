@@ -31,6 +31,7 @@ const NAV: { title: string; items: { href: string; label: string; icon: string; 
       { href: "/admin/mocks", label: "Full Mocks", icon: "🏁", section: "papers" },
       { href: "/admin/reports", label: "Question reports", icon: "🚩", section: "papers" },
       { href: "/admin/blog", label: "Blog", icon: "✍️", section: "admin" },
+      { href: "/admin/pictures", label: "Pictures", icon: "🖼️", section: "admin" },
     ],
   },
   { title: "Results", items: [{ href: "/admin/results", label: "Results", icon: "📊", section: "results" }, { href: "/admin/analytics", label: "Analytics", icon: "📈", section: "results" }] },

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProfile, isConfigured, isVerifiedEditor, mayOpen } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rehostUrl } from "@/lib/images/host";
 import { getBundledPaper } from "@/lib/wt/paper";
 import { readQuestionRows } from "@/lib/wt/db";
 import { tScore, type Cohort } from "@/lib/wt/tscore";
@@ -565,9 +566,9 @@ function mark(rows: QuestionRow[], given: Map<string, OptionValue>): MarkedQuest
       workingEn: q.working_en ?? "",
       workingHi: q.working_hi ?? "",
       topic: q.topic ?? "",
-      ...(q.image_url ? { image: q.image_url } : {}),
-      ...(q.option_images?.length ? { optionImages: q.option_images } : {}),
-      ...(q.prompt_image ? { promptImage: q.prompt_image } : {}),
+      ...(q.image_url ? { image: rehostUrl(q.image_url) } : {}),
+      ...(q.option_images?.length ? { optionImages: q.option_images.map(rehostUrl) } : {}),
+      ...(q.prompt_image ? { promptImage: rehostUrl(q.prompt_image) } : {}),
     };
   });
 }

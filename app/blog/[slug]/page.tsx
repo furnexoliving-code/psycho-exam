@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostView } from "@/components/blog/PostView";
 import { getProfile, isConfigured, isVerifiedEditor } from "@/lib/auth";
-import { listPublishedPosts, loadPostLive, loadPublishedPost, sidebarPackages } from "@/lib/blog";
+import { listPublishedPosts, loadPostLive, loadPublishedPost, rehostPost, sidebarPackages } from "@/lib/blog";
 import { listPackages } from "@/lib/packages";
 import { listPublishedMocks } from "@/lib/wt/mock";
 import { LAUNCH } from "@/lib/launch";
@@ -41,7 +41,10 @@ export default async function BlogPostPage({ params, searchParams }: { params: P
   const { slug } = await params;
   const { preview } = await searchParams;
   // The panel's preview shows a draft to its editor, and to nobody else.
-  const post = preview === "1" && (await isVerifiedEditor()) ? await loadPostLive(slug) : await loadPublishedPost(slug);
+  // A draft previewed by its editor is shown as readers will see it,
+  // pictures from the picture domain included.
+  const live = preview === "1" && (await isVerifiedEditor()) ? await loadPostLive(slug) : null;
+  const post = live ? rehostPost(live) : await loadPublishedPost(slug);
   if (!post) notFound();
 
   const [all, posts, profile, mocks] = await Promise.all([

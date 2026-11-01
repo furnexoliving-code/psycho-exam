@@ -1,5 +1,6 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rehostText, rehostUrl } from "@/lib/images/host";
 import type { Package } from "@/lib/packages";
 
 /**
@@ -110,9 +111,25 @@ function toSummary(r: PostRow): PostSummary {
   };
 }
 
+/**
+ * An article as a reader is served it: its pictures from the picture
+ * domain (lib/images/host.ts). Applied on the way out of the published
+ * readers only — the panel's editor gets the database's own links, which
+ * its form writes back.
+ */
+export function rehostPost(post: Post): Post {
+  return { ...post, coverImageUrl: post.coverImageUrl ? rehostUrl(post.coverImageUrl) : post.coverImageUrl, content: rehostText(post.content) };
+}
+
+function rehostSummary(post: PostSummary): PostSummary {
+  return { ...post, coverImageUrl: post.coverImageUrl ? rehostUrl(post.coverImageUrl) : post.coverImageUrl };
+}
+
 /** The published articles, newest first, from the shared cache; empty before the SQL has run. */
 export async function listPublishedPosts(): Promise<PostSummary[]> {
-  return unstable_cache(
+  // Rewritten on the way out, not inside the cache: the cache holds the
+  // database's links, so a change of picture domain lands with the deploy.
+  const posts = await unstable_cache(
     async () => {
       try {
         const { data, error } = await createAdminClient()
@@ -129,11 +146,12 @@ export async function listPublishedPosts(): Promise<PostSummary[]> {
     ["published-posts"],
     { tags: [TAG], revalidate: 300 },
   )();
+  return posts.map(rehostSummary);
 }
 
 /** One published article, from the shared cache. */
 export async function loadPublishedPost(slug: string): Promise<Post | null> {
-  return unstable_cache(
+  const post = await unstable_cache(
     async () => {
       try {
         const { data, error } = await createAdminClient().from("blog_posts").select(COLUMNS).eq("slug", slug).eq("is_published", true).maybeSingle();
@@ -146,6 +164,7 @@ export async function loadPublishedPost(slug: string): Promise<Post | null> {
     ["post", slug],
     { tags: [TAG], revalidate: 300 },
   )();
+  return post ? rehostPost(post) : null;
 }
 
 /** Every article, for the panel. */

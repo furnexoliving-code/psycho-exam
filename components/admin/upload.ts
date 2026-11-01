@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { mirrorUploadedPicture } from "./mirror-actions";
 
 const BUCKET = "watch-diagrams";
 export const MAX_PICTURE_BYTES = 5 * 1024 * 1024;
@@ -18,8 +19,9 @@ export const MAX_PICTURE_BYTES = 5 * 1024 * 1024;
  * large, or the upload itself failing.
  */
 export async function uploadPicture(file: File): Promise<string> {
-  if (!file.type.startsWith("image/")) {
-    throw new Error(`"${file.name}" is not a picture. Choose a PNG, JPG or WEBP.`);
+  // An SVG is a document that can carry script, not a picture of a paper.
+  if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+    throw new Error(`"${file.name}" is not a picture the portal takes. Choose a PNG, JPG or WEBP.`);
   }
   if (file.size > MAX_PICTURE_BYTES) {
     throw new Error(
@@ -42,7 +44,21 @@ export async function uploadPicture(file: File): Promise<string> {
     );
   }
 
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+  const url = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+
+  // The copy the portal serves (lib/images/host.ts). A failed copy fails
+  // the upload: once the portal serves from R2, a link only Supabase can
+  // answer is a broken picture on the exam screen. The file is in the
+  // bucket all the same, so uploading again works, and Admin → Pictures
+  // copies whatever is not copied yet on its next run.
+  const mirrored = await mirrorUploadedPicture(url);
+  if (!mirrored.ok) {
+    throw new Error(
+      `Uploaded, but the copy to the picture server failed: ${mirrored.error}.${mirrored.retryable === false ? "" : " Upload again, or open Admin → Pictures and press Copy."}`,
+    );
+  }
+
+  return url;
 }
 
 /**
