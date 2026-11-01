@@ -57,6 +57,26 @@ export function PicturesView({
   const complete = tried && progress.failed === progress.missing;
   const mendable = progress ? progress.failed - progress.missing : 0;
 
+  /**
+   * One batch, asked for again when the call itself fails — the connection
+   * dropped, or the server was swapped under a deploy — a few times, a
+   * little longer apart each time. Safe to ask again: each batch writes
+   * down what it did as it goes, and the next starts after whatever is
+   * already recorded.
+   */
+  const batch = async () => {
+    for (let tries = 0; ; tries++) {
+      try {
+        return await copyNextBatch(cursor.current);
+      } catch (e) {
+        if (tries >= 4 || stop.current) throw e;
+        const wait = 2 ** tries * 2;
+        setNote({ tone: "warn", text: `The connection dropped (${e instanceof Error ? e.message : String(e)}); trying again in ${wait} s…` });
+        await new Promise((resolve) => setTimeout(resolve, wait * 1000));
+      }
+    }
+  };
+
   const copy = async () => {
     stop.current = false;
     setRunning(true);
@@ -64,7 +84,8 @@ export function PicturesView({
     setNote(null);
     try {
       for (;;) {
-        const reply = await copyNextBatch(cursor.current);
+        const reply = await batch();
+        setNote(null);
         if (!reply.ok) {
           setError(reply.error);
           break;
@@ -122,7 +143,7 @@ export function PicturesView({
     } catch (e) {
       // The call itself failed — the connection dropped, or the server cut
       // the batch off — rather than the copy reporting a failure.
-      setError(`The server did not answer (${e instanceof Error ? e.message : String(e)}). Nothing already copied is lost: press Copy to go on from here.`);
+      setError(`The server did not answer five times running (${e instanceof Error ? e.message : String(e)}). Nothing already copied is lost: press Copy to go on from here.`);
     } finally {
       setRunning(false);
     }
