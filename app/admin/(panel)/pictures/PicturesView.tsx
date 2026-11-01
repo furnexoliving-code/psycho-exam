@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import { isMissing, type Failure } from "@/lib/images/failures";
-import type { BatchOutcome, Checked, MirrorProgress } from "@/lib/images/mirror";
-import { checkPictures, copyNextBatch, retryFailures } from "./actions";
+import type { BatchOutcome, Checked, MirrorProgress, Probe } from "@/lib/images/mirror";
+import { checkPictures, copyNextBatch, retryFailures, testConnection } from "./actions";
 
 /**
  * The pictures' copy on Cloudflare R2, run from here: Copy takes the next
@@ -43,6 +43,9 @@ export function PicturesView({
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState<Checked[] | null>(null);
   const [checkError, setCheckError] = useState<string | null>(null);
+  const [probing, setProbing] = useState(false);
+  const [probes, setProbes] = useState<Probe[] | null>(null);
+  const [probeError, setProbeError] = useState<string | null>(null);
   const stop = useRef(false);
 
   const ready = missing.length === 0 && progress !== null;
@@ -83,8 +86,16 @@ export function PicturesView({
           setNote({ tone: "warn", text: "Stopped. Press Copy to go on from here." });
           break;
         }
-        if (outcome.copied === 0 && outcome.failed.length === 0) {
-          setError("Nothing was copied in twenty seconds: Supabase or Cloudflare is not answering. Wait a minute and press Copy again; if it keeps happening, check the R2 endpoint and keys in Vercel.");
+        // A batch that copied nothing, and failed for reasons a retry could
+        // mend, is the set-up refusing, not the pictures: stop, and show the
+        // first reason, rather than mark every picture in the bucket failed.
+        const mendable = outcome.failed.filter((f) => !isMissing(f));
+        if (outcome.copied === 0 && (mendable.length > 0 || outcome.failed.length === 0)) {
+          setError(
+            mendable.length > 0
+              ? `Nothing was copied: every picture in the batch was refused — "${mendable[0].error}". Fix that (the R2 endpoint and keys in Vercel, usually), press Retry the failed ones, then Copy.`
+              : "Nothing was copied in twelve seconds: Supabase or Cloudflare is not answering. Wait a minute and press Copy again; if it keeps happening, check the R2 endpoint and keys in Vercel.",
+          );
           break;
         }
       }
@@ -108,6 +119,21 @@ export function PicturesView({
     setFailures([]);
     setProgress((p) => (p ? { ...p, remaining: p.remaining + p.failed, failed: 0, missing: 0 } : p));
     setNote({ tone: "warn", text: `${reply.value} failure${reply.value === 1 ? "" : "s"} forgotten. Press Copy to try ${reply.value === 1 ? "it" : "them"} again.` });
+  };
+
+  const probe = async () => {
+    setProbing(true);
+    setProbeError(null);
+    setProbes(null);
+    try {
+      const reply = await testConnection();
+      if (!reply.ok) setProbeError(reply.error);
+      else setProbes(reply.value);
+    } catch (e) {
+      setProbeError(`The server did not answer (${e instanceof Error ? e.message : String(e)}).`);
+    } finally {
+      setProbing(false);
+    }
   };
 
   const check = async () => {
@@ -187,7 +213,9 @@ export function PicturesView({
             </div>
             <p className="mt-1 text-[11.5px] text-gray-500">
               {pct}% tried
-              {last ? ` · last batch: ${last.copied} copied${last.failed.length ? `, ${last.failed.length} failed` : ""} in ${last.seconds} s` : ""}
+              {last
+                ? ` · last batch: ${last.copied} copied${last.failed.length ? `, ${last.failed.length} failed` : ""} in ${last.seconds} s${last.copied ? ` (a picture: ${last.readMs} ms to read, ${last.writeMs} ms to write)` : ""}`
+                : ""}
             </p>
           </>
         ) : (
@@ -213,9 +241,31 @@ export function PicturesView({
               Retry the failed ones
             </button>
           )}
+          <button
+            type="button"
+            onClick={probe}
+            disabled={!ready || running || probing}
+            className="rounded border border-gray-400 bg-white px-4 py-1.5 text-[12px] font-semibold text-gray-800 hover:bg-gray-100 disabled:opacity-50"
+            title="Times each step of one copy on its own"
+          >
+            {probing ? "Testing…" : "Test the connection"}
+          </button>
         </div>
+        {probeError && <p className="mt-2 text-[12.5px] font-semibold text-red-700">{probeError}</p>}
+        {probes && (
+          <ul className="mt-3 space-y-1 rounded border border-gray-200 bg-gray-50 p-3 text-[12px]">
+            {probes.map((p) => (
+              <li key={p.what} className="flex flex-wrap gap-x-2">
+                <span className={`font-semibold ${p.ok ? "text-green-800" : "text-red-700"}`}>{p.ok ? "✓" : "✗"}</span>
+                <span className="text-gray-800">{p.what}</span>
+                <span className="text-gray-500">{(p.ms / 1000).toFixed(1)} s</span>
+                <span className={`break-all ${p.ok ? "text-gray-600" : "text-red-700"}`}>{p.detail}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         <p className="mt-2 text-[11.5px] text-gray-500">
-          Each batch copies up to 300 pictures and the next starts by itself. Keep this tab open until it says every picture is copied; closing it
+          Each batch copies up to 150 pictures and the next starts by itself. Keep this tab open until it says every picture is copied; closing it
           only pauses — Copy goes on from where it stopped.
           <span className="block" lang="hi">यह tab खुला रखें; बंद करने पर काम रुकता है, मिटता नहीं — दोबारा Copy दबाने पर वहीं से आगे बढ़ता है।</span>
         </p>

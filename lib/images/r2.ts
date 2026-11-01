@@ -65,7 +65,7 @@ const RETRIES = 2;
 async function send(
   s: R2Settings,
   url: string,
-  init: { method: "PUT" | "HEAD"; body?: ArrayBuffer; headers?: Record<string, string>; timeoutMs: number },
+  init: { method: "PUT" | "HEAD"; body?: ArrayBuffer; headers?: Record<string, string>; timeoutMs: number; deadline?: number },
 ): Promise<Response> {
   const aws = client(s);
   for (let attempt = 0; ; attempt++) {
@@ -75,9 +75,9 @@ async function send(
       headers: signed.headers,
       body: init.body,
       cache: "no-store",
-      signal: AbortSignal.timeout(init.timeoutMs),
+      signal: AbortSignal.timeout(within(init.timeoutMs, init.deadline)),
     });
-    if ((res.status >= 500 || res.status === 429) && attempt < RETRIES) {
+    if ((res.status >= 500 || res.status === 429) && attempt < RETRIES && (init.deadline === undefined || Date.now() + 1_000 < init.deadline)) {
       await res.arrayBuffer().catch(() => undefined);
       await new Promise((resolve) => setTimeout(resolve, 100 * 2 ** attempt));
       continue;
@@ -86,18 +86,29 @@ async function send(
   }
 }
 
-/** Writes an object with the headers R2 will serve it with. Throws with R2's reason when refused. */
+/** How long a request may take: its own limit, or what is left before the deadline (a millisecond at least, so an expired deadline fails at once rather than hangs). */
+export function within(limitMs: number, deadline?: number): number {
+  return deadline === undefined ? limitMs : Math.max(1, Math.min(limitMs, deadline - Date.now()));
+}
+
+/**
+ * Writes an object with the headers R2 will serve it with. Throws with
+ * R2's reason when refused. A deadline (a time in milliseconds) bounds
+ * the write to what is left of the batch it runs in.
+ */
 export async function putObject(
   s: R2Settings,
   key: string,
   body: ArrayBuffer,
   headers: { contentType: string; cacheControl: string },
+  deadline?: number,
 ): Promise<void> {
   const res = await send(s, objectUrl(s, key), {
     method: "PUT",
     body,
     headers: { "Content-Type": headers.contentType, "Cache-Control": headers.cacheControl },
     timeoutMs: PUT_MS,
+    deadline,
   });
   if (!res.ok) throw new Error(`R2 refused the copy (${res.status}): ${await reason(res)}`);
   // The body is not needed, but an unread body keeps the connection busy.

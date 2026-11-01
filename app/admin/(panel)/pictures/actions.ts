@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAdmin } from "@/lib/auth";
-import { checkCopies, forgetFailures, mirrorBatch, type BatchOutcome, type Checked } from "@/lib/images/mirror";
+import { checkCopies, forgetFailures, mirrorBatch, probeConnection, type BatchOutcome, type Checked, type Probe } from "@/lib/images/mirror";
 
 /** What a button gets back: the value, or why not — never a thrown error the browser would swallow. */
 export type Reply<T> = { ok: true; value: T } | { ok: false; error: string };
@@ -23,6 +23,11 @@ export async function copyNextBatch(): Promise<Reply<BatchOutcome>> {
 /** Forgets the failures so Copy tries them again. */
 export async function retryFailures(): Promise<Reply<number>> {
   return reply(forgetFailures);
+}
+
+/** Times each leg of a copy on its own: the database, a read from Supabase, a write to R2, a read back. */
+export async function testConnection(): Promise<Reply<Probe[]>> {
+  return reply(probeConnection);
 }
 
 /** Looks at the newest copies through the given picture domain (or R2's API without one). */

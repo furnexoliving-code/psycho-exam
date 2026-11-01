@@ -3,7 +3,7 @@ import { BAD_NAME, NOT_IN_BUCKET, type Failure } from "./failures";
 
 export type { Failure } from "./failures";
 import { imageHost, supabasePicturePrefix } from "./host";
-import { headObject, putObject, r2Missing, r2Settings, summarize, type ObjectHead, type R2Settings } from "./r2";
+import { headObject, putObject, r2Missing, r2Settings, summarize, within, type ObjectHead, type R2Settings } from "./r2";
 
 /**
  * The copy of the pictures on Cloudflare R2.
@@ -24,11 +24,25 @@ import { headObject, putObject, r2Missing, r2Settings, summarize, type ObjectHea
  * (components/admin/upload.ts), so what a name shows can never change.
  */
 const CACHE_CONTROL = "public, max-age=31536000, immutable";
-/** One press of Copy: this many pictures at most, this many at once, for at most this long. */
-const PER_BATCH = 300;
+/**
+ * One press of Copy: this many pictures at most, this many at once, for
+ * at most this long before no more are started. Small enough that a call
+ * returns well inside a minute — Safari gives up on a request that has
+ * not answered in sixty seconds — and what is done is recorded as the
+ * batch goes, so a call cut off part-way still keeps its copies.
+ */
+const PER_BATCH = 150;
 const AT_ONCE = 8;
-/** Well inside the forty seconds a panel action may run. */
-const BATCH_MS = 20_000;
+const BATCH_MS = 12_000;
+/**
+ * A copy under way when the batch's time is up may run on this much
+ * longer; every request of it is cut to what is left, so the batch, its
+ * records and the count that follows end well inside the forty seconds
+ * the panel's actions may run.
+ */
+const GRACE_MS = 14_000;
+/** How often, in copies, the batch writes down what it has done so far. */
+const RECORD_EVERY = 25;
 /** The newest copies looked at by Check. */
 const CHECKED = 10;
 
@@ -74,11 +88,11 @@ function settings(): R2Settings {
   return r2;
 }
 
-/** Reads a picture from the Supabase bucket, where the upload put it. */
-async function readFromSupabase(name: string, mimetype?: string | null): Promise<{ bytes: ArrayBuffer; contentType: string }> {
+/** Reads a picture from the Supabase bucket, where the upload put it; bounded by its own limit and the batch's deadline when there is one. */
+async function readFromSupabase(name: string, mimetype?: string | null, deadline?: number): Promise<{ bytes: ArrayBuffer; contentType: string }> {
   const prefix = supabasePicturePrefix();
   if (!prefix) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
-  const res = await fetch(prefix + pathOf(name), { cache: "no-store", signal: AbortSignal.timeout(READ_MS) });
+  const res = await fetch(prefix + pathOf(name), { cache: "no-store", signal: AbortSignal.timeout(within(READ_MS, deadline)) });
   // Storage answers a missing object with 400 as often as with 404.
   if (res.status === 400 || res.status === 404) throw new Error(`${NOT_IN_BUCKET} (${res.status})`);
   if (!res.ok) throw new Error(`Supabase refused the read (${res.status})`);
@@ -160,8 +174,13 @@ export interface BatchOutcome {
   copied: number;
   failed: Failure[];
   seconds: number;
+  /** Where the time went, per picture: the read from Supabase and the write to R2, on average. */
+  readMs: number;
+  writeMs: number;
   progress: MirrorProgress;
 }
+
+type MirrorRow = { name: string; bytes: number | null; content_type: string | null; mirrored_at: string | null; error: string | null };
 
 /** One press of Copy: the next pictures not yet tried, AT_ONCE at a time, until the batch or its time is done. */
 export async function mirrorBatch(): Promise<BatchOutcome> {
@@ -171,14 +190,36 @@ export async function mirrorBatch(): Promise<BatchOutcome> {
   if (error) throw new Error(`Could not list the pictures still to copy: ${error.message} — run supabase/images-r2.sql in the Supabase SQL editor first`);
 
   const started = Date.now();
+  const deadline = started + BATCH_MS + GRACE_MS;
   const queue: { name: string; mimetype: string | null }[] = [];
-  const done: Copied[] = [];
   const failed: Failure[] = [];
+  let copied = 0;
+  let readMs = 0;
+  let writeMs = 0;
+  let pending: MirrorRow[] = [];
+  let recording: Promise<void> = Promise.resolve();
+  let recordError: string | null = null;
+
+  // What is done is written down every RECORD_EVERY pictures, so a call
+  // the platform or the browser cuts off still keeps most of its work.
+  const record = () => {
+    if (pending.length === 0) return;
+    const rows = pending;
+    pending = [];
+    recording = recording.then(async () => {
+      const { error: writeError } = await supabase.from("image_mirror").upsert(rows, { onConflict: "name" });
+      if (writeError) recordError = writeError.message;
+    });
+  };
+
   for (const row of (data ?? []) as { name: string; mimetype: string | null }[]) {
     // A name the copy cannot carry is recorded as failed rather than left
     // for every later batch to list again.
     if (isObjectName(row.name)) queue.push(row);
-    else failed.push({ name: row.name, error: BAD_NAME });
+    else {
+      failed.push({ name: row.name, error: BAD_NAME });
+      pending.push({ name: row.name, bytes: null, content_type: null, mirrored_at: null, error: BAD_NAME });
+    }
   }
 
   await Promise.all(
@@ -186,30 +227,91 @@ export async function mirrorBatch(): Promise<BatchOutcome> {
       while (queue.length > 0 && Date.now() - started < BATCH_MS) {
         const row = queue.shift()!;
         try {
-          done.push(await copyOne(r2, row.name, row.mimetype));
+          const t0 = Date.now();
+          const { bytes, contentType } = await readFromSupabase(row.name, row.mimetype, deadline);
+          const t1 = Date.now();
+          await putObject(r2, row.name, bytes, { contentType, cacheControl: CACHE_CONTROL }, deadline);
+          readMs += t1 - t0;
+          writeMs += Date.now() - t1;
+          copied += 1;
+          pending.push({ name: row.name, bytes: bytes.byteLength, content_type: contentType, mirrored_at: new Date().toISOString(), error: null });
         } catch (e) {
-          failed.push({ name: row.name, error: e instanceof Error ? e.message : String(e) });
+          const message = e instanceof Error ? e.message : String(e);
+          failed.push({ name: row.name, error: message });
+          pending.push({ name: row.name, bytes: null, content_type: null, mirrored_at: null, error: message.slice(0, 500) });
         }
+        if (pending.length >= RECORD_EVERY) record();
       }
     }),
   );
-
-  const now = new Date().toISOString();
-  const rows = [
-    ...done.map((c) => ({ name: c.name, bytes: c.bytes, content_type: c.contentType, mirrored_at: now, error: null })),
-    ...failed.map((f) => ({ name: f.name, bytes: null, content_type: null, mirrored_at: null, error: f.error.slice(0, 500) })),
-  ];
-  if (rows.length > 0) {
-    const { error: writeError } = await supabase.from("image_mirror").upsert(rows, { onConflict: "name" });
-    if (writeError) throw new Error(`${done.length} copied, but could not record them: ${writeError.message}`);
-  }
+  record();
+  await recording;
+  if (recordError) throw new Error(`${copied} copied, but could not record them all: ${recordError}`);
 
   return {
-    copied: done.length,
+    copied,
     failed,
     seconds: Math.round((Date.now() - started) / 100) / 10,
+    readMs: copied ? Math.round(readMs / copied) : 0,
+    writeMs: copied ? Math.round(writeMs / copied) : 0,
     progress: await mirrorProgress(),
   };
+}
+
+export interface Probe {
+  what: string;
+  ok: boolean;
+  ms: number;
+  detail: string;
+}
+
+/** The copy's test file in R2: written and read back by the probe, never served to anyone. */
+const PROBE_KEY = "_probe/ping.txt";
+
+/**
+ * Each leg of a copy on its own, timed, so that when a batch gets nowhere
+ * the page can say which side is slow or refusing: the database's list,
+ * a read from Supabase, a write to R2 and a read back of it.
+ */
+export async function probeConnection(): Promise<Probe[]> {
+  const out: Probe[] = [];
+  const supabase = createAdminClient();
+  let name: string | null = null;
+  await timed(out, "List one picture still to copy (database)", async () => {
+    const { data, error } = await supabase.rpc("image_mirror_pending", { p_limit: 1 });
+    if (error) throw new Error(error.message);
+    const first = (data as { name: string }[] | null)?.[0]?.name ?? null;
+    name = first && isObjectName(first) ? first : null;
+    return name ? `found ${name}` : "nothing left to copy";
+  });
+  if (name) {
+    const picture = name;
+    await timed(out, "Read it from Supabase", async () => {
+      const { bytes, contentType } = await readFromSupabase(picture);
+      return `${bytes.byteLength} bytes, ${contentType}`;
+    });
+  }
+  const r2 = settings();
+  await timed(out, "Write a small test file to R2", async () => {
+    await putObject(r2, PROBE_KEY, Uint8Array.from([111, 107]).buffer, { contentType: "text/plain", cacheControl: "no-store" });
+    return "written";
+  });
+  await timed(out, "Read it back from R2", async () => {
+    const head = await headObject(r2, PROBE_KEY);
+    if (!head.exists) throw new Error(`not found (${head.status})`);
+    return `found, ${head.bytes ?? "?"} bytes`;
+  });
+  return out;
+}
+
+async function timed(out: Probe[], what: string, body: () => Promise<string>): Promise<void> {
+  const started = Date.now();
+  try {
+    const detail = await body();
+    out.push({ what, ok: true, ms: Date.now() - started, detail });
+  } catch (e) {
+    out.push({ what, ok: false, ms: Date.now() - started, detail: e instanceof Error ? e.message : String(e) });
+  }
 }
 
 /** Forgets the failures, so the next Copy tries them again. Returns how many. */
