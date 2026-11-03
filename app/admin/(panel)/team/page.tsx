@@ -130,9 +130,10 @@ export default async function TeamPage() {
           Staff can reset a student&apos;s password. A test setter can create, write and
           publish papers, and can add students (one at a time or from a pasted list)
           and look after their accounts (details, validity, the on/off switch, a new
-          password); giving a package to an existing student, deleting an account,
-          results, payments, coupons and the team stay with the admin. A result viewer
-          sees results and nothing else. All sign in at{" "}
+          password, a package given or taken); a package for all at once, a package
+          the student bought online, deleting an account, results, payments, coupons
+          and the team stay with the admin. A result viewer sees results and nothing
+          else. All sign in at{" "}
           <code className="rounded bg-gray-200 px-1">/admin</code> and use an
           authenticator app like the admin does.
         </p>

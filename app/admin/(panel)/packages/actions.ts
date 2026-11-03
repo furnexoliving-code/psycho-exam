@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { attempt, type SaveState } from "@/lib/admin-result";
-import { requireAdmin } from "@/lib/auth";
+import { mayOpen, requireAdmin, requireStudents } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAction } from "@/lib/audit";
 import { EXAMS, grantEnrollment, loadPackage, packagesChanged, revokeEnrollment, type PackageKind } from "@/lib/packages";
@@ -101,14 +101,26 @@ export async function deletePackage(_prev: SaveState | null, formData: FormData)
   });
 }
 
-/** Gives a student a package, from the institute. The admin's alone: a package is money, bought or given. */
+/**
+ * Gives a student a package, from the institute: the admin, or the test
+ * setter looking after the student. One the student BOUGHT is the
+ * admin's alone to touch — giving it again would rewrite the record of
+ * the payment — as is any account that is not a student's.
+ */
 export async function enrollStudent(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Package", async () => {
-    await requireAdmin();
+    const who = await requireStudents();
     const userId = String(formData.get("user_id") ?? "");
     const slug = String(formData.get("package") ?? "");
     const pkg = await loadPackage(slug);
     if (!pkg) throw new Error("Choose a package");
+    const supabase = createAdminClient();
+    const { data: target } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+    if (!target || target.role !== "student") throw new Error("Not a student's account");
+    if (!mayOpen(who.role, "admin")) {
+      const { data: held } = await supabase.from("enrollments").select("source").eq("user_id", userId).eq("package_id", pkg.id).maybeSingle();
+      if (held?.source === "purchase") throw new Error("The student bought this package online; only the admin changes it");
+    }
     const until = String(formData.get("expires_on") ?? "").trim();
     let expiresAt: string | null = null;
     if (until) {
@@ -122,14 +134,16 @@ export async function enrollStudent(_prev: SaveState | null, formData: FormData)
   });
 }
 
+/** Takes a package off a student. A bought one is the admin's alone to remove. */
 export async function unenrollStudent(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Package", async () => {
-    await requireAdmin();
+    const who = await requireStudents();
     const id = String(formData.get("enrollment_id") ?? "");
     const userId = String(formData.get("user_id") ?? "");
     // The row must be this student's: the log then names the right one.
-    const { data: row } = await createAdminClient().from("enrollments").select("user_id").eq("id", id).maybeSingle();
+    const { data: row } = await createAdminClient().from("enrollments").select("user_id, source").eq("id", id).maybeSingle();
     if (!row || row.user_id !== userId) throw new Error("That package is not on this student's account");
+    if (row.source === "purchase" && !mayOpen(who.role, "admin")) throw new Error("The student bought this package online; only the admin removes it");
     await revokeEnrollment(id);
     revalidatePath(`/admin/students/${userId}`);
     await logAction("Package removed", `enrollment ${id} from ${userId}`);

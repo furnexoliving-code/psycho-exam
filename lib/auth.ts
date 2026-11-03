@@ -44,9 +44,9 @@ export type Section = "admin" | "students" | "papers" | "passwords" | "results";
 const SECTION_ROLES: Record<Section, readonly Role[]> = {
   admin: ["admin"],
   // The student accounts: adding them (one, or a pasted list), their
-  // details and switches. What touches every student at once, deletes an
-  // account, gives a package to an account that already exists (a new
-  // one may start with one), or concerns the team stays in "admin".
+  // details and switches, a package given to or taken from one of them.
+  // What touches every student at once, deletes an account, touches a
+  // package the student bought, or concerns the team stays in "admin".
   students: ["admin", "editor"],
   papers: ["admin", "editor"],
   passwords: ["admin", "staff"],
@@ -240,7 +240,7 @@ export async function requirePanel(): Promise<Profile> {
   return profile;
 }
 
-/** The admin alone: deleting an account, packages, results, the team, deleting a paper. */
+/** The admin alone: deleting an account, a package for all or a bought one, results, the team, deleting a paper. */
 export async function requireAdmin(next = "/admin"): Promise<Profile> {
   return requireSection("admin", next);
 }

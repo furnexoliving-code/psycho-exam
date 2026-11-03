@@ -58,7 +58,7 @@ export function StudentDetailView({
   admin,
 }: {
   s: StudentDetail;
-  /** The admin alone deletes the account, gives or takes a package, and opens the results pages the paper and mock names lead to. */
+  /** The admin alone deletes the account, removes a package the student bought, and opens the results pages the paper and mock names lead to. */
   admin: boolean;
 }) {
   const today = indianDay(s.now);
@@ -283,7 +283,7 @@ export function StudentDetailView({
                   <th className="border border-gray-300 px-2 py-1.5">From</th>
                   <th className="border border-gray-300 px-2 py-1.5">Till</th>
                   <th className="border border-gray-300 px-2 py-1.5">Source</th>
-                  {admin && <th className="border border-gray-300 px-2 py-1.5"></th>}
+                  <th className="border border-gray-300 px-2 py-1.5"></th>
                 </tr>
               </thead>
               <tbody>
@@ -300,8 +300,8 @@ export function StudentDetailView({
                       {e.source === "purchase" ? "Paid online" : "Institute"}
                       {e.note ? <span className="block text-[11px] text-gray-500">{e.note}</span> : null}
                     </td>
-                    {admin && (
-                      <td className="border border-gray-300 px-2 py-1.5">
+                    <td className="border border-gray-300 px-2 py-1.5">
+                      {admin || e.source !== "purchase" ? (
                         <RowForm action={unenrollStudent}>
                           <input type="hidden" name="enrollment_id" value={e.id} />
                           <input type="hidden" name="user_id" value={s.id} />
@@ -309,16 +309,16 @@ export function StudentDetailView({
                             Remove
                           </PendingButton>
                         </RowForm>
-                      </td>
-                    )}
+                      ) : (
+                        <span className="text-[11px] text-gray-500">Bought online: the admin alone removes it</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-        {!admin && <p className="mt-2 text-[11px] text-gray-500">Only the admin gives or takes a package here.</p>}
-        {admin && (
         <RowForm action={enrollStudent} className="mt-3 flex flex-wrap items-end gap-2">
           <input type="hidden" name="user_id" value={s.id} />
           <label className="block">
@@ -345,7 +345,6 @@ export function StudentDetailView({
             Add
           </PendingButton>
         </RowForm>
-        )}
       </section>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.4fr]">

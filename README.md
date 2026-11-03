@@ -115,9 +115,10 @@ there); the database grants the role nothing, and the page and its one
 action work through the service role. An **editor** (test setter) can
 create, write, illustrate and publish papers, and can add students, one at
 a time or from a pasted list, and look after their accounts (details,
-validity, the on/off switch, a new password); they cannot delete a paper or
-a student, give a package to an existing student (a new account may start
-with one), or open the results, payments, coupons or team pages. The paper, question and picture-bucket policies ask
+validity, the on/off switch, a new password, a package given or taken);
+they cannot delete a paper or a student, give a package to all at once,
+touch a package the student bought online, or open the results, payments,
+coupons or team pages. The paper, question and picture-bucket policies ask
 `can_edit_papers()`, true for the admin and the editor alike and, like
 `is_admin()`, only for a session past the second factor; the student pages
 read through the service role behind the section's own check. Every page and action names its section, so a helper who types the
