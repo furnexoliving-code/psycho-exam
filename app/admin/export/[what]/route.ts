@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireResults } from "@/lib/auth";
+import { mayOpen, requirePanel, requireResults } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatDateTime, indianDay } from "@/lib/format-time";
 import { BATTERIES, CATEGORIES } from "@/lib/wt/categories";
@@ -23,7 +23,14 @@ const PAGE = 1000;
 export async function GET(req: Request, { params }: { params: Promise<{ what: string }> }) {
   const { what } = await params;
   if (what !== "results" && what !== "mocks" && what !== "students") return new NextResponse(null, { status: 404 });
-  await requireResults(`/admin/results`);
+  // The results' roles download everything; the student list also goes
+  // to whoever may open the students (the test setter).
+  if (what === "students") {
+    const profile = await requirePanel();
+    if (!mayOpen(profile.role, "results") && !mayOpen(profile.role, "students")) return new NextResponse(null, { status: 404 });
+  } else {
+    await requireResults(`/admin/results`);
+  }
   const search = new URL(req.url).searchParams;
   const filter = filterOf({ q: search.get("q") ?? undefined, quiet: search.get("quiet") ?? undefined, pkg: search.get("pkg") ?? undefined });
   const part = what === "students" ? filterSlug(filter) : "";

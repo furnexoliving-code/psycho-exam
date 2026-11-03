@@ -53,7 +53,14 @@ export interface StudentDetail {
  * their T-scores have moved, every paper sat, the Full Mocks and the
  * packages. The place the team goes when a student rings.
  */
-export function StudentDetailView({ s }: { s: StudentDetail }) {
+export function StudentDetailView({
+  s,
+  admin,
+}: {
+  s: StudentDetail;
+  /** The admin alone deletes the account, gives or takes a package, and opens the results pages the paper and mock names lead to. */
+  admin: boolean;
+}) {
   const today = indianDay(s.now);
   const validIn = s.validUntil ? daysUntil(s.validUntil, today) : null;
   const papersSat = new Set(s.attempts.map((a) => a.paperSlug)).size;
@@ -202,16 +209,18 @@ export function StudentDetailView({ s }: { s: StudentDetail }) {
               </RowForm>
             )}
           </div>
-          <RowForm action={deleteStudent} className="mt-3">
-            <input type="hidden" name="id" value={s.id} />
-            <PendingButton
-              pendingLabel="Deleting…"
-              confirm={`Delete ${s.fullName || s.phone}'s account?\n\nTheir results for every paper go with it. This cannot be undone.\n\nTo keep the results, switch the account off instead.`}
-              className="text-[11px] font-semibold text-red-700 hover:underline disabled:opacity-60"
-            >
-              Delete this account
-            </PendingButton>
-          </RowForm>
+          {admin && (
+            <RowForm action={deleteStudent} className="mt-3">
+              <input type="hidden" name="id" value={s.id} />
+              <PendingButton
+                pendingLabel="Deleting…"
+                confirm={`Delete ${s.fullName || s.phone}'s account?\n\nTheir results for every paper go with it. This cannot be undone.\n\nTo keep the results, switch the account off instead.`}
+                className="text-[11px] font-semibold text-red-700 hover:underline disabled:opacity-60"
+              >
+                Delete this account
+              </PendingButton>
+            </RowForm>
+          )}
         </section>
       </div>
 
@@ -274,7 +283,7 @@ export function StudentDetailView({ s }: { s: StudentDetail }) {
                   <th className="border border-gray-300 px-2 py-1.5">From</th>
                   <th className="border border-gray-300 px-2 py-1.5">Till</th>
                   <th className="border border-gray-300 px-2 py-1.5">Source</th>
-                  <th className="border border-gray-300 px-2 py-1.5"></th>
+                  {admin && <th className="border border-gray-300 px-2 py-1.5"></th>}
                 </tr>
               </thead>
               <tbody>
@@ -291,21 +300,25 @@ export function StudentDetailView({ s }: { s: StudentDetail }) {
                       {e.source === "purchase" ? "Paid online" : "Institute"}
                       {e.note ? <span className="block text-[11px] text-gray-500">{e.note}</span> : null}
                     </td>
-                    <td className="border border-gray-300 px-2 py-1.5">
-                      <RowForm action={unenrollStudent}>
-                        <input type="hidden" name="enrollment_id" value={e.id} />
-                        <input type="hidden" name="user_id" value={s.id} />
-                        <PendingButton pendingLabel="…" confirm={`Remove ${e.package.name} from this student?`} className="text-[11px] font-semibold text-red-700 hover:underline">
-                          Remove
-                        </PendingButton>
-                      </RowForm>
-                    </td>
+                    {admin && (
+                      <td className="border border-gray-300 px-2 py-1.5">
+                        <RowForm action={unenrollStudent}>
+                          <input type="hidden" name="enrollment_id" value={e.id} />
+                          <input type="hidden" name="user_id" value={s.id} />
+                          <PendingButton pendingLabel="…" confirm={`Remove ${e.package.name} from this student?`} className="text-[11px] font-semibold text-red-700 hover:underline">
+                            Remove
+                          </PendingButton>
+                        </RowForm>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+        {!admin && <p className="mt-2 text-[11px] text-gray-500">Only the admin gives or takes a package here.</p>}
+        {admin && (
         <RowForm action={enrollStudent} className="mt-3 flex flex-wrap items-end gap-2">
           <input type="hidden" name="user_id" value={s.id} />
           <label className="block">
@@ -332,6 +345,7 @@ export function StudentDetailView({ s }: { s: StudentDetail }) {
             Add
           </PendingButton>
         </RowForm>
+        )}
       </section>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.4fr]">
@@ -356,7 +370,7 @@ export function StudentDetailView({ s }: { s: StudentDetail }) {
                     return (
                       <tr key={m.id} className="bg-white even:bg-gray-50">
                         <td className="border border-gray-300 px-2 py-1.5 font-semibold text-gray-900">
-                          {m.mockSlug ? (
+                          {admin && m.mockSlug ? (
                             <Link href={`/admin/mocks/${m.mockSlug}/results`} className="text-rrb-banner hover:underline">
                               {m.mockName}
                             </Link>
@@ -398,9 +412,13 @@ export function StudentDetailView({ s }: { s: StudentDetail }) {
                   {s.attempts.map((a) => (
                     <tr key={a.id} className="bg-white even:bg-gray-50">
                       <td className="border border-gray-300 px-2 py-1.5 font-semibold text-gray-900">
-                        <Link href={`/admin/papers/${a.paperSlug}/results`} className="text-rrb-banner hover:underline">
-                          {a.paperName}
-                        </Link>
+                        {admin ? (
+                          <Link href={`/admin/papers/${a.paperSlug}/results`} className="text-rrb-banner hover:underline">
+                            {a.paperName}
+                          </Link>
+                        ) : (
+                          a.paperName
+                        )}
                       </td>
                       <td className="border border-gray-300 px-2 py-1.5 whitespace-nowrap">{formatDateTime(a.submittedAt)}</td>
                       <td className="border border-gray-300 px-2 py-1.5 tabular-nums">

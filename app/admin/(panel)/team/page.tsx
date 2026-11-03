@@ -126,10 +126,13 @@ export default async function TeamPage() {
       <section className="mt-4 rounded border border-gray-300 bg-white p-5">
         <h2 className="text-[15px] font-bold text-gray-900">Helper accounts</h2>
         <p className="mt-1 text-[12px] text-gray-600">
-          Each kind of helper opens one part of this panel and nothing else. Staff can
-          reset a student&apos;s password. A test setter can create, write and publish
-          papers, but sees no results and no student accounts. A result viewer sees
-          results and nothing else. All sign in at{" "}
+          Each kind of helper opens only the parts of this panel that are their job.
+          Staff can reset a student&apos;s password. A test setter can create, write and
+          publish papers, and can add students (one at a time or from a pasted list)
+          and look after their accounts (details, validity, the on/off switch, a new
+          password); giving a package to an existing student, deleting an account,
+          results, payments, coupons and the team stay with the admin. A result viewer
+          sees results and nothing else. All sign in at{" "}
           <code className="rounded bg-gray-200 px-1">/admin</code> and use an
           authenticator app like the admin does.
         </p>

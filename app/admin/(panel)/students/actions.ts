@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { attempt, type SaveState } from "@/lib/admin-result";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireStudents } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidPhone, normalisePhone, phoneToEmail } from "@/lib/phone";
 import { IMPORT_BATCH, parseStudentLines } from "@/lib/parse-students";
@@ -33,7 +33,7 @@ const BACK = "/admin/students";
  */
 export async function createStudent(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Student", async () => {
-    await requireAdmin();
+    await requireStudents();
     const supabase = createAdminClient();
 
     const fullName = String(formData.get("full_name") ?? "").trim();
@@ -171,7 +171,7 @@ export async function givePackageBulk(_prev: SaveState | null, formData: FormDat
 /** Sets a new password for a student who has forgotten theirs. */
 export async function resetPassword(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Password", async () => {
-    await requireAdmin();
+    await requireStudents();
     const supabase = createAdminClient();
 
     const id = String(formData.get("id"));
@@ -196,7 +196,7 @@ export async function resetPassword(_prev: SaveState | null, formData: FormData)
  */
 export async function setActive(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Account", async () => {
-    await requireAdmin();
+    await requireStudents();
     const supabase = createAdminClient();
 
     const id = String(formData.get("id"));
@@ -233,8 +233,8 @@ export async function setActive(_prev: SaveState | null, formData: FormData): Pr
  * their results; this is for an account made by mistake or one the
  * institute must not keep. The attempts and sittings go first, on purpose:
  * left behind they would sit in every paper's cohort as "Not signed in",
- * still moving everyone else's mean and T-score. Admin only, by role in
- * the section — a staff account never reaches this.
+ * still moving everyone else's mean and T-score. The admin alone: the
+ * test setter, who may add students, may not take one away.
  */
 export async function deleteStudent(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Account", async () => {
@@ -308,7 +308,7 @@ export async function importStudentBatch(
 ): Promise<ImportOutcome> {
   const outcome: ImportOutcome = { made: 0, skipped: [], failed: [] };
   try {
-    await requireAdmin();
+    await requireStudents();
     const supabase = createAdminClient();
     const validUntil = validityOf(validUntilRaw);
 
@@ -374,8 +374,9 @@ export async function importStudentBatch(
 }
 
 /**
- * Issues a helper account: staff, who may reset students' passwords, or an
- * editor, who may write papers — and nothing else in either case. Made
+ * Issues a helper account: staff, who may reset students' passwords; an
+ * editor, who may write papers and look after student accounts; or a
+ * result viewer, who sees results — and nothing else in any case. Made
  * exactly like a student — mobile number and password — with the role set
  * once the account exists.
  */
@@ -452,7 +453,7 @@ export async function removeStaff(_prev: SaveState | null, formData: FormData): 
  */
 export async function setValidity(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Validity", async () => {
-    await requireAdmin();
+    await requireStudents();
     const supabase = createAdminClient();
 
     const id = String(formData.get("id"));
@@ -492,7 +493,7 @@ export async function setValidityForAll(_prev: SaveState | null, formData: FormD
 /** Replaces a student's photo from the panel. */
 export async function setStudentPhoto(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Photo", async () => {
-    await requireAdmin();
+    await requireStudents();
     const id = String(formData.get("id"));
     await studentOnly(createAdminClient(), id);
     const file = formData.get("photo");
@@ -506,7 +507,7 @@ export async function setStudentPhoto(_prev: SaveState | null, formData: FormDat
 /** Removes a student's photo from the panel. */
 export async function removeStudentPhoto(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Photo", async () => {
-    await requireAdmin();
+    await requireStudents();
     const id = String(formData.get("id"));
     await studentOnly(createAdminClient(), id);
     await removePhoto(id);
@@ -519,7 +520,7 @@ export async function removeStudentPhoto(_prev: SaveState | null, formData: Form
 /** A note on the account for the team: fees, calls, anything to remember. Kept where no student can read it. */
 export async function setNote(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Note", async () => {
-    await requireAdmin();
+    await requireStudents();
     const supabase = createAdminClient();
     const id = String(formData.get("id"));
     const note = String(formData.get("note") ?? "")
@@ -543,7 +544,7 @@ export async function setNote(_prev: SaveState | null, formData: FormData): Prom
  */
 export async function signOutEverywhere(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Sign out", async () => {
-    await requireAdmin();
+    await requireStudents();
     const supabase = createAdminClient();
     const id = String(formData.get("id"));
     await studentOnly(supabase, id);

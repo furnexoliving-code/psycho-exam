@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatDate, formatDateTime } from "@/lib/format-time";
-import { requireAdmin } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { mayOpen, requireStudents } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { deleteStudent, resetPassword, setActive } from "./actions";
 import { RowForm } from "@/components/admin/RowForm";
 import { PendingButton } from "@/components/admin/PendingButton";
@@ -19,8 +19,13 @@ const PAGE_SIZE = 50;
 export default async function StudentsPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string; quiet?: string; pkg?: string }> }) {
   // On the page itself, not only in the layout: a request can ask for the
   // page segment alone, and the layout then never runs.
-  await requireAdmin("/admin/students");
-  const supabase = await createClient();
+  const profile = await requireStudents("/admin/students");
+  // The test setter adds students and looks after them one at a time;
+  // giving a package to all, and deleting an account, stay the admin's.
+  const admin = mayOpen(profile.role, "admin");
+  // Read with the service role, as the list is, behind the section's
+  // guard above: row level security shows everyone's attempts to no one.
+  const supabase = createAdminClient();
 
   const params = await searchParams;
   const filter = filterOf(params);
@@ -31,8 +36,10 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
   // attempts and the package lists do not depend on it, so all go out together.
   const [{ rows: students, total, held }, { data: watchAttempts }, { data: papers }, packages, starter, missing] = await Promise.all([
     loadStudents(filter, page, PAGE_SIZE),
-    supabase.from("watch_attempts").select("id, paper_id, user_id, marks, total, attempted, submitted_at").order("submitted_at", { ascending: false }).limit(50),
-    supabase.from("watch_papers").select("id, display_name"),
+    // Everyone's latest marks are the admin's to see; the test setter's
+    // page does without them, and without the reads.
+    admin ? supabase.from("watch_attempts").select("id, paper_id, user_id, marks, total, attempted, submitted_at").order("submitted_at", { ascending: false }).limit(50) : Promise.resolve({ data: [] as never[] }),
+    admin ? supabase.from("watch_papers").select("id, display_name") : Promise.resolve({ data: [] as never[] }),
     listPackages("alp"),
     defaultPackage(),
     studentsWithoutPackage(),
@@ -67,7 +74,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
     <>
       <h1 className="text-xl font-bold text-gray-900">Students</h1>
 
-      <Admissions packages={packages} defaultSlug={starter?.slug ?? ""} missing={missing} />
+      <Admissions packages={packages} defaultSlug={starter?.slug ?? ""} missing={missing} canGiveAll={admin} />
 
       <section className="mt-6" id="list">
         <div className="flex flex-wrap items-center gap-3">
@@ -120,7 +127,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
           {chip("self", "Self sign-ups")}
         </div>
 
-        <BulkGrant packages={packages} open={filter.pkg === "none" || filter.pkg === "self"} />
+        {admin && <BulkGrant packages={packages} open={filter.pkg === "none" || filter.pkg === "self"} />}
 
         {students.length ? (
           <div className="mt-3 overflow-x-auto">
@@ -134,7 +141,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                   <th className="border border-gray-300 px-3 py-2">Last seen</th>
                   <th className="border border-gray-300 px-3 py-2">Account</th>
                   <th className="border border-gray-300 px-3 py-2">New password</th>
-                  <th className="border border-gray-300 px-3 py-2" />
+                  {admin && <th className="border border-gray-300 px-3 py-2" />}
                 </tr>
               </thead>
               <tbody>
@@ -174,18 +181,20 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                         </button>
                       </RowForm>
                     </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      <RowForm action={deleteStudent}>
-                        <input type="hidden" name="id" value={s.id} />
-                        <PendingButton
-                          pendingLabel="Deleting…"
-                          confirm={`Delete ${s.full_name || s.phone}'s account?\n\nTheir results for every paper go with it. This cannot be undone.\n\nTo keep the results, switch the account off instead.`}
-                          className="text-[11px] font-semibold text-red-700 hover:underline disabled:opacity-60"
-                        >
-                          Delete
-                        </PendingButton>
-                      </RowForm>
-                    </td>
+                    {admin && (
+                      <td className="border border-gray-300 px-3 py-2">
+                        <RowForm action={deleteStudent}>
+                          <input type="hidden" name="id" value={s.id} />
+                          <PendingButton
+                            pendingLabel="Deleting…"
+                            confirm={`Delete ${s.full_name || s.phone}'s account?\n\nTheir results for every paper go with it. This cannot be undone.\n\nTo keep the results, switch the account off instead.`}
+                            className="text-[11px] font-semibold text-red-700 hover:underline disabled:opacity-60"
+                          >
+                            Delete
+                          </PendingButton>
+                        </RowForm>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -216,51 +225,53 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
         )}
       </section>
 
-      <section className="mt-8">
-        <h2 className="mb-2 text-[15px] font-bold text-gray-900">Recent attempts (latest {watchAttempts?.length ?? 0})</h2>
-        <p className="mb-2 text-[12px] text-gray-600">
-          Every attempt of a paper, with search and filters, is under that paper&apos;s{" "}
-          <Link href="/admin/papers" className="font-semibold text-rrb-banner hover:underline">
-            Results
-          </Link>{" "}
-          button.
-        </p>
-        {watchAttempts?.length ? (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-[13px]">
-              <thead>
-                <tr className="bg-rrb-banner text-left text-white">
-                  <th className="border border-gray-300 px-3 py-2">Student</th>
-                  <th className="border border-gray-300 px-3 py-2">Paper</th>
-                  <th className="border border-gray-300 px-3 py-2">Marks</th>
-                  <th className="border border-gray-300 px-3 py-2">Attempted</th>
-                  <th className="border border-gray-300 px-3 py-2">Accuracy</th>
-                  <th className="border border-gray-300 px-3 py-2">Submitted</th>
-                </tr>
-              </thead>
-              <tbody>
-                {watchAttempts.map((a) => (
-                  <tr key={a.id} className="bg-white even:bg-gray-50">
-                    <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">
-                      {/* Null when the paper was sat without signing in. */}
-                      {a.user_id ? (studentName.get(a.user_id) ?? "—") : "Not signed in"}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">{paperName.get(a.paper_id) ?? "—"}</td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      {a.marks} / {a.total}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">{a.attempted}</td>
-                    <td className="border border-gray-300 px-3 py-2">{a.attempted > 0 ? `${((a.marks / a.attempted) * 100).toFixed(1)}%` : "—"}</td>
-                    <td className="border border-gray-300 px-3 py-2">{formatDateTime(a.submitted_at)}</td>
+      {admin && (
+        <section className="mt-8">
+          <h2 className="mb-2 text-[15px] font-bold text-gray-900">Recent attempts (latest {watchAttempts?.length ?? 0})</h2>
+          <p className="mb-2 text-[12px] text-gray-600">
+            Every attempt of a paper, with search and filters, is under that paper&apos;s{" "}
+            <Link href="/admin/papers" className="font-semibold text-rrb-banner hover:underline">
+              Results
+            </Link>{" "}
+            button.
+          </p>
+          {watchAttempts?.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-[13px]">
+                <thead>
+                  <tr className="bg-rrb-banner text-left text-white">
+                    <th className="border border-gray-300 px-3 py-2">Student</th>
+                    <th className="border border-gray-300 px-3 py-2">Paper</th>
+                    <th className="border border-gray-300 px-3 py-2">Marks</th>
+                    <th className="border border-gray-300 px-3 py-2">Attempted</th>
+                    <th className="border border-gray-300 px-3 py-2">Accuracy</th>
+                    <th className="border border-gray-300 px-3 py-2">Submitted</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="rounded border border-gray-300 bg-white p-5 text-center text-[13px] text-gray-500">No attempts yet.</p>
-        )}
-      </section>
+                </thead>
+                <tbody>
+                  {watchAttempts.map((a) => (
+                    <tr key={a.id} className="bg-white even:bg-gray-50">
+                      <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-900">
+                        {/* Null when the paper was sat without signing in. */}
+                        {a.user_id ? (studentName.get(a.user_id) ?? "—") : "Not signed in"}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2">{paperName.get(a.paper_id) ?? "—"}</td>
+                      <td className="border border-gray-300 px-3 py-2">
+                        {a.marks} / {a.total}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2">{a.attempted}</td>
+                      <td className="border border-gray-300 px-3 py-2">{a.attempted > 0 ? `${((a.marks / a.attempted) * 100).toFixed(1)}%` : "—"}</td>
+                      <td className="border border-gray-300 px-3 py-2">{formatDateTime(a.submitted_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="rounded border border-gray-300 bg-white p-5 text-center text-[13px] text-gray-500">No attempts yet.</p>
+          )}
+        </section>
+      )}
     </>
   );
 }

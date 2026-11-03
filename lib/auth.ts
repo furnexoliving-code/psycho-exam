@@ -12,9 +12,10 @@ export function hasExpired(validUntil: string | null | undefined): boolean {
 }
 
 /**
- * Who an account is. Beyond the student and the admin there are two kinds of
- * helper, each with one job: staff reset students' passwords, an editor
- * writes and publishes papers. Neither sees results or accounts.
+ * Who an account is. Beyond the student and the admin there are helpers,
+ * each with their job: staff reset students' passwords, an editor writes
+ * and publishes papers and looks after the student accounts, a viewer
+ * sees results. None opens the admin's own pages.
  */
 export type Role = "student" | "admin" | "staff" | "editor" | "viewer";
 
@@ -38,10 +39,15 @@ export interface Profile {
  * a helper opens only the section that is their job. Every page and every
  * action names its section, so the rule lives here once.
  */
-export type Section = "admin" | "papers" | "passwords" | "results";
+export type Section = "admin" | "students" | "papers" | "passwords" | "results";
 
 const SECTION_ROLES: Record<Section, readonly Role[]> = {
   admin: ["admin"],
+  // The student accounts: adding them (one, or a pasted list), their
+  // details and switches. What touches every student at once, deletes an
+  // account, gives a package to an account that already exists (a new
+  // one may start with one), or concerns the team stays in "admin".
+  students: ["admin", "editor"],
   papers: ["admin", "editor"],
   passwords: ["admin", "staff"],
   results: ["admin", "viewer"],
@@ -234,7 +240,7 @@ export async function requirePanel(): Promise<Profile> {
   return profile;
 }
 
-/** The admin alone: accounts, results, deleting a paper. */
+/** The admin alone: deleting an account, packages, results, the team, deleting a paper. */
 export async function requireAdmin(next = "/admin"): Promise<Profile> {
   return requireSection("admin", next);
 }
@@ -242,6 +248,11 @@ export async function requireAdmin(next = "/admin"): Promise<Profile> {
 /** The admin or an editor: writing papers. */
 export async function requireEditor(next = "/admin/papers"): Promise<Profile> {
   return requireSection("papers", next);
+}
+
+/** The admin or an editor: the student accounts, one at a time. */
+export async function requireStudents(next = "/admin/students"): Promise<Profile> {
+  return requireSection("students", next);
 }
 
 /** The admin or a result viewer: results, never accounts or papers. */

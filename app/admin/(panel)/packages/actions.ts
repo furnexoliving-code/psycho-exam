@@ -101,7 +101,7 @@ export async function deletePackage(_prev: SaveState | null, formData: FormData)
   });
 }
 
-/** Gives a student a package, from the institute. */
+/** Gives a student a package, from the institute. The admin's alone: a package is money, bought or given. */
 export async function enrollStudent(_prev: SaveState | null, formData: FormData): Promise<SaveState> {
   return attempt("Package", async () => {
     await requireAdmin();
@@ -127,6 +127,9 @@ export async function unenrollStudent(_prev: SaveState | null, formData: FormDat
     await requireAdmin();
     const id = String(formData.get("enrollment_id") ?? "");
     const userId = String(formData.get("user_id") ?? "");
+    // The row must be this student's: the log then names the right one.
+    const { data: row } = await createAdminClient().from("enrollments").select("user_id").eq("id", id).maybeSingle();
+    if (!row || row.user_id !== userId) throw new Error("That package is not on this student's account");
     await revokeEnrollment(id);
     revalidatePath(`/admin/students/${userId}`);
     await logAction("Package removed", `enrollment ${id} from ${userId}`);

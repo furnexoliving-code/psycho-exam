@@ -18,7 +18,7 @@ const NAV: { title: string; items: { href: string; label: string; icon: string; 
   {
     title: "Students",
     items: [
-      { href: "/admin/students", label: "Students", icon: "🎓", section: "admin" },
+      { href: "/admin/students", label: "Students", icon: "🎓", section: "students" },
       { href: "/admin/packages", label: "Packages", icon: "🎟️", section: "admin" },
       { href: "/admin/coupons", label: "Coupons", icon: "🏷️", section: "admin" },
       { href: "/admin/orders", label: "Orders & payments", icon: "₹", section: "admin" },
@@ -65,7 +65,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const groups: NavGroup[] = NAV.map((g) => ({ title: g.title, items: g.items.filter((item) => mayOpen(profile.role, item.section)) })).filter((g) => g.items.length > 0);
 
   return (
-    <AdminShell profile={{ name: profile.full_name || ROLE_LABEL[profile.role], role: ROLE_LABEL[profile.role] }} groups={groups} canSearch={mayOpen(profile.role, "admin")}>
+    <AdminShell profile={{ name: profile.full_name || ROLE_LABEL[profile.role], role: ROLE_LABEL[profile.role] }} groups={groups} canSearch={mayOpen(profile.role, "students")}>
       {children}
     </AdminShell>
   );

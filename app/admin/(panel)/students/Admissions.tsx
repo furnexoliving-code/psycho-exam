@@ -16,18 +16,21 @@ export function Admissions({
   packages,
   defaultSlug,
   missing,
+  canGiveAll = true,
 }: {
   packages: Package[];
   defaultSlug: string;
   /** Students with no package, oldest first; `self` marks accounts the student made. */
   missing: { id: string; fullName: string; self: boolean }[];
+  /** Whether the one-click package for every institute student is offered: the admin's alone. */
+  canGiveAll?: boolean;
 }) {
   const starter = packages.find((p) => p.slug === defaultSlug) ?? null;
   const institute = missing.filter((m) => !m.self);
   const self = missing.length - institute.length;
   return (
     <>
-      {institute.length > 0 && starter && (
+      {institute.length > 0 && starter && canGiveAll && (
         <section className="mt-4 flex flex-wrap items-center gap-3 rounded border border-amber-300 bg-amber-50 p-4">
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-bold text-amber-900">
@@ -57,7 +60,7 @@ export function Admissions({
           <b>
             {self} student{self === 1 ? "" : "s"}
           </b>{" "}
-          made their own account and {self === 1 ? "has" : "have"} the free Full Mock only. They are not given a package by the button above: a package comes when they buy one, or when you give it on purpose.{" "}
+          made their own account and {self === 1 ? "has" : "have"} the free Full Mock only. No package comes to them by itself: one comes when they buy it, or when the admin gives it on purpose.{" "}
           <Link href="/admin/students?pkg=self#list" className="font-semibold underline">
             See self sign-ups →
           </Link>

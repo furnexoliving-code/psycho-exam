@@ -19,7 +19,7 @@ export function AdminShell({
 }: {
   profile: { name: string; role: string };
   groups: NavGroup[];
-  /** Whether the account may search students (admins only). */
+  /** Whether the account may search students (the admin and the test setter). */
   canSearch: boolean;
   children: React.ReactNode;
 }) {

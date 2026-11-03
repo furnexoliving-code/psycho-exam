@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { mayOpen, requireStudents } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { photoUrlOf } from "@/lib/photo";
 import { attemptsFor } from "@/lib/wt/history";
@@ -16,7 +16,7 @@ import { StudentDetailView } from "@/components/admin/StudentDetailView";
 /** One student's page: the data, then the view. */
 export default async function StudentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await requireAdmin(`/admin/students/${id}`);
+  const profile = await requireStudents(`/admin/students/${id}`);
   const supabase = createAdminClient();
   const { data: row } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
   if (!row || row.role !== "student") notFound();
@@ -62,6 +62,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
 
   return (
     <StudentDetailView
+      admin={mayOpen(profile.role, "admin")}
       s={{
         id: student.id,
         fullName: student.full_name || "",
