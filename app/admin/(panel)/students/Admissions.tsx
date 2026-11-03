@@ -60,7 +60,7 @@ export function Admissions({
           <b>
             {self} student{self === 1 ? "" : "s"}
           </b>{" "}
-          made their own account and {self === 1 ? "has" : "have"} the free Full Mock only. No package comes to them by itself: one comes when they buy it, or when the admin gives it on purpose.{" "}
+          made their own account and {self === 1 ? "has" : "have"} the free Full Mock only. No package comes to them by itself: one comes when they buy it, or when the team gives it from the student&apos;s page on purpose.{" "}
           <Link href="/admin/students?pkg=self#list" className="font-semibold underline">
             See self sign-ups →
           </Link>

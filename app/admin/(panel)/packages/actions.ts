@@ -114,20 +114,19 @@ export async function enrollStudent(_prev: SaveState | null, formData: FormData)
     const slug = String(formData.get("package") ?? "");
     const pkg = await loadPackage(slug);
     if (!pkg) throw new Error("Choose a package");
-    const supabase = createAdminClient();
-    const { data: target } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+    const { data: target, error: targetError } = await createAdminClient().from("profiles").select("role").eq("id", userId).maybeSingle();
+    if (targetError) throw new Error(targetError.message);
     if (!target || target.role !== "student") throw new Error("Not a student's account");
-    if (!mayOpen(who.role, "admin")) {
-      const { data: held } = await supabase.from("enrollments").select("source").eq("user_id", userId).eq("package_id", pkg.id).maybeSingle();
-      if (held?.source === "purchase") throw new Error("The student bought this package online; only the admin changes it");
-    }
+    // A bought package is refused inside the write itself, so a check and
+    // the write can never disagree.
+    const keepPurchase = !mayOpen(who.role, "admin");
     const until = String(formData.get("expires_on") ?? "").trim();
     let expiresAt: string | null = null;
     if (until) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(until)) throw new Error("The end date must be a date");
       expiresAt = new Date(`${until}T23:59:59+05:30`).toISOString();
     }
-    await grantEnrollment(userId, pkg, { source: "institute", expiresAt, note: String(formData.get("note") ?? "").trim() || "Added by the institute" });
+    await grantEnrollment(userId, pkg, { source: "institute", expiresAt, note: String(formData.get("note") ?? "").trim() || "Added by the institute", keepPurchase });
     revalidatePath(`/admin/students/${userId}`);
     await logAction("Package given", `${pkg.name} to ${userId}${until ? ` till ${until}` : ""}`);
     return `${pkg.name} added${until ? ` till ${until}` : ""}`;
@@ -141,7 +140,8 @@ export async function unenrollStudent(_prev: SaveState | null, formData: FormDat
     const id = String(formData.get("enrollment_id") ?? "");
     const userId = String(formData.get("user_id") ?? "");
     // The row must be this student's: the log then names the right one.
-    const { data: row } = await createAdminClient().from("enrollments").select("user_id, source").eq("id", id).maybeSingle();
+    const { data: row, error: rowError } = await createAdminClient().from("enrollments").select("user_id, source").eq("id", id).maybeSingle();
+    if (rowError) throw new Error(rowError.message);
     if (!row || row.user_id !== userId) throw new Error("That package is not on this student's account");
     if (row.source === "purchase" && !mayOpen(who.role, "admin")) throw new Error("The student bought this package online; only the admin removes it");
     await revokeEnrollment(id);

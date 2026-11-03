@@ -178,15 +178,29 @@ export function canSitMock(access: Access, mock: { exam: string; isFree: boolean
  * refreshed rather than duplicated: the end date moves to the later of the
  * two, and a package with no end stays endless.
  */
-export async function grantEnrollment(userId: string, pkg: Package, opts: { source: "institute" | "purchase"; validityDays?: number | null; expiresAt?: string | null; orderId?: string | null; note?: string }): Promise<void> {
+export async function grantEnrollment(
+  userId: string,
+  pkg: Package,
+  opts: {
+    source: "institute" | "purchase";
+    validityDays?: number | null;
+    expiresAt?: string | null;
+    orderId?: string | null;
+    note?: string;
+    /** Refuse, rather than rewrite, a package the student bought: for a caller who may not touch a payment's record. */
+    keepPurchase?: boolean;
+  },
+): Promise<void> {
   const supabase = createAdminClient();
   const days = opts.validityDays === undefined ? pkg.validityDays : opts.validityDays;
   const fresh = opts.expiresAt !== undefined ? opts.expiresAt : days ? new Date(Date.now() + days * 86400000).toISOString() : null;
-  const { data: existing } = await supabase.from("enrollments").select("id, expires_at, order_id").eq("user_id", userId).eq("package_id", pkg.id).maybeSingle();
+  const { data: existing, error: readError } = await supabase.from("enrollments").select("id, expires_at, order_id, source").eq("user_id", userId).eq("package_id", pkg.id).maybeSingle();
+  if (readError) throw new Error(readError.message);
   if (existing) {
     // The same purchase, granted already (its reply was lost, or a second
     // caller got here first): one payment buys one validity.
     if (opts.orderId && existing.order_id === opts.orderId) return;
+    if (opts.keepPurchase && existing.source === "purchase") throw new Error("The student bought this package online; only the admin changes it");
     const current = existing.expires_at as string | null;
     // Still running: add the new validity on top; lapsed or endless: as computed.
     let expiresAt = fresh;
